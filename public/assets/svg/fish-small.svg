@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 64" width="128" height="64" aria-label="small fish">
+  <g fill="currentColor">
+    <!-- Body -->
+    <ellipse cx="56" cy="32" rx="34" ry="18" />
+    <!-- Tail -->
+    <path d="M20 32 L4 20 L4 44 Z" />
+    <!-- Fin top -->
+    <path d="M46 20 L58 6 L60 20 Z" />
+    <!-- Fin bottom -->
+    <path d="M46 44 L58 58 L60 44 Z" />
+    <!-- Eye -->
+    <circle cx="74" cy="28" r="3" fill="#fff" />
+    <circle cx="74" cy="28" r="1.5" fill="#222" />
+  </g>
+ </svg>
+

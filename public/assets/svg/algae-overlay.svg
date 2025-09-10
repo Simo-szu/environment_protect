@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" aria-label="algae bloom overlay">
+  <!-- Semi-transparent greenish overlay with scattered dots -->
+  <rect x="0" y="0" width="800" height="450" fill="currentColor" opacity="0.18" />
+  <g fill="currentColor" opacity="0.35">
+    <circle cx="60" cy="80" r="6"/>
+    <circle cx="140" cy="60" r="10"/>
+    <circle cx="220" cy="110" r="7"/>
+    <circle cx="300" cy="70" r="9"/>
+    <circle cx="380" cy="95" r="5"/>
+    <circle cx="460" cy="65" r="8"/>
+    <circle cx="540" cy="85" r="6"/>
+    <circle cx="620" cy="60" r="9"/>
+    <circle cx="700" cy="100" r="7"/>
+    <circle cx="90" cy="180" r="8"/>
+    <circle cx="170" cy="220" r="6"/>
+    <circle cx="250" cy="200" r="10"/>
+    <circle cx="330" cy="240" r="7"/>
+    <circle cx="410" cy="210" r="9"/>
+    <circle cx="490" cy="230" r="6"/>
+    <circle cx="570" cy="190" r="8"/>
+    <circle cx="650" cy="220" r="7"/>
+    <circle cx="730" cy="200" r="6"/>
+    <circle cx="120" cy="320" r="7"/>
+    <circle cx="200" cy="350" r="6"/>
+    <circle cx="280" cy="330" r="9"/>
+    <circle cx="360" cy="360" r="7"/>
+    <circle cx="440" cy="340" r="8"/>
+    <circle cx="520" cy="370" r="6"/>
+    <circle cx="600" cy="350" r="9"/>
+    <circle cx="680" cy="330" r="7"/>
+  </g>
+</svg>
+

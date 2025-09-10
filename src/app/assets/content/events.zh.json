@@ -1,0 +1,60 @@
+{
+  "events": [
+    {
+      "key": "RUNOFF_INTRODUCED",
+      "severity": "event",
+      "text": "[事件] 你引入了农业径流：营养物骤增，生态受到强烈扰动。"
+    },
+    {
+      "key": "ALGAE_BLOOM",
+      "severity": "event",
+      "text": "[事件] 藻类水华爆发：水体中的藻类以惊人速度繁殖。"
+    },
+    {
+      "key": "TURBIDITY_HIGH",
+      "severity": "event",
+      "text": "[事件] 能见度下降：浊度升高，阳光难以穿透水体。"
+    },
+    {
+      "key": "DO_LOW",
+      "severity": "warn",
+      "text": "[警告] 溶解氧走低：鱼类与无脊椎动物开始呼吸困难。"
+    },
+    {
+      "key": "DO_CRITICAL",
+      "severity": "disaster",
+      "text": "[灾难] 严重缺氧：大规模鱼类死亡正在发生。"
+    },
+    {
+      "key": "PLANTS_DIE_OFF",
+      "severity": "event",
+      "text": "[事件] 水生植物大面积凋亡：庇护所与产氧源急剧减少。"
+    },
+    {
+      "key": "SMALL_FISH_COLLAPSE",
+      "severity": "disaster",
+      "text": "[灾难] 小型鱼类种群濒临崩溃：食物链关键环节断裂。"
+    },
+    {
+      "key": "LARGE_FISH_VANISH",
+      "severity": "disaster",
+      "text": "[灾难] 顶级捕食者消失：生态系统失去重要调控力。"
+    },
+    {
+      "key": "AERATOR_ON",
+      "severity": "event",
+      "text": "[事件] 曝气机已启用：溶解氧逐步回升。"
+    },
+    {
+      "key": "BUFFER_ON",
+      "severity": "event",
+      "text": "[事件] 已种植河岸缓冲带：营养物流入得到抑制。"
+    },
+    {
+      "key": "RECOVERY_HINT",
+      "severity": "event",
+      "text": "[事件] 修复迹象：浊度下降、藻类减少、溶解氧回稳。"
+    }
+  ]
+}
+

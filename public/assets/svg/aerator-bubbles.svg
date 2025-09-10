@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300" aria-label="aerator bubbles">
+  <!-- A vertical trail of bubbles; tint with currentColor -->
+  <g fill="currentColor" opacity="0.6">
+    <circle cx="100" cy="280" r="6"/>
+    <circle cx="92" cy="255" r="4"/>
+    <circle cx="108" cy="230" r="5"/>
+    <circle cx="96" cy="205" r="3"/>
+    <circle cx="104" cy="182" r="4"/>
+    <circle cx="98" cy="160" r="3"/>
+    <circle cx="102" cy="138" r="4"/>
+    <circle cx="95" cy="118" r="2.5"/>
+    <circle cx="105" cy="98" r="3.5"/>
+    <circle cx="98" cy="80" r="2.5"/>
+    <circle cx="102" cy="64" r="3"/>
+    <circle cx="100" cy="50" r="2"/>
+  </g>
+</svg>
+

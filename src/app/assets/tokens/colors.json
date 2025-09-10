@@ -1,0 +1,41 @@
+{
+  "palette": {
+    "healthy": {
+      "sky": "#87CEEB",
+      "water": "#5F9EA0",
+      "plant": "#2E8B57",
+      "land": "#A0522D",
+      "accent": "#007BFF"
+    },
+    "polluted": {
+      "sky": "#B0C4DE",
+      "water": "#556B2F",
+      "plant": "#BDB76B",
+      "accent": "#FD7E14"
+    },
+    "collapsed": {
+      "sky": "#778899",
+      "water": "#6B4226",
+      "plant": "#808080",
+      "accent": "#DC3545"
+    },
+    "ui": {
+      "background": "#F8F9FA",
+      "panel": "#FFFFFF",
+      "text": "#212529",
+      "textSecondary": "#6C757D"
+    }
+  },
+  "suggestedCssVariables": {
+    "--color-sky": "palette.healthy.sky",
+    "--color-water": "palette.healthy.water",
+    "--color-plant": "palette.healthy.plant",
+    "--color-land": "palette.healthy.land",
+    "--color-accent": "palette.healthy.accent",
+    "--ui-bg": "palette.ui.background",
+    "--ui-panel": "palette.ui.panel",
+    "--ui-text": "palette.ui.text",
+    "--ui-text-secondary": "palette.ui.textSecondary"
+  }
+}
+

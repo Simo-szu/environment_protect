@@ -1,0 +1,64 @@
+{
+  "time": {
+    "tickMillis": 500,
+    "tickMillisFast": 50,
+    "witnessYears": 50,
+    "ticksPerYear": 12
+  },
+  "history": {
+    "desktopMaxPoints": 1200,
+    "mobileMaxPoints": 600,
+    "sampleEveryNTicks": 1
+  },
+  "events": {
+    "ALGAE_BLOOM": { "phytoplanktonMin": 70, "nutrientsMin": 70, "logic": "OR", "cooldownTicks": 24, "severity": "event" },
+    "TURBIDITY_HIGH": { "waterTurbidityMin": 60, "cooldownTicks": 24, "severity": "event" },
+    "DO_LOW": { "dissolvedOxygenMax": 40, "cooldownTicks": 24, "severity": "warn" },
+    "DO_CRITICAL": { "dissolvedOxygenMax": 20, "cooldownTicks": 24, "severity": "disaster" },
+    "PLANTS_DIE_OFF": { "aquaticPlantsMax": 20, "cooldownTicks": 24, "severity": "event" },
+    "SMALL_FISH_COLLAPSE": { "smallFishMax": 10, "cooldownTicks": 24, "severity": "disaster" },
+    "LARGE_FISH_VANISH": { "largeFishMax": 5, "cooldownTicks": 24, "severity": "disaster" },
+    "AERATOR_ON": { "manual": true, "cooldownTicks": 0, "severity": "event" },
+    "BUFFER_ON": { "manual": true, "cooldownTicks": 0, "severity": "event" },
+    "RECOVERY_HINT": {
+      "composite": {
+        "dissolvedOxygenMin": 50,
+        "waterTurbidityMax": 40,
+        "phytoplanktonMax": 50
+      },
+      "cooldownTicks": 48,
+      "severity": "event"
+    }
+  },
+  "visuals": {
+    "themeRules": [
+      {
+        "theme": "collapsed",
+        "any": [
+          { "dissolvedOxygenMax": 25 },
+          { "smallFishMax": 10 },
+          { "aquaticPlantsMax": 10 }
+        ]
+      },
+      {
+        "theme": "polluted",
+        "any": [
+          { "nutrientsMin": 35 },
+          { "waterTurbidityMin": 35 },
+          { "dissolvedOxygenMax": 60 }
+        ]
+      },
+      {
+        "theme": "healthy",
+        "all": [
+          { "nutrientsMax": 35 },
+          { "waterTurbidityMax": 35 },
+          { "dissolvedOxygenMin": 60 }
+        ]
+      }
+    ],
+    "algaeOverlay": { "phytoplanktonMin": 70, "waterTurbidityMin": 60, "logic": "OR" },
+    "bubblesOverlay": { "aeratorActive": true }
+  }
+}
+
