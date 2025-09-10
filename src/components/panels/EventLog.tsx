@@ -1,9 +1,10 @@
 "use client"
 
-import { useSimulationStore } from '@/store/simulationStore'
+import { useUIState } from '@/store/simulationStore'
 
 export default function EventLog() {
-  const events = useSimulationStore((s) => s.eventLog)
+  // 使用throttled UI状态，确保30fps平滑渲染
+  const { eventLog: events } = useUIState()
   return (
     <div className="w-full h-[140px] rounded-xl border bg-white p-2 overflow-y-auto text-sm">
       {events.length === 0 ? (

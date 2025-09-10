@@ -10,6 +10,24 @@ import eventsText from '@/app/assets/content/events.zh.json'
 type EventsConfig = typeof thresholds.events
 type VisualsConfig = typeof thresholds.visuals
 
+// Performance management for animations and rendering
+interface PerformanceState {
+  animationQuality: 'high' | 'medium' | 'low' | 'disabled'
+  currentFPS: number
+  isChartUpdating: boolean
+  lastFrameTime: number
+  frameCount: number
+}
+
+// UI State for throttled updates (30fps for smooth rendering)
+interface UIState {
+  biomeState: BiomeState
+  history: BiomeState[]
+  eventLog: EventItem[]
+  lastUpdateTime: number
+  performance: PerformanceState
+}
+
 interface SimulationState {
   engine: SimulationEngine
   gameStage: GameStage
@@ -20,6 +38,10 @@ interface SimulationState {
   eventLog: EventItem[]
   lastEventTick: Record<string, number>
   witness: { startTick: number | null; targetTicks: number }
+
+  // UI state for throttled rendering
+  uiState: UIState
+
   actions: {
     initialize: () => void
     tick: () => void
@@ -120,10 +142,25 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   eventLog: [],
   lastEventTick: {},
   witness: { startTick: null, targetTicks: WITNESS_YEARS * TPY },
+
+  // Initialize UI state with performance management
+  uiState: {
+    biomeState: new SimulationEngine().state,
+    history: [],
+    eventLog: [],
+    lastUpdateTime: 0,
+    performance: {
+      animationQuality: 'high',
+      currentFPS: 60,
+      isChartUpdating: false,
+      lastFrameTime: 0,
+      frameCount: 0,
+    },
+  },
   actions: {
     initialize: () => {
       const engine = new SimulationEngine()
-      set({
+      const initialState = {
         engine,
         biomeState: engine.state,
         history: [engine.state],
@@ -133,7 +170,21 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         speed: 'NORMAL',
         gameStage: 'OBSERVING',
         witness: { startTick: null, targetTicks: WITNESS_YEARS * TPY },
-      })
+        uiState: {
+          biomeState: engine.state,
+          history: [engine.state],
+          eventLog: [],
+          lastUpdateTime: performance.now(),
+          performance: {
+            animationQuality: 'high',
+            currentFPS: 60,
+            isChartUpdating: false,
+            lastFrameTime: performance.now(),
+            frameCount: 0,
+          },
+        },
+      }
+      set(initialState)
     },
     tick: () => {
       const { engine, lastEventTick, gameStage, witness } = get()
@@ -232,17 +283,142 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 }))
 
+// Performance-aware UI Update system
+let uiUpdateAnimationId: number | null = null
+const UI_UPDATE_INTERVAL = 1000 / 30 // 30fps for smooth UI
+const FPS_SAMPLE_SIZE = 60 // Sample 60 frames for FPS calculation
+
+function calculateAnimationQuality(fps: number, speed: SpeedMode): PerformanceState['animationQuality'] {
+  // 更保守的性能降级策略，避免鱼群突然消失
+  if (speed === 'FAST') {
+    return fps > 30 ? 'medium' : 'low' // 快进时适度降级，但不禁用
+  }
+
+  // 只有在极端性能问题时才降级，避免频繁变化
+  if (fps > 40) return 'high'
+  if (fps > 25) return 'medium'
+  if (fps > 15) return 'low'
+  // 只有在极端情况下（<15fps）才禁用动画
+  return fps < 10 ? 'disabled' : 'low'
+}
+
+function scheduleUIUpdate() {
+  if (uiUpdateAnimationId !== null) return // Already scheduled
+
+  uiUpdateAnimationId = requestAnimationFrame((currentTime) => {
+    const state = useSimulationStore.getState()
+    const timeSinceLastUpdate = currentTime - state.uiState.lastUpdateTime
+
+    // Performance monitoring
+    const timeSinceLastFrame = currentTime - state.uiState.performance.lastFrameTime
+    const newFrameCount = state.uiState.performance.frameCount + 1
+
+    // Calculate FPS every 60 frames
+    let currentFPS = state.uiState.performance.currentFPS
+    if (newFrameCount % FPS_SAMPLE_SIZE === 0) {
+      const sampleDuration = currentTime - (state.uiState.performance.lastFrameTime - (FPS_SAMPLE_SIZE * timeSinceLastFrame))
+      currentFPS = Math.round((FPS_SAMPLE_SIZE * 1000) / sampleDuration)
+    }
+
+    // Determine if chart is updating (frequent data changes)
+    const isChartUpdating = timeSinceLastUpdate < UI_UPDATE_INTERVAL * 2
+
+    // Adaptive animation quality
+    const animationQuality = calculateAnimationQuality(currentFPS, state.speed)
+
+    // Only update UI if enough time has passed (30fps throttling)
+    if (timeSinceLastUpdate >= UI_UPDATE_INTERVAL) {
+      useSimulationStore.setState({
+        uiState: {
+          biomeState: state.biomeState,
+          history: state.history,
+          eventLog: state.eventLog,
+          lastUpdateTime: currentTime,
+          performance: {
+            animationQuality,
+            currentFPS,
+            isChartUpdating,
+            lastFrameTime: currentTime,
+            frameCount: newFrameCount,
+          },
+        }
+      })
+    } else {
+      // Update performance stats even if not updating UI
+      useSimulationStore.setState({
+        uiState: {
+          ...state.uiState,
+          performance: {
+            ...state.uiState.performance,
+            animationQuality,
+            currentFPS,
+            isChartUpdating,
+            lastFrameTime: currentTime,
+            frameCount: newFrameCount,
+          },
+        }
+      })
+    }
+
+    uiUpdateAnimationId = null
+
+    // Continue updating if not paused
+    if (!state.isPaused) {
+      scheduleUIUpdate()
+    }
+  })
+}
+
 export function useTickLoop() {
-  // A small helper hook to run the ticking loop based on store state
+  // 优化的游戏循环，使用requestAnimationFrame确保60fps
   const isPaused = useSimulationStore((s) => s.isPaused)
   const speed = useSimulationStore((s) => s.speed)
   const interval = speed === 'FAST' ? thresholds.time.tickMillisFast : thresholds.time.tickMillis
+
   useEffect(() => {
-    if (isPaused) return
-    const id = setInterval(() => {
-      useSimulationStore.getState().actions.tick()
-    }, interval)
-    return () => clearInterval(id)
+    if (isPaused) {
+      // Cancel UI updates when paused
+      if (uiUpdateAnimationId !== null) {
+        cancelAnimationFrame(uiUpdateAnimationId)
+        uiUpdateAnimationId = null
+      }
+      return
+    }
+
+    let lastTime = 0
+    let accumulator = 0
+    let animationId: number
+
+    const gameLoop = (currentTime: number) => {
+      const deltaTime = currentTime - lastTime
+      lastTime = currentTime
+      accumulator += deltaTime
+
+      // 只有当累积时间达到游戏速度时才执行tick
+      if (accumulator >= interval) {
+        useSimulationStore.getState().actions.tick()
+        accumulator -= interval
+      }
+
+      // 检查是否仍在运行
+      if (!useSimulationStore.getState().isPaused) {
+        animationId = requestAnimationFrame(gameLoop)
+      }
+    }
+
+    // Start both game loop and UI update loop
+    animationId = requestAnimationFrame(gameLoop)
+    scheduleUIUpdate()
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+      if (uiUpdateAnimationId !== null) {
+        cancelAnimationFrame(uiUpdateAnimationId)
+        uiUpdateAnimationId = null
+      }
+    }
   }, [isPaused, speed, interval])
 }
 
@@ -250,4 +426,24 @@ export function useVisualTheme() {
   const state = useSimulationStore((s) => s.biomeState)
   const theme = evaluateTheme(state)
   return theme
+}
+
+// Hook for components to use throttled UI state (30fps)
+export function useUIState() {
+  return useSimulationStore((s) => s.uiState)
+}
+
+// Hook for components that need real-time state (controls, etc.)
+export function useGameState() {
+  return useSimulationStore((s) => ({
+    gameStage: s.gameStage,
+    isPaused: s.isPaused,
+    speed: s.speed,
+    tick: s.biomeState.tick,
+  }))
+}
+
+// Hook for performance-aware components
+export function usePerformanceState() {
+  return useSimulationStore((s) => s.uiState.performance)
 }

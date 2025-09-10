@@ -21,12 +21,29 @@ export default function StageModals() {
 
   const onPrimary = () => {
     if (gameStage === 'OBSERVING') {
+      // 开始观察阶段
       setOpen(false)
     } else if (gameStage === 'INTERVENING') {
+      // 引入农业径流并进入见证阶段
+      actions.applyRunoff()
+      actions.toStage('WITNESSING')
       setOpen(false)
     } else if (gameStage === 'WITNESSING') {
+      // 开始见证阶段（自动10倍速）
+      actions.setSpeed('FAST')
       setOpen(false)
     } else if (gameStage === 'RESTORING') {
+      // 开始修复阶段
+      setOpen(false)
+    }
+  }
+
+  const onSecondary = () => {
+    if (gameStage === 'INTERVENING') {
+      // "再想想" - 回到观察阶段
+      actions.toStage('OBSERVING')
+      setOpen(false)
+    } else {
       setOpen(false)
     }
   }
@@ -40,7 +57,7 @@ export default function StageModals() {
         </DialogHeader>
         <DialogFooter>
           {cfg.secondaryCta && (
-            <Button variant="outline" onClick={() => setOpen(false)}>{cfg.secondaryCta}</Button>
+            <Button variant="outline" onClick={onSecondary}>{cfg.secondaryCta}</Button>
           )}
           <Button onClick={onPrimary}>{cfg.primaryCta}</Button>
         </DialogFooter>

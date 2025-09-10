@@ -1,11 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" aria-label="pond cross-section background">
-  <!-- Simple layered background: sky, land, water, sediment -->
-  <rect x="0" y="0" width="1920" height="420" fill="#B0C4DE" />
-  <rect x="0" y="400" width="1920" height="80" fill="#A0522D" />
-  <rect x="0" y="420" width="1920" height="520" fill="#5F9EA0" />
-  <rect x="0" y="940" width="1920" height="140" fill="#6B4226" />
-  <!-- Water surface highlight -->
-  <rect x="0" y="420" width="1920" height="6" fill="#ffffff" opacity="0.25" />
+  <defs>
+    <!-- Sky gradient -->
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B0C4DE;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Water gradient -->
+    <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#5F9EA0;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#4682B4;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#2F4F4F;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Sediment gradient -->
+    <linearGradient id="sedimentGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B7355;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5D4E37;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Shore gradient -->
+    <linearGradient id="shoreGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#228B22;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect x="0" y="0" width="1920" height="420" fill="url(#skyGradient)" />
+
+  <!-- Shore/Land -->
+  <rect x="0" y="400" width="1920" height="80" fill="url(#shoreGradient)" />
+
+  <!-- Water body -->
+  <rect x="0" y="420" width="1920" height="520" fill="url(#waterGradient)" />
+
+  <!-- Sediment layer -->
+  <rect x="0" y="940" width="1920" height="140" fill="url(#sedimentGradient)" />
+
+  <!-- Water surface effects -->
+  <rect x="0" y="420" width="1920" height="3" fill="#ffffff" opacity="0.4" />
+  <rect x="0" y="423" width="1920" height="1" fill="#ffffff" opacity="0.2" />
+
+  <!-- Subtle shore vegetation -->
+  <g opacity="0.6">
+    <ellipse cx="200" cy="440" rx="15" ry="25" fill="#228B22" />
+    <ellipse cx="350" cy="445" rx="12" ry="20" fill="#32CD32" />
+    <ellipse cx="500" cy="442" rx="18" ry="28" fill="#228B22" />
+    <ellipse cx="800" cy="448" rx="14" ry="22" fill="#32CD32" />
+    <ellipse cx="1200" cy="444" rx="16" ry="24" fill="#228B22" />
+    <ellipse cx="1500" cy="446" rx="13" ry="21" fill="#32CD32" />
+    <ellipse cx="1700" cy="443" rx="17" ry="26" fill="#228B22" />
+  </g>
+
+  <!-- Underwater rocks/debris -->
+  <g opacity="0.3">
+    <ellipse cx="300" cy="900" rx="40" ry="15" fill="#696969" />
+    <ellipse cx="700" cy="920" rx="35" ry="12" fill="#708090" />
+    <ellipse cx="1100" cy="910" rx="45" ry="18" fill="#696969" />
+    <ellipse cx="1400" cy="925" rx="30" ry="10" fill="#708090" />
+  </g>
 </svg>
 

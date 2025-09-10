@@ -1,0 +1,337 @@
+/* ===== ECOSYSTEM ANIMATIONS ===== */
+
+/* 性能自适应动画系统 */
+
+/* 高质量动画 (默认) */
+.fish-healthy, .fish-sick, .fish-dead,
+.plant-healthy, .plant-sick, .plant-dead,
+.bubble, .algae {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  /* 高性能优化 */
+  contain: layout style paint;
+  isolation: isolate;
+  /* 减少重排重绘 */
+  transform-style: preserve-3d;
+}
+
+/* 中等质量动画 (轻微优化，鱼群始终可见) */
+.animation-quality-medium .fish-healthy,
+.animation-quality-medium .fish-sick,
+.animation-quality-medium .fish-dead {
+  animation-duration: 5s; /* 轻微减慢 */
+  will-change: transform;
+}
+
+/* 低质量动画 (适度优化，鱼群始终可见) */
+.animation-quality-low .fish-healthy,
+.animation-quality-low .fish-sick,
+.animation-quality-low .fish-dead {
+  animation-duration: 6s; /* 适度减慢 */
+  animation-timing-function: ease-in-out;
+}
+
+/* 最低质量动画 (鱼群始终可见，只是动画简化) */
+.animation-quality-disabled .fish-healthy,
+.animation-quality-disabled .fish-sick,
+.animation-quality-disabled .fish-dead {
+  animation-duration: 8s; /* 很慢但仍有动画 */
+  animation-timing-function: linear;
+  will-change: auto; /* 移除GPU加速提示 */
+  /* 重要：鱼群始终可见，绝不隐藏 */
+}
+
+/* 植物和装饰元素可以在极端情况下优化 */
+.animation-quality-disabled .plant-healthy,
+.animation-quality-disabled .plant-sick,
+.animation-quality-disabled .plant-dead {
+  animation-duration: 10s; /* 减慢而不是禁用 */
+}
+
+.animation-quality-disabled .bubble,
+.animation-quality-disabled .algae {
+  animation: none !important; /* 只有装饰元素可以禁用 */
+  transform: translate3d(0, 0, 0);
+}
+
+/* Fish swimming animations - 高性能GPU加速优化 */
+@keyframes fishSwimHealthy {
+  0% {
+    transform: translate3d(0, 0, 0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  25% {
+    transform: translate3d(10px, -5px, 0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  50% {
+    transform: translate3d(20px, 0, 0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  75% {
+    transform: translate3d(10px, 5px, 0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes fishSwimSlow {
+  0% { transform: translate3d(0, 0, 0) scaleX(1); }
+  50% { transform: translate3d(5px, -2px, 0) scaleX(1); }
+  100% { transform: translate3d(0, 0, 0) scaleX(1); }
+}
+
+@keyframes fishFloat {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scaleX(1); }
+  25% { transform: translate3d(0, 5px, 0) rotate(5deg) scaleX(1); }
+  50% { transform: translate3d(0, 10px, 0) rotate(10deg) scaleX(1); }
+  75% { transform: translate3d(0, 15px, 0) rotate(15deg) scaleX(1); }
+  100% { transform: translate3d(0, 20px, 0) rotate(25deg) scaleX(-1); }
+}
+
+/* Enhanced fish animations with tail movement */
+@keyframes fishTailWag {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0.8); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes fishBodyFloat {
+  0% { transform: translate3d(0, 0, 0) scaleY(1); }
+  50% { transform: translate3d(0, -2px, 0) scaleY(1.05); }
+  100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+/* Plant swaying animations - GPU加速优化 */
+@keyframes plantSway {
+  0% { transform: rotate(0deg) scaleY(1); }
+  25% { transform: rotate(2deg) scaleY(1.02); }
+  50% { transform: rotate(0deg) scaleY(1); }
+  75% { transform: rotate(-2deg) scaleY(0.98); }
+  100% { transform: rotate(0deg) scaleY(1); }
+}
+
+@keyframes plantWilt {
+  0% { transform: rotate(0deg) scaleY(1) scaleX(1); }
+  50% { transform: rotate(5deg) scaleY(0.9) scaleX(0.95); }
+  100% { transform: rotate(10deg) scaleY(0.8) scaleX(0.9); }
+}
+
+@keyframes plantDecay {
+  0% { transform: rotate(10deg) scaleY(0.8) scaleX(0.9) translate3d(0, 0, 0); opacity: 0.8; }
+  50% { transform: rotate(20deg) scaleY(0.6) scaleX(0.7) translate3d(0, 10px, 0); opacity: 0.5; }
+  100% { transform: rotate(30deg) scaleY(0.4) scaleX(0.5) translate3d(0, 20px, 0); opacity: 0.3; }
+}
+
+/* Water effects */
+@keyframes waterRipple {
+  0% { transform: scale(1) translateY(0); opacity: 0.3; }
+  50% { transform: scale(1.1) translateY(-2px); opacity: 0.5; }
+  100% { transform: scale(1) translateY(0); opacity: 0.3; }
+}
+
+@keyframes waterTurbulence {
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(2px) translateY(-1px); }
+  50% { transform: translateX(-1px) translateY(2px); }
+  75% { transform: translateX(-2px) translateY(-1px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+/* Bubble animations */
+@keyframes bubbleRise {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 0.8; 
+  }
+  25% { 
+    transform: translateY(-100px) translateX(5px) scale(1.1); 
+    opacity: 0.7; 
+  }
+  50% { 
+    transform: translateY(-200px) translateX(-3px) scale(0.9); 
+    opacity: 0.6; 
+  }
+  75% { 
+    transform: translateY(-300px) translateX(8px) scale(0.8); 
+    opacity: 0.4; 
+  }
+  100% { 
+    transform: translateY(-400px) translateX(-2px) scale(0.6); 
+    opacity: 0; 
+  }
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Algae growth animations */
+@keyframes algaeGrow {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(0.8) rotate(180deg); opacity: 0.6; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+}
+
+@keyframes algaePulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0.6; }
+}
+
+/* Theme transition animations */
+@keyframes themeTransition {
+  0% { opacity: 1; filter: hue-rotate(0deg) saturate(1); }
+  50% { opacity: 0.8; filter: hue-rotate(180deg) saturate(1.5); }
+  100% { opacity: 1; filter: hue-rotate(360deg) saturate(1); }
+}
+
+/* Particle effects */
+@keyframes particleFloat {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.6; }
+  25% { transform: translateY(-20px) translateX(10px) rotate(90deg); opacity: 0.8; }
+  50% { transform: translateY(-40px) translateX(-5px) rotate(180deg); opacity: 0.6; }
+  75% { transform: translateY(-60px) translateX(15px) rotate(270deg); opacity: 0.4; }
+  100% { transform: translateY(-80px) translateX(0) rotate(360deg); opacity: 0; }
+}
+
+/* ===== ANIMATION CLASSES ===== */
+
+/* Fish animation classes - 高性能优化 */
+.fish-healthy {
+  animation: fishSwimHealthy 4s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+             fishBodyFloat 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  /* 强制GPU加速 */
+  transform: translateZ(0);
+  /* 优化动画性能 */
+  animation-fill-mode: both;
+}
+
+.fish-healthy > div:last-child {
+  /* Tail animation for healthy fish */
+  animation: fishTailWag 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-fill-mode: both;
+}
+
+.fish-sick {
+  animation: fishSwimSlow 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  opacity: 0.7;
+  filter: saturate(0.5) brightness(0.8);
+  transform: translateZ(0);
+  animation-fill-mode: both;
+}
+
+.fish-sick > div:last-child {
+  /* Slower tail movement for sick fish */
+  animation: fishTailWag 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-fill-mode: both;
+}
+
+.fish-dead {
+  animation: fishFloat 8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0.4;
+  filter: grayscale(0.8) brightness(0.6);
+  transform: translateZ(0);
+  animation-fill-mode: both;
+}
+
+.fish-dead > div:last-child {
+  /* No tail movement for dead fish */
+  animation: none;
+}
+
+/* Plant animation classes */
+.plant-healthy {
+  animation: plantSway 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.plant-sick {
+  animation: plantWilt 2s ease-out forwards;
+  transform-origin: bottom center;
+}
+
+.plant-dead {
+  animation: plantDecay 3s ease-out forwards;
+  transform-origin: bottom center;
+}
+
+/* Water effect classes */
+.water-surface {
+  animation: waterRipple 2s ease-in-out infinite;
+}
+
+.water-turbulent {
+  animation: waterTurbulence 1s ease-in-out infinite;
+}
+
+/* Bubble effect classes */
+.bubble {
+  animation: bubbleRise 3s linear infinite;
+}
+
+.bubble:nth-child(2n) {
+  animation-delay: 0.5s;
+  animation-duration: 3.5s;
+}
+
+.bubble:nth-child(3n) {
+  animation-delay: 1s;
+  animation-duration: 4s;
+}
+
+.bubble:nth-child(4n) {
+  animation-delay: 1.5s;
+  animation-duration: 2.5s;
+}
+
+/* Algae effect classes */
+.algae-cluster {
+  animation: algaeGrow 2s ease-out forwards, algaePulse 4s ease-in-out infinite 2s;
+}
+
+.algae-mat {
+  animation: algaeGrow 3s ease-out forwards, algaePulse 6s ease-in-out infinite 3s;
+}
+
+/* Particle effect classes */
+.particle {
+  animation: particleFloat 5s linear infinite;
+}
+
+.particle:nth-child(2n) {
+  animation-delay: 1s;
+}
+
+.particle:nth-child(3n) {
+  animation-delay: 2s;
+}
+
+/* Theme transition class */
+.theme-transitioning {
+  animation: themeTransition 2s ease-in-out;
+}
+
+/* Hover effects for interactive elements */
+.interactive-element:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Pulse effect for important elements */
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
