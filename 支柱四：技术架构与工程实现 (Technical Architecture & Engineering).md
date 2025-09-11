@@ -22,7 +22,7 @@
 | 核心框架 | Next.js (App Router) | 提供现代化的React开发体验、强大的工程化支持（构建、路由等）。虽然本项目MVP阶段不需要服务端渲染，但其框架为未来扩展提供了无限可能。 |
 | 开发语言 | TypeScript | 为项目提供类型安全，大大减少运行时错误，提高代码的可维护性和可读性，对于复杂状态管理至关重要。 |
 | 状态管理 | Zustand | 一个极其轻量、简洁且对TypeScript友好的状态管理库。没有Redux的样板代码，上手快，性能高，非常适合单人开发。 |
-| 数据可视化 | Recharts | 一个基于React的声明式图表库。组件化程度高，API友好，能够快速实现我们需要的数据仪表盘。 |
+| 数据可视化 | 自定义SVG圆盘仪表盘 | 使用原生SVG和CSS实现轻量级圆盘仪表盘，相比Recharts折线图大幅减少渲染开销，确保池塘动画优先流畅运行。 |
 | UI图标 | Lucide Icons | 一个设计简洁、风格统一的SVG图标库，与我们的整体美术风格完美契合。 |
 | 样式方案 | CSS Modules / Tailwind CSS | 推荐CSS Modules与全局CSS变量结合。这提供了组件级别的样式隔离，同时允许我们通过CSS变量（如--water-color）来动态改变全局主题。 |
 
@@ -125,7 +125,7 @@ interface SimulationState {
   gameState: 'OBSERVING' | 'INTERVENING' | 'WITNESSING' | 'RESTORING';
   isPaused: boolean;
   biomeState: BiomeState;
-  history: BiomeState[]; // 用于图表绘制
+  history: BiomeState[]; // 保留用于未来扩展，当前圆盘仪表盘只使用实时数据
   actions: {
     initialize: () => void;
     tick: () => void;
@@ -178,7 +178,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 |---|---|---|
 | PondPage.tsx | 页面主容器。负责整体布局，并使用useEffect驱动模拟器的tick循环。 | isPaused, actions.tick |
 | Visualizer.tsx | 主视觉区。根据biomeState渲染池塘、生物和环境特效。 | biomeState |
-| Dashboard.tsx | 数据仪表盘。使用Recharts根据history数据渲染折线图。 | history |
+| Dashboard.tsx | 数据仪表盘。使用自定义SVG圆盘仪表盘显示实时生态数据，性能优化优先。 | biomeState |
 | Controls.tsx | 互动控制区。根据gameState显示不同的按钮，并调用相应的actions。 | gameState, isPaused, actions |
 | EventLog.tsx | 事件日志。根据biomeState的变化，显示对应的叙事文本。 | biomeState |
 
@@ -199,7 +199,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
 里程碑 3: “只读”UI的实现 (1-2周)
 
-任务: 创建所有UI组件的骨架。将biomeState和history从store连接到Visualizer和Dashboard组件，实现数据的可视化展示。在PondPage.tsx中用setInterval驱动actions.tick。
+任务: 创建所有UI组件的骨架。将biomeState从store连接到Visualizer和Dashboard组件，实现数据的可视化展示。Dashboard使用轻量级圆盘仪表盘确保性能优化。在PondPage.tsx中用requestAnimationFrame驱动actions.tick。
 
 目标: 能够在屏幕上“看”到模拟的运行，但还不能互动。
 

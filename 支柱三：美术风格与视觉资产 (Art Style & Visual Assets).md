@@ -17,7 +17,7 @@
 ## 2.0 艺术风格定义 (Art Style Definition)
 
 ### 2.1 核心关键词
-干净 (Clean) | 扁平化 (Flat) | 程式化 (Stylized) | 信息图表风 (Infographic-style)
+干净 (Clean) | 扁平化 (Flat) | 程式化 (Stylized) | 科学仪表盘风 (Scientific Dashboard-style)
 
 ### 2.2 情绪板与参考 (Mood Board & References)
 
@@ -132,7 +132,7 @@
 
 引导/正文: font-weight: 400 (Regular), font-size: 1rem
 
-图表标签/次要信息: font-weight: 400 (Regular), font-size: 0.875rem, 颜色为 secondary_text_grey
+仪表盘数值/次要信息: font-weight: 400 (Regular), font-size: 0.875rem, 颜色为 secondary_text_grey。圆盘仪表盘中心数值使用font-weight: 700 (Bold)以突出显示。
 
 5.0 资源采购与实现策略 (Sourcing & Implementation)
 优先自制/采购SVG: 对于核心生物资产，优先在 Flaticon, Freepik 或 The Noun Project 等网站寻找风格合适的SVG图标。
