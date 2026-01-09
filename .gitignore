@@ -54,14 +54,3 @@ Thumbs.db
 # Logs
 logs
 *.log
-
-# macOS system files
-._*
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Windows system files
-Thumbs.db
-ehthumbs.db
-Desktop.ini
