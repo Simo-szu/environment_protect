@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup": "node scripts/setup.js",
+    "health-check": "node scripts/health-check.js",
+    "dev:win": "scripts\\dev.bat",
+    "dev:unix": "./scripts/dev.sh",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next out dist",
+    "clean:win": "rmdir /s .next out dist 2>nul || echo 清理完成"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
