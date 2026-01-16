@@ -71,3 +71,6 @@ $RECYCLE.BIN/
 # Logs
 logs
 *.log
+
+# Documentation and helper scripts (local only)
+/docs/
