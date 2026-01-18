@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouthLoop - 手机注册</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+
+/* 液体光斑流动动画 */
+@keyframes liquid-drift {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.95); }
+100% { transform: translate(0, 0) scale(1); }
+}
+.liquid-blob {
+animation: liquid-drift 20s infinite ease-in-out alternate;
+}
+
+/* 验证码输入框 */
+.code-input {
+width: 2.5rem;
+height: 2.5rem;
+text-align: center;
+font-size: 1.125rem;
+font-weight: 600;
+border: 2px solid #e2e8f0;
+border-radius: 0.5rem;
+transition: all 0.2s ease;
+}
+.code-input:focus {
+border-color: #30499B;
+outline: none;
+box-shadow: 0 0 0 3px rgba(48, 73, 155, 0.1);
+}
+
+/* 倒计时按钮 */
+.countdown-btn:disabled {
+background: #e2e8f0;
+color: #64748b;
+cursor: not-allowed;
+}
+
+/* Form Animation */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.form-container {
+animation: fadeIn 0.6s ease-out;
+}
+</style>
+</head>
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+
+<!-- 全局背景氛围 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+<div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+<div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+</div>
+
+<!-- Main Container -->
+<div class="min-h-screen flex items-center justify-center p-4 relative z-10">
+<!-- Back Button -->
+<a href="注册页面.html" class="absolute top-6 left-6 p-2 rounded-full bg-white/80 backdrop-blur-sm text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60">
+<i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+
+<!-- Register Card -->
+<div class="form-container w-full max-w-[440px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 sm:p-10 border border-white/40">
+<!-- Header -->
+<div class="flex flex-col items-center mb-8">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center shadow-lg shadow-[#56B949]/20 mb-4 ring-4 ring-white/50">
+<i data-lucide="smartphone" class="w-8 h-8 text-white"></i>
+</div>
+<div class="text-[#30499B] font-bold text-xl tracking-wide">手机快速注册</div>
+<p class="text-slate-500 text-sm mt-2 text-center">使用手机号快速创建YouthLoop账户</p>
+</div>
+
+<!-- Phone Registration Form -->
+<div class="space-y-6">
+<div class="flex items-baseline justify-between mb-6">
+<h2 class="text-xl font-bold text-[#30499B]">手机注册</h2>
+<div class="text-sm text-slate-500 font-medium">
+<a href="邮箱注册.html" class="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2">邮箱注册</a>
+<span class="mx-2">|</span>
+<a href="登录页面.html" class="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2">已有账号</a>
+</div>
+</div>
+
+<form class="space-y-5" onsubmit="handlePhoneRegister(event)">
+<!-- 手机号输入 -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="smartphone" class="w-4 h-4"></i>
+</div>
+<input type="tel" id="phone" placeholder="请输入手机号" maxlength="11" oninput="validatePhone()" class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+</div>
+
+<!-- 验证码输入 -->
+<div class="space-y-3">
+<div class="flex gap-3">
+<div class="flex-1 relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="shield" class="w-4 h-4"></i>
+</div>
+<input type="text" id="smsCode" placeholder="请输入验证码" maxlength="6" oninput="validateForm()" class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+</div>
+<button type="button" id="send-code-btn" onclick="sendSmsCode()" disabled class="px-4 py-3 bg-slate-200 text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed transition-all whitespace-nowrap">
+获取验证码
+</button>
+</div>
+</div>
+
+<!-- 设置密码 -->
+<div class="space-y-2">
+<div class="text-xs text-slate-400 px-1">密码需在8位以上，包含数字和字母</div>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="lock" class="w-4 h-4"></i>
+</div>
+<input type="password" id="password" placeholder="请设置登录密码" oninput="checkPasswordStrength()" class="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+<button type="button" onclick="togglePassword('password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+<i data-lucide="eye" class="w-4 h-4" id="password-eye"></i>
+</button>
+</div>
+<!-- Password Strength Indicator -->
+<div class="flex gap-1 mt-2">
+<div class="h-1 bg-slate-200 rounded-full flex-1" id="strength-bar1"></div>
+<div class="h-1 bg-slate-200 rounded-full flex-1" id="strength-bar2"></div>
+<div class="h-1 bg-slate-200 rounded-full flex-1" id="strength-bar3"></div>
+</div>
+<div class="text-xs text-slate-400" id="strength-text">请输入密码</div>
+</div>
+
+<!-- 确认密码 -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="lock" class="w-4 h-4"></i>
+</div>
+<input type="password" id="confirmPassword" placeholder="请确认登录密码" oninput="checkPasswordMatch()" class="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+<button type="button" onclick="togglePassword('confirmPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+<i data-lucide="eye" class="w-4 h-4" id="confirmPassword-eye"></i>
+</button>
+</div>
+<div class="text-xs mt-1" id="password-match-text"></div>
+
+<!-- 用户协议 -->
+<div class="flex items-start gap-3 pt-2">
+<input type="checkbox" id="terms" class="w-4 h-4 rounded border-slate-300 text-[#30499B] focus:ring-[#30499B]/20 cursor-pointer mt-0.5" onchange="validateForm()">
+<label for="terms" class="text-sm text-slate-500 select-none cursor-pointer leading-relaxed">
+我已阅读并同意<a href="用户服务协议.html" class="text-[#30499B] hover:underline ml-1">《用户服务协议》</a>和<a href="隐私政策.html" class="text-[#30499B] hover:underline ml-1">《隐私政策》</a>
+</label>
+</div>
+
+<button type="submit" id="register-btn" disabled class="w-full py-3 bg-slate-300 text-slate-500 rounded-lg font-medium text-sm tracking-wide cursor-not-allowed transition-all">
+立即注册
+</button>
+</form>
+
+<!-- 其他注册方式 -->
+<div class="relative my-6">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-white text-slate-400">其他注册方式</span>
+</div>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<a href="邮箱注册.html" class="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+<i data-lucide="mail" class="w-4 h-4"></i>
+邮箱注册
+</a>
+<a href="注册页面.html" class="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+<i data-lucide="user-plus" class="w-4 h-4"></i>
+通用注册
+</a>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// 初始化图标
+lucide.createIcons();
+
+let countdownTimer = null;
+let countdownSeconds = 60;
+
+// 密码显示/隐藏切换
+function togglePassword(inputId) {
+const input = document.getElementById(inputId);
+const eyeIcon = document.getElementById(inputId + '-eye');
+
+if (input.type === 'password') {
+input.type = 'text';
+eyeIcon.setAttribute('data-lucide', 'eye-off');
+} else {
+input.type = 'password';
+eyeIcon.setAttribute('data-lucide', 'eye');
+}
+lucide.createIcons();
+}
+
+// 验证手机号
+function validatePhone() {
+const phone = document.getElementById('phone').value;
+const sendBtn = document.getElementById('send-code-btn');
+const phoneRegex = /^1[3-9]\d{9}$/;
+
+if (phoneRegex.test(phone)) {
+sendBtn.disabled = false;
+sendBtn.className = 'px-4 py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg text-sm font-medium transition-all whitespace-nowrap';
+sendBtn.textContent = '获取验证码';
+} else {
+sendBtn.disabled = true;
+sendBtn.className = 'px-4 py-3 bg-slate-200 text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed transition-all whitespace-nowrap';
+sendBtn.textContent = '获取验证码';
+}
+
+validateForm();
+}
+
+// 发送短信验证码
+function sendSmsCode() {
+const phone = document.getElementById('phone').value;
+const phoneRegex = /^1[3-9]\d{9}$/;
+
+if (!phoneRegex.test(phone)) {
+alert('请输入正确的手机号');
+return;
+}
+
+// 模拟发送验证码
+console.log('发送验证码到手机:', phone);
+alert('验证码已发送到您的手机，请注意查收');
+
+// 开始倒计时
+startCountdown();
+}
+
+// 开始倒计时
+function startCountdown() {
+const sendBtn = document.getElementById('send-code-btn');
+sendBtn.disabled = true;
+countdownSeconds = 60;
+
+countdownTimer = setInterval(() => {
+countdownSeconds--;
+sendBtn.textContent = `重新发送(${countdownSeconds}s)`;
+
+if (countdownSeconds <= 0) {
+clearInterval(countdownTimer);
+sendBtn.disabled = false;
+sendBtn.textContent = '重新发送';
+sendBtn.className = 'px-4 py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg text-sm font-medium transition-all whitespace-nowrap';
+}
+}, 1000);
+}
+
+// 密码强度检查
+function checkPasswordStrength() {
+const password = document.getElementById('password').value;
+const bar1 = document.getElementById('strength-bar1');
+const bar2 = document.getElementById('strength-bar2');
+const bar3 = document.getElementById('strength-bar3');
+const strengthText = document.getElementById('strength-text');
+
+// 重置
+bar1.className = 'h-1 bg-slate-200 rounded-full flex-1';
+bar2.className = 'h-1 bg-slate-200 rounded-full flex-1';
+bar3.className = 'h-1 bg-slate-200 rounded-full flex-1';
+
+if (password.length === 0) {
+strengthText.textContent = '请输入密码';
+strengthText.className = 'text-xs text-slate-400';
+} else if (password.length < 6) {
+bar1.className = 'h-1 bg-[#EE4035] rounded-full flex-1';
+strengthText.textContent = '密码强度：弱';
+strengthText.className = 'text-xs text-[#EE4035]';
+} else if (password.length < 10 || !/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+bar1.className = 'h-1 bg-[#F0A32F] rounded-full flex-1';
+bar2.className = 'h-1 bg-[#F0A32F] rounded-full flex-1';
+strengthText.textContent = '密码强度：中等';
+strengthText.className = 'text-xs text-[#F0A32F]';
+} else {
+bar1.className = 'h-1 bg-[#56B949] rounded-full flex-1';
+bar2.className = 'h-1 bg-[#56B949] rounded-full flex-1';
+bar3.className = 'h-1 bg-[#56B949] rounded-full flex-1';
+strengthText.textContent = '密码强度：强';
+strengthText.className = 'text-xs text-[#56B949]';
+}
+
+checkPasswordMatch();
+validateForm();
+}
+
+// 密码匹配检查
+function checkPasswordMatch() {
+const password = document.getElementById('password').value;
+const confirmPassword = document.getElementById('confirmPassword').value;
+const matchText = document.getElementById('password-match-text');
+
+if (confirmPassword.length === 0) {
+matchText.textContent = '';
+} else if (password === confirmPassword) {
+matchText.textContent = '✓ 密码匹配';
+matchText.className = 'text-xs text-[#56B949] mt-1';
+} else {
+matchText.textContent = '✗ 密码不匹配';
+matchText.className = 'text-xs text-[#EE4035] mt-1';
+}
+
+validateForm();
+}
+
+// 验证表单
+function validateForm() {
+const phone = document.getElementById('phone').value;
+const smsCode = document.getElementById('smsCode').value;
+const password = document.getElementById('password').value;
+const confirmPassword = document.getElementById('confirmPassword').value;
+const terms = document.getElementById('terms').checked;
+const registerBtn = document.getElementById('register-btn');
+
+const phoneRegex = /^1[3-9]\d{9}$/;
+const isValid = phoneRegex.test(phone) && 
+                smsCode.length === 6 && 
+                password.length >= 8 && 
+                password === confirmPassword && 
+                terms;
+
+if (isValid) {
+registerBtn.disabled = false;
+registerBtn.className = 'w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide';
+registerBtn.textContent = '立即注册';
+} else {
+registerBtn.disabled = true;
+registerBtn.className = 'w-full py-3 bg-slate-300 text-slate-500 rounded-lg font-medium text-sm tracking-wide cursor-not-allowed transition-all';
+registerBtn.textContent = '请完善信息';
+}
+}
+
+// 处理手机注册
+function handlePhoneRegister(event) {
+event.preventDefault();
+const phone = document.getElementById('phone').value;
+const smsCode = document.getElementById('smsCode').value;
+const password = document.getElementById('password').value;
+const confirmPassword = document.getElementById('confirmPassword').value;
+const terms = document.getElementById('terms').checked;
+
+// 验证手机号
+const phoneRegex = /^1[3-9]\d{9}$/;
+if (!phoneRegex.test(phone)) {
+alert('请输入正确的手机号');
+return;
+}
+
+// 验证短信验证码（模拟验证，实际应该是123456）
+if (smsCode !== '123456') {
+alert('验证码错误，请重新输入');
+return;
+}
+
+if (!password || !confirmPassword) {
+alert('请填写完整的密码信息');
+return;
+}
+
+if (password !== confirmPassword) {
+alert('两次输入的密码不一致');
+return;
+}
+
+if (password.length < 8) {
+alert('密码长度至少8位');
+return;
+}
+
+if (!terms) {
+alert('请同意用户协议和隐私政策');
+return;
+}
+
+// 模拟注册成功
+console.log('手机注册信息:', { phone, password });
+alert('注册成功！请登录');
+window.location.href = '登录页面.html';
+}
+
+// 全局函数
+window.togglePassword = togglePassword;
+window.validatePhone = validatePhone;
+window.sendSmsCode = sendSmsCode;
+window.checkPasswordStrength = checkPasswordStrength;
+window.checkPasswordMatch = checkPasswordMatch;
+window.validateForm = validateForm;
+window.handlePhoneRegister = handlePhoneRegister;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouthLoop - 环保科普</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #FAFAF9;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: #64748b;
+            margin: 0;
+            padding: 0;
+        }
+        h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+        
+        /* 隐藏滚动条但保留功能 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 液体光斑流动动画 */
+        @keyframes liquid-drift {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .liquid-blob {
+            animation: liquid-drift 20s infinite ease-in-out alternate;
+        }
+
+        /* 落叶飘落动画 */
+        @keyframes falling-leaf {
+            0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translate3d(var(--end-x), 110vh, 0) rotate(var(--end-rotation)); opacity: 0; }
+        }
+        .leaf-container {
+            position: absolute;
+            top: -20px;
+            pointer-events: none;
+            z-index: 0;
+            animation: falling-leaf linear infinite;
+        }
+        .leaf-svg {
+            fill: none;
+            stroke-width: 1.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
+
+        /* 基本布局类 */
+        .fixed { position: fixed; }
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .z-0 { z-index: 0; }
+        .z-10 { z-index: 10; }
+        .z-40 { z-index: 40; }
+        .pointer-events-none { pointer-events: none; }
+        .overflow-hidden { overflow: hidden; }
+        .cursor-pointer { cursor: pointer; }
+        
+        /* Flexbox */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        
+        /* 宽度和高度 */
+        .w-full { width: 100%; }
+        .w-10 { width: 2.5rem; }
+        .w-6 { width: 1.5rem; }
+        .h-10 { height: 2.5rem; }
+        .h-6 { height: 1.5rem; }
+        .h-2 { height: 0.5rem; }
+        .w-2 { width: 0.5rem; }
+        .max-w-7xl { max-width: 80rem; }
+        .max-w-6xl { max-width: 72rem; }
+        .min-h-screen { min-height: 100vh; }
+        
+        /* 间距 */
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        
+        /* 文字 */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-4xl { font-size: 2.25rem; }
+        .text-5xl { font-size: 3rem; }
+        .text-7xl { font-size: 4.5rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: bold; }
+        .text-center { text-align: center; }
+        .tracking-tight { letter-spacing: -0.025em; }
+        .leading-tight { line-height: 1.25; }
+        .leading-relaxed { line-height: 1.625; }
+        
+        /* 颜色 */
+        .text-white { color: white; }
+        .text-slate-800 { color: #1e293b; }
+        .text-slate-600 { color: #475569; }
+        .text-slate-500 { color: #64748b; }
+        .text-slate-400 { color: #94a3b8; }
+        .bg-white { background-color: white; }
+        
+        /* 圆角 */
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-full { border-radius: 9999px; }
+        
+        /* 阴影 */
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        
+        /* 边框 */
+        .border { border-width: 1px; }
+        .border-b { border-bottom-width: 1px; }
+        
+        /* 过渡效果 */
+        .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+        
+        /* 变换 */
+        .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+        .rotate-3 { --tw-rotate: 3deg; transform: var(--tw-transform); }
+        
+        /* 自定义样式 */
+        .browser-frame {
+            width: 100%;
+            max-width: 80rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(86, 185, 73, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            min-height: 100vh;
+            position: relative;
+            backdrop-filter: blur(16px);
+            z-index: 10;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            padding: 1rem 1.5rem 3rem 1.5rem;
+            min-height: 100vh;
+            position: relative;
+            max-width: 72rem;
+            margin: 0 auto;
+        }
+        
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.6);
+            padding: 1rem 2rem;
+            margin: 1rem -1.5rem 2rem -1.5rem;
+        }
+        
+        .nav-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, #56B949, #4aa840);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: bold;
+            font-size: 1.125rem;
+            box-shadow: 0 10px 15px -3px rgba(86, 185, 73, 0.2);
+            transform: rotate(3deg);
+        }
+        
+        .logo-text {
+            color: #30499B;
+            font-weight: bold;
+            font-size: 1.125rem;
+            letter-spacing: -0.025em;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: inherit;
+            padding: 0.25rem 0;
+            transition: color 0.15s ease-in-out;
+        }
+        
+        .nav-links a:hover {
+            color: #30499B;
+        }
+        
+        .nav-links a.active {
+            color: #F0A32F;
+            font-weight: 600;
+            background: rgba(240, 163, 47, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .auth-section a {
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .login-link {
+            color: #30499B;
+        }
+        
+        .login-link:hover {
+            color: #56B949;
+        }
+        
+        .register-link {
+            padding: 0.375rem 1rem;
+            border-radius: 0.5rem;
+            background: #30499B;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(48, 73, 155, 0.2);
+        }
+        
+        .register-link:hover {
+            background: #253a7a;
+            transform: scale(1.05);
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(180deg, white, rgba(240, 163, 47, 0.05), white);
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(240, 163, 47, 0.1);
+            color: #F0A32F;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(240, 163, 47, 0.2);
+        }
+        
+        .pulse-dot {
+            position: relative;
+            display: flex;
+            height: 0.5rem;
+            width: 0.5rem;
+        }
+        
+        .pulse-dot-inner {
+            position: absolute;
+            display: inline-flex;
+            height: 100%;
+            width: 100%;
+            border-radius: 9999px;
+            background: #F0A32F;
+            opacity: 0.75;
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        
+        .pulse-dot-core {
+            position: relative;
+            display: inline-flex;
+            border-radius: 9999px;
+            height: 0.5rem;
+            width: 0.5rem;
+            background: #F0A32F;
+        }
+        
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            color: #30499B;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            line-height: 1.25;
+        }
+        
+        .hero-title .highlight {
+            color: #F0A32F;
+        }
+        
+        .hero-subtitle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 1.125rem;
+            color: rgba(48, 73, 155, 0.8);
+            font-weight: normal;
+            max-width: 32rem;
+            margin: 0 auto;
+            line-height: 1.625;
+            padding: 0 1rem;
+        }
+        
+        .hero-subtitle .accent-green {
+            color: #F0A32F;
+            font-weight: 500;
+            border-bottom: 2px solid rgba(240, 163, 47, 0.3);
+        }
+        
+        .hero-subtitle .accent-orange {
+            color: #56B949;
+            font-weight: 500;
+            border-bottom: 2px solid rgba(86, 185, 73, 0.3);
+        }
+        
+        .content-section {
+            background: white;
+            padding: 3rem 1.5rem;
+            margin-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-indicator {
+            width: 0.375rem;
+            height: 2rem;
+            background: #30499B;
+            border-radius: 9999px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #30499B;
+            letter-spacing: -0.025em;
+        }
+        
+        .section-subtitle {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+        
+        .view-all-link {
+            font-size: 0.875rem;
+            color: #30499B;
+            text-decoration: none;
+        }
+        
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+        
+        .articles-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .article-card {
+            position: relative;
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s, transform 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .article-layout {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .article-image {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+        
+        .article-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s;
+        }
+        
+        .article-card:hover .article-image img {
+            transform: scale(1.05);
+        }
+        
+        .article-content {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .article-date {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-family: monospace;
+            margin-bottom: 0.75rem;
+        }
+        
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1.4;
+        }
+        
+        .article-title:hover {
+            color: #30499B;
+            text-decoration: underline;
+        }
+        
+        .article-excerpt {
+            color: #64748b;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .article-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            border-top: 1px solid rgba(148, 163, 184, 0.5);
+            padding-top: 2rem;
+            padding-bottom: 1rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-logo-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.25rem;
+            background: #30499B;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: bold;
+        }
+        
+        .footer-text {
+            color: #30499B;
+            font-weight: bold;
+            letter-spacing: -0.025em;
+            font-size: 0.875rem;
+        }
+        
+        .footer-copyright {
+            color: #94a3b8;
+            font-size: 0.625rem;
+        }
+        
+        /* 响应式设计 */
+        @media (min-width: 640px) {
+            .browser-frame {
+                border-radius: 1rem;
+                min-height: 90vh;
+            }
+            .main-content {
+                padding: 1.5rem 1.5rem 3rem 1.5rem;
+            }
+            .hero-title {
+                font-size: 3rem;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .main-content {
+                padding: 3rem;
+            }
+            .nav-bar {
+                margin: 1rem -3rem 2rem -3rem;
+            }
+            .article-layout {
+                flex-direction: row;
+            }
+            .article-image {
+                width: 320px;
+                height: 256px;
+            }
+            .hero-title {
+                font-size: 4.5rem;
+            }
+            .hero-subtitle {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 全局背景氛围 (液体黄绿色光斑) -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="liquid-blob absolute" style="top: -20%; left: -10%; width: 70%; height: 70%; background: rgba(86, 185, 73, 0.15); border-radius: 9999px; filter: blur(120px);"></div>
+    <div class="liquid-blob absolute" style="top: -10%; right: -10%; width: 50%; height: 50%; background: rgba(240, 163, 47, 0.1); border-radius: 9999px; filter: blur(100px); animation-delay: -5s;"></div>
+    <div class="liquid-blob absolute" style="bottom: -20%; left: 10%; width: 80%; height: 60%; background: linear-gradient(135deg, rgba(86, 185, 73, 0.2), rgba(48, 73, 155, 0.05)); border-radius: 9999px; filter: blur(130px); animation-delay: -10s;"></div>
+    <div class="liquid-blob absolute" style="bottom: 10%; right: -10%; width: 40%; height: 40%; background: rgba(86, 185, 73, 0.1); border-radius: 9999px; filter: blur(80px); animation-delay: -2s;"></div>
+</div>
+
+<!-- 落叶动画层 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="leaf-container" style="left: 10%; animation-duration: 15s; animation-delay: 0s; --end-x: 50px; --end-rotation: 120deg; width: 32px; color: #56B949;">
+        <svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z M12,2c0,0,1,6,0,10"></path>
+        </svg>
+    </div>
+    <div class="leaf-container" style="left: 25%; animation-duration: 18s; animation-delay: 4s; --end-x: -30px; --end-rotation: 200deg; width: 24px; color: #F0A32F;">
+        <svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M12 2L12 22 M12 12L18 8 M12 12L6 8 M12 17L16 15 M12 17L8 15"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- Browser Frame -->
+<div class="browser-frame">
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 导航栏 -->
+        <nav class="nav-bar">
+            <div class="nav-content">
+                <!-- Logo -->
+                <div class="logo-section">
+                    <div class="logo">YL</div>
+                    <span class="logo-text">YouthLoop</span>
+                </div>
+                
+                <!-- 导航链接 -->
+                <div class="nav-links">
+                    <a href="主页.html">首页</a>
+                    <a href="#" class="active">科普</a>
+                    <a href="活动页面.html">活动</a>
+                    <a href="积分页面.html">积分</a>
+                </div>
+                
+                <!-- 右侧操作 -->
+                <div class="auth-section">
+                    <a href="登录页面.html" class="login-link">登录</a>
+                    <a href="注册页面.html" class="register-link">注册</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-badge">
+                <span class="pulse-dot">
+                    <span class="pulse-dot-inner"></span>
+                    <span class="pulse-dot-core"></span>
+                </span>
+                环保知识科普
+            </div>
+            <h1 class="hero-title">
+                环保<span class="highlight">科普</span>
+            </h1>
+            <div class="hero-subtitle">
+                <div class="flex items-center gap-2">
+                    <span>📖</span>
+                    <span>学习<span class="accent-green">环保</span>知识，</span>
+                </div>
+                <span>用<span class="accent-orange">科学</span>守护地球</span>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="content-section">
+            <!-- Section: Environmental News -->
+            <section>
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <div class="section-indicator"></div>
+                        <div>
+                            <h2 class="section-title">环保新闻</h2>
+                            <p class="section-subtitle">ENVIRONMENTAL NEWS</p>
+                        </div>
+                    </div>
+                    <a href="#" class="view-all-link">查看全部 →</a>
+                </div>
+
+                <div class="articles-grid">
+                    <!-- News Item 1 -->
+                    <div class="article-card">
+                        <div class="article-layout">
+                            <div class="article-image">
+                                <img src="https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="绿色科技">
+                            </div>
+                            <div class="article-content">
+                                <div>
+                                    <div class="article-date">2026年1月6日</div>
+                                    <h3 class="article-title" onclick="viewArticle('article-001')">绿色科技：未来城市的可持续能源解决方案</h3>
+                                    <p class="article-excerpt">随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...</p>
+                                </div>
+                                <div class="article-stats">
+                                    <div class="stat-item">⭐ 128</div>
+                                    <div class="stat-item">👍 452</div>
+                                    <div class="stat-item">💬 34</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- News Item 2 -->
+                    <div class="article-card">
+                        <div class="article-layout">
+                            <div class="article-image">
+                                <img src="https://images.unsplash.com/photo-1621451537084-482c73073a0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="海洋保护">
+                            </div>
+                            <div class="article-content">
+                                <div>
+                                    <div class="article-date">2026年1月6日</div>
+                                    <h3 class="article-title" onclick="viewArticle('article-002')">海洋塑料污染：不仅仅是吸管的问题</h3>
+                                    <p class="article-excerpt">每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...</p>
+                                </div>
+                                <div class="article-stats">
+                                    <div class="stat-item">⭐ 89</div>
+                                    <div class="stat-item">👍 210</div>
+                                    <div class="stat-item">💬 18</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- News Item 3 -->
+                    <div class="article-card">
+                        <div class="article-layout">
+                            <div class="article-image">
+                                <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="电动汽车">
+                            </div>
+                            <div class="article-content">
+                                <div>
+                                    <div class="article-date">2026年1月6日</div>
+                                    <h3 class="article-title" onclick="viewArticle('article-003')">电动汽车：你需要知道的电池回收知识</h3>
+                                    <p class="article-excerpt">随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...</p>
+                                </div>
+                                <div class="article-stats">
+                                    <div class="stat-item">⭐ 56</div>
+                                    <div class="stat-item">👍 134</div>
+                                    <div class="stat-item">💬 21</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">YL</div>
+                    <span class="footer-text">YouthLoop</span>
+                </div>
+                <p class="footer-copyright">© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
+            </div>
+        </footer>
+
+    </main>
+</div>
+
+<script>
+// 页面加载完成
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('科普页面加载完成');
+});
+
+// 查看文章详情
+function viewArticle(articleId) {
+    console.log('点击文章:', articleId);
+    
+    // 跳转到文章详情页面
+    window.location.href = '科普文章详情.html?id=' + articleId;
+}
+
+// 确保函数是全局的
+window.viewArticle = viewArticle;
+
+console.log('科普页面JavaScript初始化完成');
+</script>
+
+</body>
+</html>

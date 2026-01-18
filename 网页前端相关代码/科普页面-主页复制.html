@@ -1,8 +1,7 @@
-#主页的html代码
 <html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouthLoop - 响应式交互设计</title>
+    <title>YouthLoop - 环保科普</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,28 +15,38 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 漂浮动画 */
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        /* 液体光斑流动动画 */
+        @keyframes liquid-drift {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .liquid-blob {
+            animation: liquid-drift 20s infinite ease-in-out alternate;
         }
 
-        .leaf {
+        /* 落叶飘落动画 */
+        @keyframes falling-leaf {
+            0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translate3d(var(--end-x), 110vh, 0) rotate(var(--end-rotation)); opacity: 0; }
+        }
+        .leaf-container {
             position: absolute;
-            bottom: -50px;
-            opacity: 0;
+            top: -20px;
             pointer-events: none;
             z-index: 0;
-            animation: float 15s linear infinite;
+            animation: falling-leaf linear infinite;
         }
-
-        .leaf:nth-child(1) { left: 10%; animation-duration: 18s; animation-delay: 0s; width: 40px; color: #56B949; }
-        .leaf:nth-child(2) { left: 30%; animation-duration: 22s; animation-delay: 4s; width: 30px; color: #30499B; }
-        .leaf:nth-child(3) { left: 70%; animation-duration: 16s; animation-delay: 2s; width: 50px; color: #56B949; }
-        .leaf:nth-child(4) { left: 90%; animation-duration: 25s; animation-delay: 8s; width: 35px; color: #F0A32F; }
-        .leaf:nth-child(5) { left: 50%; animation-duration: 20s; animation-delay: 12s; width: 45px; color: #EE4035; }
+        .leaf-svg {
+            fill: none;
+            stroke-width: 1.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
 
         /* Modal Animation */
         .modal-backdrop { transition: opacity 300ms ease-out; }
@@ -54,77 +63,73 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen p-0 sm:p-4 md:p-8 relative overflow-hidden">
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
 
-    <!-- 背景动画层 -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <svg class="leaf" viewBox="0 0 24 24" fill="currentColor"><path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z"></path></svg>
-        <svg class="leaf" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L12,2c4,3,8,8,8,13c0,4-4,7-4,7s-2.9-4.7-6-6C10,16,12,2,12,2z"></path></svg>
-        <svg class="leaf" viewBox="0 0 24 24" fill="currentColor"><path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z"></path></svg>
-        <svg class="leaf" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L12,2c4,3,8,8,8,13c0,4-4,7-4,7s-2.9-4.7-6-6C10,16,12,2,12,2z"></path></svg>
-        <svg class="leaf" viewBox="0 0 24 24" fill="currentColor"><path d="M2,12c0-5,4-9,9-9c0,0,0,4,3,6c-2,0-4,0-4,5C10,14,2,12,2,12z"></path></svg>
+<!-- 全局背景氛围 (液体黄绿色光斑) -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+    <div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+    <div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+    <div class="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#56B949]/10 rounded-full blur-[80px]" style="animation-delay: -2s;"></div>
+</div>
+
+<!-- 落叶动画层 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="leaf-container text-[#56B949]" style="left: 10%; animation-duration: 15s; animation-delay: 0s; --end-x: 50px; --end-rotation: 120deg; width: 32px;">
+        <svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z M12,2c0,0,1,6,0,10"></path>
+        </svg>
     </div>
+    <div class="leaf-container text-[#F0A32F]" style="left: 25%; animation-duration: 18s; animation-delay: 4s; --end-x: -30px; --end-rotation: 200deg; width: 24px;">
+        <svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M12 2L12 22 M12 12L18 8 M12 12L6 8 M12 17L16 15 M12 17L8 15"></path>
+        </svg>
+    </div>
+</div>
 
-    <!-- 浏览器框架容器 -->
-    <div class="w-full max-w-6xl bg-white/95 sm:rounded-2xl shadow-2xl shadow-[#30499B]/10 border-x sm:border border-white/50 h-screen sm:h-auto sm:min-h-[90vh] overflow-y-auto relative backdrop-blur-sm z-10 scroll-smooth">
-        
-        <!-- 浏览器头部 (仅在桌面/大屏显示装饰性，移动端简化) -->
-        <div class="hidden sm:flex bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3 items-center gap-2 sticky top-0 z-50">
-            <div class="flex gap-2">
-                <div class="w-3 h-3 rounded-full bg-[#EE4035]"></div>
-                <div class="w-3 h-3 rounded-full bg-[#F0A32F]"></div>
-                <div class="w-3 h-3 rounded-full bg-[#56B949]"></div>
-            </div>
-            <div class="flex-1 text-center">
-                <div class="inline-flex items-center justify-center gap-2 px-3 py-1 bg-[#56B949]/10 rounded-md text-[#56B949] text-xs font-medium w-64 mx-auto border border-[#56B949]/20">
-                    <i data-lucide="lock" class="w-3 h-3"></i>
-                    youthloop.com
-                </div>
-            </div>
-            <div class="w-12"></div>
-        </div>
-
+<!-- Browser Frame -->
+<div class="w-full max-w-7xl bg-white/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 border-x sm:border border-white/60 min-h-screen sm:min-h-[90vh] relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 mx-auto">
         <!-- 主内容区 -->
-        <main class="relative pb-20 sm:pb-0">
+        <main class="p-4 sm:p-6 md:p-12 min-h-screen relative max-w-6xl mx-auto">
             <!-- 导航栏 -->
-            <nav class="sticky sm:relative top-0 z-40 bg-white/80 backdrop-blur-md sm:bg-white/50 border-b border-slate-100 px-4 sm:px-8 py-4 sm:py-6">
+            <nav class="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100/60 px-4 sm:px-8 py-4 -mx-4 sm:-mx-6 md:-mx-12 mb-8 mt-4">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Logo -->
-                    <div class="flex items-center gap-2 z-50">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#56B949] flex items-center justify-center text-white shadow-lg shadow-[#56B949]/20 transform rotate-3">
-                            <span class="font-serif font-bold text-lg">YL</span>
-                        </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20 transform rotate-3">YL</div>
                         <span class="text-[#30499B] font-bold text-lg sm:text-xl tracking-tight">YouthLoop</span>
                     </div>
 
                     <!-- 移动端汉堡菜单按钮 -->
-                    <button id="menu-btn" class="sm:hidden p-2 text-[#30499B] focus:outline-none z-50">
+                    <button id="menu-btn" class="md:hidden p-2 text-[#30499B] focus:outline-none ml-auto">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
                     
-                    <!-- 导航链接 (桌面端显示，移动端隐藏) -->
-                    <div id="nav-links" class="hidden sm:flex flex-col sm:flex-row absolute sm:static top-full left-0 w-full sm:w-auto bg-white sm:bg-transparent border-b sm:border-none border-slate-100 p-4 sm:p-0 gap-4 sm:gap-8 text-[#30499B]/70 text-sm font-medium shadow-lg sm:shadow-none transition-all duration-300 ease-in-out z-40">
-                        <a href="#" class="text-[#30499B] font-semibold bg-[#30499B]/10 px-3 py-1 rounded-full w-fit">首页</a>
+                    <!-- 导航链接 -->
+                    <div id="nav-links" class="hidden md:flex flex-col md:flex-row absolute md:static top-full left-0 w-full md:w-auto bg-white md:bg-transparent border-b md:border-none border-slate-100 p-4 md:p-0 gap-4 md:gap-8 text-sm font-medium text-slate-500 shadow-lg md:shadow-none transition-all duration-300 z-50">
+                        <a href="主页.html" class="hover:text-[#30499B] transition-colors py-1">首页</a>
                         <a href="#" class="hover:text-[#56B949] transition-colors py-1">游戏</a>
-                        <a href="积分页面.html" class="hover:text-[#F0A32F] transition-colors py-1">活动</a>
-                        <a href="#" class="hover:text-[#30499B] transition-colors py-1">科普</a>
-                        <a href="#" class="hover:text-[#EE4035] transition-colors py-1">积分</a>
+                        <a href="#" class="text-[#F0A32F] font-semibold bg-[#F0A32F]/10 px-3 py-1 rounded-full w-fit">科普</a>
+                        <a href="活动页面.html" class="hover:text-[#30499B] transition-colors py-1">活动</a>
+                        <a href="积分页面.html" class="hover:text-[#EE4035] transition-colors py-1">积分</a>
                         
                         <!-- 移动端显示的额外操作 -->
-                        <div class="sm:hidden flex flex-col gap-3 mt-4 pt-4 border-t border-slate-100">
-                             <button id="mobile-login-btn" class="text-sm font-semibold text-[#30499B]">登录</button>
-                             <button id="mobile-register-btn" class="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20">注册</button>
+                        <div class="md:hidden mobile-auth-section">
+                             <a href="登录页面.html" class="text-sm font-semibold text-[#30499B] text-left">登录</a>
+                             <a href="注册页面.html" class="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20">注册</a>
                         </div>
                     </div>
 
                     <!-- 桌面端右侧操作 -->
-                    <div class="hidden sm:flex items-center gap-6">
-                        <div class="relative group">
-                            <input type="text" class="bg-slate-100 border border-transparent rounded-full py-1.5 pl-4 pr-8 text-sm focus:ring-2 focus:ring-[#30499B]/20 focus:bg-white w-32 lg:w-48 outline-none transition-all placeholder-slate-400 group-hover:bg-white group-hover:shadow-sm text-[#30499B]" placeholder="Search">
-                            <i data-lucide="search" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#30499B]"></i>
+                    <div class="hidden md:flex items-center gap-4">
+                        <div class="hidden lg:flex items-center bg-white/60 rounded-full px-4 py-2 border border-slate-200/60 focus-within:border-[#30499B]/30 focus-within:bg-white transition-all w-48 xl:w-64">
+                            <input type="text" placeholder="搜索知识..." class="bg-transparent border-none outline-none text-xs w-full text-[#30499B] placeholder-slate-400">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
                         </div>
-                        <button id="login-btn" class="text-sm font-semibold text-[#30499B] hover:text-[#EE4035] transition-colors">登录</button>
-                        <button id="register-btn" class="text-sm px-4 py-1.5 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20 hover:bg-[#253a7a] transition-all">注册</button>
+                        <div class="desktop-auth-section">
+                            <a href="登录页面.html" class="text-sm font-semibold text-[#30499B] hover:text-[#56B949] transition-colors">登录</a>
+                            <a href="注册页面.html" class="text-sm px-4 py-1.5 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20 hover:bg-[#253a7a] hover:scale-105 transition-all">注册</a>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -404,18 +409,13 @@
             </div>
 
             <!-- Footer -->
-            <footer class="bg-white py-12 mt-0 text-center border-t border-slate-100">
+            <footer class="mt-16 text-center border-t border-slate-200/50 pt-8 pb-4">
                 <div class="flex flex-col items-center gap-4">
                      <div class="flex items-center gap-2 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-[#30499B] text-white flex items-center justify-center text-xs font-serif font-bold">YL</div>
-                        <span class="text-[#30499B] font-bold tracking-tight">YouthLoop</span>
+                        <div class="w-6 h-6 rounded bg-[#30499B] text-white flex items-center justify-center text-[10px] font-serif font-bold">YL</div>
+                        <span class="text-[#30499B] font-bold tracking-tight text-sm">YouthLoop</span>
                      </div>
-                    <div class="flex gap-6 text-sm text-slate-500">
-                        <a href="#" class="hover:text-[#56B949]">About</a>
-                        <a href="#" class="hover:text-[#56B949]">Privacy</a>
-                        <a href="#" class="hover:text-[#56B949]">Contact</a>
-                    </div>
-                    <p class="text-slate-400 font-medium text-xs mt-4">© 2024 YouthLoop. Designed with nature in mind.</p>
+                    <p class="text-slate-400 text-[10px]">© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
                 </div>
             </footer>
 
@@ -520,6 +520,7 @@
     </div>
 
     <!-- Script for Icons and Interactions -->
+    <script src="user-auth.js"></script>
     <script>
         // 初始化图标
         lucide.createIcons();
@@ -527,23 +528,13 @@
         // 1. Mobile Menu Toggle Logic
         const menuBtn = document.getElementById('menu-btn');
         const navLinks = document.getElementById('nav-links');
-        const menuIcon = menuBtn.querySelector('i');
 
-        menuBtn.addEventListener('click', () => {
-            const isHidden = navLinks.classList.contains('hidden');
-            if (isHidden) {
-                // 打开菜单
-                navLinks.classList.remove('hidden');
-                navLinks.classList.add('flex');
-                // 简单的动画效果（可选）
-                navLinks.style.opacity = '0';
-                setTimeout(() => navLinks.style.opacity = '1', 10);
-            } else {
-                // 关闭菜单
-                navLinks.classList.add('hidden');
-                navLinks.classList.remove('flex');
-            }
-        });
+        if(menuBtn && navLinks) {
+            menuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('hidden');
+                navLinks.classList.toggle('flex');
+            });
+        }
 
         // 2. Carousel Scroll Logic
         const scrollContainer = document.getElementById('carousel-scroll');
@@ -638,12 +629,6 @@
             registerView.classList.remove('form-hidden');
             registerView.classList.add('form-visible');
         }
-
-        // 4. Login/Register Button Event Listeners
-        document.getElementById('login-btn').addEventListener('click', () => openModal('login'));
-        document.getElementById('register-btn').addEventListener('click', () => openModal('register'));
-        document.getElementById('mobile-login-btn').addEventListener('click', () => openModal('login'));
-        document.getElementById('mobile-register-btn').addEventListener('click', () => openModal('register'));
 
         // Close on ESC key
         document.addEventListener('keydown', (e) => {

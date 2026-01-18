@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测试登录功能</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+<h1 class="text-2xl font-bold mb-6 text-center">测试登录功能</h1>
+
+<div class="space-y-4">
+<button onclick="testLogin()" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+模拟登录
+</button>
+
+<button onclick="testLogout()" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+退出登录
+</button>
+
+<button onclick="checkStatus()" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+检查登录状态
+</button>
+
+<div id="status" class="p-4 bg-gray-50 rounded text-sm"></div>
+</div>
+
+<div class="mt-6">
+<h3 class="font-semibold mb-2">导航到其他页面测试：</h3>
+<div class="space-y-2">
+<a href="主页.html" class="block text-blue-600 hover:underline">主页</a>
+<a href="科普页面.html" class="block text-blue-600 hover:underline">科普页面</a>
+<a href="活动页面.html" class="block text-blue-600 hover:underline">活动页面</a>
+<a href="积分页面.html" class="block text-blue-600 hover:underline">积分页面</a>
+</div>
+</div>
+</div>
+
+<script src="user-auth.js"></script>
+<script>
+function testLogin() {
+const userData = {
+username: '测试用户',
+contact: 'test@example.com',
+points: 888,
+level: 3,
+avatar: null
+};
+
+userAuth.login(userData);
+checkStatus();
+}
+
+function testLogout() {
+userAuth.logout();
+checkStatus();
+}
+
+function checkStatus() {
+const statusDiv = document.getElementById('status');
+const user = userAuth.getUser();
+
+if (user) {
+statusDiv.innerHTML = `
+<div class="text-green-600">
+<strong>已登录</strong><br>
+用户名: ${user.username}<br>
+邮箱: ${user.contact}<br>
+积分: ${user.points}<br>
+等级: ${user.level}
+</div>
+`;
+} else {
+statusDiv.innerHTML = '<div class="text-red-600"><strong>未登录</strong></div>';
+}
+}
+
+// 页面加载时检查状态
+checkStatus();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouthLoop - 回复我的</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+
+/* 液体光斑流动动画 */
+@keyframes liquid-drift {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.95); }
+100% { transform: translate(0, 0) scale(1); }
+}
+.liquid-blob {
+animation: liquid-drift 20s infinite ease-in-out alternate;
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+transform: translateY(-2px);
+box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 新消息指示器 */
+.new-message {
+position: relative;
+}
+.new-message::before {
+content: '';
+position: absolute;
+top: -2px;
+right: -2px;
+width: 8px;
+height: 8px;
+background: #EE4035;
+border-radius: 50%;
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(238, 64, 53, 0.7); }
+70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(238, 64, 53, 0); }
+100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(238, 64, 53, 0); }
+}
+
+/* 回复动画 */
+@keyframes replySlide {
+from { opacity: 0; transform: translateX(-20px); }
+to { opacity: 1; transform: translateX(0); }
+}
+.reply-animation {
+animation: replySlide 0.3s ease-out;
+}
+
+/* 用户下拉菜单 */
+.user-dropdown:hover .user-dropdown-menu {
+opacity: 1;
+visibility: visible;
+transform: scale(1);
+}
+
+.user-dropdown-menu {
+transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+</style>
+</head>
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+
+<!-- 全局背景氛围 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+<div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+<div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+</div>
+
+<!-- Navigation Bar -->
+<nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100/60">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- Back Button & Logo -->
+<div class="flex items-center gap-4">
+<a href="我的页面.html" class="p-2 rounded-full bg-white/80 text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60">
+<i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20">YL</div>
+<span class="text-[#30499B] font-bold text-xl tracking-tight">YouthLoop</span>
+</div>
+</div>
+
+<!-- Page Title -->
+<div class="flex items-center gap-2">
+<div class="relative">
+<i data-lucide="message-circle" class="w-5 h-5 text-[#30499B]"></i>
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-[#EE4035] rounded-full text-white text-xs flex items-center justify-center font-bold">3</div>
+</div>
+<h1 class="text-lg font-semibold text-slate-800">回复我的</h1>
+</div>
+
+<!-- User Avatar -->
+<div id="user-avatar-container" class="flex items-center gap-3">
+<div id="user-info" class="flex items-center gap-3">
+<div class="relative user-dropdown">
+<button id="avatar-button" class="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
+<span id="avatar-text">U</span>
+</button>
+<!-- 悬停下拉菜单 -->
+<div class="user-dropdown-menu absolute top-full right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 py-4 opacity-0 invisible transform scale-95 transition-all duration-300 z-50">
+<!-- 用户信息头部 -->
+<div class="px-6 py-3 border-b border-slate-100">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold text-lg">
+<span id="dropdown-avatar-text">U</span>
+</div>
+<div>
+<div id="dropdown-user-name" class="font-semibold text-slate-800">用户名</div>
+<div class="text-sm text-slate-500">
+<span>ID: </span><span id="dropdown-user-id">123456789</span>
+</div>
+<div class="text-sm text-[#F0A32F] font-medium">
+<span>积分: </span><span id="dropdown-user-points">328</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 菜单选项 -->
+<div class="py-2">
+<a href="我的页面.html" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+<i data-lucide="user" class="w-5 h-5"></i>
+<span class="font-medium">个人资料</span>
+</a>
+<a href="回复我的.html" class="flex items-center gap-3 px-6 py-3 text-[#30499B] bg-slate-50 font-medium">
+<i data-lucide="bell" class="w-5 h-5"></i>
+<span class="font-medium">消息中心</span>
+</a>
+<a href="#" onclick="alert('账户设置功能开发中')" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+<i data-lucide="settings" class="w-5 h-5"></i>
+<span class="font-medium">账户设置</span>
+</a>
+</div>
+<!-- 退出登录 -->
+<div class="border-t border-slate-100 pt-2">
+<button onclick="userAuth.logout()" class="flex items-center gap-3 w-full px-6 py-3 text-[#EE4035] hover:bg-red-50 transition-colors">
+<i data-lucide="log-out" class="w-5 h-5"></i>
+<span class="font-medium">退出登录</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+
+<!-- Main Content -->
+<div class="min-h-screen relative z-10">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Header -->
+<div class="text-center mb-8">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-[#30499B]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4">
+<i data-lucide="message-circle" class="w-4 h-4"></i>
+消息中心
+</div>
+<h2 class="text-2xl font-serif font-semibold text-[#30499B] mb-2">回复和互动</h2>
+<p class="text-slate-500">查看其他用户对您内容的回复和互动</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+<div class="text-2xl font-bold text-[#EE4035] mb-1">3</div>
+<div class="text-sm text-slate-500">未读消息</div>
+</div>
+<div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+<div class="text-2xl font-bold text-[#F0A32F] mb-1">12</div>
+<div class="text-sm text-slate-500">今日回复</div>
+</div>
+<div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+<div class="text-2xl font-bold text-[#56B949] mb-1">45</div>
+<div class="text-sm text-slate-500">总点赞</div>
+</div>
+<div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+<div class="text-2xl font-bold text-[#30499B] mb-1">28</div>
+<div class="text-sm text-slate-500">总回复</div>
+</div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="flex items-center justify-center gap-4 mb-8">
+<button onclick="filterMessages('all')" class="filter-btn active px-4 py-2 rounded-lg font-medium transition-colors" data-filter="all">
+全部消息
+</button>
+<button onclick="filterMessages('unread')" class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="unread">
+<span class="flex items-center gap-2">
+未读消息
+<span class="w-2 h-2 bg-[#EE4035] rounded-full"></span>
+</span>
+</button>
+<button onclick="filterMessages('replies')" class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="replies">
+回复
+</button>
+<button onclick="filterMessages('likes')" class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="likes">
+点赞
+</button>
+</div>
+
+<!-- Messages List -->
+<div class="space-y-4" id="messages-list">
+<!-- 未读回复消息 -->
+<div class="card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg message-item new-message" data-type="replies" data-read="false">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#EE4035] flex items-center justify-center text-white font-semibold shadow-lg">
+李
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="font-medium text-slate-800">李环保达人</span>
+<span class="px-2 py-1 bg-[#EE4035]/10 text-[#EE4035] text-xs rounded-full">新回复</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<i data-lucide="clock" class="w-3 h-3"></i>
+<span>2小时前</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<i data-lucide="message-circle" class="w-4 h-4 text-[#30499B]"></i>
+<span class="text-sm text-slate-500">回复了你的评论</span>
+</div>
+<p class="text-slate-700 mb-3 leading-relaxed">非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。</p>
+<div class="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#56B949]">
+<div class="text-xs text-slate-500 mb-1">你的原评论：</div>
+<p class="text-sm text-slate-600">我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...</p>
+</div>
+<div class="flex items-center gap-4">
+<button onclick="replyToMessage(this)" class="flex items-center gap-2 px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm">
+<i data-lucide="reply" class="w-4 h-4"></i>
+回复
+</button>
+<button onclick="likeMessage(this)" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#F0A32F] hover:border-[#F0A32F] transition-colors text-sm">
+<i data-lucide="heart" class="w-4 h-4"></i>
+点赞
+</button>
+<button onclick="markAsRead(this)" class="text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="check" class="w-4 h-4"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 点赞通知 -->
+<div class="card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg message-item new-message" data-type="likes" data-read="false">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold shadow-lg">
+王
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="font-medium text-slate-800">王小绿</span>
+<span class="px-2 py-1 bg-[#F0A32F]/10 text-[#F0A32F] text-xs rounded-full">新点赞</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<i data-lucide="clock" class="w-3 h-3"></i>
+<span>4小时前</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<i data-lucide="heart" class="w-4 h-4 text-[#F0A32F]"></i>
+<span class="text-sm text-slate-500">点赞了你的分享</span>
+</div>
+<p class="text-slate-700 mb-3">你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。</p>
+<div class="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#F0A32F]">
+<div class="text-xs text-slate-500 mb-1">你的分享：</div>
+<p class="text-sm text-slate-600 font-medium">垃圾分类小知识 - 让环保从细节做起</p>
+</div>
+<div class="flex items-center gap-4">
+<button onclick="viewContent(this)" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm">
+<i data-lucide="external-link" class="w-4 h-4"></i>
+查看内容
+</button>
+<button onclick="markAsRead(this)" class="text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="check" class="w-4 h-4"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 新关注通知 -->
+<div class="card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg message-item new-message" data-type="follows" data-read="false">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#30499B] to-[#253a7a] flex items-center justify-center text-white font-semibold shadow-lg">
+张
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="font-medium text-slate-800">张环保志愿者</span>
+<span class="px-2 py-1 bg-[#56B949]/10 text-[#56B949] text-xs rounded-full">新关注</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<i data-lucide="clock" class="w-3 h-3"></i>
+<span>1天前</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<i data-lucide="user-plus" class="w-4 h-4 text-[#56B949]"></i>
+<span class="text-sm text-slate-500">关注了你</span>
+</div>
+<p class="text-slate-700 mb-4">看到你在环保方面的分享很有价值，希望能互相学习交流！</p>
+<div class="flex items-center gap-4">
+<button onclick="followBack(this)" class="flex items-center gap-2 px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm">
+<i data-lucide="user-plus" class="w-4 h-4"></i>
+回关
+</button>
+<button onclick="viewProfile(this)" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm">
+<i data-lucide="user" class="w-4 h-4"></i>
+查看资料
+</button>
+<button onclick="markAsRead(this)" class="text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="check" class="w-4 h-4"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 已读回复消息 -->
+<div class="card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg message-item" data-type="replies" data-read="true">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#EE4035] to-[#F0A32F] flex items-center justify-center text-white font-semibold shadow-lg">
+陈
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="font-medium text-slate-800">陈小环</span>
+<span class="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">已读</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<i data-lucide="clock" class="w-3 h-3"></i>
+<span>2天前</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<i data-lucide="message-circle" class="w-4 h-4 text-[#30499B]"></i>
+<span class="text-sm text-slate-500">回复了你的评论</span>
+</div>
+<p class="text-slate-700 mb-3">感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。</p>
+<div class="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#56B949]">
+<div class="text-xs text-slate-500 mb-1">你的原评论：</div>
+<p class="text-sm text-slate-600">家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...</p>
+</div>
+<div class="flex items-center gap-4">
+<button onclick="replyToMessage(this)" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm">
+<i data-lucide="reply" class="w-4 h-4"></i>
+回复
+</button>
+<div class="flex items-center gap-1 text-slate-400">
+<i data-lucide="heart" class="w-4 h-4"></i>
+<span class="text-sm">已点赞</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 更多已读消息... -->
+<div class="card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg message-item" data-type="likes" data-read="true">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#56B949] flex items-center justify-center text-white font-semibold shadow-lg">
+刘
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="font-medium text-slate-800">刘绿色生活</span>
+<span class="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">已读</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400">
+<i data-lucide="clock" class="w-3 h-3"></i>
+<span>3天前</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<i data-lucide="heart" class="w-4 h-4 text-[#F0A32F]"></i>
+<span class="text-sm text-slate-500">点赞了你的分享</span>
+</div>
+<p class="text-slate-700 mb-3">很棒的环保活动分享！希望有机会也能参与这样的活动。</p>
+<div class="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#F0A32F]">
+<div class="text-xs text-slate-500 mb-1">你的分享：</div>
+<p class="text-sm text-slate-600 font-medium">参与社区植树活动的感想</p>
+</div>
+<div class="flex items-center gap-4">
+<button onclick="viewContent(this)" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm">
+<i data-lucide="external-link" class="w-4 h-4"></i>
+查看内容
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Load More Button -->
+<div class="text-center mt-12">
+<button onclick="loadMore()" class="inline-flex items-center gap-2 px-8 py-3 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors font-medium shadow-lg">
+<i data-lucide="refresh-cw" class="w-4 h-4"></i>
+加载更多消息
+</button>
+</div>
+</div>
+</div>
+
+<!-- Footer -->
+<footer class="mt-16 text-center border-t border-slate-200/50 pt-8 pb-4 relative z-10">
+<div class="flex flex-col items-center gap-4">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-6 h-6 rounded bg-[#30499B] text-white flex items-center justify-center text-[10px] font-serif font-bold">YL</div>
+<span class="text-[#30499B] font-bold tracking-tight text-sm">YouthLoop</span>
+</div>
+<p class="text-slate-400 text-[10px]">© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
+</div>
+</footer>
+
+<!-- Scripts -->
+<script src="user-auth.js"></script>
+<script>
+// 初始化图标
+lucide.createIcons();
+
+// 筛选消息功能
+function filterMessages(type) {
+const items = document.querySelectorAll('.message-item');
+const buttons = document.querySelectorAll('.filter-btn');
+
+// 更新按钮状态
+buttons.forEach(btn => {
+btn.classList.remove('active', 'bg-[#30499B]', 'text-white');
+btn.classList.add('text-slate-600', 'hover:text-[#30499B]');
+});
+
+const activeBtn = document.querySelector(`[data-filter="${type}"]`);
+activeBtn.classList.add('active', 'bg-[#30499B]', 'text-white');
+activeBtn.classList.remove('text-slate-600', 'hover:text-[#30499B]');
+
+// 筛选内容
+items.forEach(item => {
+let show = false;
+
+if (type === 'all') {
+show = true;
+} else if (type === 'unread') {
+show = item.dataset.read === 'false';
+} else {
+show = item.dataset.type === type;
+}
+
+item.style.display = show ? 'block' : 'none';
+});
+}
+
+// 回复消息功能
+function replyToMessage(button) {
+const messageItem = button.closest('.message-item');
+const replyArea = messageItem.querySelector('.reply-area');
+
+if (replyArea) {
+replyArea.remove();
+return;
+}
+
+const replyHTML = `
+<div class="reply-area mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 reply-animation">
+<textarea placeholder="输入你的回复..." class="w-full p-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B] outline-none" rows="3"></textarea>
+<div class="flex items-center justify-between mt-3">
+<div class="flex items-center gap-2 text-sm text-slate-500">
+<i data-lucide="smile" class="w-4 h-4"></i>
+<span>支持表情和@提醒</span>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="cancelReply(this)" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm">
+取消
+</button>
+<button onclick="sendReply(this)" class="px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm">
+发送回复
+</button>
+</div>
+</div>
+</div>
+`;
+
+messageItem.insertAdjacentHTML('beforeend', replyHTML);
+lucide.createIcons();
+}
+
+// 取消回复
+function cancelReply(button) {
+const replyArea = button.closest('.reply-area');
+replyArea.remove();
+}
+
+// 发送回复
+function sendReply(button) {
+const textarea = button.closest('.reply-area').querySelector('textarea');
+const content = textarea.value.trim();
+
+if (!content) {
+alert('请输入回复内容');
+return;
+}
+
+// 这里应该调用API发送回复
+alert('回复发送成功！');
+cancelReply(button);
+}
+
+// 点赞消息功能
+function likeMessage(button) {
+const icon = button.querySelector('i');
+const text = button.querySelector('span') || button;
+
+if (button.classList.contains('liked')) {
+button.classList.remove('liked', 'text-[#F0A32F]', 'border-[#F0A32F]');
+button.classList.add('text-slate-600', 'border-slate-200');
+icon.classList.remove('fill-current');
+} else {
+button.classList.add('liked', 'text-[#F0A32F]', 'border-[#F0A32F]');
+button.classList.remove('text-slate-600', 'border-slate-200');
+icon.classList.add('fill-current');
+}
+}
+
+// 标记为已读
+function markAsRead(button) {
+const messageItem = button.closest('.message-item');
+const badge = messageItem.querySelector('.px-2.py-1');
+
+messageItem.classList.remove('new-message');
+messageItem.dataset.read = 'true';
+
+if (badge && badge.textContent.includes('新')) {
+badge.classList.remove('bg-[#EE4035]/10', 'text-[#EE4035]', 'bg-[#F0A32F]/10', 'text-[#F0A32F]', 'bg-[#56B949]/10', 'text-[#56B949]');
+badge.classList.add('bg-slate-100', 'text-slate-500');
+badge.textContent = '已读';
+}
+
+// 更新未读消息计数
+updateUnreadCount();
+}
+
+// 更新未读消息计数
+function updateUnreadCount() {
+const unreadCount = document.querySelectorAll('.message-item[data-read="false"]').length;
+const badge = document.querySelector('nav .w-3.h-3');
+if (badge) {
+badge.textContent = unreadCount;
+if (unreadCount === 0) {
+badge.style.display = 'none';
+}
+}
+}
+
+// 查看内容
+function viewContent(button) {
+alert('跳转到原内容页面...');
+}
+
+// 回关功能
+function followBack(button) {
+button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>已关注';
+button.classList.remove('bg-[#56B949]', 'hover:bg-[#4aa840]');
+button.classList.add('bg-slate-100', 'text-slate-600');
+button.disabled = true;
+lucide.createIcons();
+}
+
+// 查看资料
+function viewProfile(button) {
+alert('跳转到用户资料页面...');
+}
+
+// 加载更多功能
+function loadMore() {
+alert('加载更多消息功能开发中...');
+}
+
+// 初始化用户信息
+function initUserInfo() {
+const userData = userAuth ? userAuth.getCurrentUser() : null;
+
+if (userData) {
+document.getElementById('avatar-text').textContent = userData.username.charAt(0).toUpperCase();
+// 更新下拉菜单中的用户信息
+document.getElementById('dropdown-avatar-text').textContent = userData.username.charAt(0).toUpperCase();
+document.getElementById('dropdown-user-name').textContent = userData.username;
+document.getElementById('dropdown-user-id').textContent = userData.contact || userData.id || '123456789';
+document.getElementById('dropdown-user-points').textContent = userData.points || 328;
+} else {
+window.location.href = '登录页面.html';
+}
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+initUserInfo();
+});
+
+// 全局函数
+window.filterMessages = filterMessages;
+window.replyToMessage = replyToMessage;
+window.cancelReply = cancelReply;
+window.sendReply = sendReply;
+window.likeMessage = likeMessage;
+window.markAsRead = markAsRead;
+window.viewContent = viewContent;
+window.followBack = followBack;
+window.viewProfile = viewProfile;
+window.loadMore = loadMore;
+</script>
+
+</body>
+</html>

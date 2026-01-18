@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouthLoop - 登录</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+
+/* 液体光斑流动动画 */
+@keyframes liquid-drift {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.95); }
+100% { transform: translate(0, 0) scale(1); }
+}
+.liquid-blob {
+animation: liquid-drift 20s infinite ease-in-out alternate;
+}
+
+/* 落叶飘落动画 */
+@keyframes falling-leaf {
+0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+10% { opacity: 0.8; }
+90% { opacity: 0.8; }
+100% { transform: translate3d(var(--end-x), 110vh, 0) rotate(var(--end-rotation)); opacity: 0; }
+}
+.leaf-container {
+position: absolute;
+top: -20px;
+pointer-events: none;
+z-index: 0;
+animation: falling-leaf linear infinite;
+}
+.leaf-svg {
+fill: none;
+stroke-width: 1.2;
+stroke-linecap: round;
+stroke-linejoin: round;
+filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+}
+
+/* Form Animation */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.form-container {
+animation: fadeIn 0.6s ease-out;
+}
+
+/* Modal Animation */
+.modal-backdrop { transition: opacity 300ms ease-out; }
+.modal-card { transition: opacity 300ms ease-out, transform 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* 滚动条样式 */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+</head>
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+
+<!-- 全局背景氛围 (液体黄绿色光斑) -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+<div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+<div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+<div class="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#56B949]/10 rounded-full blur-[80px]" style="animation-delay: -2s;"></div>
+</div>
+
+<!-- 落叶动画层 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="leaf-container text-[#56B949]" style="left: 10%; animation-duration: 15s; animation-delay: 0s; --end-x: 50px; --end-rotation: 120deg; width: 32px;">
+<svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+<path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z M12,2c0,0,1,6,0,10"></path>
+</svg>
+</div>
+<div class="leaf-container text-[#F0A32F]" style="left: 25%; animation-duration: 18s; animation-delay: 4s; --end-x: -30px; --end-rotation: 200deg; width: 24px;">
+<svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+<path d="M12 2L12 22 M12 12L18 8 M12 12L6 8 M12 17L16 15 M12 17L8 15"></path>
+</svg>
+</div>
+</div>
+
+<!-- Main Container -->
+<div class="min-h-screen flex items-center justify-center p-4 relative z-10">
+<!-- Back Button -->
+<a href="主页.html" class="absolute top-6 left-6 p-2 rounded-full bg-white/80 backdrop-blur-sm text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60">
+<i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+
+<!-- Login Card -->
+<div class="form-container w-full max-w-[440px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 sm:p-10 border border-white/40">
+<!-- Header -->
+<div class="flex flex-col items-center mb-8">
+<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center shadow-lg shadow-[#56B949]/20 mb-4 ring-4 ring-white/50">
+<span class="font-serif font-bold text-2xl text-white">YL</span>
+</div>
+<div class="text-[#30499B] font-bold text-xl tracking-wide">YouthLoop</div>
+<p class="text-slate-500 text-sm mt-2">欢迎回来，继续你的环保之旅</p>
+</div>
+
+<!-- Login Form -->
+<div class="space-y-6">
+<div class="flex items-baseline justify-between mb-6">
+<h2 class="text-2xl font-bold text-[#30499B]">登录</h2>
+<div class="text-sm text-slate-500 font-medium">没有账号？ <a href="注册页面.html" class="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2">立即注册</a></div>
+</div>
+
+<form class="space-y-5" onsubmit="handleLogin(event)">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="user" class="w-4 h-4"></i>
+</div>
+<input type="text" id="username" placeholder="账号/手机号" class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+</div>
+
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+<i data-lucide="lock" class="w-4 h-4"></i>
+</div>
+<input type="password" id="password" placeholder="请输入密码" class="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+<button type="button" onclick="togglePassword('password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+<i data-lucide="eye" class="w-4 h-4" id="password-eye"></i>
+</button>
+</div>
+
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<input type="checkbox" id="remember" class="w-4 h-4 rounded border-slate-300 text-[#30499B] focus:ring-[#30499B]/20 cursor-pointer">
+<label for="remember" class="text-sm text-slate-500 select-none cursor-pointer">记住我</label>
+</div>
+<a href="重置密码.html" class="text-sm text-slate-400 hover:text-[#30499B] transition-colors">忘记密码?</a>
+</div>
+
+<button type="submit" class="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide">
+立即登录
+</button>
+</form>
+
+<!-- 用户协议 -->
+<div class="text-center mt-4">
+<p class="text-xs text-slate-500">
+登录即表示您同意我们的
+<button onclick="openAgreementModal('terms')" class="text-[#30499B] hover:underline ml-1">《用户服务协议》</button>
+和
+<button onclick="openAgreementModal('privacy')" class="text-[#30499B] hover:underline ml-1">《隐私政策》</button>
+</p>
+</div>
+
+<!-- Divider -->
+<div class="relative my-6">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-white text-slate-400">或者</span>
+</div>
+</div>
+
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-3">
+<a href="手机注册.html" class="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+<i data-lucide="smartphone" class="w-4 h-4"></i>
+手机验证码
+</a>
+<button onclick="alert('扫码登录功能开发中')" class="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+<i data-lucide="scan-line" class="w-4 h-4"></i>
+扫码登录
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 协议弹窗模态框 -->
+<div id="agreement-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+<!-- Backdrop -->
+<div onclick="closeAgreementModal()" class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity opacity-0 modal-backdrop"></div>
+
+<!-- Modal Card -->
+<div class="relative w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl transform scale-95 opacity-0 modal-card mx-4 border border-white/40 max-h-[85vh] overflow-hidden flex flex-col">
+<!-- Header -->
+<div class="flex items-center justify-between p-6 border-b border-slate-200">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-sm shadow-lg shadow-[#56B949]/20">YL</div>
+<div>
+<h3 id="modal-title" class="text-lg font-semibold text-[#30499B]">用户服务协议</h3>
+<p class="text-xs text-slate-500">YouthLoop 法律文件</p>
+</div>
+</div>
+<button onclick="closeAgreementModal()" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="x" class="w-5 h-5"></i>
+</button>
+</div>
+
+<!-- Content -->
+<div id="modal-content" class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+<!-- 内容将通过JavaScript动态加载 -->
+</div>
+
+<!-- Footer -->
+<div class="flex items-center justify-between p-6 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+<div class="text-sm text-slate-500">
+最后更新：2024年1月18日
+</div>
+<div class="flex gap-3">
+<button onclick="closeAgreementModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors">
+关闭
+</button>
+<button onclick="acceptAgreement()" class="px-6 py-2 bg-[#30499B] text-white rounded-lg text-sm font-medium hover:bg-[#253a7a] transition-colors">
+我已了解
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Script for Icons and Interactions -->
+<script src="user-auth.js"></script>
+<script>
+// 初始化图标
+lucide.createIcons();
+
+// 密码显示/隐藏切换
+function togglePassword(inputId) {
+const input = document.getElementById(inputId);
+const eyeIcon = document.getElementById(inputId + '-eye');
+
+if (input.type === 'password') {
+input.type = 'text';
+eyeIcon.setAttribute('data-lucide', 'eye-off');
+} else {
+input.type = 'password';
+eyeIcon.setAttribute('data-lucide', 'eye');
+}
+lucide.createIcons();
+}
+
+// 登录表单处理
+function handleLogin(event) {
+event.preventDefault();
+const username = document.getElementById('username').value;
+const password = document.getElementById('password').value;
+const remember = document.getElementById('remember').checked;
+
+if (!username || !password) {
+alert('请填写完整的登录信息');
+return;
+}
+
+// 这里可以添加实际的登录逻辑
+console.log('登录信息:', { username, password, remember });
+
+// 模拟登录成功，设置用户状态
+const userData = {
+username: username,
+contact: username,
+points: Math.floor(Math.random() * 1000) + 100, // 随机积分
+level: Math.floor(Math.random() * 5) + 1,
+avatar: null // 可以设置默认头像
+};
+
+// 使用用户认证系统
+if (typeof userAuth !== 'undefined') {
+userAuth.login(userData);
+}
+
+alert('登录成功！');
+window.location.href = '主页.html';
+}
+
+// 全局函数
+window.togglePassword = togglePassword;
+window.handleLogin = handleLogin;
+
+// 协议弹窗功能
+function openAgreementModal(type) {
+console.log('Opening agreement modal:', type); // Debug log
+const modal = document.getElementById('agreement-modal');
+const modalBackdrop = modal.querySelector('.modal-backdrop');
+const modalCard = modal.querySelector('.modal-card');
+const modalTitle = document.getElementById('modal-title');
+const modalContent = document.getElementById('modal-content');
+
+if (!modal || !modalBackdrop || !modalCard || !modalTitle || !modalContent) {
+console.error('Modal elements not found');
+return;
+}
+
+// 设置标题和内容
+if (type === 'terms') {
+modalTitle.textContent = '用户服务协议';
+modalContent.innerHTML = getTermsContent();
+} else if (type === 'privacy') {
+modalTitle.textContent = '隐私政策';
+modalContent.innerHTML = getPrivacyContent();
+} else {
+console.error('Unknown modal type:', type);
+return;
+}
+
+// 显示模态框
+modal.classList.remove('hidden');
+modal.classList.add('flex');
+
+// 动画
+setTimeout(() => {
+modalBackdrop.classList.remove('opacity-0');
+modalBackdrop.classList.add('opacity-100');
+modalCard.classList.remove('scale-95', 'opacity-0');
+modalCard.classList.add('scale-100', 'opacity-100');
+
+// 重新初始化图标 - 在动画完成后
+setTimeout(() => {
+lucide.createIcons();
+console.log('Modal opened successfully'); // Debug log
+}, 50);
+}, 10);
+}
+
+function closeAgreementModal() {
+const modal = document.getElementById('agreement-modal');
+const modalBackdrop = modal.querySelector('.modal-backdrop');
+const modalCard = modal.querySelector('.modal-card');
+
+modalBackdrop.classList.remove('opacity-100');
+modalBackdrop.classList.add('opacity-0');
+modalCard.classList.remove('scale-100', 'opacity-100');
+modalCard.classList.add('scale-95', 'opacity-0');
+
+setTimeout(() => {
+modal.classList.add('hidden');
+modal.classList.remove('flex');
+}, 300);
+}
+
+function acceptAgreement() {
+// 记录用户已了解协议
+localStorage.setItem('youthloop_agreement_acknowledged', 'true');
+localStorage.setItem('youthloop_agreement_date', new Date().toISOString());
+closeAgreementModal();
+}
+
+// 获取用户服务协议内容
+function getTermsContent() {
+return `
+<div class="space-y-6 text-slate-600 leading-relaxed">
+<div class="bg-gradient-to-r from-[#30499B]/5 to-[#56B949]/5 rounded-lg p-4 border border-[#30499B]/20">
+<div class="flex items-center gap-2 mb-2">
+<i data-lucide="shield-check" class="w-5 h-5 text-[#30499B]"></i>
+<h4 class="font-semibold text-[#30499B]">协议概述</h4>
+</div>
+<p class="text-sm">本协议是您与YouthLoop环保平台之间的法律协议，请仔细阅读并理解以下条款。</p>
+</div>
+
+<div class="space-y-4">
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#30499B] text-white text-xs flex items-center justify-center font-semibold">1</span>
+协议接受与生效
+</h4>
+<ul class="space-y-2 text-sm ml-8">
+<li>• 当您点击"同意"按钮、注册账户或使用本平台任何服务时，即表示您已阅读、理解并同意接受本协议的全部条款。</li>
+<li>• 如果您不同意本协议的任何条款，请立即停止使用本平台服务。</li>
+<li>• 本平台有权根据需要修改本协议，修改后的协议将在平台上公布。</li>
+<li>• 继续使用服务即视为接受修改后的协议。</li>
+</ul>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs flex items-center justify-center font-semibold">2</span>
+服务内容与范围
+</h4>
+<div class="ml-8 space-y-2">
+<p class="text-sm">本平台致力于提供环保教育、活动组织、积分奖励等相关服务，包括但不限于：</p>
+<ul class="space-y-1 text-sm">
+<li>• 环保知识科普与教育内容</li>
+<li>• 环保活动信息发布与报名</li>
+<li>• 用户积分系统与奖励兑换</li>
+<li>• 环保游戏与互动体验</li>
+<li>• 社区交流与分享功能</li>
+</ul>
+<p class="text-sm mt-2">本平台保留随时修改、暂停或终止部分或全部服务的权利。</p>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs flex items-center justify-center font-semibold">3</span>
+用户权利与义务
+</h4>
+<div class="ml-8 space-y-3">
+<div>
+<p class="font-medium text-slate-700">用户权利：</p>
+<ul class="space-y-1 text-sm mt-1">
+<li>• 免费使用本平台提供的基础服务</li>
+<li>• 参与平台组织的各类环保活动</li>
+<li>• 获得积分奖励并兑换相应礼品</li>
+<li>• 在遵守平台规则的前提下发表观点和建议</li>
+</ul>
+</div>
+<div>
+<p class="font-medium text-slate-700">用户义务：</p>
+<ul class="space-y-1 text-sm mt-1">
+<li>• 提供真实、准确的个人信息</li>
+<li>• 遵守国家法律法规和平台规则</li>
+<li>• 不发布违法、有害或不当内容</li>
+<li>• 尊重其他用户的权利和隐私</li>
+<li>• 积极参与环保行动，践行绿色生活理念</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#EE4035] text-white text-xs flex items-center justify-center font-semibold">4</span>
+隐私保护
+</h4>
+<div class="ml-8 space-y-2">
+<p class="text-sm">本平台高度重视用户隐私保护，详细的隐私政策请参阅《隐私政策》。</p>
+<p class="text-sm">我们承诺不会向第三方出售、出租或以其他方式披露您的个人信息，除非：</p>
+<ul class="space-y-1 text-sm mt-1">
+<li>• 获得您的明确同意</li>
+<li>• 法律法规要求</li>
+<li>• 保护平台和用户的合法权益</li>
+</ul>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs flex items-center justify-center font-semibold">5</span>
+知识产权
+</h4>
+<div class="ml-8 space-y-2">
+<p class="text-sm">本平台的所有内容，包括但不限于文字、图片、音频、视频、软件等，均受知识产权法保护。</p>
+<p class="text-sm">用户在平台上发布的内容，用户保留所有权，但授予平台使用、展示、传播的权利。</p>
+<p class="text-sm">未经授权，任何人不得复制、修改、传播本平台的内容。</p>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-2 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs flex items-center justify-center font-semibold">6</span>
+免责声明
+</h4>
+<ul class="space-y-2 text-sm ml-8">
+<li>• 本平台仅作为信息发布和交流的平台，不对用户发布的内容承担责任。</li>
+<li>• 因不可抗力、系统故障等原因导致的服务中断，本平台不承担责任。</li>
+<li>• 用户因使用本平台服务而产生的任何损失，本平台的责任以用户支付的服务费用为限。</li>
+</ul>
+</div>
+</div>
+
+<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+<div class="flex items-center gap-2 mb-2">
+<i data-lucide="mail" class="w-4 h-4 text-[#30499B]"></i>
+<span class="font-medium text-slate-700">联系我们</span>
+</div>
+<p class="text-sm text-slate-600">
+如有疑问，请联系客服：<a href="mailto:support@youthloop.com" class="text-[#30499B] hover:underline">support@youthloop.com</a>
+</p>
+</div>
+</div>
+`;
+}
+
+// 获取隐私政策内容
+function getPrivacyContent() {
+return `
+<div class="space-y-6 text-slate-600 leading-relaxed">
+<div class="bg-gradient-to-r from-[#56B949]/5 to-[#30499B]/5 rounded-lg p-4 border border-[#56B949]/20">
+<div class="flex items-center gap-2 mb-2">
+<i data-lucide="shield" class="w-5 h-5 text-[#56B949]"></i>
+<h4 class="font-semibold text-[#56B949]">隐私保护承诺</h4>
+</div>
+<p class="text-sm">我们深知个人信息对您的重要性，并会尽全力保护您的个人信息安全可靠。</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<div class="bg-white rounded-lg p-4 border border-slate-200 text-center">
+<div class="w-10 h-10 rounded-full bg-[#56B949]/10 flex items-center justify-center text-[#56B949] mx-auto mb-2">
+<i data-lucide="lock" class="w-5 h-5"></i>
+</div>
+<h5 class="font-medium text-[#30499B] mb-1">数据加密</h5>
+<p class="text-xs text-slate-500">采用业界标准的加密技术保护您的数据</p>
+</div>
+<div class="bg-white rounded-lg p-4 border border-slate-200 text-center">
+<div class="w-10 h-10 rounded-full bg-[#F0A32F]/10 flex items-center justify-center text-[#F0A32F] mx-auto mb-2">
+<i data-lucide="eye-off" class="w-5 h-5"></i>
+</div>
+<h5 class="font-medium text-[#30499B] mb-1">最小化收集</h5>
+<p class="text-xs text-slate-500">仅收集为您提供服务所必需的信息</p>
+</div>
+<div class="bg-white rounded-lg p-4 border border-slate-200 text-center">
+<div class="w-10 h-10 rounded-full bg-[#30499B]/10 flex items-center justify-center text-[#30499B] mx-auto mb-2">
+<i data-lucide="user-check" class="w-5 h-5"></i>
+</div>
+<h5 class="font-medium text-[#30499B] mb-1">用户控制</h5>
+<p class="text-xs text-slate-500">您可以随时查看、修改或删除信息</p>
+</div>
+</div>
+
+<div class="space-y-4">
+<div>
+<h4 class="font-semibold text-[#30499B] mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#30499B] text-white text-xs flex items-center justify-center font-semibold">1</span>
+我们收集的信息
+</h4>
+<div class="ml-8 space-y-3">
+<div class="border border-slate-200 rounded-lg p-3">
+<div class="flex items-center justify-between mb-2">
+<h5 class="font-medium text-slate-800">基本账户信息</h5>
+<span class="text-xs px-2 py-1 bg-[#56B949]/10 text-[#56B949] rounded-full">高度保护</span>
+</div>
+<ul class="text-sm space-y-1">
+<li>• 手机号码或邮箱地址（用于账户验证）</li>
+<li>• 用户名和头像（可选）</li>
+<li>• 密码（加密存储）</li>
+</ul>
+</div>
+<div class="border border-slate-200 rounded-lg p-3">
+<div class="flex items-center justify-between mb-2">
+<h5 class="font-medium text-slate-800">活动参与信息</h5>
+<span class="text-xs px-2 py-1 bg-[#F0A32F]/10 text-[#F0A32F] rounded-full">适度使用</span>
+</div>
+<ul class="text-sm space-y-1">
+<li>• 参与的环保活动记录</li>
+<li>• 积分获得和使用记录</li>
+<li>• 学习进度和成就</li>
+</ul>
+</div>
+<div class="border border-slate-200 rounded-lg p-3">
+<div class="flex items-center justify-between mb-2">
+<h5 class="font-medium text-slate-800">设备和使用信息</h5>
+<span class="text-xs px-2 py-1 bg-slate-200 text-slate-600 rounded-full">匿名统计</span>
+</div>
+<ul class="text-sm space-y-1">
+<li>• 设备类型和操作系统</li>
+<li>• IP地址和地理位置（大致区域）</li>
+<li>• 使用时长和访问页面</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs flex items-center justify-center font-semibold">2</span>
+信息使用方式
+</h4>
+<div class="ml-8 grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="bg-slate-50 rounded-lg p-3">
+<h5 class="font-medium text-slate-800 mb-2 flex items-center gap-2">
+<i data-lucide="user-cog" class="w-4 h-4 text-[#30499B]"></i>
+服务提供
+</h5>
+<ul class="text-sm space-y-1">
+<li>• 创建和管理您的账户</li>
+<li>• 提供个性化的环保建议</li>
+<li>• 处理活动报名和积分兑换</li>
+</ul>
+</div>
+<div class="bg-slate-50 rounded-lg p-3">
+<h5 class="font-medium text-slate-800 mb-2 flex items-center gap-2">
+<i data-lucide="bell" class="w-4 h-4 text-[#56B949]"></i>
+通知推送
+</h5>
+<ul class="text-sm space-y-1">
+<li>• 发送活动提醒和更新</li>
+<li>• 推送环保知识和技巧</li>
+<li>• 通知积分变化和奖励</li>
+</ul>
+</div>
+<div class="bg-slate-50 rounded-lg p-3">
+<h5 class="font-medium text-slate-800 mb-2 flex items-center gap-2">
+<i data-lucide="trending-up" class="w-4 h-4 text-[#F0A32F]"></i>
+服务改进
+</h5>
+<ul class="text-sm space-y-1">
+<li>• 分析使用模式优化功能</li>
+<li>• 开发新的环保工具</li>
+<li>• 提升用户体验</li>
+</ul>
+</div>
+<div class="bg-slate-50 rounded-lg p-3">
+<h5 class="font-medium text-slate-800 mb-2 flex items-center gap-2">
+<i data-lucide="shield-alert" class="w-4 h-4 text-[#EE4035]"></i>
+安全保护
+</h5>
+<ul class="text-sm space-y-1">
+<li>• 防止欺诈和滥用</li>
+<li>• 维护平台安全</li>
+<li>• 遵守法律法规</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs flex items-center justify-center font-semibold">3</span>
+信息共享原则
+</h4>
+<div class="ml-8">
+<div class="bg-gradient-to-r from-[#EE4035]/5 to-[#F0A32F]/5 border border-[#EE4035]/20 rounded-lg p-4">
+<div class="flex items-start gap-3">
+<i data-lucide="alert-triangle" class="w-5 h-5 text-[#EE4035] mt-1"></i>
+<div>
+<h5 class="font-semibold text-[#EE4035] mb-2">重要承诺</h5>
+<p class="text-sm text-slate-600 mb-2">我们承诺不会出售、出租或以其他商业目的向第三方披露您的个人信息。</p>
+<p class="text-xs text-slate-500">仅在以下情况下可能共享信息：</p>
+<ul class="text-xs text-slate-600 mt-1 space-y-1">
+<li>• 获得您的明确同意</li>
+<li>• 法律法规要求或政府部门要求</li>
+<li>• 保护您或他人的合法权益</li>
+<li>• 与可信的服务提供商合作（如云存储服务）</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div>
+<h4 class="font-semibold text-[#30499B] mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-[#EE4035] text-white text-xs flex items-center justify-center font-semibold">4</span>
+您的隐私权利
+</h4>
+<div class="ml-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+<i data-lucide="eye" class="w-4 h-4 text-[#30499B] mt-1"></i>
+<div>
+<h5 class="font-medium text-slate-800">查看权</h5>
+<p class="text-sm text-slate-600 mt-1">随时查看我们收集的您的个人信息</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+<i data-lucide="edit" class="w-4 h-4 text-[#56B949] mt-1"></i>
+<div>
+<h5 class="font-medium text-slate-800">更正权</h5>
+<p class="text-sm text-slate-600 mt-1">更正或更新不准确的个人信息</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+<i data-lucide="trash-2" class="w-4 h-4 text-[#EE4035] mt-1"></i>
+<div>
+<h5 class="font-medium text-slate-800">删除权</h5>
+<p class="text-sm text-slate-600 mt-1">要求删除您的个人信息和账户</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+<i data-lucide="download" class="w-4 h-4 text-[#F0A32F] mt-1"></i>
+<div>
+<h5 class="font-medium text-slate-800">导出权</h5>
+<p class="text-sm text-slate-600 mt-1">以结构化格式导出您的数据</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="bg-gradient-to-r from-[#56B949]/5 to-[#30499B]/5 border border-[#56B949]/20 rounded-lg p-4">
+<div class="flex items-center gap-2 mb-2">
+<i data-lucide="phone" class="w-4 h-4 text-[#30499B]"></i>
+<span class="font-medium text-slate-700">联系我们</span>
+</div>
+<p class="text-sm text-slate-600 mb-2">如果您对本隐私政策有任何疑问或需要行使您的隐私权利，请联系我们：</p>
+<div class="flex flex-col sm:flex-row gap-4 text-sm">
+<div class="flex items-center gap-2">
+<i data-lucide="mail" class="w-4 h-4 text-[#30499B]"></i>
+<span>privacy@youthloop.com</span>
+</div>
+<div class="flex items-center gap-2">
+<i data-lucide="phone" class="w-4 h-4 text-[#56B949]"></i>
+<span>400-123-4567</span>
+</div>
+</div>
+</div>
+</div>
+`;
+}
+
+// ESC键关闭模态框
+document.addEventListener('keydown', (e) => {
+if (e.key === 'Escape') {
+const modal = document.getElementById('agreement-modal');
+if (modal && !modal.classList.contains('hidden')) {
+closeAgreementModal();
+}
+}
+});
+
+// 全局函数
+window.openAgreementModal = openAgreementModal;
+window.closeAgreementModal = closeAgreementModal;
+window.acceptAgreement = acceptAgreement;
+</script>
+
+</body>
+</html>

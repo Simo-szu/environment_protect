@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouthLoop - 环保科普</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #30499B;
+            margin-bottom: 10px;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .nav a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .nav a.active {
+            background: #F0A32F;
+            color: white;
+        }
+        
+        .nav a:hover {
+            background: #30499B;
+            color: white;
+        }
+        
+        .test-section {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .test-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        .test-btn:hover {
+            background: #c0392b;
+        }
+        
+        .articles {
+            margin-top: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #30499B;
+            margin-bottom: 30px;
+            padding-left: 20px;
+            border-left: 4px solid #56B949;
+        }
+        
+        .article-grid {
+            display: grid;
+            gap: 25px;
+        }
+        
+        .article-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .article-content {
+            padding: 25px;
+        }
+        
+        .article-date {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .article-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1.4;
+        }
+        
+        .article-title:hover {
+            color: #30499B;
+            text-decoration: underline;
+        }
+        
+        .article-excerpt {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .article-stats {
+            display: flex;
+            gap: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+            color: #888;
+        }
+        
+        .debug-info {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">YouthLoop</div>
+            <div style="color: #666; margin-bottom: 20px;">环保科普 - 用科学守护地球</div>
+            
+            <nav class="nav">
+                <a href="主页.html">首页</a>
+                <a href="#" class="active">科普</a>
+                <a href="活动页面.html">活动</a>
+                <a href="积分页面.html">积分</a>
+                <a href="登录页面.html">登录</a>
+            </nav>
+        </div>
+        
+        <!-- 测试区域 -->
+        <div class="test-section">
+            <h3>JavaScript测试区域</h3>
+            <p>如果下面的按钮能正常工作，说明JavaScript运行正常</p>
+            <button class="test-btn" onclick="testAlert()">测试弹窗</button>
+            <button class="test-btn" onclick="testConsole()">测试控制台</button>
+            <div class="debug-info" id="debug-info">
+                等待测试...
+            </div>
+        </div>
+        
+        <div class="articles">
+            <h2 class="section-title">环保新闻</h2>
+            
+            <div class="article-grid">
+                <!-- 文章1 -->
+                <div class="article-card">
+                    <div class="article-content">
+                        <div class="article-date">2026年1月6日</div>
+                        <h3 class="article-title" onclick="clickArticle('article-001', this)">
+                            绿色科技：未来城市的可持续能源解决方案
+                        </h3>
+                        <p class="article-excerpt">
+                            随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...
+                        </p>
+                        <div class="article-stats">
+                            <span>⭐ 128</span>
+                            <span>👍 452</span>
+                            <span>💬 34</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 文章2 -->
+                <div class="article-card">
+                    <div class="article-content">
+                        <div class="article-date">2026年1月6日</div>
+                        <h3 class="article-title" onclick="clickArticle('article-002', this)">
+                            海洋塑料污染：不仅仅是吸管的问题
+                        </h3>
+                        <p class="article-excerpt">
+                            每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...
+                        </p>
+                        <div class="article-stats">
+                            <span>⭐ 89</span>
+                            <span>👍 210</span>
+                            <span>💬 18</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 文章3 -->
+                <div class="article-card">
+                    <div class="article-content">
+                        <div class="article-date">2026年1月6日</div>
+                        <h3 class="article-title" onclick="clickArticle('article-003', this)">
+                            电动汽车：你需要知道的电池回收知识
+                        </h3>
+                        <p class="article-excerpt">
+                            随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...
+                        </p>
+                        <div class="article-stats">
+                            <span>⭐ 56</span>
+                            <span>👍 134</span>
+                            <span>💬 21</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时显示信息
+        window.addEventListener('load', function() {
+            console.log('页面加载完成');
+            updateDebugInfo('页面加载完成 ✓');
+            
+            // 显示加载成功弹窗
+            setTimeout(function() {
+                alert('页面加载成功！JavaScript正常工作！');
+            }, 500);
+        });
+        
+        // 更新调试信息
+        function updateDebugInfo(message) {
+            const debugElement = document.getElementById('debug-info');
+            if (debugElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                debugElement.innerHTML += '<br>[' + timestamp + '] ' + message;
+            }
+        }
+        
+        // 测试弹窗
+        function testAlert() {
+            alert('弹窗测试成功！');
+            updateDebugInfo('弹窗测试 ✓');
+            console.log('弹窗测试成功');
+        }
+        
+        // 测试控制台
+        function testConsole() {
+            console.log('控制台测试成功');
+            updateDebugInfo('控制台测试 ✓ (查看浏览器控制台)');
+        }
+        
+        // 点击文章
+        function clickArticle(articleId, element) {
+            console.log('点击文章:', articleId);
+            updateDebugInfo('点击文章: ' + articleId + ' ✓');
+            
+            // 高亮点击的文章
+            element.style.background = '#e3f2fd';
+            element.style.color = '#1976d2';
+            
+            // 显示确认对话框
+            const confirmed = confirm('确定要查看文章 "' + element.textContent + '" 吗？');
+            
+            if (confirmed) {
+                updateDebugInfo('准备跳转到: 科普文章详情.html?id=' + articleId);
+                
+                // 实际跳转
+                setTimeout(function() {
+                    window.location.href = '科普文章详情.html?id=' + articleId;
+                }, 1000);
+            } else {
+                // 恢复样式
+                element.style.background = '';
+                element.style.color = '';
+                updateDebugInfo('用户取消跳转');
+            }
+        }
+        
+        // 确保函数是全局的
+        window.testAlert = testAlert;
+        window.testConsole = testConsole;
+        window.clickArticle = clickArticle;
+        
+        console.log('JavaScript初始化完成');
+        updateDebugInfo('JavaScript初始化完成 ✓');
+    </script>
+</body>
+</html>
