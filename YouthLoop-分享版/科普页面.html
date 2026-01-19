@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouthLoop - 环保科普</title>
+<script src="https://cdn.tailwindcss.com">// 查看文章详情逻辑 - 跳转到科普文章详情.html
+function viewArticle(articleId) {
+    console.log("点击文章:", articleId);
+    window.location.href = "科普文章详情.html?id=" + articleId;
+}
+
+// Make functions global for onclick handlers
+window.viewArticle = viewArticle;
+</script>
+<script src="https://unpkg.com/lucide@latest">// 查看文章详情逻辑 - 跳转到科普文章详情.html
+function viewArticle(articleId) {
+    console.log("点击文章:", articleId);
+    window.location.href = "科普文章详情.html?id=" + articleId;
+}
+
+// Make functions global for onclick handlers
+window.viewArticle = viewArticle;
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+
+/* 隐藏滚动条但保留功能 */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 液体光斑流动动画 */
+@keyframes liquid-drift {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.95); }
+100% { transform: translate(0, 0) scale(1); }
+}
+.liquid-blob {
+animation: liquid-drift 20s infinite ease-in-out alternate;
+}
+
+/* 落叶飘落动画 */
+@keyframes falling-leaf {
+0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+10% { opacity: 0.8; }
+90% { opacity: 0.8; }
+100% { transform: translate3d(var(--end-x), 110vh, 0) rotate(var(--end-rotation)); opacity: 0; }
+}
+.leaf-container {
+position: absolute;
+top: -20px;
+pointer-events: none;
+z-index: 0;
+animation: falling-leaf linear infinite;
+}
+.leaf-svg {
+fill: none;
+stroke-width: 1.2;
+stroke-linecap: round;
+stroke-linejoin: round;
+filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+}
+</style>
+</head>
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+
+<!-- 全局背景氛围 (液体黄绿色光斑) -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+<div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+<div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+<div class="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#56B949]/10 rounded-full blur-[80px]" style="animation-delay: -2s;"></div>
+</div>
+
+<!-- 落叶动画层 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="leaf-container text-[#56B949]" style="left: 10%; animation-duration: 15s; animation-delay: 0s; --end-x: 50px; --end-rotation: 120deg; width: 32px;">
+<svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+<path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z M12,2c0,0,1,6,0,10"></path>
+</svg>
+</div>
+<div class="leaf-container text-[#F0A32F]" style="left: 25%; animation-duration: 18s; animation-delay: 4s; --end-x: -30px; --end-rotation: 200deg; width: 24px;">
+<svg class="leaf-svg w-full h-full" viewBox="0 0 24 24" stroke="currentColor">
+<path d="M12 2L12 22 M12 12L18 8 M12 12L6 8 M12 17L16 15 M12 17L8 15"></path>
+</svg>
+</div>
+</div>
+
+<!-- Browser Frame -->
+<div class="w-full max-w-7xl bg-white/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 border-x sm:border border-white/60 min-h-screen sm:min-h-[90vh] relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 mx-auto">
+<!-- 主内容区 -->
+<main class="p-4 sm:p-6 md:p-12 min-h-screen relative max-w-6xl mx-auto">
+<!-- 导航栏 -->
+<nav class="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100/60 px-4 sm:px-8 py-4 -mx-4 sm:-mx-6 md:-mx-12 mb-8 mt-4">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20 transform rotate-3">YL</div>
+<span class="text-[#30499B] font-bold text-lg sm:text-xl tracking-tight">YouthLoop</span>
+</div>
+
+<!-- 移动端汉堡菜单按钮 -->
+<button id="menu-btn" class="md:hidden p-2 text-[#30499B] focus:outline-none ml-auto">
+<i data-lucide="menu" class="w-6 h-6"></i>
+</button>
+
+<!-- 导航链接 -->
+<div id="nav-links" class="hidden md:flex flex-col md:flex-row absolute md:static top-full left-0 w-full md:w-auto bg-white md:bg-transparent border-b md:border-none border-slate-100 p-4 md:p-0 gap-4 md:gap-8 text-sm font-medium text-slate-500 shadow-lg md:shadow-none transition-all duration-300 z-50">
+<a href="主页.html" class="hover:text-[#30499B] transition-colors py-1">首页</a>
+<a href="#" class="hover:text-[#56B949] transition-colors py-1">游戏</a>
+<a href="#" class="text-[#F0A32F] font-semibold bg-[#F0A32F]/10 px-3 py-1 rounded-full w-fit">科普</a>
+<a href="活动页面.html" class="hover:text-[#30499B] transition-colors py-1">活动</a>
+<a href="积分页面.html" class="hover:text-[#EE4035] transition-colors py-1">积分</a>
+
+<!-- 移动端显示的额外操作 -->
+<div class="md:hidden mobile-auth-section">
+<div class="flex flex-col gap-3 mt-4 pt-4 border-t border-slate-100">
+<a href="登录页面.html" class="text-sm font-semibold text-[#30499B] text-left">登录</a>
+<a href="注册页面.html" class="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20">注册</a>
+</div>
+</div>
+</div>
+
+<!-- 桌面端右侧操作 -->
+<div class="hidden md:flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-white/60 rounded-full px-4 py-2 border border-slate-200/60 focus-within:border-[#30499B]/30 focus-within:bg-white transition-all w-48 xl:w-64">
+<input type="text" placeholder="搜索知识..." class="bg-transparent border-none outline-none text-xs w-full text-[#30499B] placeholder-slate-400">
+<i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+</div>
+<div class="desktop-auth-section">
+<a href="登录页面.html" class="text-sm font-semibold text-[#30499B] hover:text-[#56B949] transition-colors">登录</a>
+<a href="注册页面.html" class="text-sm px-4 py-1.5 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20 hover:bg-[#253a7a] hover:scale-105 transition-all">注册</a>
+</div>
+</div>
+</div>
+</nav>
+
+<!-- Hero Section -->
+<section class="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#F0A32F]/5 to-white">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-semibold mb-4 border border-[#F0A32F]/20">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
+</span>
+环保知识科普
+</div>
+<h1 class="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight">
+环保<span class="text-[#F0A32F]">科普</span>
+</h1>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
+<div class="flex items-center gap-2">
+<i data-lucide="book-open" class="w-5 h-5 text-[#F0A32F]"></i>
+<span>学习<span class="text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">环保</span>知识，</span>
+</div>
+<span>用<span class="text-[#56B949] font-medium border-b-2 border-[#56B949]/30">科学</span>守护地球</span>
+</div>
+</section>
+
+<!-- Main Content Grid -->
+<div class="bg-white px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100">
+
+<!-- Section: Environmental News -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
+<div>
+<h2 class="text-xl md:text-2xl font-semibold text-[#30499B] tracking-tight">环保新闻</h2>
+<p class="text-xs text-slate-400 mt-1">ENVIRONMENTAL NEWS</p>
+</div>
+</div>
+<a href="#" class="text-sm text-[#30499B] hover:underline decoration-[#30499B]/50 underline-offset-4">查看全部 -></a>
+</div>
+
+<div class="grid grid-cols-1 gap-6">
+<!-- News Item 1 -->
+<div class="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+<div class="flex flex-col md:flex-row">
+<div class="md:w-80 h-48 md:h-64 relative overflow-hidden bg-slate-100">
+<img src="https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Tech City" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+</div>
+<div class="p-6 md:p-8 flex-1 flex flex-col justify-between">
+<div>
+<div class="text-xs text-slate-400 mb-3 font-mono">2026年1月6日</div>
+<h3 onclick="viewArticle('article-001')" class="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight">绿色科技：未来城市的可持续能源解决方案</h3>
+<p class="text-sm text-slate-500 leading-relaxed line-clamp-3">随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...</p>
+</div>
+<div class="flex items-center gap-6 mt-6">
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#F0A32F] transition-colors">
+<i data-lucide="star" class="w-4 h-4"></i>
+<span>128</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#EE4035] transition-colors">
+<i data-lucide="thumbs-up" class="w-4 h-4"></i>
+<span>452</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="message-circle" class="w-4 h-4"></i>
+<span>34</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- News Item 2 -->
+<div class="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+<div class="flex flex-col md:flex-row">
+<div class="md:w-80 h-48 md:h-64 relative overflow-hidden bg-slate-100">
+<img src="https://images.unsplash.com/photo-1621451537084-482c73073a0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Ocean Plastic" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+</div>
+<div class="p-6 md:p-8 flex-1 flex flex-col justify-between">
+<div>
+<div class="text-xs text-slate-400 mb-3 font-mono">2026年1月6日</div>
+<h3 onclick="viewArticle('article-002')" class="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#F0A32F] transition-colors tracking-tight mb-2 cursor-pointer leading-tight">海洋塑料污染：不仅仅是吸管的问题</h3>
+<p class="text-sm text-slate-500 leading-relaxed line-clamp-3">每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...</p>
+</div>
+<div class="flex items-center gap-6 mt-6">
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#F0A32F] transition-colors">
+<i data-lucide="star" class="w-4 h-4"></i>
+<span>89</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#EE4035] transition-colors">
+<i data-lucide="thumbs-up" class="w-4 h-4"></i>
+<span>210</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="message-circle" class="w-4 h-4"></i>
+<span>18</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- News Item 3 -->
+<div class="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200">
+<div class="flex flex-col md:flex-row">
+<div class="md:w-80 h-48 md:h-64 relative overflow-hidden bg-slate-100">
+<img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="EV Car" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+</div>
+<div class="p-6 md:p-8 flex-1 flex flex-col justify-between">
+<div>
+<div class="text-xs text-slate-400 mb-3 font-mono">2026年1月6日</div>
+<h3 onclick="viewArticle('article-003')" class="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight">电动汽车：你需要知道的电池回收知识</h3>
+<p class="text-sm text-slate-500 leading-relaxed line-clamp-3">随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...</p>
+</div>
+<div class="flex items-center gap-6 mt-6">
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#F0A32F] transition-colors">
+<i data-lucide="star" class="w-4 h-4"></i>
+<span>56</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#EE4035] transition-colors">
+<i data-lucide="thumbs-up" class="w-4 h-4"></i>
+<span>134</span>
+</button>
+<button class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#30499B] transition-colors">
+<i data-lucide="message-circle" class="w-4 h-4"></i>
+<span>21</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Section: Environmental Tips -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-8 bg-[#56B949] rounded-full"></div>
+<div>
+<h2 class="text-xl md:text-2xl font-semibold text-[#30499B] tracking-tight">环保小贴士</h2>
+<p class="text-xs text-slate-400 mt-1">ECO TIPS</p>
+</div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Tip 1 -->
+<div class="group relative bg-slate-50 rounded-xl p-6 border border-slate-200 hover:border-[#56B949]/30 hover:bg-[#56B949]/5 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-white rounded-lg text-[#56B949] shadow-sm ring-1 ring-[#56B949]/10">
+<i data-lucide="droplets" class="w-5 h-5"></i>
+</div>
+<span class="text-[10px] font-bold tracking-wider text-[#56B949]/60 bg-[#56B949]/10 px-2 py-1 rounded">TIP</span>
+</div>
+<h3 class="text-lg text-[#30499B] font-medium leading-snug mb-2">节约用水小妙招</h3>
+<p class="text-sm text-slate-500 mb-4 line-clamp-2">洗菜水可以浇花，洗衣水可以拖地，一水多用让每一滴水都发挥最大价值。</p>
+<div class="w-full h-[1px] bg-[#56B949]/10 mb-3"></div>
+<div class="flex items-center gap-2 text-xs text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">了解更多 <i data-lucide="arrow-right" class="w-3 h-3"></i></div>
+</div>
+
+<!-- Tip 2 -->
+<div class="group relative bg-slate-50 rounded-xl p-6 border border-slate-200 hover:border-[#F0A32F]/30 hover:bg-[#F0A32F]/5 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-white rounded-lg text-[#F0A32F] shadow-sm ring-1 ring-[#F0A32F]/10">
+<i data-lucide="recycle" class="w-5 h-5"></i>
+</div>
+<span class="text-[10px] font-bold tracking-wider text-[#F0A32F]/60 bg-[#F0A32F]/10 px-2 py-1 rounded">TIP</span>
+</div>
+<h3 class="text-lg text-[#30499B] font-medium leading-snug mb-2">垃圾分类指南</h3>
+<p class="text-sm text-slate-500 mb-4 line-clamp-2">正确分类垃圾不仅能减少环境污染，还能让资源得到有效回收利用。</p>
+<div class="w-full h-[1px] bg-[#F0A32F]/10 mb-3"></div>
+<div class="flex items-center gap-2 text-xs text-[#F0A32F] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">了解更多 <i data-lucide="arrow-right" class="w-3 h-3"></i></div>
+</div>
+
+<!-- Tip 3 -->
+<div class="group relative bg-slate-50 rounded-xl p-6 border border-slate-200 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-white rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+<i data-lucide="zap" class="w-5 h-5"></i>
+</div>
+<span class="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">TIP</span>
+</div>
+<h3 class="text-lg text-[#30499B] font-medium leading-snug mb-2">节能减排妙招</h3>
+<p class="text-sm text-slate-500 mb-4 line-clamp-2">随手关灯、使用节能电器、选择公共交通，小行动大影响。</p>
+<div class="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+<div class="flex items-center gap-2 text-xs text-[#30499B] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">了解更多 <i data-lucide="arrow-right" class="w-3 h-3"></i></div>
+</div>
+</div>
+</section>
+
+</div>
+
+<!-- Footer -->
+<footer class="mt-16 text-center border-t border-slate-200/50 pt-8 pb-4">
+<div class="flex flex-col items-center gap-4">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-6 h-6 rounded bg-[#30499B] text-white flex items-center justify-center text-[10px] font-serif font-bold">YL</div>
+<span class="text-[#30499B] font-bold tracking-tight text-sm">YouthLoop</span>
+</div>
+<p class="text-slate-400 text-[10px]">© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
+</div>
+</footer>
+
+</main>
+</div>
+
+<script src="user-auth.js">// 查看文章详情逻辑 - 跳转到科普文章详情.html
+function viewArticle(articleId) {
+    console.log("点击文章:", articleId);
+    window.location.href = "科普文章详情.html?id=" + articleId;
+}
+
+// Make functions global for onclick handlers
+window.viewArticle = viewArticle;
+</script>
+<script>
+// 初始化图标
+lucide.createIcons();
+
+// 1. Mobile Menu Toggle Logic
+const menuBtn = document.getElementById('menu-btn');
+const navLinks = document.getElementById('nav-links');
+
+if(menuBtn && navLinks) {
+menuBtn.addEventListener('click', () => {
+navLinks.classList.toggle('hidden');
+navLinks.classList.toggle('flex');
+});
+}
+// 查看文章详情逻辑 - 跳转到科普文章详情.html
+function viewArticle(articleId) {
+    console.log("点击文章:", articleId);
+    window.location.href = "科普文章详情.html?id=" + articleId;
+}
+
+// Make functions global for onclick handlers
+window.viewArticle = viewArticle;
+</script>
+
+</body>
+</html>
