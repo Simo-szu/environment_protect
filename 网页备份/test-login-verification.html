@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录验证测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-8 text-center">登录验证功能测试</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">当前登录状态</h2>
+            <div id="login-status" class="mb-4">
+                <p class="text-gray-600">检查中...</p>
+            </div>
+            
+            <div class="flex gap-4 mb-6">
+                <button onclick="simulateLogin()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                    模拟登录
+                </button>
+                <button onclick="simulateLogout()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                    模拟登出
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">积分页面访问测试</h2>
+            <p class="text-gray-600 mb-4">点击下面的按钮测试积分页面的登录验证功能：</p>
+            
+            <div class="flex gap-4">
+                <button onclick="testPointsAccess()" class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors">
+                    测试积分页面访问
+                </button>
+                <button onclick="testPointsFunction()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                    测试积分功能调用
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="主页.html" class="text-blue-600 hover:underline">返回主页</a>
+        </div>
+    </div>
+
+    <script src="user-auth.js"></script>
+    <script>
+        // 初始化图标
+        lucide.createIcons();
+
+        // 更新登录状态显示
+        function updateLoginStatus() {
+            const statusDiv = document.getElementById('login-status');
+            if (userAuth && userAuth.isLoggedIn()) {
+                const user = userAuth.getUser();
+                statusDiv.innerHTML = `
+                    <div class="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                        <div>
+                            <p class="text-green-800 font-medium">已登录</p>
+                            <p class="text-green-600 text-sm">用户: ${user.username} | 积分: ${user.points}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <i data-lucide="x-circle" class="w-5 h-5 text-red-600"></i>
+                        <div>
+                            <p class="text-red-800 font-medium">未登录</p>
+                            <p class="text-red-600 text-sm">需要登录才能访问积分相关功能</p>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        // 模拟登录
+        function simulateLogin() {
+            const userData = {
+                username: '测试用户',
+                email: 'test@example.com',
+                points: 150,
+                level: 3
+            };
+            userAuth.login(userData);
+            updateLoginStatus();
+            alert('模拟登录成功！');
+        }
+
+        // 模拟登出
+        function simulateLogout() {
+            userAuth.logout();
+            updateLoginStatus();
+            alert('已登出！');
+        }
+
+        // 测试积分页面访问
+        function testPointsAccess() {
+            if (userAuth && userAuth.isLoggedIn()) {
+                alert('登录状态正常，可以访问积分页面');
+                // 可以选择跳转到积分页面
+                // window.location.href = '积分页面.html';
+            } else {
+                alert('未登录，将显示登录提示');
+                showLoginPrompt('请先登录再查看积分');
+            }
+        }
+
+        // 测试积分功能调用
+        function testPointsFunction() {
+            checkLoginAndNavigate('积分页面.html', '请先登录再查看积分');
+        }
+
+        // 登录验证函数 (从主页复制)
+        function checkLoginAndNavigate(url, message) {
+            if (userAuth && userAuth.isLoggedIn()) {
+                alert(`登录验证通过，将跳转到: ${url}`);
+                // window.location.href = url;
+            } else {
+                showLoginPrompt(message);
+            }
+        }
+
+        // 显示登录提示 (从主页复制)
+        function showLoginPrompt(message) {
+            const promptDiv = document.createElement('div');
+            promptDiv.className = 'fixed inset-0 z-[200] flex items-center justify-center';
+            promptDiv.innerHTML = `
+                <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+                <div class="relative bg-white rounded-2xl shadow-2xl p-8 mx-4 max-w-sm w-full border border-white/60">
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="lock" class="w-8 h-8 text-orange-500"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-blue-900 mb-2">需要登录</h3>
+                        <p class="text-sm text-slate-600 mb-6">${message}</p>
+                        <div class="flex gap-3">
+                            <button onclick="closeLoginPrompt()" class="flex-1 py-2 px-4 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium">
+                                取消
+                            </button>
+                            <button onclick="goToLogin()" class="flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium">
+                                去登录
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(promptDiv);
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // 关闭登录提示
+        function closeLoginPrompt() {
+            const promptDiv = document.querySelector('.fixed.inset-0.z-\\[200\\]');
+            if (promptDiv) {
+                promptDiv.remove();
+            }
+        }
+
+        // 跳转到登录页面
+        function goToLogin() {
+            closeLoginPrompt();
+            alert('将跳转到登录页面');
+            // window.location.href = '登录页面.html';
+        }
+
+        // 页面加载时更新状态
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoginStatus();
+        });
+    </script>
+</body>
+</html>

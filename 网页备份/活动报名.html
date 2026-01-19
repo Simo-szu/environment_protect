@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouthLoop - 活动报名</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, h4, h5, h6, .serif-font { font-family: 'Cormorant Garamond', serif; }
+
+/* 液体光斑流动动画 */
+@keyframes liquid-drift {
+0% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.95); }
+100% { transform: translate(0, 0) scale(1); }
+}
+.liquid-blob {
+animation: liquid-drift 20s infinite ease-in-out alternate;
+}
+
+/* 表单动画 */
+@keyframes fadeInUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.form-section {
+animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* 成功动画 */
+@keyframes checkmark {
+0% { stroke-dashoffset: 100; }
+100% { stroke-dashoffset: 0; }
+}
+.checkmark {
+stroke-dasharray: 100;
+stroke-dashoffset: 100;
+animation: checkmark 0.8s ease-in-out forwards;
+}
+
+@keyframes bounce {
+0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+40% { transform: translateY(-10px); }
+60% { transform: translateY(-5px); }
+}
+.bounce {
+animation: bounce 1s ease-in-out;
+}
+
+/* 输入框焦点效果 */
+.form-input {
+transition: all 0.3s ease;
+}
+.form-input:focus {
+transform: translateY(-2px);
+box-shadow: 0 8px 25px -8px rgba(86, 185, 73, 0.3);
+}
+
+/* 提交按钮动画 */
+.submit-btn {
+background: linear-gradient(135deg, #56B949, #F0A32F);
+transition: all 0.3s ease;
+position: relative;
+overflow: hidden;
+}
+.submit-btn::before {
+content: '';
+position: absolute;
+top: 0;
+left: -100%;
+width: 100%;
+height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+transition: left 0.5s;
+}
+.submit-btn:hover::before {
+left: 100%;
+}
+.submit-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 12px 35px -8px rgba(86, 185, 73, 0.4);
+}
+
+/* 用户下拉菜单 */
+.user-dropdown:hover .user-dropdown-menu {
+opacity: 1;
+visibility: visible;
+transform: scale(1);
+}
+
+.user-dropdown-menu {
+transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+</style>
+</head>
+<body class="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+
+<!-- 全局背景氛围 -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px]"></div>
+<div class="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px]" style="animation-delay: -5s;"></div>
+<div class="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px]" style="animation-delay: -10s;"></div>
+<div class="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#EE4035]/8 rounded-full blur-[80px]" style="animation-delay: -2s;"></div>
+</div>
+
+<!-- Navigation Bar -->
+<nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100/60">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- Back Button & Logo -->
+<div class="flex items-center gap-4">
+<a href="活动页面.html" class="p-2 rounded-full bg-white/80 text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60">
+<i data-lucide="arrow-left" class="w-5 h-5"></i>
+</a>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20">YL</div>
+<span class="text-[#30499B] font-bold text-xl tracking-tight">YouthLoop</span>
+</div>
+</div>
+
+<!-- Page Title -->
+<div class="flex items-center gap-2">
+<i data-lucide="user-plus" class="w-5 h-5 text-[#F0A32F]"></i>
+<h1 class="text-lg font-semibold text-slate-800">活动报名</h1>
+</div>
+
+<!-- User Avatar -->
+<div id="user-avatar-container" class="flex items-center gap-3">
+<div id="user-info" class="flex items-center gap-3">
+<div class="relative user-dropdown">
+<button id="avatar-button" class="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
+<span id="avatar-text">U</span>
+</button>
+<!-- 悬停下拉菜单 -->
+<div class="user-dropdown-menu absolute top-full right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 py-4 opacity-0 invisible transform scale-95 transition-all duration-300 z-50">
+<!-- 用户信息头部 -->
+<div class="px-6 py-3 border-b border-slate-100">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold text-lg">
+<span id="dropdown-avatar-text">U</span>
+</div>
+<div>
+<div id="dropdown-user-name" class="font-semibold text-slate-800">用户名</div>
+<div class="text-sm text-slate-500">
+<span>ID: </span><span id="dropdown-user-id">123456789</span>
+</div>
+<div class="text-sm text-[#F0A32F] font-medium">
+<span>积分: </span><span id="dropdown-user-points">328</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 菜单选项 -->
+<div class="py-2">
+<a href="我的页面.html" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+<i data-lucide="user" class="w-5 h-5"></i>
+<span class="font-medium">个人资料</span>
+</a>
+<a href="回复我的.html" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+<i data-lucide="bell" class="w-5 h-5"></i>
+<span class="font-medium">消息中心</span>
+</a>
+<a href="#" onclick="alert('账户设置功能开发中')" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+<i data-lucide="settings" class="w-5 h-5"></i>
+<span class="font-medium">账户设置</span>
+</a>
+</div>
+<!-- 退出登录 -->
+<div class="border-t border-slate-100 pt-2">
+<button onclick="userAuth.logout()" class="flex items-center gap-3 w-full px-6 py-3 text-[#EE4035] hover:bg-red-50 transition-colors">
+<i data-lucide="log-out" class="w-5 h-5"></i>
+<span class="font-medium">退出登录</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+
+<!-- Main Content -->
+<div class="min-h-screen relative z-10">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+<!-- 报名表单 -->
+<div id="registration-form" class="form-section">
+<!-- Header -->
+<div class="text-center mb-8">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4 border border-[#56B949]/20">
+<i data-lucide="calendar-check" class="w-4 h-4"></i>
+活动报名
+</div>
+<h2 class="text-2xl font-serif font-semibold text-[#30499B] mb-2" id="activity-title">城市绿洲：周末社区花园种植计划</h2>
+<p class="text-slate-500">填写报名信息，加入我们的环保行动</p>
+</div>
+
+<!-- Registration Form -->
+<div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 overflow-hidden">
+<form onsubmit="handleRegistration(event)" class="p-8 space-y-6">
+<h3 class="text-lg font-semibold text-slate-800 mb-6">填写报名信息</h3>
+
+<!-- 网站昵称 -->
+<div class="space-y-2">
+<label for="nickname" class="flex items-center gap-2 text-sm font-medium text-slate-700">
+<i data-lucide="user" class="w-4 h-4 text-[#56B949]"></i>
+网站昵称
+</label>
+<input type="text" id="nickname" placeholder="自动填充" readonly class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 shadow-sm cursor-not-allowed">
+</div>
+
+<!-- 姓名和手机号 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- 姓名 -->
+<div class="space-y-2">
+<label for="real-name" class="flex items-center gap-2 text-sm font-medium text-slate-700">
+<i data-lucide="id-card" class="w-4 h-4 text-[#F0A32F]"></i>
+姓名
+<span class="text-red-500">*</span>
+</label>
+<input type="text" id="real-name" placeholder="请输入真实姓名" class="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#F0A32F]/20 focus:border-[#F0A32F] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+</div>
+
+<!-- 手机号 -->
+<div class="space-y-2">
+<label for="phone" class="flex items-center gap-2 text-sm font-medium text-slate-700">
+<i data-lucide="phone" class="w-4 h-4 text-[#30499B]"></i>
+手机号
+<span class="text-red-500">*</span>
+</label>
+<input type="tel" id="phone" placeholder="请输入手机号码" class="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm">
+</div>
+</div>
+
+<!-- 活动参与时间 -->
+<div class="space-y-2">
+<label for="participation-time" class="flex items-center gap-2 text-sm font-medium text-slate-700">
+<i data-lucide="calendar" class="w-4 h-4 text-[#EE4035]"></i>
+活动参与时间
+<span class="text-red-500">*</span>
+</label>
+<input type="text" id="participation-time" placeholder="2024年5月20日 09:00-17:00" readonly class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 shadow-sm cursor-not-allowed">
+</div>
+
+<!-- 特殊需求 -->
+<div class="space-y-2">
+<label for="special-requirements" class="flex items-center gap-2 text-sm font-medium text-slate-700">
+<i data-lucide="message-square" class="w-4 h-4 text-[#56B949]"></i>
+特殊需求或备注
+<span class="text-xs text-slate-400 ml-1">(选填)</span>
+</label>
+<textarea id="special-requirements" rows="3" placeholder="如有特殊需求或想说的话，请在此填写..." class="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm resize-none"></textarea>
+</div>
+
+<!-- 提交按钮 -->
+<div class="flex gap-4 pt-4">
+<button type="button" onclick="window.history.back()" class="flex-1 py-3 px-6 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors font-medium">
+取消
+</button>
+<button type="submit" class="submit-btn flex-1 py-3 px-6 text-white rounded-xl font-medium shadow-lg">
+<span class="relative z-10">确认报名</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- 成功页面 -->
+<div id="success-page" class="hidden form-section">
+<div class="text-center py-16">
+<!-- 成功图标 -->
+<div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-[#56B949] to-[#4aa840] rounded-full mb-8 bounce">
+<svg class="w-12 h-12 text-white checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+</svg>
+</div>
+
+<!-- 成功信息 -->
+<h2 class="text-3xl font-serif font-bold text-[#30499B] mb-4">恭喜你，报名成功！</h2>
+<p class="text-slate-500 mb-8 max-w-md mx-auto">我们已收到您的报名信息，活动开始前会通过短信通知您具体集合地点和注意事项。</p>
+
+<!-- 活动信息卡片 -->
+<div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6 mb-8 max-w-md mx-auto">
+<h3 class="font-semibold text-slate-800 mb-4">活动信息</h3>
+<div class="space-y-3 text-sm">
+<div class="flex justify-between">
+<span class="text-slate-500">活动名称:</span>
+<span class="text-slate-800 font-medium" id="success-activity-title">城市绿洲：周末社区花园种植计划</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">参与时间:</span>
+<span class="text-slate-800 font-medium">2024年5月20日 09:00-17:00</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">报名姓名:</span>
+<span class="text-slate-800 font-medium" id="success-name">-</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">联系电话:</span>
+<span class="text-slate-800 font-medium" id="success-phone">-</span>
+</div>
+</div>
+</div>
+
+<!-- 操作按钮 -->
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<a href="活动页面.html" class="px-6 py-3 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors font-medium">
+返回活动列表
+</a>
+<a href="我的页面.html" class="px-6 py-3 bg-[#30499B] text-white rounded-xl hover:bg-[#253a7a] transition-colors font-medium shadow-lg">
+查看我的活动
+</a>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Footer -->
+<footer class="mt-16 text-center border-t border-slate-200/50 pt-8 pb-4 relative z-10">
+<div class="flex flex-col items-center gap-4">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-6 h-6 rounded bg-[#30499B] text-white flex items-center justify-center text-[10px] font-serif font-bold">YL</div>
+<span class="text-[#30499B] font-bold tracking-tight text-sm">YouthLoop</span>
+</div>
+<p class="text-slate-400 text-[10px]">© 2024 YouthLoop. 让绿色循环，用行动改变未来</p>
+</div>
+</footer>
+
+<!-- Scripts -->
+<script src="user-auth.js"></script>
+<script>
+// 初始化图标
+lucide.createIcons();
+
+// 检查登录状态
+function checkLoginStatus() {
+const userData = userAuth ? userAuth.getCurrentUser() : null;
+if (!userData) {
+alert('请先登录后再报名活动');
+window.location.href = '登录页面.html';
+return false;
+}
+return true;
+}
+
+// 初始化用户信息
+function initUserInfo() {
+const userData = userAuth ? userAuth.getCurrentUser() : null;
+
+if (userData) {
+// 更新导航栏头像
+document.getElementById('avatar-text').textContent = userData.username.charAt(0).toUpperCase();
+document.getElementById('dropdown-avatar-text').textContent = userData.username.charAt(0).toUpperCase();
+document.getElementById('dropdown-user-name').textContent = userData.username;
+document.getElementById('dropdown-user-id').textContent = userData.contact || userData.id || '123456789';
+document.getElementById('dropdown-user-points').textContent = userData.points || 328;
+
+// 自动填充昵称
+document.getElementById('nickname').value = userData.username;
+} else {
+// 未登录，跳转到登录页面
+alert('请先登录后再报名活动');
+window.location.href = '登录页面.html';
+}
+}
+
+// 手机号验证
+function validatePhone(phone) {
+const phoneRegex = /^1[3-9]\d{9}$/;
+return phoneRegex.test(phone);
+}
+
+// 表单提交处理
+function handleRegistration(event) {
+event.preventDefault();
+
+// 获取表单数据
+const realName = document.getElementById('real-name').value.trim();
+const phone = document.getElementById('phone').value.trim();
+const specialRequirements = document.getElementById('special-requirements').value.trim();
+
+// 验证必填字段
+if (!realName) {
+alert('请输入真实姓名');
+return;
+}
+
+if (!phone) {
+alert('请输入手机号码');
+return;
+}
+
+if (!validatePhone(phone)) {
+alert('请输入正确的手机号码');
+return;
+}
+
+// 构建报名数据
+const registrationData = {
+activityId: getActivityIdFromUrl(),
+activityTitle: document.getElementById('activity-title').textContent,
+nickname: document.getElementById('nickname').value,
+realName,
+phone,
+specialRequirements,
+userId: userAuth.getCurrentUser().id,
+registrationTime: new Date().toISOString()
+};
+
+// 这里应该调用API提交报名数据
+console.log('提交报名数据:', registrationData);
+
+// 模拟提交成功
+showSuccessPage(registrationData);
+}
+
+// 显示成功页面
+function showSuccessPage(data) {
+// 隐藏表单，显示成功页面
+document.getElementById('registration-form').classList.add('hidden');
+document.getElementById('success-page').classList.remove('hidden');
+
+// 填充成功页面信息
+document.getElementById('success-activity-title').textContent = data.activityTitle;
+document.getElementById('success-name').textContent = data.realName;
+document.getElementById('success-phone').textContent = data.phone;
+
+// 重新初始化图标
+lucide.createIcons();
+}
+
+// 从URL获取活动ID（实际项目中会从URL参数获取）
+function getActivityIdFromUrl() {
+const urlParams = new URLSearchParams(window.location.search);
+return urlParams.get('id') || 'activity-001';
+}
+
+// 从URL获取活动信息（实际项目中会从API获取）
+function loadActivityInfo() {
+const activityId = getActivityIdFromUrl();
+
+// 这里应该根据活动ID从API获取活动信息
+// 现在使用模拟数据
+const activityInfo = {
+title: '城市绿洲：周末社区花园种植计划',
+time: '2024年5月20日 09:00-17:00'
+};
+
+document.getElementById('activity-title').textContent = activityInfo.title;
+document.getElementById('participation-time').value = activityInfo.time;
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+// 检查登录状态
+if (checkLoginStatus()) {
+initUserInfo();
+loadActivityInfo();
+}
+});
+
+// 全局函数
+window.handleRegistration = handleRegistration;
+</script>
+
+</body>
+</html>
