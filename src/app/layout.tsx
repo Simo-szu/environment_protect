@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "My Digital Biome — 游戏驱动的环保教育门户",
-  description: "通过互动游戏体验生态平衡的奥秘，学习环保科学，成为环保行动者。寓教于乐 · 科学严谨 · 行动导向",
+  title: "YouthLoop - 让绿色循环，用行动改变未来",
+  description: "YouthLoop是一个以环保为主题的青年互动网站，通过游戏化的方式提高年轻人的环保意识，提供环保知识学习、活动参与和社区互动的综合平台。",
 };
 
 export default function RootLayout({
@@ -23,9 +12,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased font-sans"
         suppressHydrationWarning={true}
       >
         {children}

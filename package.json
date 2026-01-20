@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 8000",
     "lint": "eslint",
     "setup": "node scripts/setup.js",
     "health-check": "node scripts/health-check.js",
@@ -13,7 +13,12 @@
     "dev:unix": "./scripts/dev.sh",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next out dist",
-    "clean:win": "rmdir /s .next out dist 2>nul || echo 清理完成"
+    "clean:win": "rmdir /s .next out dist 2>nul || echo 清理完成",
+    "db:start": "./scripts/db-services.sh start",
+    "db:stop": "./scripts/db-services.sh stop",
+    "db:restart": "./scripts/db-services.sh restart",
+    "db:status": "./scripts/db-services.sh status",
+    "db:test": "./scripts/db-services.sh test"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
