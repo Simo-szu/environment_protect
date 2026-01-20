@@ -15,10 +15,9 @@ interface LayoutProps {
 export default function Layout({ children, showHeader = true, showFooter = true }: LayoutProps) {
   const pathname = usePathname();
 
-  // 检查是否是子页面（如登录、注册、个人资料等）
+  // 检查是否是子页面（如登录、注册等）
   const isSubPage = pathname.includes('/login') ||
     pathname.includes('/register') ||
-    pathname.includes('/profile') ||
     pathname.includes('/edit') ||
     pathname.includes('/settings');
 
