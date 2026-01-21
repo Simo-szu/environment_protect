@@ -13,6 +13,8 @@ interface User {
   level?: number;
   contact?: string;
   gender?: string;
+  bio?: string;
+  hometown?: string;
 }
 
 export function useAuth() {
@@ -66,7 +68,7 @@ export function useAuth() {
 // 检查登录状态的工具函数
 export function checkLoginAndRedirect(redirectTo: string = '/login') {
   if (typeof window === 'undefined') return false;
-  
+
   const userData = localStorage.getItem('currentUser');
   if (!userData) {
     window.location.href = redirectTo;
@@ -78,7 +80,7 @@ export function checkLoginAndRedirect(redirectTo: string = '/login') {
 // 显示登录提示的工具函数
 export function showLoginPrompt(message: string = '请先登录再查看此内容') {
   if (typeof window === 'undefined') return;
-  
+
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
   modal.innerHTML = `

@@ -43,7 +43,7 @@ export default function LoginPage() {
         contact: formData.username,
         points: Math.floor(Math.random() * 1000) + 100,
         level: Math.floor(Math.random() * 5) + 1,
-        avatar: null
+        avatar: undefined
       };
 
       login(userData);
@@ -158,6 +158,24 @@ export default function LoginPage() {
               >
                 立即登录
               </button>
+
+              {/* 用户协议提示 */}
+              <div className="text-center text-xs text-slate-500 leading-relaxed">
+                登录即代表同意{' '}
+                <Link
+                  href="/terms"
+                  className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2"
+                >
+                  《用户服务协议》
+                </Link>
+                {' '}和{' '}
+                <Link
+                  href="/privacy"
+                  className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2"
+                >
+                  《隐私政策》
+                </Link>
+              </div>
             </form>
 
             {/* Divider */}

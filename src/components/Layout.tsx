@@ -49,9 +49,9 @@ export default function Layout({ children, showHeader = true, showFooter = true 
       </div>
 
       {/* Browser Frame */}
-      <div className="w-full max-w-7xl bg-white/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 border-x sm:border border-white/60 min-h-screen sm:min-h-[90vh] relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 mx-auto">
+      <div className="w-full max-w-7xl bg-white/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 border-x sm:border border-white/60 relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 mx-auto">
         {/* 主内容区 */}
-        <main className="p-4 sm:p-6 md:p-12 min-h-screen relative max-w-6xl mx-auto">
+        <main className="p-4 sm:p-6 md:p-12 relative max-w-6xl mx-auto">
           {showHeader && (
             <AuthenticatedHeader showSearch={!isSubPage} />
           )}
