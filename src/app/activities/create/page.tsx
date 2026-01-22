@@ -13,7 +13,8 @@ import {
   Image as ImageIcon,
   Plus,
   X,
-  Megaphone
+  Megaphone,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';

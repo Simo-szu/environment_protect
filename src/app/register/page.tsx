@@ -58,7 +58,7 @@ export default function RegisterPage() {
       nickname: formData.contact,
       points: 0,
       level: 1,
-      avatar: null
+      avatar: undefined
     };
 
     login(userData);

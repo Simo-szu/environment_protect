@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -15,7 +15,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 
-export default function RegisterActivityPage() {
+function RegisterActivityContent() {
   const { user, isLoggedIn, loading } = useAuth();
   const searchParams = useSearchParams();
   const activityId = searchParams.get('id');
@@ -332,5 +332,19 @@ export default function RegisterActivityPage() {
         }
       `}</style>
     </Layout>
+  );
+}
+
+export default function RegisterActivityPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-slate-600 mb-4">加载中...</div>
+        </div>
+      </div>
+    }>
+      <RegisterActivityContent />
+    </Suspense>
   );
 }
