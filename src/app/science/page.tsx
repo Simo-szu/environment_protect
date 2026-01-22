@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Recycle,
   Droplets,
@@ -13,6 +14,7 @@ import {
   Waves
 } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { fadeUp, staggerContainer, staggerItem, pageEnter, hoverLift } from '@/lib/animations';
 
 export default function SciencePage() {
   useEffect(() => {
@@ -46,7 +48,12 @@ export default function SciencePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white">
+      <motion.section
+        initial="hidden"
+        animate="visible"
+        variants={pageEnter}
+        className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white"
+      >
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#30499B]/10 text-[#30499B] text-xs font-semibold mb-4 border border-[#30499B]/20">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30499B] opacity-75"></span>
@@ -64,83 +71,113 @@ export default function SciencePage() {
           </div>
           <span>让<span className="text-[#56B949] font-medium border-b-2 border-[#56B949]/30">环保</span>更有效</span>
         </div>
-      </section>
+      </motion.section>
 
       {/* 环保小贴士 Section */}
-      <section className="mb-16">
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={staggerContainer}
+        className="mb-16"
+      >
         {/* Section Header */}
-        <div className="flex items-center gap-3 mb-8 px-2">
+        <motion.div variants={staggerItem} className="flex items-center gap-3 mb-8 px-2">
           <div className="w-1.5 h-8 bg-[#56B949] rounded-full"></div>
           <div>
             <h2 className="text-2xl font-serif font-semibold text-[#30499B] tracking-tight">环保小贴士</h2>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">ECO TIPS</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Tips Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div
+          variants={staggerContainer}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
           {/* Card 1: Water Saving (Green Theme) */}
-          <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#56B949]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#56B949]/5 transition-all duration-300 group hover:-translate-y-1">
-            <div className="flex justify-between items-start mb-5">
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#56B949] shadow-sm group-hover:scale-110 transition-transform duration-300">
-                <Droplets className="w-6 h-6" />
-              </div>
-              <span className="px-2 py-1 rounded bg-[#56B949]/10 text-[#56B949] text-[10px] font-bold tracking-wider uppercase">TIP</span>
-            </div>
-            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#56B949] transition-colors">节约用水小妙招</h3>
-            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">洗菜水可以浇花，洗衣水可以拖地，一水多用让每一滴水都发挥最大价值。</p>
-            <button
-              onClick={() => viewArticle('article-004')}
-              className="text-xs font-medium text-[#56B949] flex items-center gap-1 group/link mt-auto cursor-pointer hover:underline"
+          <motion.div variants={staggerItem}>
+            <motion.div
+              whileHover={hoverLift}
+              className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#56B949]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#56B949]/5 transition-all duration-300 group hover:-translate-y-1"
             >
-              了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
-            </button>
-          </div>
+              <div className="flex justify-between items-start mb-5">
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#56B949] shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Droplets className="w-6 h-6" />
+                </div>
+                <span className="px-2 py-1 rounded bg-[#56B949]/10 text-[#56B949] text-[10px] font-bold tracking-wider uppercase">TIP</span>
+              </div>
+              <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#56B949] transition-colors">节约用水小妙招</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">洗菜水可以浇花，洗衣水可以拖地，一水多用让每一滴水都发挥最大价值。</p>
+              <button
+                onClick={() => viewArticle('article-004')}
+                className="text-xs font-medium text-[#56B949] flex items-center gap-1 group/link mt-auto cursor-pointer hover:underline"
+              >
+                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          </motion.div>
 
           {/* Card 2: Waste Sorting (Orange Theme) */}
-          <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#F0A32F]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#F0A32F]/5 transition-all duration-300 group hover:-translate-y-1">
-            <div className="flex justify-between items-start mb-5">
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#F0A32F] shadow-sm group-hover:scale-110 transition-transform duration-300">
-                <Recycle className="w-6 h-6" />
-              </div>
-              <span className="px-2 py-1 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-[10px] font-bold tracking-wider uppercase">TIP</span>
-            </div>
-            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#F0A32F] transition-colors">垃圾分类指南</h3>
-            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">正确分类垃圾不仅能减少环境污染，还能让资源得到有效回收利用。</p>
-            <button
-              onClick={() => viewArticle('article-005')}
-              className="text-xs font-medium text-[#30499B] hover:text-[#F0A32F] flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
+          <motion.div variants={staggerItem}>
+            <motion.div
+              whileHover={hoverLift}
+              className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#F0A32F]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#F0A32F]/5 transition-all duration-300 group hover:-translate-y-1"
             >
-              了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
-            </button>
-          </div>
+              <div className="flex justify-between items-start mb-5">
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#F0A32F] shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Recycle className="w-6 h-6" />
+                </div>
+                <span className="px-2 py-1 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-[10px] font-bold tracking-wider uppercase">TIP</span>
+              </div>
+              <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#F0A32F] transition-colors">垃圾分类指南</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">正确分类垃圾不仅能减少环境污染，还能让资源得到有效回收利用。</p>
+              <button
+                onClick={() => viewArticle('article-005')}
+                className="text-xs font-medium text-[#30499B] hover:text-[#F0A32F] flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
+              >
+                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          </motion.div>
 
           {/* Card 3: Energy Saving (Blue Theme) */}
-          <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#30499B]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#30499B]/5 transition-all duration-300 group hover:-translate-y-1">
-            <div className="flex justify-between items-start mb-5">
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#30499B] shadow-sm group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-6 h-6" />
-              </div>
-              <span className="px-2 py-1 rounded bg-[#30499B]/10 text-[#30499B] text-[10px] font-bold tracking-wider uppercase">TIP</span>
-            </div>
-            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#30499B]/80 transition-colors">节能减排妙招</h3>
-            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">随手关灯、使用节能电器、选择公共交通，小行动大影响。</p>
-            <button
-              onClick={() => viewArticle('article-006')}
-              className="text-xs font-medium text-[#30499B] hover:text-[#30499B]/80 flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
+          <motion.div variants={staggerItem}>
+            <motion.div
+              whileHover={hoverLift}
+              className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 hover:border-[#30499B]/30 hover:bg-white/80 hover:shadow-xl hover:shadow-[#30499B]/5 transition-all duration-300 group hover:-translate-y-1"
             >
-              了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </section>
+              <div className="flex justify-between items-start mb-5">
+                <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#30499B] shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <span className="px-2 py-1 rounded bg-[#30499B]/10 text-[#30499B] text-[10px] font-bold tracking-wider uppercase">TIP</span>
+              </div>
+              <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#30499B]/80 transition-colors">节能减排妙招</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">随手关灯、使用节能电器、选择公共交通，小行动大影响。</p>
+              <button
+                onClick={() => viewArticle('article-006')}
+                className="text-xs font-medium text-[#30499B] hover:text-[#30499B]/80 flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
+              >
+                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </motion.section>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={staggerContainer}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative"
+      >
         {/* Main Column */}
         <div className="lg:col-span-12 space-y-8">
           {/* Section Header */}
-          <div className="flex items-center justify-between mb-6 px-2">
+          <motion.div variants={staggerItem} className="flex items-center justify-between mb-6 px-2">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-[#30499B] rounded-full"></div>
               <div>
@@ -151,12 +188,19 @@ export default function SciencePage() {
             <button className="text-xs font-medium text-[#30499B] hover:text-[#56B949] transition-colors flex items-center gap-1 group">
               查看全部 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </button>
-          </div>
+          </motion.div>
 
           {/* News List Container */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 flex flex-col gap-6">
+          <motion.div
+            variants={staggerItem}
+            className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 flex flex-col gap-6"
+          >
             {/* News Item 1 */}
-            <div className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative">
+            <motion.div
+              variants={staggerItem}
+              whileHover={hoverLift}
+              className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
+            >
               {/* Image Placeholder */}
               <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 overflow-hidden relative flex-shrink-0">
                 <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#30499B] shadow-sm">NEWS</div>
@@ -196,10 +240,14 @@ export default function SciencePage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* News Item 2 */}
-            <div className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#F0A32F]/5 border border-transparent hover:border-[#F0A32F]/20 relative">
+            <motion.div
+              variants={staggerItem}
+              whileHover={hoverLift}
+              className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#F0A32F]/5 border border-transparent hover:border-[#F0A32F]/20 relative"
+            >
               {/* Image Placeholder */}
               <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#F0A32F]/20 to-[#EE4035]/20 overflow-hidden relative flex-shrink-0">
                 <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#F0A32F] shadow-sm">REPORT</div>
@@ -239,10 +287,14 @@ export default function SciencePage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* News Item 3 */}
-            <div className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative">
+            <motion.div
+              variants={staggerItem}
+              whileHover={hoverLift}
+              className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
+            >
               {/* Image Placeholder */}
               <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#30499B]/20 to-[#56B949]/20 overflow-hidden relative flex-shrink-0">
                 <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#56B949] shadow-sm">TECH</div>
@@ -282,13 +334,19 @@ export default function SciencePage() {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-4 py-8">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={fadeUp}
+        className="flex justify-center items-center gap-4 py-8"
+      >
         <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
           上一页
         </button>
@@ -302,7 +360,7 @@ export default function SciencePage() {
         <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
           下一页
         </button>
-      </div>
+      </motion.div>
     </Layout>
   );
 }

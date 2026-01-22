@@ -1,207 +1,383 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
-import { 
-  User, 
-  MapPin, 
-  Settings, 
-  LogOut, 
-  ChevronRight,
-  UserCircle,
-  Award,
-  Leaf
+import Link from 'next/link';
+import QuickActionCard from '@/components/ui/QuickActionCard';
+import {
+    User,
+    Edit,
+    Heart,
+    Bookmark,
+    Calendar,
+    Trophy,
+    LogOut,
+    ArrowRight,
+    TreePine,
+    Recycle,
+    Droplets,
+    MessageCircle,
+    MapPin,
+    FileText
 } from 'lucide-react';
+import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
 
 export default function ProfilePage() {
-  const { user, logout, isLoggedIn, loading } = useAuth();
+    const { user, isLoggedIn, loading, logout } = useAuth();
+    const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && (!user || !isLoggedIn)) {
-      window.location.href = '/login';
-    }
-  }, [user, isLoggedIn, loading]);
-
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/';
-  };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
-              YL
-            </div>
-            <p className="text-slate-600">加载中...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!user || !isLoggedIn) {
-    return null;
-  }
-
-  return (
-    <Layout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 overflow-hidden animate-[fadeInUp_0.6s_ease-out_forwards]">
-          {/* Cover/Header */}
-          <div className="h-32 bg-gradient-to-r from-[#56B949]/20 to-[#F0A32F]/20 relative">
-            <Link 
-              href="/profile/edit"
-              className="absolute top-4 right-4 p-2 bg-white/50 backdrop-blur-sm rounded-full text-slate-600 hover:bg-white transition-all shadow-sm"
-            >
-              <Settings className="w-5 h-5" />
-            </Link>
-          </div>
-          
-          <div className="px-8 pb-8 -mt-12 relative">
-            <div className="flex flex-col md:flex-row items-end gap-6 mb-8">
-              <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.nickname || user.username} className="w-full h-full object-cover" />
-                ) : (
-                  <UserCircle className="w-16 h-16 text-slate-400" />
-                )}
-              </div>
-              
-              <div className="flex-1 pb-2">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl font-serif font-bold text-[#30499B]">
-                    {user.nickname || user.username}
-                  </h1>
-                  <span className="px-3 py-1 bg-[#56B949]/10 text-[#56B949] text-xs font-bold rounded-full border border-[#56B949]/20 flex items-center gap-1">
-                    <Award className="w-3 h-3" />
-                    环保达人 {user.level || 1}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-slate-500 text-sm">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {user.hometown || '环保星球'}
-                  </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                  <span className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    UID: {user.id.substring(0, 8)}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="w-full md:w-auto pb-2">
-                <Link 
-                  href="/profile/edit"
-                  className="block w-full text-center px-6 py-2.5 bg-[#30499B] text-white rounded-xl font-medium shadow-md hover:bg-[#30499B]/90 transition-all hover:-translate-y-0.5"
-                >
-                  编辑资料
-                </Link>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-slate-50/50 rounded-2xl p-4 text-center border border-slate-100">
-                <div className="text-2xl font-bold text-[#30499B] mb-1">{user.points || 120}</div>
-                <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">环保积分</div>
-              </div>
-              <div className="bg-slate-50/50 rounded-2xl p-4 text-center border border-slate-100">
-                <div className="text-2xl font-bold text-[#56B949] mb-1">15</div>
-                <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">减排行动</div>
-              </div>
-              <div className="bg-slate-50/50 rounded-2xl p-4 text-center border border-slate-100">
-                <div className="text-2xl font-bold text-[#F0A32F] mb-1">3</div>
-                <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">获得勋章</div>
-              </div>
-            </div>
-
-            {/* Content Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-2 space-y-6">
-                <div>
-                  <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4 flex items-center gap-2">
-                    <Leaf className="w-5 h-5 text-[#56B949]" />
-                    个人简介
-                  </h3>
-                  <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 min-h-[120px]">
-                    <p className="text-slate-600 leading-relaxed italic">
-                      {user.bio || '这个环保达人很神秘，还没有写下简介...'}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">最近动态</h3>
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer group">
-                        <div className="w-12 h-12 rounded-xl bg-[#56B949]/10 flex items-center justify-center text-[#56B949]">
-                          <Leaf className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-slate-800">完成了一次「低碳出行」挑战</div>
-                          <div className="text-xs text-slate-400">2024-05-1{i} 14:30</div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">账户管理</h3>
-                  <div className="bg-slate-50/50 rounded-2xl p-2 border border-slate-100 overflow-hidden text-slate-700">
-                    <Link href="/profile/edit" className="flex items-center gap-3 p-3 hover:bg-white rounded-xl transition-all group">
-                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                        <User className="w-4 h-4 text-[#30499B]" />
-                      </div>
-                      <span className="text-sm font-medium">账号信息</span>
-                      <ChevronRight className="w-4 h-4 text-slate-300 ml-auto" />
-                    </Link>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-red-50 text-red-500 rounded-xl transition-all group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                        <LogOut className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-medium">退出登录</span>
-                      <ChevronRight className="w-4 h-4 text-red-200 ml-auto" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-[#56B949] to-[#30499B] rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
-                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="relative z-10">
-                    <h4 className="font-serif font-bold text-lg mb-2">加入社区</h4>
-                    <p className="text-white/80 text-xs mb-4">与全球 1,000,000+ 环保参与者一起守护地球</p>
-                    <button className="w-full py-2 bg-white text-[#56B949] rounded-xl text-sm font-bold shadow-md hover:bg-[#F0A32F] hover:text-white transition-all">
-                      寻找组织
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+    // ✅ 只在 loading 完成后再重定向
+    useEffect(() => {
+        if (!loading && !isLoggedIn) {
+            router.replace('/login');
         }
-      `}</style>
-    </Layout>
-  );
+    }, [loading, isLoggedIn, router]);
+
+    const handleLogout = () => {
+        logout();
+        router.push('/');
+    };
+
+    // ✅ loading 阶段只显示 loading
+    if (loading) {
+        return (
+            <Layout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+                            YL
+                        </div>
+                        <p className="text-slate-600">加载中...</p>
+                    </div>
+                </div>
+            </Layout>
+        );
+    }
+
+    // ✅ 未登录：什么都不渲染（避免闪屏）
+    if (!isLoggedIn || !user) {
+        return null;
+    }
+
+    // ✅ 登录成功后，完整页面才出现
+    return (
+        <Layout>
+            {/* Header */}
+            <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={pageEnter}
+                className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
+            >
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="text-center">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#56B949]/10 text-[#56B949] text-xs font-semibold mb-4 border border-[#56B949]/20">
+                            <User className="w-3 h-3" />
+                            个人资料
+                        </div>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">个人资料</h1>
+                        <p className="text-slate-600">管理你的个人信息和偏好设置</p>
+                    </div>
+                </div>
+            </motion.div>
+
+            <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={staggerContainer}
+                className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            >
+                {/* User Info Card */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
+                >
+                    <div className="flex flex-col md:flex-row items-start gap-6">
+                        {/* Avatar */}
+                        <div className="relative">
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-3xl shadow-2xl">
+                                {user?.nickname ? user.nickname.charAt(0).toUpperCase() : user?.username?.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+
+                        {/* User Details */}
+                        <div className="flex-1">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                                <div>
+                                    <h2 className="text-2xl font-semibold text-[#30499B] mb-2">
+                                        {user?.nickname || user?.username}
+                                    </h2>
+                                    <div className="flex items-center gap-4 text-slate-600">
+                                        <div className="flex items-center gap-1">
+                                            <User className="w-4 h-4" />
+                                            <span>{user?.gender === 'male' ? '男' : user?.gender === 'female' ? '女' : user?.gender === 'other' ? '其他' : '女'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <MapPin className="w-4 h-4" />
+                                            <span>{user?.hometown || '广东省'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Edit Button */}
+                                <Link
+                                    href="/profile/edit"
+                                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 mt-4 md:mt-0"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    编辑资料
+                                </Link>
+                            </div>
+
+                            {/* User Info Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* 性别 */}
+                                {user?.gender && (
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.gender === 'male' ? 'bg-blue-100 text-blue-600' :
+                                            user.gender === 'female' ? 'bg-pink-100 text-pink-600' :
+                                                'bg-orange-100 text-orange-600'
+                                            }`}>
+                                            <User className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">性别</p>
+                                            <p className="font-medium text-slate-800">
+                                                {user.gender === 'male' ? '男' : user.gender === 'female' ? '女' : '其他'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 家乡 */}
+                                {user?.hometown && (
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                        <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">家乡</p>
+                                            <p className="font-medium text-slate-800">{user.hometown}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 积分 */}
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                                        <Trophy className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500">环保积分</p>
+                                        <p className="font-medium text-slate-800">{user?.points || 0} 分</p>
+                                    </div>
+                                </div>
+
+                                {/* 等级 */}
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                        <TreePine className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500">环保等级</p>
+                                        <p className="font-medium text-slate-800">
+                                            {user?.level ? `Lv.${user.level}` : 'Lv.1'} 环保达人
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 个人简介 */}
+                            {user?.bio && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-4 h-4 text-[#56B949]" />
+                                        <span className="text-sm font-medium text-[#30499B]">个人简介</span>
+                                    </div>
+                                    <p className="text-sm text-slate-600 leading-relaxed">{user.bio}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Quick Actions */}
+                <motion.div
+                    variants={staggerContainer}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
+                    <QuickActionCard href="/likes" icon={Heart} title="我的点赞" />
+                    <QuickActionCard href="/favorites" icon={Bookmark} title="我的收藏" />
+                    <QuickActionCard href="/my-activities" icon={Calendar} title="我的活动" />
+                    <QuickActionCard href="/points" icon={Trophy} title="我的积分" />
+                </motion.div>
+
+                {/* Recent Activities */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                >
+                    <h3 className="text-lg font-semibold text-[#30499B] mb-6">最近动态</h3>
+
+                    <div className="space-y-4">
+                        {/* Activity Item 1 */}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center flex-shrink-0">
+                                <TreePine className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-medium text-slate-800 text-sm mb-1">完成了一次「低碳出行」挑战</h4>
+                                <p className="text-xs text-slate-500">2024-05-11 14:30</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                        </div>
+
+                        {/* Activity Item 2 */}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center flex-shrink-0">
+                                <TreePine className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-medium text-slate-800 text-sm mb-1">完成了一次「低碳出行」挑战</h4>
+                                <p className="text-xs text-slate-500">2024-05-12 14:30</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Recent Likes */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
+                            <Heart className="w-5 h-5 text-[#EE4035]" />
+                            最近点赞
+                        </h3>
+                        <Link
+                            href="/likes"
+                            className="flex items-center gap-1 text-sm text-[#EE4035] hover:text-[#d63384] transition-colors"
+                        >
+                            查看全部
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Recent Liked Article */}
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Droplets className="w-4 h-4 text-[#56B949]" />
+                                <span className="text-xs text-slate-500">科普文章</span>
+                            </div>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">环保小贴士分享</h4>
+                            <p className="text-xs text-slate-500 mb-2">分享一些日常生活中的环保小技巧...</p>
+                            <div className="flex items-center gap-1 text-[#EE4035]">
+                                <Heart className="w-3 h-3 fill-current" />
+                                <span className="text-xs">2天前点赞</span>
+                            </div>
+                        </div>
+
+                        {/* Recent Liked Activity */}
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                                <TreePine className="w-4 h-4 text-[#56B949]" />
+                                <span className="text-xs text-slate-500">环保活动</span>
+                            </div>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">城市绿洲种植计划</h4>
+                            <p className="text-xs text-slate-500 mb-2">加入我们在市中心创建绿色角落...</p>
+                            <div className="flex items-center gap-1 text-[#EE4035]">
+                                <Heart className="w-3 h-3 fill-current" />
+                                <span className="text-xs">5天前点赞</span>
+                            </div>
+                        </div>
+
+                        {/* Recent Liked Comment */}
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                                <MessageCircle className="w-4 h-4 text-[#F0A32F]" />
+                                <span className="text-xs text-slate-500">评论互动</span>
+                            </div>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">张小明的评论</h4>
+                            <p className="text-xs text-slate-500 mb-2">非常赞同你的观点！环保确实需要...</p>
+                            <div className="flex items-center gap-1 text-[#EE4035]">
+                                <Heart className="w-3 h-3 fill-current" />
+                                <span className="text-xs">1周前点赞</span>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Recent Favorites */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
+                            <Bookmark className="w-5 h-5 text-[#56B949]" />
+                            最近收藏
+                        </h3>
+                        <Link
+                            href="/favorites"
+                            className="flex items-center gap-1 text-sm text-[#56B949] hover:text-[#4aa840] transition-colors"
+                        >
+                            查看全部
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Recent Favorited Article */}
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Droplets className="w-4 h-4 text-[#56B949]" />
+                                <span className="text-xs text-slate-500">科普文章</span>
+                            </div>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">节约用水小妙招</h4>
+                            <p className="text-xs text-slate-500 mb-2">洗菜水可以浇花，洗衣水可以拖地，一水多用...</p>
+                            <div className="flex items-center gap-1 text-[#56B949]">
+                                <Bookmark className="w-3 h-3 fill-current" />
+                                <span className="text-xs">3天前收藏</span>
+                            </div>
+                        </div>
+
+                        {/* Recent Favorited Activity */}
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Recycle className="w-4 h-4 text-[#F0A32F]" />
+                                <span className="text-xs text-slate-500">环保活动</span>
+                            </div>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">旧物新生DIY工作坊</h4>
+                            <p className="text-xs text-slate-500 mb-2">学习如何将废弃物品变废为宝...</p>
+                            <div className="flex items-center gap-1 text-[#56B949]">
+                                <Bookmark className="w-3 h-3 fill-current" />
+                                <span className="text-xs">1周前收藏</span>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Logout */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg"
+                >
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        退出登录
+                    </button>
+                </motion.div>
+            </motion.div>
+        </Layout>
+    );
 }
