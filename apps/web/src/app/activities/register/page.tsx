@@ -1,350 +1,357 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import {
-  UserPlus,
-  User,
-  Phone,
-  Mail,
-  MessageSquare,
-  CheckCircle,
-  CalendarCheck
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Users,
+  Phone,
+  User,
+  CheckCircle,
+  TreePine,
+  Recycle,
+  Droplets,
+  Sun
+} from 'lucide-react';
+import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
-function RegisterActivityContent() {
+export default function RegisterActivityPage() {
   const { user, isLoggedIn, loading } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const activityId = searchParams.get('id');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    message: ''
+    emergencyContact: '',
+    emergencyPhone: '',
+    specialRequirements: '',
+    agreement: false
   });
 
-  // 检查登录状态
+  // 模拟活动数据
+  const mockActivity = {
+    id: activityId || 'activity-001',
+    title: '城市绿洲：周末社区花园种植计划',
+    description: '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。',
+    type: 'tree',
+    date: '2024年5月20日',
+    time: '09:00-17:00',
+    location: '市中心公园东门集合',
+    maxParticipants: 30,
+    currentParticipants: 18,
+    organizer: '绿色生活协会',
+    requirements: '请穿着适合户外活动的服装，自备水杯和防晒用品',
+    contactInfo: '联系人：张老师 13800138000'
+  };
+
   useEffect(() => {
     if (!loading && !isLoggedIn) {
-      alert('请先登录后再报名活动');
-      window.location.href = '/login';
+      router.replace('/login');
     }
-  }, [isLoggedIn, loading]);
 
-  // 预填用户信息
-  useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
         name: user.nickname || user.username || '',
-        phone: user.phone || '',
         email: user.email || ''
       }));
     }
-  }, [user]);
+  }, [loading, isLoggedIn, router, user]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg text-slate-600 mb-4">加载中...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg text-slate-600 mb-4">请先登录后再报名活动</div>
-          <Link href="/login" className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
-            去登录
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // 验证必填字段
-    if (!formData.name || !formData.phone) {
-      alert('请填写姓名和联系电话');
-      return;
-    }
-
-    // 验证手机号格式
-    const phoneRegex = /^1[3-9]\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      alert('请输入正确的手机号码');
-      return;
-    }
-
-    // 验证邮箱格式（如果填写了）
-    if (formData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        alert('请输入正确的邮箱地址');
-        return;
-      }
-    }
-
-    // 模拟提交
-    setIsSubmitted(true);
-  };
-
-  // 模拟活动信息
-  const activityInfo = {
-    title: '城市绿洲：周末社区花园种植计划',
-    date: '2024年5月20日 09:00-17:00',
-    location: '市中心社区花园',
-    organizer: '绿色生活志愿者协会'
-  };
-
-  if (isSubmitted) {
-    return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="max-w-md mx-auto px-4 text-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-8">
-              <div className="w-16 h-16 bg-[#56B949] rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-4">报名成功！</h2>
-              <p className="text-slate-600 mb-6">
-                您已成功报名参加活动，我们会在活动开始前通过短信或邮件与您联系，请保持通讯畅通。
-              </p>
-              <div className="space-y-3 text-left bg-slate-50 rounded-lg p-4 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">活动名称：</span>
-                  <span className="text-slate-700 font-medium">{activityInfo.title}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">活动时间：</span>
-                  <span className="text-slate-700">{activityInfo.date}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">报名姓名：</span>
-                  <span className="text-slate-700">{formData.name}</span>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Link
-                  href="/activities"
-                  className="flex-1 py-3 px-4 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium text-center"
-                >
-                  返回活动
-                </Link>
-                <Link
-                  href="/my-activities"
-                  className="flex-1 py-3 px-4 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm font-medium text-center"
-                >
-                  我的活动
-                </Link>
-              </div>
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+              YL
             </div>
+            <p className="text-slate-600">加载中...</p>
           </div>
         </div>
       </Layout>
     );
   }
 
+  if (!isLoggedIn || !user) {
+    return null;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!formData.agreement) {
+      alert('请先同意活动协议');
+      return;
+    }
+
+    // 这里应该调用API提交报名
+    console.log('提交报名:', formData);
+    // 报名成功后跳转到成功页面或返回活动详情
+    alert('报名成功！');
+    router.push('/my-activities');
+  };
+
+  const handleCancel = () => {
+    router.push('/activities');
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'tree': return <TreePine className="w-6 h-6 text-[#56B949]" />;
+      case 'recycle': return <Recycle className="w-6 h-6 text-[#F0A32F]" />;
+      case 'water': return <Droplets className="w-6 h-6 text-[#30499B]" />;
+      case 'sun': return <Sun className="w-6 h-6 text-[#EE4035]" />;
+      default: return <TreePine className="w-6 h-6 text-[#56B949]" />;
+    }
+  };
+
   return (
     <Layout>
-      <div className="min-h-screen">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8 form-section">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4 border border-[#56B949]/20">
-              <CalendarCheck className="w-4 h-4" />
-              活动报名
+      {/* Header */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={pageEnter}
+        className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              onClick={handleCancel}
+              className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-serif font-semibold text-[#30499B]">活动报名</h1>
+              <p className="text-slate-600">填写报名信息参与活动</p>
             </div>
-            <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">填写报名信息</h2>
-            <p className="text-slate-500">请填写您的联系信息，我们会在活动开始前与您联系。</p>
           </div>
+        </div>
+      </motion.div>
 
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={staggerContainer}
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Activity Info */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60 mb-8">
-            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">活动信息</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <span className="text-slate-500 text-sm w-20 flex-shrink-0">活动名称：</span>
-                <span className="text-slate-700 text-sm font-medium">{activityInfo.title}</span>
+          <motion.div
+            variants={staggerItem}
+            className="lg:col-span-1"
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg sticky top-8">
+              <div className="flex items-center gap-3 mb-4">
+                {getTypeIcon(mockActivity.type)}
+                <h3 className="font-semibold text-[#30499B]">活动信息</h3>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="text-slate-500 text-sm w-20 flex-shrink-0">活动时间：</span>
-                <span className="text-slate-700 text-sm">{activityInfo.date}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-slate-500 text-sm w-20 flex-shrink-0">活动地点：</span>
-                <span className="text-slate-700 text-sm">{activityInfo.location}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-slate-500 text-sm w-20 flex-shrink-0">主办方：</span>
-                <span className="text-slate-700 text-sm">{activityInfo.organizer}</span>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-slate-800 mb-2">{mockActivity.title}</h4>
+                  <p className="text-sm text-slate-600 line-clamp-3">{mockActivity.description}</p>
+                </div>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Calendar className="w-4 h-4" />
+                    <span>{mockActivity.date} {mockActivity.time}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <MapPin className="w-4 h-4" />
+                    <span>{mockActivity.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Users className="w-4 h-4" />
+                    <span>{mockActivity.currentParticipants}/{mockActivity.maxParticipants} 人</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 mb-2">主办方</p>
+                  <p className="text-sm font-medium text-slate-700">{mockActivity.organizer}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Registration Form */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 overflow-hidden form-section">
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* 姓名 */}
-              <div className="space-y-2">
-                <label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                  <User className="w-4 h-4 text-[#56B949]" />
-                  真实姓名
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="请输入您的真实姓名"
-                  className="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                />
-              </div>
+          <motion.div
+            variants={staggerItem}
+            className="lg:col-span-2"
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
+              <h3 className="text-xl font-semibold text-[#30499B] mb-6">报名信息</h3>
 
-              {/* 联系电话 */}
-              <div className="space-y-2">
-                <label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                  <Phone className="w-4 h-4 text-[#F0A32F]" />
-                  联系电话
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="请输入您的手机号码"
-                  className="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#F0A32F]/20 focus:border-[#F0A32F] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                />
-              </div>
+              <div className="space-y-6">
+                {/* 基本信息 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <User className="w-4 h-4 inline mr-2" />
+                      姓名 *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                      placeholder="请输入真实姓名"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <Phone className="w-4 h-4 inline mr-2" />
+                      联系电话 *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                      placeholder="请输入手机号码"
+                      required
+                    />
+                  </div>
+                </div>
 
-              {/* 邮箱地址 */}
-              <div className="space-y-2">
-                <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                  <Mail className="w-4 h-4 text-[#30499B]" />
-                  邮箱地址
-                  <span className="text-xs text-slate-400">(选填)</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="请输入您的邮箱地址"
-                  className="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                />
-              </div>
+                {/* 邮箱 */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    邮箱地址
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                    placeholder="请输入邮箱地址"
+                  />
+                </div>
 
-              {/* 留言 */}
-              <div className="space-y-2">
-                <label htmlFor="message" className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                  <MessageSquare className="w-4 h-4 text-[#EE4035]" />
-                  留言
-                  <span className="text-xs text-slate-400">(选填)</span>
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="您可以在这里留言，告诉我们您的期望或特殊需求..."
-                  className="form-input w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#EE4035]/20 focus:border-[#EE4035] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm resize-none"
-                />
-              </div>
+                {/* 紧急联系人 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      紧急联系人
+                    </label>
+                    <input
+                      type="text"
+                      name="emergencyContact"
+                      value={formData.emergencyContact}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                      placeholder="紧急联系人姓名"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      紧急联系电话
+                    </label>
+                    <input
+                      type="tel"
+                      name="emergencyPhone"
+                      value={formData.emergencyPhone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                      placeholder="紧急联系人电话"
+                    />
+                  </div>
+                </div>
 
-              {/* 提交按钮 */}
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => window.history.back()}
-                  className="flex-1 py-3 px-6 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors font-medium"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="submit-btn flex-1 py-3 px-6 text-white rounded-xl font-medium shadow-lg bg-gradient-to-r from-[#56B949] to-[#F0A32F] hover:shadow-xl transition-all"
-                >
-                  确认报名
-                </button>
+                {/* 特殊需求 */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    特殊需求或备注
+                  </label>
+                  <textarea
+                    name="specialRequirements"
+                    value={formData.specialRequirements}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
+                    placeholder="如有特殊需求或其他需要说明的情况，请在此填写..."
+                  />
+                </div>
+
+                {/* 活动要求 */}
+                <div className="bg-slate-50 rounded-lg p-4">
+                  <h4 className="font-medium text-slate-800 mb-2">活动要求</h4>
+                  <p className="text-sm text-slate-600">{mockActivity.requirements}</p>
+                </div>
+
+                {/* 协议同意 */}
+                <div className="flex items-start gap-3 p-4 bg-[#56B949]/5 rounded-lg border border-[#56B949]/20">
+                  <input
+                    type="checkbox"
+                    name="agreement"
+                    checked={formData.agreement}
+                    onChange={handleInputChange}
+                    className="mt-1 w-4 h-4 text-[#56B949] border-slate-300 rounded focus:ring-[#56B949]"
+                    required
+                  />
+                  <div className="text-sm">
+                    <p className="text-slate-700">
+                      我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。
+                    </p>
+                    <p className="text-slate-500 mt-1">
+                      参与活动期间请遵守组织方安排，注意人身安全。
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-6 border-t border-slate-200">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!formData.agreement}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    确认报名
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    取消
+                  </button>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .form-section {
-          animation: fadeInUp 0.6s ease-out forwards;
-        }
-
-        .form-input {
-          transition: all 0.3s ease;
-        }
-        .form-input:focus {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px -8px rgba(86, 185, 73, 0.3);
-        }
-
-        .submit-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.5s;
-        }
-        .submit-btn:hover::before {
-          left: 100%;
-        }
-        .submit-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 35px -8px rgba(86, 185, 73, 0.4);
-        }
-      `}</style>
+      </motion.div>
     </Layout>
-  );
-}
-
-export default function RegisterActivityPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg text-slate-600 mb-4">加载中...</div>
-        </div>
-      </div>
-    }>
-      <RegisterActivityContent />
-    </Suspense>
   );
 }

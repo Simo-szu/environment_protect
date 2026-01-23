@@ -1,0 +1,175 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "Error occurred",
+        "success": "Success",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "save": "Save",
+        "edit": "Edit",
+        "delete": "Delete",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Submit",
+        "search": "Search",
+        "filter": "Filter",
+        "all": "All",
+        "more": "More",
+        "viewAll": "View All",
+        "loadMore": "Load More"
+    },
+    "navigation": {
+        "home": "Home",
+        "activities": "Activities",
+        "science": "Science",
+        "game": "Game",
+        "points": "Points",
+        "profile": "Profile",
+        "notifications": "Notifications",
+        "myActivities": "My Activities",
+        "favorites": "Favorites",
+        "likes": "Likes",
+        "login": "Login",
+        "register": "Register",
+        "logout": "Logout"
+    },
+    "home": {
+        "title": "YOUTHLOOP",
+        "subtitle": "Let Green Cycle, Change the Future with Action",
+        "slogan": "National Environmental Action Season",
+        "cards": {
+            "points": {
+                "title": "Points·Exchange",
+                "subtitle": "Accumulate Eco Value"
+            },
+            "game": {
+                "title": "Green Game",
+                "subtitle": "Virtual Planting"
+            },
+            "science": {
+                "title": "Authoritative Science",
+                "subtitle": "Scientific Data"
+            },
+            "activity": {
+                "title": "Eco Activities",
+                "subtitle": "Join Action"
+            }
+        },
+        "sections": {
+            "science": {
+                "title": "Science Materials",
+                "subtitle": "TRUSTWORTHY KNOWLEDGE"
+            },
+            "activities": {
+                "title": "Popular Activities",
+                "subtitle": "JOIN THE ACTION"
+            },
+            "game": {
+                "title": "Start Your Green Exploration Journey",
+                "subtitle": "Plant trees in the virtual world, and we plant real trees for you in the real world. Make gaming meaningful.",
+                "button": "Start Game"
+            },
+            "points": {
+                "title": "Points Paradise",
+                "subtitle": "REWARDS & POINTS",
+                "dailyTask": "Complete Daily Tasks",
+                "pointsNeeded": "Need {points} more points today to upgrade badge"
+            }
+        }
+    },
+    "notifications": {
+        "title": "Message Center",
+        "subtitle": "Replies and Interactions",
+        "description": "View replies and interactions from other users on your content",
+        "stats": {
+            "unread": "Unread Messages",
+            "todayReplies": "Today's Replies",
+            "totalLikes": "Total Likes",
+            "totalReplies": "Total Replies"
+        },
+        "filters": {
+            "all": "All Messages",
+            "unread": "Unread Messages",
+            "replies": "Replies",
+            "likes": "Likes"
+        },
+        "actions": {
+            "reply": "Reply",
+            "like": "Like",
+            "liked": "Liked",
+            "follow": "Follow Back",
+            "followed": "Followed",
+            "viewContent": "View Content",
+            "viewProfile": "View Profile",
+            "markAsRead": "Mark as Read"
+        },
+        "types": {
+            "replied": "replied to your comment",
+            "liked": "liked your post",
+            "followed": "followed you"
+        },
+        "badges": {
+            "read": "Read",
+            "newReply": "New Reply",
+            "newLike": "New Like",
+            "newFollow": "New Follow"
+        },
+        "replyPlaceholder": "Enter your reply...",
+        "replySupport": "Support emoji and @mentions",
+        "sendReply": "Send Reply"
+    },
+    "myActivities": {
+        "title": "Activity Management",
+        "subtitle": "My Activity Center",
+        "description": "Manage all your environmental activities",
+        "stats": {
+            "registered": "Registered Activities",
+            "completed": "Completed Activities",
+            "ongoing": "Ongoing Activities",
+            "points": "Points Earned"
+        },
+        "tabs": {
+            "all": "All Activities",
+            "registered": "Registered",
+            "ongoing": "Ongoing",
+            "completed": "Completed"
+        },
+        "status": {
+            "registered": "Registered",
+            "ongoing": "Ongoing",
+            "completed": "Completed",
+            "waiting": "Waiting",
+            "inProgress": "In Progress"
+        },
+        "actions": {
+            "viewDetails": "View Details",
+            "cancelRegistration": "Cancel Registration",
+            "rateActivity": "Rate Activity"
+        },
+        "empty": {
+            "registered": {
+                "title": "No Registered Activities",
+                "description": "You haven't registered for any activities yet"
+            },
+            "ongoing": {
+                "title": "No Ongoing Activities",
+                "description": "You currently have no ongoing activities"
+            },
+            "completed": {
+                "title": "No Completed Activities",
+                "description": "You haven't completed any activities yet"
+            }
+        },
+        "info": {
+            "registrationTime": "Registration Time",
+            "completionTime": "Completion Time",
+            "startTime": "Start Time",
+            "pointsEarned": "Points Earned"
+        }
+    },
+    "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+    }
+}

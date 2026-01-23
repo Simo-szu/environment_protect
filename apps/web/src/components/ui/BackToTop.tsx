@@ -44,12 +44,12 @@ export default function BackToTop() {
         <button
             onClick={scrollToTop}
             className={`
-        fixed bottom-6 right-6 z-50 w-12 h-12 
-        bg-white/90 backdrop-blur-md 
-        border border-slate-200/60 
-        rounded-full shadow-lg shadow-slate-200/50
-        text-slate-400 hover:text-[#56B949] 
-        hover:border-[#56B949]/30 hover:bg-white
+        fixed bottom-6 right-24 z-50 w-12 h-12 
+        bg-white/90 dark:bg-slate-800/90 backdrop-blur-md 
+        border border-slate-200/60 dark:border-slate-700/60
+        rounded-full shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50
+        text-slate-400 dark:text-slate-500 hover:text-[#56B949] dark:hover:text-[#56B949]
+        hover:border-[#56B949]/30 hover:bg-white dark:hover:bg-slate-800
         transition-all duration-300 ease-out
         hover:scale-110 hover:-translate-y-1
         active:scale-95

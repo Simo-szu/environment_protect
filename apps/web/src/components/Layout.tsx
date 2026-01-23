@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import AuthenticatedHeader from './ui/AuthenticatedHeader';
 import UnifiedFooter from './ui/UnifiedFooter';
 import BackToTop from './ui/BackToTop';
+import { FloatingThemeToggle } from './ui/FloatingThemeToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,23 +26,23 @@ export default function Layout({ children, showHeader = true, showFooter = true 
   const isAuthPage = pathname.includes('/login') || pathname.includes('/register');
 
   return (
-    <div className="bg-[#FAFAF9] min-h-screen relative overflow-x-hidden text-slate-600">
+    <div className="bg-[#FAFAF9] dark:bg-slate-900 min-h-screen relative overflow-x-hidden text-slate-600 dark:text-slate-300 transition-colors duration-300">
       {/* 全局背景氛围 (液体黄绿色光斑) */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 rounded-full blur-[120px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate]"></div>
-        <div className="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 rounded-full blur-[100px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-5s]"></div>
-        <div className="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 to-[#30499B]/5 rounded-full blur-[130px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-10s]"></div>
-        <div className="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#56B949]/10 rounded-full blur-[80px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-2s]"></div>
+        <div className="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 dark:bg-[#56B949]/10 rounded-full blur-[120px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate]"></div>
+        <div className="liquid-blob absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#F0A32F]/10 dark:bg-[#F0A32F]/8 rounded-full blur-[100px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-5s]"></div>
+        <div className="liquid-blob absolute bottom-[-20%] left-[10%] w-[80%] h-[60%] bg-gradient-to-tr from-[#56B949]/20 dark:from-[#56B949]/15 to-[#30499B]/5 dark:to-[#30499B]/8 rounded-full blur-[130px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-10s]"></div>
+        <div className="liquid-blob absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#56B949]/10 dark:bg-[#56B949]/8 rounded-full blur-[80px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate] [animation-delay:-2s]"></div>
       </div>
 
       {/* 落叶动画层 */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="leaf-container text-[#56B949] absolute top-[-20px] animate-[falling-leaf_15s_linear_infinite] pointer-events-none" style={{ left: '10%', width: '32px', '--end-x': '50px', '--end-rotation': '120deg' } as React.CSSProperties}>
+        <div className="leaf-container text-[#56B949] dark:text-[#56B949]/80 absolute top-[-20px] animate-[falling-leaf_15s_linear_infinite] pointer-events-none" style={{ left: '10%', width: '32px', '--end-x': '50px', '--end-rotation': '120deg' } as React.CSSProperties}>
           <svg className="leaf-svg w-full h-full fill-none stroke-current stroke-[1.2] [stroke-linecap:round] [stroke-linejoin:round] [filter:drop-shadow(0_4px_6px_rgba(0,0,0,0.05))]" viewBox="0 0 24 24">
             <path d="M2,21c0-8.8,3.3-16.1,10-19c0,0-1.6,7.7,2,11c-2,0-5,0-5,8C9,21,2,21,2,21z M12,2c0,0,1,6,0,10"></path>
           </svg>
         </div>
-        <div className="leaf-container text-[#F0A32F] absolute top-[-20px] animate-[falling-leaf_18s_linear_infinite] pointer-events-none [animation-delay:4s]" style={{ left: '25%', width: '24px', '--end-x': '-30px', '--end-rotation': '200deg' } as React.CSSProperties}>
+        <div className="leaf-container text-[#F0A32F] dark:text-[#F0A32F]/80 absolute top-[-20px] animate-[falling-leaf_18s_linear_infinite] pointer-events-none [animation-delay:4s]" style={{ left: '25%', width: '24px', '--end-x': '-30px', '--end-rotation': '200deg' } as React.CSSProperties}>
           <svg className="leaf-svg w-full h-full fill-none stroke-current stroke-[1.2] [stroke-linecap:round] [stroke-linejoin:round] [filter:drop-shadow(0_4px_6px_rgba(0,0,0,0.05))]" viewBox="0 0 24 24">
             <path d="M12 2L12 22 M12 12L18 8 M12 12L6 8 M12 17L16 15 M12 17L8 15"></path>
           </svg>
@@ -49,7 +50,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
       </div>
 
       {/* Browser Frame */}
-      <div className="w-full max-w-7xl bg-white/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 border-x sm:border border-white/60 relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 mx-auto">
+      <div className="w-full max-w-7xl bg-white/80 dark:bg-slate-800/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 dark:shadow-slate-900/20 border-x sm:border border-white/60 dark:border-slate-700/60 relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 dark:ring-slate-700/50 mx-auto transition-colors duration-300">
         {/* 主内容区 */}
         <main className="p-4 sm:p-6 md:p-12 relative max-w-6xl mx-auto">
           {showHeader && (
@@ -66,6 +67,9 @@ export default function Layout({ children, showHeader = true, showFooter = true 
 
       {/* 回到顶部按钮 */}
       <BackToTop />
+
+      {/* 浮动主题切换按钮 */}
+      <FloatingThemeToggle />
 
       <style jsx>{`
         @keyframes liquid-drift {

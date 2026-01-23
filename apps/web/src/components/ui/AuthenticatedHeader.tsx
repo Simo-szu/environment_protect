@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface AuthenticatedHeaderProps {
     showSearch?: boolean;
@@ -13,19 +14,24 @@ interface AuthenticatedHeaderProps {
 export default function AuthenticatedHeader({ showSearch = true }: AuthenticatedHeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
+    const params = useParams();
     const { user, logout, isLoggedIn } = useAuth();
 
+    // 获取当前语言
+    const locale = params?.locale as string || 'zh';
+
+    // 静态导航项目（暂时不使用翻译）
     const navigationItems = [
-        { href: '/', label: '首页', color: '#30499B' },
-        { href: '/game', label: '游戏', color: '#56B949' },
-        { href: '/science', label: '科普', color: '#F0A32F' },
-        { href: '/activities', label: '活动', color: '#30499B' },
-        { href: '/points', label: '积分', color: '#EE4035' }
+        { href: `/${locale}`, label: '首页', color: '#30499B' },
+        { href: `/${locale}/game`, label: '游戏', color: '#56B949' },
+        { href: `/${locale}/science`, label: '科普', color: '#F0A32F' },
+        { href: `/${locale}/activities`, label: '活动', color: '#30499B' },
+        { href: `/${locale}/points`, label: '积分', color: '#EE4035' }
     ];
 
     const isActivePage = (href: string) => {
-        if (href === '/') {
-            return pathname === '/';
+        if (href === `/${locale}`) {
+            return pathname === `/${locale}` || pathname === '/';
         }
         return pathname.startsWith(href);
     };
@@ -36,14 +42,14 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
     const handleLogout = () => {
         logout();
-        window.location.href = '/';
+        window.location.href = `/${locale}`;
     };
 
     return (
         <nav className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100/60 px-4 sm:px-8 py-4 -mx-4 sm:-mx-6 md:-mx-12 mb-8 mt-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
+                <Link href={`/${locale}`} className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20 transform rotate-3">
                         YL
                     </div>
@@ -101,6 +107,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                         </div>
                     )}
 
+                    {/* 语言切换器 */}
+                    <LanguageSwitcher />
+
                     {/* 用户区域 */}
                     {user && isLoggedIn ? (
                         <div className="relative group">
@@ -130,19 +139,19 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
                                 {/* 菜单项 */}
                                 <div className="py-2">
-                                    <Link href="/profile" className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+                                    <Link href={`/${locale}/profile`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <div className="w-5 h-5 flex items-center justify-center">👤</div>
                                         <span className="font-medium">个人资料</span>
                                     </Link>
-                                    <Link href="/my-activities" className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+                                    <Link href={`/${locale}/my-activities`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <div className="w-5 h-5 flex items-center justify-center">📅</div>
                                         <span className="font-medium">我的活动</span>
                                     </Link>
-                                    <Link href="/points" className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+                                    <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <div className="w-5 h-5 flex items-center justify-center">🪙</div>
-                                        <span className="font-medium">积分中心</span>
+                                        <span className="font-medium">积分</span>
                                     </Link>
-                                    <Link href="/notifications" className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
+                                    <Link href={`/${locale}/notifications`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <Bell className="w-5 h-5" />
                                         <span className="font-medium">消息通知</span>
                                         <span className="ml-auto bg-[#EE4035] text-white text-xs px-2 py-0.5 rounded-full">3</span>
@@ -164,13 +173,13 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                     ) : (
                         <div className="flex items-center gap-4">
                             <Link
-                                href="/login"
+                                href={`/${locale}/login`}
                                 className="text-sm font-semibold text-[#30499B] hover:text-[#56B949] transition-colors"
                             >
                                 登录
                             </Link>
                             <Link
-                                href="/register"
+                                href={`/${locale}/register`}
                                 className="text-sm px-4 py-1.5 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20 hover:bg-[#253a7a] hover:scale-105 transition-all"
                             >
                                 注册

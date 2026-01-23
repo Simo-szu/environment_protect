@@ -52,7 +52,7 @@ export default function SciencePage() {
         initial="hidden"
         animate="visible"
         variants={pageEnter}
-        className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white"
+        className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white dark:from-slate-900 via-[#30499B]/5 dark:via-[#30499B]/10 to-white dark:to-slate-900 transition-colors duration-300"
       >
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#30499B]/10 text-[#30499B] text-xs font-semibold mb-4 border border-[#30499B]/20">
           <span className="relative flex h-2 w-2">
@@ -61,10 +61,10 @@ export default function SciencePage() {
           </span>
           环保科普知识库
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight font-serif">
-          科学<span className="text-[#56B949]">环保</span>
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
+          科学<span className="text-[#56B949] dark:text-[#F0A32F]">环保</span>
         </h1>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-[#30499B]" />
             <span>用<span className="text-[#30499B] font-medium border-b-2 border-[#30499B]/30">科学</span>指导，</span>

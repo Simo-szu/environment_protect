@@ -1,0 +1,175 @@
+{
+    "common": {
+        "loading": "加载中...",
+        "error": "出错了",
+        "success": "成功",
+        "cancel": "取消",
+        "confirm": "确认",
+        "save": "保存",
+        "edit": "编辑",
+        "delete": "删除",
+        "back": "返回",
+        "next": "下一步",
+        "previous": "上一步",
+        "submit": "提交",
+        "search": "搜索",
+        "filter": "筛选",
+        "all": "全部",
+        "more": "更多",
+        "viewAll": "查看全部",
+        "loadMore": "加载更多"
+    },
+    "navigation": {
+        "home": "首页",
+        "activities": "活动",
+        "science": "科普",
+        "game": "游戏",
+        "points": "积分",
+        "profile": "个人资料",
+        "notifications": "消息通知",
+        "myActivities": "我的活动",
+        "favorites": "我的收藏",
+        "likes": "我的点赞",
+        "login": "登录",
+        "register": "注册",
+        "logout": "退出登录"
+    },
+    "home": {
+        "title": "YOUTHLOOP",
+        "subtitle": "让绿色循环，用行动改变未来",
+        "slogan": "全民环保行动季",
+        "cards": {
+            "points": {
+                "title": "积分·兑换",
+                "subtitle": "累积环保值"
+            },
+            "game": {
+                "title": "绿色游戏",
+                "subtitle": "虚拟种植"
+            },
+            "science": {
+                "title": "权威科普",
+                "subtitle": "科学数据"
+            },
+            "activity": {
+                "title": "环保活动",
+                "subtitle": "参与行动"
+            }
+        },
+        "sections": {
+            "science": {
+                "title": "科普资料",
+                "subtitle": "TRUSTWORTHY KNOWLEDGE"
+            },
+            "activities": {
+                "title": "热门活动",
+                "subtitle": "JOIN THE ACTION"
+            },
+            "game": {
+                "title": "开启你的绿色探索之旅",
+                "subtitle": "在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。",
+                "button": "开始游戏"
+            },
+            "points": {
+                "title": "积分乐园",
+                "subtitle": "REWARDS & POINTS",
+                "dailyTask": "完成每日任务",
+                "pointsNeeded": "今天还需 {points} 积分即可升级勋章"
+            }
+        }
+    },
+    "notifications": {
+        "title": "消息中心",
+        "subtitle": "回复和互动",
+        "description": "查看其他用户对您内容的回复和互动",
+        "stats": {
+            "unread": "未读消息",
+            "todayReplies": "今日回复",
+            "totalLikes": "总点赞",
+            "totalReplies": "总回复"
+        },
+        "filters": {
+            "all": "全部消息",
+            "unread": "未读消息",
+            "replies": "回复",
+            "likes": "点赞"
+        },
+        "actions": {
+            "reply": "回复",
+            "like": "点赞",
+            "liked": "已点赞",
+            "follow": "回关",
+            "followed": "已关注",
+            "viewContent": "查看内容",
+            "viewProfile": "查看资料",
+            "markAsRead": "标记为已读"
+        },
+        "types": {
+            "replied": "回复了你的评论",
+            "liked": "点赞了你的分享",
+            "followed": "关注了你"
+        },
+        "badges": {
+            "read": "已读",
+            "newReply": "新回复",
+            "newLike": "新点赞",
+            "newFollow": "新关注"
+        },
+        "replyPlaceholder": "输入你的回复...",
+        "replySupport": "支持表情和@提醒",
+        "sendReply": "发送回复"
+    },
+    "myActivities": {
+        "title": "活动管理",
+        "subtitle": "我的活动中心",
+        "description": "管理您参与的所有环保活动",
+        "stats": {
+            "registered": "已报名活动",
+            "completed": "已完成活动",
+            "ongoing": "进行中活动",
+            "points": "获得积分"
+        },
+        "tabs": {
+            "all": "全部活动",
+            "registered": "已报名",
+            "ongoing": "进行中",
+            "completed": "已完成"
+        },
+        "status": {
+            "registered": "已报名",
+            "ongoing": "进行中",
+            "completed": "已完成",
+            "waiting": "待参与",
+            "inProgress": "正在进行"
+        },
+        "actions": {
+            "viewDetails": "查看详情",
+            "cancelRegistration": "取消报名",
+            "rateActivity": "评价活动"
+        },
+        "empty": {
+            "registered": {
+                "title": "暂无已报名活动",
+                "description": "您还没有报名任何活动"
+            },
+            "ongoing": {
+                "title": "暂无进行中活动",
+                "description": "您目前没有正在进行的活动"
+            },
+            "completed": {
+                "title": "暂无已完成活动",
+                "description": "您还没有完成任何活动"
+            }
+        },
+        "info": {
+            "registrationTime": "报名时间",
+            "completionTime": "完成时间",
+            "startTime": "开始时间",
+            "pointsEarned": "获得积分"
+        }
+    },
+    "pagination": {
+        "previous": "上一页",
+        "next": "下一页"
+    }
+}
