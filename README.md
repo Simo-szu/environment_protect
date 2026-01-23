@@ -107,8 +107,14 @@ repo-root/
 确保本地安装 Docker，运行基础设施容器：
 ```bash
 cd infra/docker
-docker-compose up -d
+docker compose up -d
 # 启动 Postgres, Redis, RabbitMQ, MinIO
+```
+
+### 1.1 构建 Web 镜像（可选）
+从仓库根目录构建（build context 必须是 repo root）：
+```bash
+docker build -f apps/web/Dockerfile -t youthloop-web:dev .
 ```
 
 ### 2. 数据库迁移

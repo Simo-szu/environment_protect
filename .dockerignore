@@ -1,56 +1,29 @@
-# 依赖
-node_modules
-.pnp
-.pnp.js
+# Dependencies / build outputs
+**/node_modules
+**/.next
+**/out
+**/dist
+**/build
+**/target
 
-# 测试
-coverage
-*.log
-
-# Next.js
-.next
-out
-build
-dist
-
-# 环境变量
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# 调试
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# 本地开发
-.DS_Store
-*.pem
-
-# IDE
+# Git / IDE / OS
+.git
 .vscode
 .idea
-*.swp
-*.swo
-*~
+**/*.swp
+**/*.swo
+.DS_Store
+Thumbs.db
 
-# Git
-.git
-.gitignore
+# Local env files
+.env
+.env.local
+.env.*.local
 
-# Docker
-Dockerfile
-.dockerignore
-docker-compose.yml
+# Logs
+**/*.log
 
-# 文档
-*.md
-!README.md
-
-# 其他
-.cache
-.turbo
+# Local infra data
+infra/minio/data
+infra/db/backups
 

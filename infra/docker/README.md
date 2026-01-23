@@ -34,8 +34,8 @@ docker compose down -v
 ### RabbitMQ
 - **AMQP Port:** 5672
 - **Management UI:** http://localhost:15672
-- **User:** youthloop
-- **Password:** youthloop
+- **User:** guest
+- **Password:** guest
 
 ### MinIO (S3-compatible storage)
 - **API Port:** 9000
@@ -112,11 +112,13 @@ Update your `.env.local`:
 ```env
 DATABASE_URL=postgresql://social_app:postgres@localhost:5432/youthloop
 REDIS_URL=redis://localhost:6379
-RABBITMQ_URL=amqp://youthloop:youthloop@localhost:5672
+RABBITMQ_URL=amqp://guest:guest@localhost:5672
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
 ```
+
+Note: `guest/guest` works when connecting via localhost. If you later run your apps inside Docker, consider switching to a non-guest user (RabbitMQ restricts `guest` on non-loopback by default).
 
 ## Troubleshooting
 

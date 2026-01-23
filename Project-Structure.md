@@ -1,14 +1,14 @@
 # Project-Structure（Monorepo 项目总指南）v0.4
 
 目标：用两份文档稳定推进开发：
-- 数据库设计：`架构设计/03-Data/Schema-V0.1.dsl.md.md`（当前仅覆盖 Social 模块，不包含 Game 业务表）
+- 数据库设计：`Schema-V0.1.dsl.md.md`（当前仅覆盖 Social 模块，不包含 Game 业务表）
 - 项目总指南：本文件（monorepo 文件结构、接口规范、端点清单、数据库 schema / Flyway 组织方式）
 
 ---
 
 ## 0. 现状与目标架构
 
-当前仓库是 Monorepo，并且已经包含 Next.js App Router 前端（现有页面：`src/app/*`）。
+当前仓库是 Monorepo，前端已迁移到 `apps/web/`，后端服务骨架已搭建完成。
 
 目标是分布式架构（两个后端）：
 - Social Service：社媒/内容/活动/互动/积分等
@@ -21,7 +21,7 @@
 
 ## 1. Monorepo 仓库结构（全局规划）
 
-说明：下面是“目标结构”。你们当前 Next.js 在仓库根目录，后续建议迁移到 `apps/web`，避免后端与前端资产混杂。
+说明：下面是“目标结构”。当前 Next.js 已迁移到 `apps/web`，后续请保持前后端资产不要混放到仓库根目录。
 
 ```
 repo-root/

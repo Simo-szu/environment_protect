@@ -40,8 +40,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: youthloop-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: youthloop
-      RABBITMQ_DEFAULT_PASS: youthloop
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     ports:
       - "5672:5672"   # AMQP
       - "15672:15672" # Management UI
