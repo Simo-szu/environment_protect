@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.interaction.persistence.mapper.ReactionMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.interaction.persistence.entity.ReactionEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="target_type" property="targetType" jdbcType="INTEGER"/>
+    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="reaction_type" property="reactionType" jdbcType="INTEGER"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- 插入反应 -->
+  <insert id="insert">
+    INSERT INTO social.reaction (
+      id, user_id, target_type, target_id, reaction_type, created_at
+    ) VALUES (
+      #{id}::uuid, #{userId}::uuid, #{targetType}, #{targetId}::uuid, #{reactionType}, #{createdAt}
+    )
+    ON CONFLICT (user_id, target_type, target_id, reaction_type) DO NOTHING
+  </insert>
+
+  <!-- 查询用户对目标的反应 -->
+  <select id="selectByUserAndTarget" resultMap="BaseResultMap">
+    SELECT id, user_id, target_type, target_id, reaction_type, created_at
+    FROM social.reaction
+    WHERE user_id = #{userId}::uuid
+      AND target_type = #{targetType}
+      AND target_id = #{targetId}::uuid
+      AND reaction_type = #{reactionType}
+  </select>
+
+  <!-- 删除反应 -->
+  <delete id="deleteById">
+    DELETE FROM social.reaction
+    WHERE id = #{id}::uuid
+  </delete>
+
+  <!-- 删除用户对目标的反应 -->
+  <delete id="deleteByUserAndTarget">
+    DELETE FROM social.reaction
+    WHERE user_id = #{userId}::uuid
+      AND target_type = #{targetType}
+      AND target_id = #{targetId}::uuid
+      AND reaction_type = #{reactionType}
+  </delete>
+
+</mapper>

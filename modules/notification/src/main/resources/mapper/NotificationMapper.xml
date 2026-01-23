@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.notification.persistence.mapper.NotificationMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.notification.persistence.entity.NotificationEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="type" property="type" jdbcType="INTEGER"/>
+    <result column="actor_user_id" property="actorUserId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="target_type" property="targetType" jdbcType="INTEGER"/>
+    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="comment_id" property="commentId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="root_comment_id" property="rootCommentId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="meta" property="meta" jdbcType="VARCHAR"/>
+    <result column="read_at" property="readAt" jdbcType="TIMESTAMP"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- 插入通知 -->
+  <insert id="insert">
+    INSERT INTO social.notification (
+      id, user_id, type, actor_user_id, target_type, target_id, 
+      comment_id, root_comment_id, meta, read_at, created_at
+    ) VALUES (
+      #{id}::uuid, #{userId}::uuid, #{type}, #{actorUserId}::uuid, #{targetType}, #{targetId}::uuid,
+      #{commentId}::uuid, #{rootCommentId}::uuid, #{meta}::jsonb, #{readAt}, #{createdAt}
+    )
+  </insert>
+
+  <!-- 查询用户的通知列表 -->
+  <select id="selectByUser" resultMap="BaseResultMap">
+    SELECT id, user_id, type, actor_user_id, target_type, target_id,
+           comment_id, root_comment_id, meta, read_at, created_at
+    FROM social.notification
+    WHERE user_id = #{userId}::uuid
+    ORDER BY created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计未读通知数 -->
+  <select id="countUnreadByUser" resultType="java.lang.Long">
+    SELECT COUNT(*)
+    FROM social.notification
+    WHERE user_id = #{userId}::uuid
+      AND read_at IS NULL
+  </select>
+
+  <!-- 标记为已读 -->
+  <update id="markAsRead">
+    UPDATE social.notification
+    SET read_at = now()
+    WHERE id = #{id}::uuid
+      AND read_at IS NULL
+  </update>
+
+  <!-- 批量标记为已读 -->
+  <update id="markAllAsRead">
+    UPDATE social.notification
+    SET read_at = now()
+    WHERE user_id = #{userId}::uuid
+      AND read_at IS NULL
+  </update>
+
+</mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.event.persistence.mapper.OutboxEventMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.event.persistence.entity.OutboxEventEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="event_type" property="eventType" jdbcType="VARCHAR"/>
+    <result column="payload" property="payload" jdbcType="VARCHAR"/>
+    <result column="status" property="status" jdbcType="INTEGER"/>
+    <result column="retry_count" property="retryCount" jdbcType="INTEGER"/>
+    <result column="next_retry_at" property="nextRetryAt" jdbcType="TIMESTAMP"/>
+    <result column="last_error" property="lastError" jdbcType="VARCHAR"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- Base Column List -->
+  <sql id="Base_Column_List">
+    id, event_type, payload, status, retry_count, next_retry_at, last_error, created_at, updated_at
+  </sql>
+
+  <!-- 插入事件 -->
+  <insert id="insert">
+    INSERT INTO social.outbox_event (
+      id, event_type, payload, status, retry_count, next_retry_at, last_error, created_at, updated_at
+    ) VALUES (
+      #{id}::uuid, #{eventType}, #{payload}::jsonb, #{status}, #{retryCount}, 
+      #{nextRetryAt}, #{lastError}, #{createdAt}, #{updatedAt}
+    )
+  </insert>
+
+  <!-- 根据 ID 查询 -->
+  <select id="selectById" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.outbox_event
+    WHERE id = #{id}::uuid
+  </select>
+
+  <!-- 查询待处理的事件 -->
+  <select id="selectPendingEvents" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.outbox_event
+    WHERE status = 1
+      AND (next_retry_at IS NULL OR next_retry_at &lt;= #{now})
+    ORDER BY created_at ASC
+    LIMIT #{limit}
+  </select>
+
+  <!-- 更新事件状态 -->
+  <update id="updateStatus">
+    UPDATE social.outbox_event
+    SET status = #{status},
+        retry_count = #{retryCount},
+        next_retry_at = #{nextRetryAt},
+        last_error = #{lastError},
+        updated_at = #{updatedAt}
+    WHERE id = #{id}::uuid
+  </update>
+
+</mapper>

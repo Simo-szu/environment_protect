@@ -19,6 +19,20 @@
 
 
     <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Event Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-event</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
