@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.content.persistence.mapper.ContentMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.content.persistence.entity.ContentEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="type" property="type" jdbcType="INTEGER"/>
+    <result column="title" property="title" jdbcType="VARCHAR"/>
+    <result column="summary" property="summary" jdbcType="VARCHAR"/>
+    <result column="cover_url" property="coverUrl" jdbcType="VARCHAR"/>
+    <result column="body" property="body" jdbcType="LONGVARCHAR"/>
+    <result column="source_type" property="sourceType" jdbcType="INTEGER"/>
+    <result column="source_url" property="sourceUrl" jdbcType="VARCHAR"/>
+    <result column="published_at" property="publishedAt" jdbcType="TIMESTAMP"/>
+    <result column="status" property="status" jdbcType="INTEGER"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- Base Column List -->
+  <sql id="Base_Column_List">
+    id, type, title, summary, cover_url, body, source_type, source_url, 
+    published_at, status, created_at, updated_at
+  </sql>
+
+  <!-- 根据 ID 查询 -->
+  <select id="selectById" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.content
+    WHERE id = #{id}::uuid
+  </select>
+
+  <!-- 分页查询列表 -->
+  <select id="selectList" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.content
+    <where>
+      <if test="type != null">
+        AND type = #{type}
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY published_at DESC NULLS LAST, created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计总数 -->
+  <select id="countList" resultType="java.lang.Long">
+    SELECT COUNT(*)
+    FROM social.content
+    <where>
+      <if test="type != null">
+        AND type = #{type}
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+  </select>
+
+  <!-- 插入 -->
+  <insert id="insert">
+    INSERT INTO social.content (
+      id, type, title, summary, cover_url, body, source_type, source_url,
+      published_at, status, created_at, updated_at
+    ) VALUES (
+      #{id}::uuid, #{type}, #{title}, #{summary}, #{coverUrl}, #{body}, 
+      #{sourceType}, #{sourceUrl}, #{publishedAt}, #{status}, #{createdAt}, #{updatedAt}
+    )
+  </insert>
+
+  <!-- 更新 -->
+  <update id="update">
+    UPDATE social.content
+    <set>
+      <if test="type != null">type = #{type},</if>
+      <if test="title != null">title = #{title},</if>
+      <if test="summary != null">summary = #{summary},</if>
+      <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+      <if test="body != null">body = #{body},</if>
+      <if test="sourceType != null">source_type = #{sourceType},</if>
+      <if test="sourceUrl != null">source_url = #{sourceUrl},</if>
+      <if test="publishedAt != null">published_at = #{publishedAt},</if>
+      <if test="status != null">status = #{status},</if>
+      updated_at = #{updatedAt}
+    </set>
+    WHERE id = #{id}::uuid
+  </update>
+
+  <!-- 删除 -->
+  <delete id="deleteById">
+    DELETE FROM social.content
+    WHERE id = #{id}::uuid
+  </delete>
+
+</mapper>

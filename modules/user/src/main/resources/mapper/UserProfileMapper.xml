@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
@@ -6,7 +6,7 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.user.persistence.entity.UserProfileEntity">
-    <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="user_id" property="userId" jdbcType="OTHER"/>
     <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
     <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
     <result column="gender" property="gender" jdbcType="INTEGER"/>
@@ -21,14 +21,14 @@
     user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at
   </sql>
 
-  <!-- 根据用户 ID 查询 -->
+  <!-- 鏍规嵁鐢ㄦ埛 ID 鏌ヨ -->
   <select id="selectByUserId" resultMap="BaseResultMap">
     SELECT <include refid="Base_Column_List"/>
     FROM shared.user_profile
     WHERE user_id = #{userId}::uuid
   </select>
 
-  <!-- 插入 -->
+  <!-- 鎻掑叆 -->
   <insert id="insert">
     INSERT INTO shared.user_profile (user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at)
     VALUES (
@@ -43,7 +43,7 @@
     )
   </insert>
 
-  <!-- 更新 -->
+  <!-- 鏇存柊 -->
   <update id="update">
     UPDATE shared.user_profile
     SET nickname = #{nickname},
@@ -55,7 +55,7 @@
     WHERE user_id = #{userId}::uuid
   </update>
 
-  <!-- 删除 -->
+  <!-- 鍒犻櫎 -->
   <delete id="deleteByUserId">
     DELETE FROM shared.user_profile
     WHERE user_id = #{userId}::uuid

@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.youthloop.auth.persistence.mapper.UserIdentityMapper">
 
   <resultMap id="BaseResultMap" type="com.youthloop.auth.persistence.entity.UserIdentityEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER"/>
+    <result column="user_id" property="userId" jdbcType="OTHER"/>
     <result column="identity_type" property="identityType" jdbcType="INTEGER"/>
     <result column="identity_identifier" property="identityIdentifier" jdbcType="VARCHAR"/>
     <result column="verified_at" property="verifiedAt" jdbcType="TIMESTAMP"/>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -14,7 +14,7 @@
 
     <artifactId>social-api</artifactId>
     <name>Social API</name>
-    <description>Social Service - API 进程</description>
+    <description>Social Service - API 杩涚▼</description>
 
 
 
@@ -37,6 +37,13 @@
         <dependency>
             <groupId>com.youthloop</groupId>
             <artifactId>youthloop-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Content Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-content</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -1,5 +1,6 @@
 package com.youthloop.social.api;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -13,6 +14,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - 调用业务模块 (modules/*)
  */
 @SpringBootApplication(scanBasePackages = "com.youthloop")
+@MapperScan(basePackages = {
+    "com.youthloop.auth.persistence.mapper",
+    "com.youthloop.user.persistence.mapper",
+    "com.youthloop.content.persistence.mapper"
+})
 public class SocialApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(SocialApiApplication.class, args);

@@ -53,6 +53,10 @@ public class SecurityConfig {
                 // 放行：用户档案查询（公开接口）
                 .requestMatchers("/api/v1/users/*/profile").permitAll()
                 
+                // 放行：内容接口（公开接口）
+                .requestMatchers("/api/v1/contents").permitAll()
+                .requestMatchers("/api/v1/contents/*").permitAll()
+                
                 // 放行：Swagger UI
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()

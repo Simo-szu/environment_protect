@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
@@ -6,7 +6,7 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.user.persistence.entity.UserEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER"/>
     <result column="role" property="role" jdbcType="INTEGER"/>
     <result column="status" property="status" jdbcType="INTEGER"/>
     <result column="last_login_at" property="lastLoginAt" jdbcType="TIMESTAMP"/>
@@ -19,14 +19,14 @@
     id, role, status, last_login_at, created_at, updated_at
   </sql>
 
-  <!-- 根据 ID 查询 -->
+  <!-- 鏍规嵁 ID 鏌ヨ -->
   <select id="selectById" resultMap="BaseResultMap">
     SELECT <include refid="Base_Column_List"/>
     FROM shared.user
     WHERE id = #{id}::uuid
   </select>
 
-  <!-- 插入 -->
+  <!-- 鎻掑叆 -->
   <insert id="insert">
     INSERT INTO shared.user (id, role, status, last_login_at, created_at, updated_at)
     VALUES (
@@ -39,7 +39,7 @@
     )
   </insert>
 
-  <!-- 更新 -->
+  <!-- 鏇存柊 -->
   <update id="update">
     UPDATE shared.user
     SET role = #{role},
@@ -49,13 +49,13 @@
     WHERE id = #{id}::uuid
   </update>
 
-  <!-- 删除 -->
+  <!-- 鍒犻櫎 -->
   <delete id="deleteById">
     DELETE FROM shared.user
     WHERE id = #{id}::uuid
   </delete>
 
-  <!-- 分页查询列表 -->
+  <!-- 鍒嗛〉鏌ヨ鍒楄〃 -->
   <select id="selectList" resultMap="BaseResultMap">
     SELECT <include refid="Base_Column_List"/>
     FROM shared.user
@@ -63,13 +63,13 @@
     LIMIT #{limit} OFFSET #{offset}
   </select>
 
-  <!-- 统计总数 -->
+  <!-- 缁熻鎬绘暟 -->
   <select id="countTotal" resultType="java.lang.Long">
     SELECT COUNT(*)
     FROM shared.user
   </select>
 
-  <!-- 更新最后登录时间 -->
+  <!-- 鏇存柊鏈€鍚庣櫥褰曟椂闂?-->
   <update id="updateLastLoginAt">
     UPDATE shared.user
     SET last_login_at = NOW(),
