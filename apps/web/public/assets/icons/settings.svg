@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-label="icon settings">
+  <!-- Simplified gear -->
+  <circle cx="12" cy="12" r="3" fill="currentColor" />
+  <g fill="currentColor">
+    <rect x="11" y="2" width="2" height="4" />
+    <rect x="11" y="18" width="2" height="4" />
+    <rect x="2" y="11" width="4" height="2" />
+    <rect x="18" y="11" width="4" height="2" />
+    <rect x="4.2" y="4.2" width="2" height="4" transform="rotate(45 5.2 6.2)" />
+    <rect x="17.8" y="15.8" width="2" height="4" transform="rotate(45 18.8 17.8)" />
+    <rect x="4.2" y="15.8" width="2" height="4" transform="rotate(-45 5.2 17.8)" />
+    <rect x="17.8" y="4.2" width="2" height="4" transform="rotate(-45 18.8 6.2)" />
+  </g>
+</svg>
+

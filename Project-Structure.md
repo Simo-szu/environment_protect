@@ -226,6 +226,12 @@ modules/<domain>/
 - UUID：字符串
 
 ### 5.4 登录态与游客
+- Auth 标记说明：
+  - `No`：无需登录
+  - `Optional`：可不登录（登录则返回 userState/个性化字段）
+  - `Yes`：必须登录
+  - `G`：允许游客（不登录也能写；通常通过 email 等完成去重/联系）
+  - `Admin`：管理员权限（`user.role=admin`），用于运营配置/审核
 - 读接口：允许 Optional（未登录也能读内容/活动）；未登录时 `userState` 可不返回或全部为 false
 - 写接口：除活动报名（允许游客）外，其它互动写入（评论/点赞/收藏/踩）必须登录
 
@@ -265,6 +271,7 @@ modules/<domain>/
 | Method | Path | Auth | 用途 |
 |------|------|------|------|
 | GET | /api/v1/home | Optional | 首页聚合（最新内容 + 最新活动 + 轮播配置） |
+| GET | /api/v1/home/banners | Optional | 首页轮播/运营位列表（仅返回启用且在有效期内） |
 
 ### 6.3 Social：Content（科普）
 
@@ -283,6 +290,8 @@ modules/<domain>/
 | GET | /api/v1/activities/{id}/comments | Optional | 活动评论树（sort=latest\|hot） |
 | GET | /api/v1/activities/{id}/sessions | Optional | 活动场次列表（HOSTED 才有） |
 | POST | /api/v1/activities/{id}/signups | G | 活动报名（同一活动只能报一次） |
+| PATCH | /api/v1/activities/{id}/signups/{signupId} | G | 修改报名信息/改场次（仅未开始且状态允许时） |
+| DELETE | /api/v1/activities/{id}/signups/{signupId} | G | 取消报名（仅未开始且状态允许时） |
 
 ### 6.5 Social：Host（主办方）
 
@@ -293,6 +302,10 @@ modules/<domain>/
 | POST | /api/v1/host/activities/{id}/sessions | Yes | 创建/更新场次（批量也可） |
 | GET | /api/v1/host/activities | Yes | 我发布的活动列表 |
 | GET | /api/v1/host/activities/{id}/signups | Yes | 查看报名名单与统计（敏感信息） |
+| PATCH | /api/v1/host/activities/{id}/signups/{signupId}/approve | Yes | 审核通过报名（仅本人/管理员） |
+| PATCH | /api/v1/host/activities/{id}/signups/{signupId}/reject | Yes | 审核拒绝报名（仅本人/管理员） |
+| POST | /api/v1/host/verification/submit | Yes | 提交主办方认证/资质审核材料 |
+| GET | /api/v1/host/verification | Yes | 查看主办方认证状态与资料（脱敏） |
 
 ### 6.6 Social：Interaction（互动）
 
@@ -345,11 +358,17 @@ modules/<domain>/
 |------|------|------|------|
 | POST | /api/v1/files/presign | Yes | 获取上传预签名（avatar/activityPoster 等） |
 
-### 6.12 Social：System / Health
+### 6.12 Social：System / Admin / Health
 
 | Method | Path | Auth | 用途 |
 |------|------|------|------|
 | GET | /health | No | 健康检查（不加 /api 前缀） |
+| GET | /api/v1/admin/home/banners | Admin | 运营位管理：列表 |
+| POST | /api/v1/admin/home/banners | Admin | 运营位管理：创建/启用/排序 |
+| PATCH | /api/v1/admin/home/banners/{id} | Admin | 运营位管理：修改/上下线 |
+| DELETE | /api/v1/admin/home/banners/{id} | Admin | 运营位管理：删除 |
+| GET | /api/v1/admin/host/verifications | Admin | 主办方认证审核：列表 |
+| PATCH | /api/v1/admin/host/verifications/{id} | Admin | 主办方认证审核：通过/拒绝 |
 
 ### 6.13 Game：Game Session（v0.1 最小集合）
 
@@ -425,6 +444,7 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 
 ### 11.1 首页（Home）
 - 首页聚合（最新内容/最新活动/轮播配置）：`modules/query`；路由入口在 `apps/social-api/query`
+- 运营位/轮播配置（可运营表）：`modules/ops/application` + `modules/ops/persistence`（Admin 通过 `/api/v1/admin/home/banners` 维护）
 - 热门排序（hot_score 重算、规则切换）：规则在数据库 + `modules/*` 的 stats 模型；重算任务在 `apps/social-worker/jobs`
 
 ### 11.2 登录/注册/忘记密码
@@ -443,7 +463,8 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 ### 11.4 活动（Activity：发布/场次/报名）
 - 主办方发布活动（HOSTED）：`modules/activity/application`
 - 活动场次（用户选择时段）：`modules/activity`（`activity_session` 相关）
-- 报名（同一活动只能报一次）：`modules/activity/application`（幂等/去重在此模块内）
+- 报名（同一活动只能报一次）：`modules/activity/application`（幂等/去重在此模块内；支持取消/改场次；支持审核流）
+- 报名审核：`modules/activity/application`（主办方/管理员审核；状态流与审计字段见 Schema）
 - 抓取活动：`modules/ingestion`（Worker 定时/批处理），去重策略落在 ingestion + activity
 - 列表/右侧推荐/最新：`modules/query`
 - API：`apps/social-api/web/controller/activity`
@@ -478,6 +499,11 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 - 每周个性推荐生成：`apps/social-worker/jobs` 调用 `modules/recommendation/application`
 - 最新推荐（实时）：`modules/query` 直接按时间读取 `content/activity`
 - API：`apps/social-api/web/controller/recommendation`
+
+### 11.10 主办方认证（Host Verification）
+- 主办方资料：`modules/host/application`（对应数据库 `host_profile`）
+- 认证提交/审核：`modules/host/application`（对应数据库 `host_verification`；Admin 审核入口见端点清单）
+- API：`apps/social-api/web/controller/host` + `apps/social-api/web/controller/admin`
 
 ---
 
@@ -531,6 +557,27 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 JDBC 常见做法：
 - 用连接串参数 `currentSchema=social,shared`（或在连接池 init SQL 里 `set search_path`）
 - 永远不要用 `public` 存业务表（避免权限与命名污染）
+
+### 12.5 v0.1（Social）表归属清单（必须完整标注）
+说明：这里的“shared/social”是指 PostgreSQL schema。**表一旦定归属就不要跨 schema 迁移**；跨 schema 的关联只允许“读”或通过 API/事件协作写入。
+
+| 归属 schema | 表（Schema-V0.1.dsl.md.md 中的 model） | 备注 |
+|---|---|---|
+| `shared` | `user` / `user_profile` / `user_identity` / `user_password` | 用户与档案（跨服务识别的最小集合） |
+| `shared` | `auth_refresh_token` / `verification_code` | 登录态与验证码（跨服务共享的最小集合） |
+| `shared` | `user_terms_acceptance` | 条款/隐私同意留痕（合规审计） |
+| `social` | `content` / `content_stats` | 内容与统计（含 like/fav/comment/down + hot_score） |
+| `social` | `activity` / `activity_session` / `activity_stats` / `activity_signup` | 活动与报名（含取消/改场次/审核流） |
+| `social` | `comment` / `comment_stats` / `reaction` / `notification` | 互动与通知（含 downvote 展示统计） |
+| `social` | `points_account` / `points_ledger` / `signin_record` | 积分与签到 |
+| `social` | `daily_task` / `daily_task_progress` / `daily_quiz` / `daily_quiz_record` | 任务与问答 |
+| `social` | `badge` / `user_badge` | 勋章 |
+| `social` | `user_event` | 埋点/行为事件（推荐/搜索/统计输入） |
+| `social` | `weekly_recommendation` | 每周个性推荐结果 |
+| `social` | `hot_score_rule` | 热度公式/规则配置 |
+| `social` | `home_banner` | 首页运营位/轮播配置（可运营） |
+| `social` | `host_profile` / `host_verification` | 主办方资料与认证审核（v0.1 需要做） |
+| `social` | `outbox_event` | Outbox 事件表（Worker 消费更新 stats/索引/邮件等） |
 
 ---
 

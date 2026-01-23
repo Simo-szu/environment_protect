@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -14,11 +14,12 @@
 /coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
+dist/
 
 # misc
 .DS_Store
@@ -72,5 +73,37 @@ $RECYCLE.BIN/
 logs
 *.log
 
-# Documentation and helper scripts (local only)
-/docs/
+# Database
+*.sql.backup
+*.dump
+/infra/db/backups/
+.pgpass
+
+# MinIO
+/infra/minio/data/
+/infra/minio/minio.exe
+/infra/minio/minio
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Keep Maven wrapper JAR in git (required for machines without Maven installed)
+!.mvn/wrapper/maven-wrapper.jar
+
+# Old root Next.js outputs (should not exist after migration, but ignore if present)
+tsconfig.tsbuildinfo

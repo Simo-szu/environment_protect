@@ -4,7 +4,12 @@
 // - Enums are stored as smallint in DB (hard-coded mapping in app).
 // - UUID primary keys.
 // - "date in DB" fields are Asia/Shanghai local DATE (no time component).
+//
+// Schema ownership (PostgreSQL schemas):
+// - shared: user/auth/verification/terms (cross-service minimal identity set)
+// - social: content/activity/interaction/points/recommendation/ops/outbox (Social service owned)
 
+// schema: shared
 model user {
   id            String   @id @default(uuid)
   role          Int      @default(1) // 1=user 2=host 3=admin
@@ -19,6 +24,7 @@ model user {
   refreshTokens auth_refresh_token[]
 }
 
+// schema: shared
 model user_profile {
   user_id    String  @id
   nickname   String?
@@ -32,6 +38,7 @@ model user_profile {
   user user @relation(fields: [user_id], references: [id])
 }
 
+// schema: shared
 model user_identity {
   id                 String   @id @default(uuid)
   user_id            String
@@ -46,6 +53,7 @@ model user_identity {
   user user @relation(fields: [user_id], references: [id])
 }
 
+// schema: shared
 model user_password {
   user_id       String  @id
   password_hash String
@@ -55,6 +63,7 @@ model user_password {
   user user @relation(fields: [user_id], references: [id])
 }
 
+// schema: shared
 model auth_refresh_token {
   id         String   @id @default(uuid)
   user_id    String
@@ -70,6 +79,7 @@ model auth_refresh_token {
   @@index([expires_at])
 }
 
+// schema: shared
 model verification_code {
   id         String   @id @default(uuid)
   account    String   // email/phone
@@ -84,6 +94,61 @@ model verification_code {
   @@index([expires_at])
 }
 
+// schema: social
+model host_profile {
+  user_id      String @id
+  display_name String?
+  org_name     String?
+  org_logo_url String?
+  intro        String?
+  created_at   DateTime
+  updated_at   DateTime
+
+  user user @relation(fields: [user_id], references: [id])
+}
+
+// schema: social
+// Host verification + review (v0.1 needs this).
+model host_verification {
+  user_id       String @id
+  org_name      String
+  contact_name  String
+  contact_phone String
+  doc_urls      Json?  // array of object-storage urls
+  status        Int    @default(1) // 1=pending 2=approved 3=rejected 4=revoked
+  submitted_at  DateTime
+  reviewed_by   String?
+  reviewed_at   DateTime?
+  review_note   String?
+  created_at    DateTime
+  updated_at    DateTime
+
+  user user @relation(fields: [user_id], references: [id])
+
+  @@index([status, submitted_at])
+}
+
+// schema: social
+model home_banner {
+  id          String   @id @default(uuid)
+  title       String?
+  image_url   String
+  link_type   Int      // 1=none 2=content 3=activity 4=url
+  link_target String?
+  sort_order  Int      @default(0)
+  is_enabled  Boolean  @default(true)
+  start_at    DateTime?
+  end_at      DateTime?
+  created_by  String?
+  updated_by  String?
+  created_at  DateTime
+  updated_at  DateTime
+
+  @@index([is_enabled, sort_order])
+  @@index([start_at, end_at])
+}
+
+// schema: social
 model content {
   id           String   @id @default(uuid)
   type         Int      // 1=news 2=dynamic 3=policy 4=wiki
@@ -106,10 +171,12 @@ model content {
   @@index([fts]) // in PostgreSQL: GIN index on tsvector
 }
 
+// schema: social
 model content_stats {
   content_id    String @id
   like_count    Int    @default(0)
   fav_count     Int    @default(0)
+  down_count    Int    @default(0)
   comment_count Int    @default(0)
   hot_score     BigInt @default(0)
   hot_rule_id   String?
@@ -121,12 +188,14 @@ model content_stats {
   @@index([hot_rule_id])
 }
 
+// schema: social
 model activity {
   id           String   @id @default(uuid)
   source_type  Int      // 1=crawled 2=hosted
   title        String
   category     Int      // 1..8
   topic        String?
+  signup_policy Int     @default(1) // 1=auto_approve 2=manual_review
   start_time   DateTime? // nullable (TBD allowed)
   end_time     DateTime?
   location     String?
@@ -151,6 +220,7 @@ model activity {
 
 // Hosted activity can have multiple sessions/time-slots that users choose from.
 // Crawled activity usually has no sessions (or is read-only).
+// schema: social
 model activity_session {
   id          String   @id @default(uuid)
   activity_id String
@@ -167,10 +237,12 @@ model activity_session {
   @@index([activity_id, start_time])
 }
 
+// schema: social
 model activity_stats {
   activity_id   String @id
   like_count    Int    @default(0)
   fav_count     Int    @default(0)
+  down_count    Int    @default(0)
   comment_count Int    @default(0)
   hot_score     BigInt @default(0)
   hot_rule_id   String?
@@ -182,6 +254,7 @@ model activity_stats {
   @@index([hot_rule_id])
 }
 
+// schema: social
 model activity_signup {
   id          String   @id @default(uuid)
   activity_id String
@@ -194,6 +267,13 @@ model activity_signup {
   real_name   String
   phone       String
   join_time   DateTime? // optional snapshot; usually equals session.start_time
+  status      Int      @default(1) // 1=pending 2=approved 3=rejected 4=canceled
+  audited_by  String?  // host/admin user_id
+  audited_at  DateTime?
+  audit_note  String?
+  canceled_at DateTime?
+  cancel_note String?
+  updated_at  DateTime
   created_at  DateTime
 
   // Strong dedup in DB without partial unique index:
@@ -203,11 +283,13 @@ model activity_signup {
   dedup_key   String
   @@unique([activity_id, dedup_key])
   @@index([activity_id, created_at])
+  @@index([activity_id, status, created_at])
   @@index([session_id])
 
   activity activity @relation(fields: [activity_id], references: [id])
 }
 
+// schema: social
 model comment {
   id          String   @id @default(uuid)
   target_type Int      // 1=content 2=activity
@@ -229,6 +311,7 @@ model comment {
   @@index([user_id, created_at])
 }
 
+// schema: social
 model comment_stats {
   comment_id  String @id
   like_count  Int    @default(0)
@@ -246,6 +329,7 @@ model comment_stats {
 
 // Configurable hot-score rule to support manual tuning / algorithm iteration.
 // Worker can recompute hot_score for content/activity/comment by active rule.
+// schema: social
 model hot_score_rule {
   id           String   @id @default(uuid)
   target_type  Int      // 1=content 2=activity 3=comment
@@ -259,6 +343,7 @@ model hot_score_rule {
   @@index([target_type, is_active])
 }
 
+// schema: social
 model reaction {
   id            String   @id @default(uuid)
   user_id       String
@@ -274,6 +359,7 @@ model reaction {
 
 // Used by "My Replies" (red-dot + list).
 // Created when someone replies to your comment (or future: mention/system notice).
+// schema: social
 model notification {
   id             String   @id @default(uuid)
   user_id        String   // recipient
@@ -292,6 +378,7 @@ model notification {
 }
 
 // Compliance/audit: "I agree to Terms" at registration or when terms update.
+// schema: shared
 model user_terms_acceptance {
   id          String   @id @default(uuid)
   user_id     String
@@ -304,12 +391,14 @@ model user_terms_acceptance {
   @@index([user_id, doc_type, accepted_at])
 }
 
+// schema: social
 model points_account {
   user_id    String @id
   balance    BigInt @default(0)
   updated_at DateTime
 }
 
+// schema: social
 model points_ledger {
   id         String   @id @default(uuid)
   user_id    String
@@ -323,6 +412,7 @@ model points_ledger {
   @@index([user_id, created_at])
 }
 
+// schema: social
 model signin_record {
   user_id      String
   signin_date  DateTime // date in DB (Asia/Shanghai local date)
@@ -336,6 +426,7 @@ model signin_record {
   @@index([user_id, signed_at])
 }
 
+// schema: social
 model daily_task {
   id         String   @id @default(uuid)
   code       String   @unique
@@ -346,6 +437,7 @@ model daily_task {
   created_at DateTime
 }
 
+// schema: social
 model daily_task_progress {
   user_id    String
   task_date  DateTime // date in DB (Asia/Shanghai local date)
@@ -358,6 +450,7 @@ model daily_task_progress {
   @@id([user_id, task_date, task_id])
 }
 
+// schema: social
 model daily_quiz {
   quiz_date DateTime @id  // date in DB (Asia/Shanghai local date)
   question  Json
@@ -366,6 +459,7 @@ model daily_quiz {
   created_at DateTime
 }
 
+// schema: social
 model daily_quiz_record {
   user_id     String
   quiz_date   DateTime
@@ -377,6 +471,7 @@ model daily_quiz_record {
   @@id([user_id, quiz_date])
 }
 
+// schema: social
 model badge {
   id         String   @id @default(uuid)
   series     Int      // 1=points 2=signin
@@ -386,6 +481,7 @@ model badge {
   created_at DateTime
 }
 
+// schema: social
 model user_badge {
   user_id     String
   badge_id    String
@@ -394,6 +490,7 @@ model user_badge {
   @@id([user_id, badge_id])
 }
 
+// schema: social
 model user_event {
   id          String   @id @default(uuid)
   user_id     String?
@@ -409,6 +506,7 @@ model user_event {
   @@index([event_type, created_at])
 }
 
+// schema: social
 model weekly_recommendation {
   user_id    String
   week_start DateTime // date in DB
@@ -418,6 +516,7 @@ model weekly_recommendation {
 
   @@id([user_id, week_start])
 }
+// schema: social
 model outbox_event {
   id           String  @id @default(uuid)
   event_type   String

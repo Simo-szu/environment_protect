@@ -1,95 +1,148 @@
-# My Digital Biome - 交互式生态模拟系统
+# My Digital Biome (Monorepo)
 
-这是一个基于 [Next.js](https://nextjs.org) (App Router) 的交互式生态模拟系统项目。用户可以在应用中体验生态平衡模拟、参与环保活动、计算碳足迹以及学习科学知识。
+本项目采用 **Monorepo** 架构，包含前端 Web 应用与后端微服务（Social Service + Game Service）。旨在打造一个集生态模拟游戏、科普教育与社交互动于一体的综合平台。
 
-## ✨ 核心功能
+---
 
-*   **🎮 生态模拟游戏 (/game)**: 沉浸式的生物圈管理模拟，包含观察、干预、见证和恢复四个阶段。使用 Zustand 进行复杂状态管理。
-*   **🧮 碳足迹计算器 (/calculator)**: 帮助用户计算和追踪个人的碳排放。
-*   **� 科普知识库 (/science)**: 提供生态保护相关的科学知识。
-*   **📝 环保活动追踪 (/activities)**: 记录和管理用户的环保行动。
-*   **📊 数据可视化**: 使用 Recharts 图表实时展示生态指标（如溶解氧、浮游生物数量等）的变化。
+## 🏗️ 系统架构
 
-## 🛠️ 技术栈
+目标采用 **分布式架构**，前后端分离：
 
-*   **核心框架**: [Next.js 16.0.1](https://nextjs.org/) (App Router)
-*   **编程语言**: [TypeScript](https://www.typescriptlang.org/)
-*   **样式方案**: [Tailwind CSS 4.x](https://tailwindcss.com/)
-*   **动画引擎**: [GSAP](https://greensock.com/gsap/)
-*   **状态管理**: [Zustand](https://github.com/pmndrs/zustand)
-*   **UI 组件**: [Radix UI](https://www.radix-ui.com/) + [Lucide React](https://lucide.dev/)
-*   **图表库**: [Recharts](https://recharts.org/)
+*   **Web Frontend**: 负责 UI 展示与 API 调用（Next.js）。
+*   **Social Service**: 处理社媒、内容、活动、互动、积分等核心业务（Spring Boot 模块化单体）。
+*   **Game Service**: 独立的游戏服务，处理游戏会话与逻辑（Spring Boot）。
 
-## � 快速开始
+两个服务共用一个 PostgreSQL 实例，通过 **多 Schema (shared/social/game)** 实现隔离。
 
-### 1. 环境准备
-
-确保您的系统已安装：
-- Node.js 18.0.0 或更高版本
-- pnpm (推荐) 或 npm
-
-### 2. 安装依赖
-
-```bash
-# 使用 pnpm (推荐)
-pnpm install
-
-# 或使用 npm
-npm install
-```
-
-### 3. 启动开发服务器
-
-```bash
-npm run dev
-# 或
-pnpm dev
-```
-
-启动成功后，请在浏览器中访问 **[http://localhost:8000](http://localhost:8000)** 查看应用。
-> **注意**：本项目配置在 **8000** 端口运行，而不是 Next.js 默认的 3000 端口。
-
-## � 常用命令
-
-| 命令 script | 说明 |
-| --- | --- |
-| `npm run dev` | 启动开发服务器 (端口 8000) |
-| `npm run build` | 构建生产版本 |
-| `npm run start` | 启动生产环境服务器 (端口 8000) |
-| `npm run lint` | 运行 ESLint 代码检查 |
-| `npm run type-check` | 运行 TypeScript 类型检查 |
-| `npm run clean:win` | 清理构建文件 (.next, out, dist) - Windows 专用 |
+---
 
 ## 📁 目录结构
 
+```text
+repo-root/
+├─ apps/                   # 可独立部署的应用
+│  ├─ web/                 # Next.js 前端应用
+│  ├─ social-api/          # Social Service - API 接入层 (Spring Boot)
+│  ├─ social-worker/       # Social Service - 异步任务 Worker (Spring Boot)
+│  └─ game-api/            # Game Service - 独立游戏服务 (Spring Boot)
+├─ modules/                # Social Service 业务模块 (模块化单体核心)
+│  ├─ common/              # 通用工具和基础设施
+│  ├─ auth/                # 认证与授权
+│  ├─ user/                # 用户档案
+│  ├─ content/             # 科普内容 (News/Wiki/Policy/Dynamic)
+│  ├─ activity/            # 活动与报名
+│  ├─ interaction/         # 评论/点赞/收藏/踩
+│  ├─ notification/        # 通知系统
+│  ├─ points/              # 积分系统 (签到/任务/问答/勋章)
+│  ├─ search/              # 站内搜索
+│  ├─ recommendation/      # 推荐系统
+│  ├─ event/               # 事件处理 (Outbox)
+│  ├─ ingestion/           # 数据抓取与清洗
+│  ├─ query/               # 聚合查询层 (BFF)
+│  ├─ host/                # 主办方管理
+│  └─ ops/                 # 运营配置
+├─ packages/               # 跨服务共享
+│  ├─ api-contracts/       # API 契约 (OpenAPI/错误码/DTO)
+│  └─ tooling/             # 代码生成/Lint/CI 脚本
+├─ infra/                  # 基础设施配置
+│  ├─ db/                  # 数据库相关
+│  │  ├─ init/             # 初始化脚本 (角色/Schema)
+│  │  ├─ migrations/       # Flyway 迁移脚本
+│  │  │  ├─ shared/        # shared schema
+│  │  │  ├─ social/        # social schema
+│  │  │  └─ game/          # game schema
+│  │  └─ scripts/          # 数据库操作脚本
+│  └─ docker/              # Docker Compose (DB/Redis/RabbitMQ/MinIO)
+├─ scripts/                # 开发和运维脚本
+└─ docs/                   # 补充文档
 ```
-src/
-├── app/                  # 页面路由与视图
-│   ├── game/             # 生态模拟游戏主页
-│   ├── calculator/       # 碳足迹计算器
-│   ├── activities/       # 活动页面
-│   ├── science/          # 科普页面
-│   └── ...
-├── components/           # 可复用的 React 组件
-├── core/                 # 核心业务逻辑 (非 UI)
-│   ├── simulation.ts     # 生态模拟引擎算法
-│   ├── rules.ts          # 积分与规则定义
-│   └── types.ts          # 核心类型定义
-├── hooks/                # 自定义 React Hooks
-├── lib/                  # 通用工具函数
-├── store/                # 全局状态管理 (Zustand)
-│   └── simulationStore.ts
-└── styles/               # 全局样式文件
+
+---
+
+## 🛠️ 技术栈
+
+### Frontend (Web)
+*   **Framework**: [Next.js 16.0.1](https://nextjs.org/) (App Router)
+*   **Language**: [TypeScript](https://www.typescriptlang.org/)
+*   **Styling**: [Tailwind CSS 4.x](https://tailwindcss.com/)
+*   **State**: [Zustand](https://github.com/pmndrs/zustand)
+*   **Visuals**: GSAP, Recharts, Radix UI
+
+### Backend (Services)
+*   **Language**: Java 21 (Temurin LTS)
+*   **Framework**: Spring Boot 3.4.x
+*   **ORM**: MyBatis
+*   **API Docs**: SpringDoc OpenAPI (Swagger)
+
+### Infrastructure & Data
+*   **Database**: PostgreSQL (Schemes: `shared`, `social`, `game`)
+*   **Migration**: Flyway
+*   **Cache**: Redis
+*   **Message Queue**: RabbitMQ
+*   **Search**: PG Full Text Search (v0.1) -> Elasticsearch (Future)
+
+---
+
+## 🧩 核心业务模块
+
+### Social Service
+采用“模块化单体”架构，所有业务逻辑收敛于 `modules/`：
+*   **Auth**: 统一认证（OTP/Password），支持多端登录。
+*   **Home/Query**: 聚合查询层（BFF），负责组装多种数据源。
+*   **Content**: 科普文章、动态、政策发布。
+*   **Activity**: 环保活动发布、场次管理、报名系统。
+*   **Interaction**: 全局互动系统（评论树、点赞、收藏）。
+*   **Points**: 积分任务、签到、答题、兑换。
+*   **User**: 用户画像与个人中心。
+
+### Game Service
+*   **Game Session**: 游戏会话管理。
+*   **Events**: 游戏内事件上报与结算。
+
+---
+
+## 🚀 快速开始
+
+### 1. 基础设施启动
+确保本地安装 Docker，运行基础设施容器：
+```bash
+cd infra/docker
+docker-compose up -d
+# 启动 Postgres, Redis, RabbitMQ, MinIO
 ```
 
-## 🤝 贡献指南
+### 2. 数据库迁移
+执行 Flyway 脚本初始化数据库结构：
+*   **Shared Schema**: `infra/db/migrations/shared`
+*   **Social Schema**: `infra/db/migrations/social`
+*   **Game Schema**: `infra/db/migrations/game`
 
-1.  Clone 项目到本地
-2.  创建新的特性分支 (`git checkout -b feature/AmazingFeature`)
-3.  提交更改 (`git commit -m 'feat: Add some AmazingFeature'`)
-4.  推送到分支 (`git push origin feature/AmazingFeature`)
-5.  发起 Pull Request
+### 3.后端服务启动
+*   **Social API**: 运行 `apps/social-api`
+*   **Social Worker**: 运行 `apps/social-worker` (处理异步任务)
 
-## 📄 许可证
+### 4. 前端启动 (Web)
+```bash
+# 假设位于 apps/web (或当前根目录)
+pnpm install
+pnpm dev
+# 访问 http://localhost:8000
+```
 
-本项目采用 MIT 许可证。
+---
+
+## 📏 接口规范简述
+*   **前缀**: `/api/v1`
+*   **风格**: RESTful
+*   **格式**: JSON
+*   **响应封装**:
+    ```json
+    {
+      "code": 200,
+      "message": "success",
+      "data": { ... },
+      "traceId": "..."
+    }
+    ```
+
+详细接口文档请参考代码中的 OpenAPI/Swagger 定义或 `Project-Structure.md` 中的端点清单。
