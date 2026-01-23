@@ -25,6 +25,12 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- MyBatis -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>

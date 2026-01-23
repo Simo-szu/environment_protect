@@ -19,6 +19,27 @@
 
 
     <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- User Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Auth Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -35,6 +56,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- MyBatis -->

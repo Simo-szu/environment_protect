@@ -12,10 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - DTO 转换
  * - 调用业务模块 (modules/*)
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.youthloop.social.api",
-    "com.youthloop.social.*"
-})
+@SpringBootApplication(scanBasePackages = "com.youthloop")
 public class SocialApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(SocialApiApplication.class, args);

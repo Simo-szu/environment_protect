@@ -12,10 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * - RabbitMQ 消费者 (Outbox、统计更新、邮件任务等)
  * - 异步处理
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.youthloop.social.worker",
-    "com.youthloop.social.*"
-})
+@SpringBootApplication(scanBasePackages = "com.youthloop")
 @EnableScheduling
 public class SocialWorkerApplication {
     public static void main(String[] args) {

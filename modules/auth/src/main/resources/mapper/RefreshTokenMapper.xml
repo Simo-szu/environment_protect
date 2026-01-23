@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.auth.persistence.mapper.RefreshTokenMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.auth.persistence.entity.RefreshTokenEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="token_hash" property="tokenHash" jdbcType="VARCHAR"/>
+    <result column="device_id" property="deviceId" jdbcType="VARCHAR"/>
+    <result column="expires_at" property="expiresAt" jdbcType="TIMESTAMP"/>
+    <result column="revoked_at" property="revokedAt" jdbcType="TIMESTAMP"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, user_id, token_hash, device_id, expires_at, revoked_at, created_at
+  </sql>
+
+  <select id="selectByTokenHash" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.auth_refresh_token
+    WHERE token_hash = #{tokenHash}
+      AND revoked_at IS NULL
+      AND expires_at > NOW()
+  </select>
+
+  <select id="countActiveByUserId" resultType="int">
+    SELECT COUNT(*)
+    FROM shared.auth_refresh_token
+    WHERE user_id = #{userId}::uuid
+      AND revoked_at IS NULL
+      AND expires_at > NOW()
+  </select>
+
+  <select id="selectOldestByUserId" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.auth_refresh_token
+    WHERE user_id = #{userId}::uuid
+      AND revoked_at IS NULL
+      AND expires_at > NOW()
+    ORDER BY created_at ASC
+    LIMIT 1
+  </select>
+
+  <insert id="insert">
+    INSERT INTO shared.auth_refresh_token (id, user_id, token_hash, device_id, expires_at, created_at)
+    VALUES (
+      #{id}::uuid,
+      #{userId}::uuid,
+      #{tokenHash},
+      #{deviceId},
+      #{expiresAt},
+      #{createdAt}
+    )
+  </insert>
+
+  <update id="revokeByTokenHash">
+    UPDATE shared.auth_refresh_token
+    SET revoked_at = NOW()
+    WHERE token_hash = #{tokenHash}
+      AND revoked_at IS NULL
+  </update>
+
+  <update id="revokeAllByUserId">
+    UPDATE shared.auth_refresh_token
+    SET revoked_at = NOW()
+    WHERE user_id = #{userId}::uuid
+      AND revoked_at IS NULL
+  </update>
+
+  <update id="revokeById">
+    UPDATE shared.auth_refresh_token
+    SET revoked_at = NOW()
+    WHERE id = #{id}::uuid
+      AND revoked_at IS NULL
+  </update>
+
+  <delete id="deleteExpired">
+    DELETE FROM shared.auth_refresh_token
+    WHERE expires_at &lt; NOW() - INTERVAL '7 days'
+  </delete>
+
+</mapper>

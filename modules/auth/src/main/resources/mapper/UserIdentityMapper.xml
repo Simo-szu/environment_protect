@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.auth.persistence.mapper.UserIdentityMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.auth.persistence.entity.UserIdentityEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="identity_type" property="identityType" jdbcType="INTEGER"/>
+    <result column="identity_identifier" property="identityIdentifier" jdbcType="VARCHAR"/>
+    <result column="verified_at" property="verifiedAt" jdbcType="TIMESTAMP"/>
+    <result column="is_primary" property="isPrimary" jdbcType="BOOLEAN"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, user_id, identity_type, identity_identifier, verified_at, is_primary, created_at, updated_at
+  </sql>
+
+  <select id="selectByTypeAndIdentifier" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.user_identity
+    WHERE identity_type = #{identityType}
+      AND identity_identifier = #{identityIdentifier}
+  </select>
+
+  <select id="selectByUserId" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.user_identity
+    WHERE user_id = #{userId}::uuid
+    ORDER BY is_primary DESC, created_at ASC
+  </select>
+
+  <insert id="insert">
+    INSERT INTO shared.user_identity (id, user_id, identity_type, identity_identifier, verified_at, is_primary, created_at, updated_at)
+    VALUES (
+      #{id}::uuid,
+      #{userId}::uuid,
+      #{identityType},
+      #{identityIdentifier},
+      #{verifiedAt},
+      #{isPrimary},
+      #{createdAt},
+      #{updatedAt}
+    )
+  </insert>
+
+  <update id="update">
+    UPDATE shared.user_identity
+    SET verified_at = #{verifiedAt},
+        is_primary = #{isPrimary},
+        updated_at = #{updatedAt}
+    WHERE id = #{id}::uuid
+  </update>
+
+  <delete id="deleteById">
+    DELETE FROM shared.user_identity
+    WHERE id = #{id}::uuid
+  </delete>
+
+</mapper>

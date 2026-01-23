@@ -24,7 +24,6 @@ spring:
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: com.youthloop.social.*.persistence.entity
   configuration:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
@@ -37,9 +36,25 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
 logging:
   level:
     root: INFO
     com.youthloop: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:youthloop-secret-key-change-in-production-min-256-bits}
+  access-token-validity: 3600      # 1 小时（秒）
+  refresh-token-validity: 2592000  # 30 天（秒）
+  max-refresh-tokens-per-user: 5   # 每个用户最多保留 5 个有效 refresh token

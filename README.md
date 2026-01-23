@@ -103,6 +103,33 @@ repo-root/
 
 ## 🚀 快速开始
 
+### 环境变量配置
+
+所有服务使用统一的环境变量命名规范：
+
+#### 数据库配置
+- `DB_HOST`: 数据库主机地址（默认：localhost）
+- `DB_PORT`: 数据库端口（默认：5432）
+- `DB_NAME`: 数据库名称（默认：youthloop）
+- `DB_USER`: 数据库用户名（social-api: social_app, game-api: game_app）
+- `DB_PASSWORD`: 数据库密码（默认：postgres）
+
+#### Redis 配置
+- `REDIS_HOST`: Redis 主机地址（默认：localhost）
+- `REDIS_PORT`: Redis 端口（默认：6379）
+- `REDIS_PASSWORD`: Redis 密码（默认：空）
+
+#### RabbitMQ 配置（仅 social-worker）
+- `RABBITMQ_HOST`: RabbitMQ 主机地址（默认：localhost）
+- `RABBITMQ_PORT`: RabbitMQ 端口（默认：5672）
+- `RABBITMQ_USER`: RabbitMQ 用户名（默认：guest）
+- `RABBITMQ_PASSWORD`: RabbitMQ 密码（默认：guest）
+
+#### 服务端口
+- **social-api**: 8080
+- **social-worker**: 8081（管理端口）
+- **game-api**: 8082
+
 ### 1. 基础设施启动
 确保本地安装 Docker，运行基础设施容器：
 ```bash
@@ -123,9 +150,35 @@ docker build -f apps/web/Dockerfile -t youthloop-web:dev .
 *   **Social Schema**: `infra/db/migrations/social`
 *   **Game Schema**: `infra/db/migrations/game`
 
-### 3.后端服务启动
-*   **Social API**: 运行 `apps/social-api`
-*   **Social Worker**: 运行 `apps/social-worker` (处理异步任务)
+### 3. 后端服务启动
+
+#### 编译项目
+```bash
+# 在项目根目录执行
+mvn clean install -DskipTests
+```
+
+#### 启动服务
+*   **Social API**: 
+    ```bash
+    cd apps/social-api
+    mvn spring-boot:run
+    # 访问 http://localhost:8080/actuator/health
+    # Swagger UI: http://localhost:8080/swagger-ui.html
+    ```
+*   **Social Worker**: 
+    ```bash
+    cd apps/social-worker
+    mvn spring-boot:run
+    # 访问 http://localhost:8081/actuator/health
+    ```
+*   **Game API**: 
+    ```bash
+    cd apps/game-api
+    mvn spring-boot:run
+    # 访问 http://localhost:8082/actuator/health
+    # Swagger UI: http://localhost:8082/swagger-ui.html
+    ```
 
 ### 4. 前端启动 (Web)
 ```bash
@@ -137,18 +190,35 @@ pnpm dev
 
 ---
 
-## 📏 接口规范简述
+## 📏 API 规范
+
+### 统一响应格式
+所有 API 响应遵循统一格式：
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {},
+  "traceId": "a1b2c3d4e5f6g7h8"
+}
+```
+
+### 接口规范
 *   **前缀**: `/api/v1`
 *   **风格**: RESTful
 *   **格式**: JSON
-*   **响应封装**:
-    ```json
-    {
-      "code": 200,
-      "message": "success",
-      "data": { ... },
-      "traceId": "..."
-    }
-    ```
+*   **TraceId**: 所有请求/响应携带 `X-Trace-Id` 头用于日志追踪
 
-详细接口文档请参考代码中的 OpenAPI/Swagger 定义或 `Project-Structure.md` 中的端点清单。
+详细接口文档：
+- **Social API**: http://localhost:8080/swagger-ui.html
+- **Game API**: http://localhost:8082/swagger-ui.html
+- **错误码表**: [packages/api-contracts/ERROR_CODES.md](packages/api-contracts/ERROR_CODES.md)
+
+---
+
+## 📚 相关文档
+
+- [项目结构详解](Project-Structure.md)
+- [数据库 Schema](Schema-V0.1.dsl.md.md)
+- [API 契约](packages/api-contracts/README.md)
+- [数据库迁移说明](infra/db/README.md)

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.user.persistence.mapper.UserMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.user.persistence.entity.UserEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="role" property="role" jdbcType="INTEGER"/>
+    <result column="status" property="status" jdbcType="INTEGER"/>
+    <result column="last_login_at" property="lastLoginAt" jdbcType="TIMESTAMP"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- Base Column List -->
+  <sql id="Base_Column_List">
+    id, role, status, last_login_at, created_at, updated_at
+  </sql>
+
+  <!-- 根据 ID 查询 -->
+  <select id="selectById" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.user
+    WHERE id = #{id}::uuid
+  </select>
+
+  <!-- 插入 -->
+  <insert id="insert">
+    INSERT INTO shared.user (id, role, status, last_login_at, created_at, updated_at)
+    VALUES (
+      #{id}::uuid,
+      #{role},
+      #{status},
+      #{lastLoginAt},
+      #{createdAt},
+      #{updatedAt}
+    )
+  </insert>
+
+  <!-- 更新 -->
+  <update id="update">
+    UPDATE shared.user
+    SET role = #{role},
+        status = #{status},
+        last_login_at = #{lastLoginAt},
+        updated_at = #{updatedAt}
+    WHERE id = #{id}::uuid
+  </update>
+
+  <!-- 删除 -->
+  <delete id="deleteById">
+    DELETE FROM shared.user
+    WHERE id = #{id}::uuid
+  </delete>
+
+  <!-- 分页查询列表 -->
+  <select id="selectList" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.user
+    ORDER BY created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计总数 -->
+  <select id="countTotal" resultType="java.lang.Long">
+    SELECT COUNT(*)
+    FROM shared.user
+  </select>
+
+  <!-- 更新最后登录时间 -->
+  <update id="updateLastLoginAt">
+    UPDATE shared.user
+    SET last_login_at = NOW(),
+        updated_at = NOW()
+    WHERE id = #{id}::uuid
+  </update>
+
+</mapper>

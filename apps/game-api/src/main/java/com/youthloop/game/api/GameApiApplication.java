@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - 游戏事件上报
  * - 游戏结算
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.youthloop")
 public class GameApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(GameApiApplication.class, args);

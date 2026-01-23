@@ -19,10 +19,23 @@
 
 
     <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- MyBatis -->

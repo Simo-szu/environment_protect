@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.user.persistence.mapper.UserProfileMapper">
+
+  <!-- Result Map -->
+  <resultMap id="BaseResultMap" type="com.youthloop.user.persistence.entity.UserProfileEntity">
+    <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
+    <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
+    <result column="gender" property="gender" jdbcType="INTEGER"/>
+    <result column="birthday" property="birthday" jdbcType="DATE"/>
+    <result column="hometown" property="hometown" jdbcType="VARCHAR"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <!-- Base Column List -->
+  <sql id="Base_Column_List">
+    user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at
+  </sql>
+
+  <!-- 根据用户 ID 查询 -->
+  <select id="selectByUserId" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM shared.user_profile
+    WHERE user_id = #{userId}::uuid
+  </select>
+
+  <!-- 插入 -->
+  <insert id="insert">
+    INSERT INTO shared.user_profile (user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at)
+    VALUES (
+      #{userId}::uuid,
+      #{nickname},
+      #{avatarUrl},
+      #{gender},
+      #{birthday},
+      #{hometown},
+      #{createdAt},
+      #{updatedAt}
+    )
+  </insert>
+
+  <!-- 更新 -->
+  <update id="update">
+    UPDATE shared.user_profile
+    SET nickname = #{nickname},
+        avatar_url = #{avatarUrl},
+        gender = #{gender},
+        birthday = #{birthday},
+        hometown = #{hometown},
+        updated_at = #{updatedAt}
+    WHERE user_id = #{userId}::uuid
+  </update>
+
+  <!-- 删除 -->
+  <delete id="deleteByUserId">
+    DELETE FROM shared.user_profile
+    WHERE user_id = #{userId}::uuid
+  </delete>
+
+</mapper>
