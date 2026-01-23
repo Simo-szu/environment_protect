@@ -3,8 +3,9 @@
 // - This is NOT executable Prisma schema, only for Obsidian readability.
 // - Enums are stored as smallint in DB (hard-coded mapping in app).
 // - UUID primary keys.
+// - "date in DB" fields are Asia/Shanghai local DATE (no time component).
 
-model yl_user {
+model user {
   id            String   @id @default(uuid)
   role          Int      @default(1) // 1=user 2=host 3=admin
   status        Int      @default(1) // 1=active 2=blocked
@@ -12,13 +13,13 @@ model yl_user {
   created_at    DateTime
   updated_at    DateTime
 
-  profile       yl_user_profile?
-  identities    yl_user_identity[]
-  password      yl_user_password?
-  refreshTokens yl_auth_refresh_token[]
+  profile       user_profile?
+  identities    user_identity[]
+  password      user_password?
+  refreshTokens auth_refresh_token[]
 }
 
-model yl_user_profile {
+model user_profile {
   user_id    String  @id
   nickname   String?
   avatar_url String?
@@ -28,10 +29,10 @@ model yl_user_profile {
   created_at DateTime
   updated_at DateTime
 
-  user yl_user @relation(fields: [user_id], references: [id])
+  user user @relation(fields: [user_id], references: [id])
 }
 
-model yl_user_identity {
+model user_identity {
   id                 String   @id @default(uuid)
   user_id            String
   identity_type      Int      // 1=EMAIL 2=PHONE 3=GOOGLE
@@ -42,19 +43,19 @@ model yl_user_identity {
   updated_at         DateTime
 
   @@unique([identity_type, identity_identifier])
-  user yl_user @relation(fields: [user_id], references: [id])
+  user user @relation(fields: [user_id], references: [id])
 }
 
-model yl_user_password {
+model user_password {
   user_id       String  @id
   password_hash String
   set_at        DateTime
   updated_at    DateTime
 
-  user yl_user @relation(fields: [user_id], references: [id])
+  user user @relation(fields: [user_id], references: [id])
 }
 
-model yl_auth_refresh_token {
+model auth_refresh_token {
   id         String   @id @default(uuid)
   user_id    String
   token_hash String   @unique
@@ -63,10 +64,13 @@ model yl_auth_refresh_token {
   revoked_at DateTime?
   created_at DateTime
 
-  user yl_user @relation(fields: [user_id], references: [id])
+  user user @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, created_at])
+  @@index([expires_at])
 }
 
-model yl_verification_code {
+model verification_code {
   id         String   @id @default(uuid)
   account    String   // email/phone
   channel    Int      // 1=email 2=sms
@@ -75,9 +79,12 @@ model yl_verification_code {
   expires_at DateTime
   attempts   Int      @default(0)
   created_at DateTime
+
+  @@index([account, purpose, created_at])
+  @@index([expires_at])
 }
 
-model yl_content {
+model content {
   id           String   @id @default(uuid)
   type         Int      // 1=news 2=dynamic 3=policy 4=wiki
   title        String
@@ -92,21 +99,29 @@ model yl_content {
   created_at   DateTime
   updated_at   DateTime
 
-  stats yl_content_stats?
+  stats content_stats?
+
+  @@index([type, published_at])
+  @@index([status, published_at])
+  @@index([fts]) // in PostgreSQL: GIN index on tsvector
 }
 
-model yl_content_stats {
+model content_stats {
   content_id    String @id
   like_count    Int    @default(0)
   fav_count     Int    @default(0)
   comment_count Int    @default(0)
   hot_score     BigInt @default(0)
+  hot_rule_id   String?
   updated_at    DateTime
 
-  content yl_content @relation(fields: [content_id], references: [id])
+  content content @relation(fields: [content_id], references: [id])
+
+  @@index([hot_score])
+  @@index([hot_rule_id])
 }
 
-model yl_activity {
+model activity {
   id           String   @id @default(uuid)
   source_type  Int      // 1=crawled 2=hosted
   title        String
@@ -124,39 +139,76 @@ model yl_activity {
   created_at   DateTime
   updated_at   DateTime
 
-  stats   yl_activity_stats?
-  signups yl_activity_signup[]
+  stats   activity_stats?
+  sessions activity_session[]
+  signups activity_signup[]
+
+  @@index([category, start_time])
+  @@index([host_user_id, created_at])
+  @@index([status, created_at])
+  @@index([fts]) // in PostgreSQL: GIN index on tsvector
 }
 
-model yl_activity_stats {
+// Hosted activity can have multiple sessions/time-slots that users choose from.
+// Crawled activity usually has no sessions (or is read-only).
+model activity_session {
+  id          String   @id @default(uuid)
+  activity_id String
+  title       String?
+  start_time  DateTime
+  end_time    DateTime?
+  capacity    Int?
+  status      Int      @default(1) // 1=enabled 2=disabled
+  created_at  DateTime
+  updated_at  DateTime
+
+  activity activity @relation(fields: [activity_id], references: [id])
+
+  @@index([activity_id, start_time])
+}
+
+model activity_stats {
   activity_id   String @id
   like_count    Int    @default(0)
   fav_count     Int    @default(0)
   comment_count Int    @default(0)
   hot_score     BigInt @default(0)
+  hot_rule_id   String?
   updated_at    DateTime
 
-  activity yl_activity @relation(fields: [activity_id], references: [id])
+  activity activity @relation(fields: [activity_id], references: [id])
+
+  @@index([hot_score])
+  @@index([hot_rule_id])
 }
 
-model yl_activity_signup {
+model activity_signup {
   id          String   @id @default(uuid)
   activity_id String
+  session_id  String?  // required when activity has sessions (hosted time-slot)
   user_id     String?   // guest allowed
-  email       String    // required for guest + reminder
+  // For guest signups: email is required (for dedup + reminder).
+  // For logged-in signups: email can be omitted (derive from identity if needed).
+  email       String?
   nickname    String?
   real_name   String
   phone       String
-  join_time   DateTime
+  join_time   DateTime? // optional snapshot; usually equals session.start_time
   created_at  DateTime
 
-  // Dedup rules:
-  // - logged-in: unique(activity_id, user_id) WHERE user_id != null
-  // - guest: unique(activity_id, email)
-  activity yl_activity @relation(fields: [activity_id], references: [id])
+  // Strong dedup in DB without partial unique index:
+  // Policy: one signup per activity per user/guest (NOT per session).
+  // - logged-in: dedup_key = "U:{user_id}"
+  // - guest:     dedup_key = "E:{normalized_email}"
+  dedup_key   String
+  @@unique([activity_id, dedup_key])
+  @@index([activity_id, created_at])
+  @@index([session_id])
+
+  activity activity @relation(fields: [activity_id], references: [id])
 }
 
-model yl_comment {
+model comment {
   id          String   @id @default(uuid)
   target_type Int      // 1=content 2=activity
   target_id   String
@@ -169,21 +221,45 @@ model yl_comment {
   created_at  DateTime
   updated_at  DateTime
 
-  stats yl_comment_stats?
+  stats comment_stats?
+
+  @@index([target_type, target_id, created_at])
+  @@index([root_id, created_at])
+  @@index([parent_id, created_at])
+  @@index([user_id, created_at])
 }
 
-model yl_comment_stats {
+model comment_stats {
   comment_id  String @id
   like_count  Int    @default(0)
   down_count  Int    @default(0)
   reply_count Int    @default(0)
   hot_score   BigInt @default(0)
+  hot_rule_id String?
   updated_at  DateTime
 
-  comment yl_comment @relation(fields: [comment_id], references: [id])
+  comment comment @relation(fields: [comment_id], references: [id])
+
+  @@index([hot_score])
+  @@index([hot_rule_id])
 }
 
-model yl_reaction {
+// Configurable hot-score rule to support manual tuning / algorithm iteration.
+// Worker can recompute hot_score for content/activity/comment by active rule.
+model hot_score_rule {
+  id           String   @id @default(uuid)
+  target_type  Int      // 1=content 2=activity 3=comment
+  name         String
+  version      Int      @default(1)
+  formula_json Json     // e.g. {"likeWeight":1,"commentWeight":2,"decay":"..."} or expression AST
+  is_active    Boolean  @default(false)
+  created_at   DateTime
+  updated_at   DateTime
+
+  @@index([target_type, is_active])
+}
+
+model reaction {
   id            String   @id @default(uuid)
   user_id       String
   target_type   Int      // 1=content 2=activity 3=comment
@@ -192,15 +268,49 @@ model yl_reaction {
   created_at    DateTime
 
   @@unique([user_id, target_type, target_id, reaction_type])
+  @@index([target_type, target_id, created_at])
+  @@index([user_id, created_at])
 }
 
-model yl_points_account {
+// Used by "My Replies" (red-dot + list).
+// Created when someone replies to your comment (or future: mention/system notice).
+model notification {
+  id             String   @id @default(uuid)
+  user_id        String   // recipient
+  type           Int      // 1=comment_reply 2=comment_mention 3=system
+  actor_user_id  String?  // who triggered it (null for system)
+  target_type    Int?     // 1=content 2=activity
+  target_id      String?  // content_id / activity_id
+  comment_id     String?  // the new comment (reply)
+  root_comment_id String?
+  meta           Json?
+  read_at        DateTime?
+  created_at     DateTime
+
+  @@index([user_id, read_at, created_at])
+  @@index([comment_id])
+}
+
+// Compliance/audit: "I agree to Terms" at registration or when terms update.
+model user_terms_acceptance {
+  id          String   @id @default(uuid)
+  user_id     String
+  doc_type    Int      // 1=terms 2=privacy
+  doc_version String
+  accepted_at DateTime
+  ip          String?
+  user_agent  String?
+
+  @@index([user_id, doc_type, accepted_at])
+}
+
+model points_account {
   user_id    String @id
   balance    BigInt @default(0)
   updated_at DateTime
 }
 
-model yl_points_ledger {
+model points_ledger {
   id         String   @id @default(uuid)
   user_id    String
   delta      Int
@@ -209,19 +319,24 @@ model yl_points_ledger {
   ref_id     String?
   memo       String?
   created_at DateTime
+
+  @@index([user_id, created_at])
 }
 
-model yl_signin_record {
+model signin_record {
   user_id      String
-  signin_date  DateTime // date in DB
+  signin_date  DateTime // date in DB (Asia/Shanghai local date)
   is_signed    Boolean  @default(true)
+  signed_at    DateTime // actual action time
+  is_makeup    Boolean  @default(false)
   streak_count Int      @default(0)
   created_at   DateTime
 
   @@id([user_id, signin_date])
+  @@index([user_id, signed_at])
 }
 
-model yl_daily_task {
+model daily_task {
   id         String   @id @default(uuid)
   code       String   @unique
   name       String
@@ -231,9 +346,9 @@ model yl_daily_task {
   created_at DateTime
 }
 
-model yl_daily_task_progress {
+model daily_task_progress {
   user_id    String
-  task_date  DateTime // date in DB
+  task_date  DateTime // date in DB (Asia/Shanghai local date)
   task_id    String
   progress   Int      @default(0)
   target     Int      @default(1)
@@ -243,15 +358,15 @@ model yl_daily_task_progress {
   @@id([user_id, task_date, task_id])
 }
 
-model yl_daily_quiz {
-  quiz_date DateTime @id  // date in DB
+model daily_quiz {
+  quiz_date DateTime @id  // date in DB (Asia/Shanghai local date)
   question  Json
   answer    Json
   points    Int      @default(5)
   created_at DateTime
 }
 
-model yl_daily_quiz_record {
+model daily_quiz_record {
   user_id     String
   quiz_date   DateTime
   user_answer Json
@@ -262,7 +377,7 @@ model yl_daily_quiz_record {
   @@id([user_id, quiz_date])
 }
 
-model yl_badge {
+model badge {
   id         String   @id @default(uuid)
   series     Int      // 1=points 2=signin
   name       String
@@ -271,7 +386,7 @@ model yl_badge {
   created_at DateTime
 }
 
-model yl_user_badge {
+model user_badge {
   user_id     String
   badge_id    String
   unlocked_at DateTime
@@ -279,7 +394,7 @@ model yl_user_badge {
   @@id([user_id, badge_id])
 }
 
-model yl_user_event {
+model user_event {
   id          String   @id @default(uuid)
   user_id     String?
   event_type  String   // VIEW_CONTENT/VIEW_ACTIVITY/LIKE/FAV/COMMENT_CREATE/SIGNUP_ACTIVITY/SIGNIN/...
@@ -289,9 +404,12 @@ model yl_user_event {
   created_at  DateTime
 
   // VIEW dedup is done via Redis 10min window (not DB constraint)
+
+  @@index([user_id, created_at])
+  @@index([event_type, created_at])
 }
 
-model yl_weekly_recommendation {
+model weekly_recommendation {
   user_id    String
   week_start DateTime // date in DB
   items      Json     // may include activity + content
@@ -300,7 +418,7 @@ model yl_weekly_recommendation {
 
   @@id([user_id, week_start])
 }
-model yl_outbox_event {
+model outbox_event {
   id           String  @id @default(uuid)
   event_type   String
   payload      Json
