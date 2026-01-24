@@ -1,80 +1,87 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import Layout from '@/components/Layout';
 import {
+  ArrowLeft,
   Calendar,
   MapPin,
   Users,
-  Clock,
+  Phone,
   User,
   Heart,
   Share2,
-  MessageCircle,
+  TreePine,
+  Recycle,
+  Droplets,
+  Sun,
+  Clock,
+  CheckCircle,
   Star
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import Layout from '@/components/Layout';
+import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
 export default function ActivityDetailPage() {
   const { user, isLoggedIn } = useAuth();
+  const router = useRouter();
   const params = useParams();
   const activityId = params.id as string;
+
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(156);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   // 模拟活动数据
-  const activityData = {
+  const mockActivity = {
     id: activityId,
     title: '城市绿洲：周末社区花园种植计划',
-    description: '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。这不仅是一次环保活动，更是一次社区团结的体验。我们会提供所有必要的工具和材料，您只需要带着热情和环保的心来参与。',
-    organizer: '绿色生活志愿者协会',
-    startTime: '2024年5月20日 09:00',
-    endTime: '2024年5月20日 17:00',
-    location: '市中心社区花园（地铁2号线人民广场站A出口步行5分钟）',
-    participants: 24,
-    maxParticipants: 50,
-    status: '正在报名',
-    category: '植树活动',
-    requirements: [
-      '年满18周岁，身体健康',
-      '请穿着适合户外活动的服装',
-      '建议携带水杯和防晒用品',
-      '活动全程约8小时，请合理安排时间'
-    ],
-    schedule: [
-      { time: '09:00-09:30', activity: '签到集合，分发工具' },
-      { time: '09:30-11:30', activity: '土壤准备和花卉种植' },
-      { time: '11:30-13:00', activity: '午餐休息' },
-      { time: '13:00-15:30', activity: '堆肥制作学习' },
-      { time: '15:30-16:30', activity: '花园维护技巧分享' },
-      { time: '16:30-17:00', activity: '总结分享，合影留念' }
-    ]
+    description: '加入我们在市中心创建绿色角落的行动！这是一个充满意义的环保活动，我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。\n\n通过这次活动，你将学到：\n• 本土植物的种植技巧\n• 有机堆肥的制作方法\n• 城市园艺的基本知识\n• 生态系统的重要性\n\n我们相信，每一个小小的绿色行动都能为地球带来积极的改变。让我们一起用双手创造更美好的环境！',
+    type: 'tree',
+    date: '2024年5月20日',
+    time: '09:00-17:00',
+    location: '市中心公园东门集合',
+    detailedLocation: '广州市天河区天河公园东门广场（地铁3号线天河客运站A出口步行5分钟）',
+    maxParticipants: 30,
+    currentParticipants: 18,
+    organizer: '绿色生活协会',
+    organizerAvatar: 'GL',
+    requirements: '请穿着适合户外活动的服装，自备水杯和防晒用品。建议穿运动鞋，避免穿白色衣物。',
+    contactInfo: '联系人：张老师 13800138000',
+    likes: 156,
+    views: 892,
+    tags: ['植树', '环保', '社区活动', '周末'],
+    images: [],
+    status: '正在报名'
   };
 
-  const handleLike = () => {
-    if (!isLoggedIn) {
-      alert('请先登录');
-      return;
-    }
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+  const handleBack = () => {
+    router.push('/activities');
   };
 
   const handleRegister = () => {
     if (!isLoggedIn) {
-      window.location.href = '/login';
-    } else {
-      window.location.href = `/activities/register?id=${activityId}`;
+      router.push('/login');
+      return;
     }
+    router.push(`/activities/register?id=${activityId}`);
+  };
+
+  const handleLike = () => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    setIsLiked(!isLiked);
   };
 
   const handleShare = () => {
+    // 实现分享功能
     if (navigator.share) {
       navigator.share({
-        title: activityData.title,
-        text: activityData.description,
+        title: mockActivity.title,
+        text: mockActivity.description,
         url: window.location.href,
       });
     } else {
@@ -84,190 +91,215 @@ export default function ActivityDetailPage() {
     }
   };
 
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'tree': return <TreePine className="w-6 h-6 text-[#56B949]" />;
+      case 'recycle': return <Recycle className="w-6 h-6 text-[#F0A32F]" />;
+      case 'water': return <Droplets className="w-6 h-6 text-[#30499B]" />;
+      case 'sun': return <Sun className="w-6 h-6 text-[#EE4035]" />;
+      default: return <TreePine className="w-6 h-6 text-[#56B949]" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case '正在报名': return 'text-[#30499B] bg-[#30499B]/10 border-[#30499B]/20';
+      case '即将开始': return 'text-[#F0A32F] bg-[#F0A32F]/10 border-[#F0A32F]/20';
+      case '报名结束': return 'text-slate-500 bg-slate-100 border-slate-200';
+      default: return 'text-[#30499B] bg-[#30499B]/10 border-[#30499B]/20';
+    }
+  };
+
   return (
     <Layout>
-      <div className="min-h-screen">
-        <div className="max-w-4xl mx-auto">
-
-          {/* Activity Header */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 overflow-hidden mb-8">
-            {/* Activity Image */}
-            <div className="h-64 bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-8 h-8 text-white" />
-                </div>
-                <p className="text-white/80 text-sm">活动海报</p>
+      {/* Header */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={pageEnter}
+        className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              onClick={handleBack}
+              className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                {getTypeIcon(mockActivity.type)}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(mockActivity.status)}`}>
+                  {mockActivity.status}
+                </span>
               </div>
+              <h1 className="text-2xl md:text-3xl font-serif font-semibold text-[#30499B]">
+                {mockActivity.title}
+              </h1>
             </div>
-
-            {/* Activity Info */}
-            <div className="p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-[#56B949]/10 text-[#56B949] text-xs rounded-full font-medium">
-                      {activityData.category}
-                    </span>
-                    <span className="px-3 py-1 bg-[#F0A32F]/10 text-[#F0A32F] text-xs rounded-full font-medium">
-                      {activityData.status}
-                    </span>
-                  </div>
-                  <h1 className="text-2xl font-serif font-bold text-[#30499B] mb-4">{activityData.title}</h1>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Calendar className="w-4 h-4 text-[#30499B]" />
-                      <span>{activityData.startTime} - {activityData.endTime.split(' ')[1]}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <MapPin className="w-4 h-4 text-[#EE4035]" />
-                      <span>{activityData.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Users className="w-4 h-4 text-[#56B949]" />
-                      <span>{activityData.participants}/{activityData.maxParticipants} 人已报名</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <User className="w-4 h-4 text-[#F0A32F]" />
-                      <span>主办方：{activityData.organizer}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-2 ml-6">
-                  <button
-                    onClick={handleLike}
-                    className={`p-3 rounded-full transition-all ${isLiked
-                        ? 'bg-[#F0A32F] text-white'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:text-[#F0A32F] hover:border-[#F0A32F]'
-                      }`}
-                  >
-                    <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                  </button>
-                  <span className="text-xs text-center text-slate-500">{likeCount}</span>
-
-                  <button
-                    onClick={handleShare}
-                    className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-all"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mb-6">
-                <div className="flex justify-between text-sm text-slate-600 mb-2">
-                  <span>报名进度</span>
-                  <span>{Math.round((activityData.participants / activityData.maxParticipants) * 100)}%</span>
-                </div>
-                <div className="w-full bg-slate-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-[#56B949] to-[#F0A32F] h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${(activityData.participants / activityData.maxParticipants) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Register Button */}
+            <div className="flex items-center gap-3">
               <button
-                onClick={handleRegister}
-                className="w-full py-4 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+                onClick={handleLike}
+                className={`p-3 rounded-lg border transition-all ${isLiked
+                  ? 'border-[#EE4035] bg-[#EE4035]/10 text-[#EE4035]'
+                  : 'border-slate-200 hover:border-[#EE4035] hover:text-[#EE4035]'
+                  }`}
               >
-                立即报名参加
+                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+              </button>
+              <button
+                onClick={handleShare}
+                className="p-3 rounded-lg border border-slate-200 hover:border-[#30499B] hover:text-[#30499B] transition-all"
+              >
+                <Share2 className="w-5 h-5" />
               </button>
             </div>
           </div>
+        </div>
+      </motion.div>
 
-          {/* Activity Details */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={staggerContainer}
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <motion.div
+            variants={staggerItem}
+            className="lg:col-span-2 space-y-8"
+          >
+            {/* Activity Image */}
+            <div className="aspect-video bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 rounded-2xl flex items-center justify-center">
+              {getTypeIcon(mockActivity.type)}
+            </div>
 
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-
-              {/* Description */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-8">
-                <h2 className="text-xl font-serif font-semibold text-[#30499B] mb-4">活动介绍</h2>
-                <p className="text-slate-700 leading-relaxed">{activityData.description}</p>
+            {/* Activity Description */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
+              <h3 className="text-xl font-semibold text-[#30499B] mb-4">活动详情</h3>
+              <div className="prose prose-slate max-w-none">
+                {mockActivity.description.split('\n').map((paragraph, index) => (
+                  <p key={index} className="text-slate-600 leading-relaxed mb-4">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
+            </div>
 
-              {/* Schedule */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-8">
-                <h2 className="text-xl font-serif font-semibold text-[#30499B] mb-6">活动安排</h2>
+            {/* Activity Requirements */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
+              <h3 className="text-xl font-semibold text-[#30499B] mb-4">参与要求</h3>
+              <p className="text-slate-600 leading-relaxed">{mockActivity.requirements}</p>
+            </div>
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2">
+              {mockActivity.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-[#56B949]/10 text-[#56B949] rounded-full text-sm font-medium"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Sidebar */}
+          <motion.div
+            variants={staggerItem}
+            className="lg:col-span-1 space-y-6"
+          >
+            {/* Activity Info Card */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg sticky top-8">
+              <div className="space-y-6">
+                {/* Time & Location */}
                 <div className="space-y-4">
-                  {activityData.schedule.map((item, index) => (
-                    <div key={index} className="flex items-start gap-4 p-4 bg-slate-50 rounded-lg">
-                      <div className="flex items-center justify-center w-8 h-8 bg-[#56B949] text-white rounded-full text-sm font-semibold flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Clock className="w-4 h-4 text-[#F0A32F]" />
-                          <span className="text-sm font-medium text-[#F0A32F]">{item.time}</span>
-                        </div>
-                        <p className="text-slate-700">{item.activity}</p>
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-[#30499B] mt-0.5" />
+                    <div>
+                      <p className="font-medium text-slate-800">{mockActivity.date}</p>
+                      <p className="text-sm text-slate-600">{mockActivity.time}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-[#30499B] mt-0.5" />
+                    <div>
+                      <p className="font-medium text-slate-800">{mockActivity.location}</p>
+                      <p className="text-sm text-slate-600">{mockActivity.detailedLocation}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-[#30499B]" />
+                    <div>
+                      <p className="font-medium text-slate-800">
+                        {mockActivity.currentParticipants}/{mockActivity.maxParticipants} 人
+                      </p>
+                      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                        <div
+                          className="bg-[#56B949] h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(mockActivity.currentParticipants / mockActivity.maxParticipants) * 100}%` }}
+                        ></div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-
-              {/* Requirements */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6">
-                <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">参与要求</h3>
-                <ul className="space-y-3">
-                  {activityData.requirements.map((req, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-slate-700">
-                      <div className="w-1.5 h-1.5 bg-[#56B949] rounded-full mt-2 flex-shrink-0"></div>
-                      <span>{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Contact */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6">
-                <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">联系方式</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-[#56B949]" />
-                    <span className="text-slate-700">主办方：{activityData.organizer}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-[#F0A32F]" />
-                    <span className="text-slate-700">客服电话：400-123-4567</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6">
-                <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-4">快速操作</h3>
-                <div className="space-y-3">
-                  <Link
-                    href="/activities"
-                    className="block w-full py-2 px-4 border border-slate-200 rounded-lg text-center text-slate-600 hover:bg-slate-50 transition-colors text-sm"
-                  >
-                    浏览更多活动
-                  </Link>
-                  <Link
-                    href="/my-activities"
-                    className="block w-full py-2 px-4 border border-slate-200 rounded-lg text-center text-slate-600 hover:bg-slate-50 transition-colors text-sm"
-                  >
-                    我的活动中心
-                  </Link>
+                {/* Organizer */}
+                <div className="pt-6 border-t border-slate-200">
+                  <h4 className="font-medium text-slate-800 mb-3">主办方</h4>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold text-sm">
+                      {mockActivity.organizerAvatar}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-800">{mockActivity.organizer}</p>
+                      <div className="flex items-center gap-1 text-sm text-slate-500">
+                        <Star className="w-3 h-3 fill-current text-[#F0A32F]" />
+                        <span>4.8 评分</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Stats */}
+                <div className="pt-6 border-t border-slate-200">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-bold text-[#EE4035]">{mockActivity.likes}</p>
+                      <p className="text-sm text-slate-500">点赞</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-[#30499B]">{mockActivity.views}</p>
+                      <p className="text-sm text-slate-500">浏览</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div className="pt-6 border-t border-slate-200">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Phone className="w-4 h-4" />
+                    <span>{mockActivity.contactInfo}</span>
+                  </div>
+                </div>
+
+                {/* Register Button */}
+                <button
+                  onClick={handleRegister}
+                  disabled={mockActivity.status === '报名结束'}
+                  className="w-full py-4 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {mockActivity.status === '报名结束' ? '报名已结束' : '立即报名'}
+                </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </Layout>
   );
 }

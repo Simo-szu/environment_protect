@@ -50,7 +50,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
             >
                 <ChevronLeft className="w-4 h-4" />
                 上一页
@@ -60,13 +60,13 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             {getVisiblePages().map((page, index) => (
                 <div key={index}>
                     {page === '...' ? (
-                        <span className="px-3 py-2 text-slate-400">...</span>
+                        <span className="px-3 py-2 text-slate-400 dark:text-slate-500">...</span>
                     ) : (
                         <button
                             onClick={() => onPageChange(page as number)}
                             className={`w-10 h-10 text-sm font-medium rounded-lg transition-colors ${currentPage === page
-                                    ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white shadow-lg'
-                                    : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-[#56B949]'
+                                ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white shadow-lg'
+                                : 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949]'
                                 }`}
                         >
                             {page}
@@ -79,7 +79,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
             >
                 下一页
                 <ChevronRight className="w-4 h-4" />

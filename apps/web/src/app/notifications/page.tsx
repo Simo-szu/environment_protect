@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MessageCircle, Clock, Heart, UserPlus, Reply, Check, ExternalLink, User, RefreshCw, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Clock, Heart, UserPlus, Reply, Check, ExternalLink, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import Pagination from '@/components/ui/Pagination';
 
 interface Message {
   id: string;
@@ -21,60 +22,100 @@ interface Message {
   isFollowedBack?: boolean;
 }
 
-const mockMessages: Message[] = [
-  {
-    id: '1',
-    type: 'replies',
-    isRead: false,
-    user: { name: '李环保达人', avatar: '李' },
-    content: '非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。',
-    originalContent: '我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...',
-    timestamp: '2小时前'
-  },
-  {
-    id: '2',
-    type: 'likes',
-    isRead: false,
-    user: { name: '王小绿', avatar: '王' },
-    content: '你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。',
-    originalContent: '垃圾分类小知识 - 让环保从细节做起',
-    timestamp: '4小时前'
-  },
-  {
-    id: '3',
-    type: 'follows',
-    isRead: false,
-    user: { name: '张环保志愿者', avatar: '张' },
-    content: '看到你在环保方面的分享很有价值，希望能互相学习交流！',
-    timestamp: '1天前'
-  },
-  {
-    id: '4',
-    type: 'replies',
-    isRead: true,
-    user: { name: '陈小环', avatar: '陈' },
-    content: '感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。',
-    originalContent: '家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...',
-    timestamp: '2天前',
-    isLiked: true
-  },
-  {
-    id: '5',
-    type: 'likes',
-    isRead: true,
-    user: { name: '刘绿色生活', avatar: '刘' },
-    content: '很棒的环保活动分享！希望有机会也能参与这样的活动。',
-    originalContent: '参与社区植树活动的感想',
-    timestamp: '3天前'
+// 扩展模拟数据到更多消息
+const generateMockMessages = (): Message[] => {
+  const baseMessages = [
+    {
+      id: '1',
+      type: 'replies' as const,
+      isRead: false,
+      user: { name: '李环保达人', avatar: '李' },
+      content: '非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。',
+      originalContent: '我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...',
+      timestamp: '2小时前'
+    },
+    {
+      id: '2',
+      type: 'likes' as const,
+      isRead: false,
+      user: { name: '王小绿', avatar: '王' },
+      content: '你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。',
+      originalContent: '垃圾分类小知识 - 让环保从细节做起',
+      timestamp: '4小时前'
+    },
+    {
+      id: '3',
+      type: 'follows' as const,
+      isRead: false,
+      user: { name: '张环保志愿者', avatar: '张' },
+      content: '看到你在环保方面的分享很有价值，希望能互相学习交流！',
+      timestamp: '1天前'
+    },
+    {
+      id: '4',
+      type: 'replies' as const,
+      isRead: true,
+      user: { name: '陈小环', avatar: '陈' },
+      content: '感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。',
+      originalContent: '家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...',
+      timestamp: '2天前',
+      isLiked: true
+    },
+    {
+      id: '5',
+      type: 'likes' as const,
+      isRead: true,
+      user: { name: '刘绿色生活', avatar: '刘' },
+      content: '很棒的环保活动分享！希望有机会也能参与这样的活动。',
+      originalContent: '参与社区植树活动的感想',
+      timestamp: '3天前'
+    }
+  ];
+
+  // 生成更多模拟数据
+  const additionalMessages: Message[] = [];
+  const names = ['赵环保', '钱绿色', '孙节能', '李减排', '周循环', '吴低碳', '郑清洁', '王可持续', '冯生态', '陈绿化'];
+  const types: ('replies' | 'likes' | 'follows')[] = ['replies', 'likes', 'follows'];
+  const contents = [
+    '你的环保理念很棒，学到了很多！',
+    '这个方法我试过，确实很有效果。',
+    '感谢分享，对我很有启发。',
+    '希望能和你一起参与更多环保活动。',
+    '你的分享让我对环保有了新的认识。',
+    '这些小贴士太实用了，已经开始实践。',
+    '非常认同你的观点，环保需要大家一起努力。',
+    '你的经验分享很有价值，谢谢！'
+  ];
+
+  for (let i = 6; i <= 42; i++) {
+    const type = types[Math.floor(Math.random() * types.length)];
+    const name = names[Math.floor(Math.random() * names.length)];
+    const content = contents[Math.floor(Math.random() * contents.length)];
+
+    additionalMessages.push({
+      id: i.toString(),
+      type,
+      isRead: Math.random() > 0.3, // 70% 已读
+      user: { name, avatar: name.charAt(0) },
+      content,
+      originalContent: type !== 'follows' ? '环保相关的原始内容...' : undefined,
+      timestamp: `${Math.floor(Math.random() * 7) + 1}天前`,
+      isLiked: Math.random() > 0.5,
+      isFollowedBack: type === 'follows' ? Math.random() > 0.5 : undefined
+    });
   }
-];
+
+  return [...baseMessages, ...additionalMessages];
+};
 
 export default function NotificationsPage() {
-  const { user, isLoggedIn, loading } = useAuth();
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const { isLoggedIn, loading } = useAuth();
+  const [allMessages] = useState<Message[]>(generateMockMessages());
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'replies' | 'likes'>('all');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [messagesPerPage] = useState(6); // 每页显示6条消息
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -107,25 +148,38 @@ export default function NotificationsPage() {
     );
   }
 
-  const filteredMessages = messages.filter(message => {
+  // 过滤消息
+  const filteredMessages = allMessages.filter(message => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'unread') return !message.isRead;
     return message.type === activeFilter;
   });
 
-  const unreadCount = messages.filter(m => !m.isRead).length;
+  // 分页逻辑
+  const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
+  const startIndex = (currentPage - 1) * messagesPerPage;
+  const endIndex = startIndex + messagesPerPage;
+  const currentMessages = filteredMessages.slice(startIndex, endIndex);
+
+  // 重置页码当过滤器改变时
+  const handleFilterChange = (filter: 'all' | 'unread' | 'replies' | 'likes') => {
+    setActiveFilter(filter);
+    setCurrentPage(1); // 重置到第一页
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const unreadCount = allMessages.filter(m => !m.isRead).length;
   const todayReplies = 12;
   const totalLikes = 45;
   const totalReplies = 28;
 
-  const handleFilterChange = (filter: 'all' | 'unread' | 'replies' | 'likes') => {
-    setActiveFilter(filter);
-  };
-
-  const handleMarkAsRead = (messageId: string) => {
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId ? { ...msg, isRead: true } : msg
-    ));
+  const handleMarkAsRead = () => {
+    alert('标记为已读功能需要后端支持');
   };
 
   const handleReply = (messageId: string) => {
@@ -138,7 +192,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleSendReply = (messageId: string) => {
+  const handleSendReply = () => {
     if (!replyContent.trim()) {
       alert('请输入回复内容');
       return;
@@ -149,16 +203,12 @@ export default function NotificationsPage() {
     setReplyContent('');
   };
 
-  const handleLikeMessage = (messageId: string) => {
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId ? { ...msg, isLiked: !msg.isLiked } : msg
-    ));
+  const handleLikeMessage = () => {
+    alert('点赞功能需要后端支持');
   };
 
-  const handleFollowBack = (messageId: string) => {
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId ? { ...msg, isFollowedBack: true } : msg
-    ));
+  const handleFollowBack = () => {
+    alert('关注功能需要后端支持');
   };
 
   const getMessageIcon = (type: string) => {
@@ -172,8 +222,8 @@ export default function NotificationsPage() {
 
   const getMessageTypeText = (type: string) => {
     switch (type) {
-      case 'replies': return '回复了你的评论';
-      case 'likes': return '点赞了你的分享';
+      case 'replies': return '回复了你的内容';
+      case 'likes': return '点赞了你的内容';
       case 'follows': return '关注了你';
       default: return '互动了你的内容';
     }
@@ -209,10 +259,10 @@ export default function NotificationsPage() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#30499B]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4">
               <MessageCircle className="w-4 h-4" />
-              消息中心
+              消息通知
             </div>
-            <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">回复和互动</h2>
-            <p className="text-slate-500">查看其他用户对您内容的回复和互动</p>
+            <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">消息中心</h2>
+            <p className="text-slate-500">查看所有互动消息和通知</p>
           </div>
 
           {/* Stats */}
@@ -227,11 +277,11 @@ export default function NotificationsPage() {
             </div>
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
               <div className="text-2xl font-bold text-[#56B949] mb-1">{totalLikes}</div>
-              <div className="text-sm text-slate-500">总点赞</div>
+              <div className="text-sm text-slate-500">总点赞数</div>
             </div>
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
               <div className="text-2xl font-bold text-[#30499B] mb-1">{totalReplies}</div>
-              <div className="text-sm text-slate-500">总回复</div>
+              <div className="text-sm text-slate-500">总回复数</div>
             </div>
           </div>
 
@@ -244,7 +294,7 @@ export default function NotificationsPage() {
                 : 'text-slate-600 hover:text-[#30499B]'
                 }`}
             >
-              全部消息
+              全部
             </button>
             <button
               onClick={() => handleFilterChange('unread')}
@@ -254,7 +304,7 @@ export default function NotificationsPage() {
                 }`}
             >
               <span className="flex items-center gap-2">
-                未读消息
+                未读
                 {unreadCount > 0 && <span className="w-2 h-2 bg-[#EE4035] rounded-full"></span>}
               </span>
             </button>
@@ -280,7 +330,7 @@ export default function NotificationsPage() {
 
           {/* Messages List */}
           <div className="space-y-4">
-            {filteredMessages.map((message) => (
+            {currentMessages.map((message) => (
               <div
                 key={message.id}
                 className={`card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg ${!message.isRead ? 'new-message' : ''
@@ -340,7 +390,7 @@ export default function NotificationsPage() {
                       {message.type === 'follows' && !message.isFollowedBack && (
                         <>
                           <button
-                            onClick={() => handleFollowBack(message.id)}
+                            onClick={() => handleFollowBack()}
                             className="flex items-center gap-2 px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm"
                           >
                             <UserPlus className="w-4 h-4" />
@@ -368,7 +418,7 @@ export default function NotificationsPage() {
 
                       {(message.type === 'replies' || message.type === 'likes') && (
                         <button
-                          onClick={() => handleLikeMessage(message.id)}
+                          onClick={() => handleLikeMessage()}
                           className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${message.isLiked
                             ? 'text-[#F0A32F] border-[#F0A32F] bg-[#F0A32F]/5'
                             : 'border-slate-200 text-slate-600 hover:text-[#F0A32F] hover:border-[#F0A32F]'
@@ -381,7 +431,7 @@ export default function NotificationsPage() {
 
                       {!message.isRead && (
                         <button
-                          onClick={() => handleMarkAsRead(message.id)}
+                          onClick={() => handleMarkAsRead()}
                           className="text-slate-400 hover:text-[#30499B] transition-colors"
                         >
                           <Check className="w-4 h-4" />
@@ -402,7 +452,7 @@ export default function NotificationsPage() {
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center gap-2 text-sm text-slate-500">
                             <span>💭</span>
-                            <span>支持表情和@提醒</span>
+                            <span>支持 Markdown 格式</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -412,7 +462,7 @@ export default function NotificationsPage() {
                               取消
                             </button>
                             <button
-                              onClick={() => handleSendReply(message.id)}
+                              onClick={() => handleSendReply()}
                               className="px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm"
                             >
                               发送回复
@@ -427,16 +477,12 @@ export default function NotificationsPage() {
             ))}
           </div>
 
-          {/* Load More Button */}
-          <div className="text-center mt-12">
-            <button
-              onClick={() => alert('加载更多消息功能开发中...')}
-              className="inline-flex items-center gap-2 px-8 py-3 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors font-medium shadow-lg"
-            >
-              <RefreshCw className="w-4 h-4" />
-              加载更多消息
-            </button>
-          </div>
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
 

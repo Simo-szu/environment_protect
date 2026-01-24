@@ -12,13 +12,13 @@ export default function GamePage() {
             <h1 className="text-4xl font-bold text-green-600 mb-4">绿色游戏</h1>
             <p className="text-gray-600 text-lg">在虚拟世界中种植树木，为现实世界贡献力量</p>
           </div>
-          
+
           <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-green-400 to-blue-500 p-8 text-white text-center">
               <h2 className="text-3xl font-bold mb-4">虚拟森林</h2>
               <p className="text-lg opacity-90">每种植一棵虚拟树木，我们就在现实中种下一棵真树</p>
             </div>
-            
+
             <div className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
@@ -42,7 +42,7 @@ export default function GamePage() {
                     </li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">游戏统计</h3>
                   <div className="space-y-4">
@@ -61,14 +61,14 @@ export default function GamePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-8 text-center">
                 <div className="bg-gray-100 rounded-lg p-12 mb-6">
                   <div className="text-6xl mb-4">🎮</div>
                   <p className="text-gray-600 mb-4">游戏即将上线</p>
                   <p className="text-sm text-gray-500">我们正在开发中，敬请期待！</p>
                 </div>
-                
+
                 <button className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl">
                   加入等待列表
                 </button>
