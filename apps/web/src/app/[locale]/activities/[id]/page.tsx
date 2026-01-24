@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     ArrowLeft,
     Calendar,
@@ -27,11 +28,12 @@ import { activityApi, interactionApi } from '@/lib/api';
 import type { ActivityDetail, ActivitySession } from '@/lib/api/activity';
 
 export default function ActivityDetailPage() {
-    const { user, isLoggedIn } = useAuth();
+    const { isLoggedIn } = useAuth();
     const router = useRouter();
     const params = useParams();
     const activityId = params.id as string;
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('activities');
 
     // 状态管理
     const [activity, setActivity] = useState<ActivityDetail | null>(null);
@@ -152,7 +154,7 @@ export default function ActivityDetailPage() {
         } else {
             // 复制链接到剪贴板
             navigator.clipboard.writeText(window.location.href);
-            alert('链接已复制到剪贴板');
+            alert(t('detail.linkCopied', '链接已复制到剪贴板'));
         }
     };
 
@@ -229,8 +231,12 @@ export default function ActivityDetailPage() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">活动详情</h1>
-                            <p className="text-slate-600">了解活动详细信息并报名参与</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">
+                                {t('detail.title', '活动详情')}
+                            </h1>
+                            <p className="text-slate-600">
+                                {t('detail.subtitle', '了解活动详细信息并报名参与')}
+                            </p>
                         </div>
                     </div>
                 </div>

@@ -60,7 +60,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
           {children}
 
           {showFooter && (
-            <UnifiedFooter showFullFooter={!isSubPage} />
+            <UnifiedFooter showFullFooter={true} />
           )}
         </main>
       </div>

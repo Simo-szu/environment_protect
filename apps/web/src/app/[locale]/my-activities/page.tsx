@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import { userApi } from '@/lib/api';
@@ -132,6 +133,9 @@ export default function MyActivitiesPage() {
     const params = useParams();
     const locale = params.locale as string;
     const { user, isLoggedIn, loading } = useAuth();
+    const { t } = useSafeTranslation('myActivities');
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
     const [activeTab, setActiveTab] = useState('all');
     const [myActivities, setMyActivities] = useState<MyActivityItem[]>([]);
     const [loadingActivities, setLoadingActivities] = useState(true);
@@ -166,10 +170,10 @@ export default function MyActivitiesPage() {
 
     useEffect(() => {
         if (!loading && (!user || !isLoggedIn)) {
-            window.location.href = '/zh/login';
+            window.location.href = `/${locale}/login`;
             return;
         }
-    }, [user, isLoggedIn, loading]);
+    }, [user, isLoggedIn, loading, locale]);
 
     const switchTab = (tabName: string) => {
         setActiveTab(tabName);
@@ -249,10 +253,10 @@ export default function MyActivitiesPage() {
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4 border border-[#56B949]/20">
                         <CalendarHeart className="w-4 h-4" />
-                        活动管理
+                        {t('badge', '活动管理')}
                     </div>
-                    <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">我的活动中心</h2>
-                    <p className="text-slate-500">管理您参与的所有环保活动</p>
+                    <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">{t('title', '我的活动中心')}</h2>
+                    <p className="text-slate-500">{t('description', '管理您参与的所有环保活动')}</p>
                 </div>
 
                 {/* Statistics Cards */}
@@ -262,7 +266,7 @@ export default function MyActivitiesPage() {
                             <CalendarCheck className="w-6 h-6 text-white" />
                         </div>
                         <div className="text-2xl font-bold text-[#56B949] mb-1">{registeredCount}</div>
-                        <div className="text-sm text-slate-500">已报名活动</div>
+                        <div className="text-sm text-slate-500">{t('stats.registered', '已报名活动')}</div>
                     </div>
 
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -270,7 +274,7 @@ export default function MyActivitiesPage() {
                             <Trophy className="w-6 h-6 text-white" />
                         </div>
                         <div className="text-2xl font-bold text-[#F0A32F] mb-1">{completedCount}</div>
-                        <div className="text-sm text-slate-500">已完成活动</div>
+                        <div className="text-sm text-slate-500">{t('stats.completed', '已完成活动')}</div>
                     </div>
 
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -278,7 +282,7 @@ export default function MyActivitiesPage() {
                             <Clock className="w-6 h-6 text-white" />
                         </div>
                         <div className="text-2xl font-bold text-[#30499B] mb-1">{ongoingCount}</div>
-                        <div className="text-sm text-slate-500">进行中活动</div>
+                        <div className="text-sm text-slate-500">{t('stats.ongoing', '进行中活动')}</div>
                     </div>
 
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -286,7 +290,7 @@ export default function MyActivitiesPage() {
                             <Star className="w-6 h-6 text-white" />
                         </div>
                         <div className="text-2xl font-bold text-[#EE4035] mb-1">{totalPoints}</div>
-                        <div className="text-sm text-slate-500">获得积分</div>
+                        <div className="text-sm text-slate-500">{t('stats.points', '获得积分')}</div>
                     </div>
                 </div>
 
@@ -300,7 +304,7 @@ export default function MyActivitiesPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            全部活动
+                            {t('tabs.all', '全部活动')}
                             {activeTab === 'all' && (
                                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
                             )}
@@ -312,7 +316,7 @@ export default function MyActivitiesPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            已报名
+                            {t('tabs.registered', '已报名')}
                             {activeTab === 'registered' && (
                                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
                             )}
@@ -324,7 +328,7 @@ export default function MyActivitiesPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            进行中
+                            {t('tabs.ongoing', '进行中')}
                             {activeTab === 'ongoing' && (
                                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
                             )}
@@ -336,7 +340,7 @@ export default function MyActivitiesPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            已完成
+                            {t('tabs.completed', '已完成')}
                             {activeTab === 'completed' && (
                                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
                             )}

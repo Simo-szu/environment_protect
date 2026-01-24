@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import { userApi } from '@/lib/api';
@@ -14,15 +15,14 @@ import {
     Calendar,
     MapPin,
     Eye,
-    ArrowRight,
     TreePine,
     Recycle,
     Droplets
 } from 'lucide-react';
-import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
 
 export default function FavoritesPage() {
     const { user, isLoggedIn, loading } = useAuth();
+    const { t } = useSafeTranslation('favorites');
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
     const [favorites, setFavorites] = useState<ReactionItem[]>([]);
@@ -73,7 +73,7 @@ export default function FavoritesPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -84,6 +84,7 @@ export default function FavoritesPage() {
         return null;
     }
 
+>>>>>>> 35fdbaca3cde8fb569383b48df92ca4683f91b94
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -105,10 +106,10 @@ export default function FavoritesPage() {
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#56B949]/10 text-[#56B949] text-xs font-semibold mb-4 border border-[#56B949]/20">
                             <Bookmark className="w-3 h-3" />
-                            我的收藏
+                            {t('badge', '我的收藏')}
                         </div>
-                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">我的收藏</h1>
-                        <p className="text-slate-600">这里保存了你收藏的所有内容</p>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '我的收藏')}</h1>
+                        <p className="text-slate-600">{t('description', '这里保存了你收藏的所有内容')}</p>
                     </div>
                 </div>
             </div>
@@ -156,7 +157,7 @@ export default function FavoritesPage() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1 text-[#56B949]">
                                                 <Bookmark className="w-4 h-4 fill-current" />
-                                                <span className="text-sm font-medium">已收藏</span>
+                                                <span className="text-sm font-medium">{t('content.favorited', '已收藏')}</span>
                                             </div>
                                             <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
                                         </div>
@@ -202,7 +203,7 @@ export default function FavoritesPage() {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1 text-[#56B949]">
                                                         <Bookmark className="w-4 h-4 fill-current" />
-                                                        <span className="text-sm font-medium">已收藏</span>
+                                                        <span className="text-sm font-medium">{t('content.favorited', '已收藏')}</span>
                                                     </div>
                                                 </div>
                                             </div>

@@ -22,8 +22,11 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift 
 import { activityApi } from '@/lib/api';
 import type { ActivityItem } from '@/lib/api/activity';
 
-export default function ActivitiesPage() {
+function ActivitiesPageContent() {
     const { user, isLoggedIn } = useAuth();
+    const { t } = useSafeTranslation('activities');
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4; // 每页显示4个活动
 
@@ -79,30 +82,30 @@ export default function ActivitiesPage() {
 
     const goToMyActivities = () => {
         if (!user || !isLoggedIn) {
-            window.location.href = '/login';
+            window.location.href = `/${locale}/login`;
         } else {
-            window.location.href = '/my-activities';
+            window.location.href = `/${locale}/my-activities`;
         }
     };
 
     const checkLoginAndRedirect = () => {
         if (!user || !isLoggedIn) {
-            window.location.href = '/login';
+            window.location.href = `/${locale}/login`;
         } else {
-            window.location.href = '/activities/create';
+            window.location.href = `/${locale}/activities/create`;
         }
     };
 
     const registerActivity = (activityId: string) => {
         if (!user || !isLoggedIn) {
-            window.location.href = '/login';
+            window.location.href = `/${locale}/login`;
         } else {
-            window.location.href = `/activities/register?id=${activityId}`;
+            window.location.href = `/${locale}/activities/register?id=${activityId}`;
         }
     };
 
     const viewActivityDetails = (activityId: string) => {
-        window.location.href = `/activities/${activityId}`;
+        window.location.href = `/${locale}/activities/${activityId}`;
     };
 
     return (
@@ -119,17 +122,16 @@ export default function ActivitiesPage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30499B] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#30499B]"></span>
                     </span>
-                    环保活动招募
+                    {t('subtitle', '参与绿色行动')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight">
-                    活动<span className="text-[#30499B]">广场</span>
+                    {t('title', '环保活动')}
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
                     <div className="flex items-center gap-2">
                         <CalendarHeart className="w-5 h-5 text-[#30499B]" />
-                        <span>参与<span className="text-[#30499B] font-medium border-b-2 border-[#30499B]/30">活动</span>，</span>
+                        <span>{t('description', '参与各种环保活动，为可持续未来贡献力量')}</span>
                     </div>
-                    <span>用<span className="text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">行动</span>改变世界</span>
                 </div>
             </motion.section>
 
@@ -154,8 +156,12 @@ export default function ActivitiesPage() {
                                 <div className="w-12 h-12 rounded-full bg-[#EE4035]/10 flex items-center justify-center text-[#EE4035] mb-4 group-hover:bg-[#EE4035] group-hover:text-white transition-colors">
                                     <Flame className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">热门活动</h3>
-                                <p className="text-sm text-slate-500">最受欢迎的环保行动</p>
+                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">
+                                    {t('cards.popular.title', '热门活动')}
+                                </h3>
+                                <p className="text-sm text-slate-500">
+                                    {t('cards.popular.subtitle', '最受欢迎的环保行动')}
+                                </p>
                             </div>
                         </motion.div>
 
@@ -168,8 +174,13 @@ export default function ActivitiesPage() {
                         >
                             <div className="relative bg-gradient-to-br from-[#56B949] to-[#4aa840] h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-inner border border-white/20">
                                 <CalendarCheck className="w-10 h-10 text-white mb-3 opacity-90" />
-                                <h3 className="text-2xl text-white font-serif font-semibold leading-tight mb-2">我的活动<br />中心</h3>
-                                <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full backdrop-blur-sm border border-white/30">查看报名</span>
+                                <h3 className="text-2xl text-white font-serif font-semibold leading-tight mb-2">
+                                    {t('cards.myActivities.title', '我的活动')}<br />
+                                    {t('cards.myActivities.center', '中心')}
+                                </h3>
+                                <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full backdrop-blur-sm border border-white/30">
+                                    {t('cards.myActivities.action', '查看报名')}
+                                </span>
                             </div>
                         </motion.div>
 
@@ -184,8 +195,12 @@ export default function ActivitiesPage() {
                                 <div className="w-12 h-12 rounded-full bg-[#F0A32F]/10 flex items-center justify-center text-[#F0A32F] mb-4 group-hover:bg-[#F0A32F] group-hover:text-white transition-colors">
                                     <PlusCircle className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">发布活动</h3>
-                                <p className="text-sm text-slate-500">组织你的环保活动</p>
+                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">
+                                    {t('cards.create.title', '发布活动')}
+                                </h3>
+                                <p className="text-sm text-slate-500">
+                                    {t('cards.create.subtitle', '组织你的环保活动')}
+                                </p>
                             </div>
                         </motion.div>
                     </div>
@@ -213,12 +228,22 @@ export default function ActivitiesPage() {
                         {/* Categories Filter */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
                             <div className="flex flex-col sm:flex-row gap-4 sm:items-baseline">
-                                <h2 className="text-lg font-serif font-bold text-[#30499B] flex-shrink-0 w-16">分类</h2>
+                                <h2 className="text-lg font-serif font-bold text-[#30499B] flex-shrink-0 w-16">
+                                    {t('filters.title', '分类')}
+                                </h2>
                                 <div className="flex flex-wrap gap-x-2 gap-y-3">
-                                    <button className="px-4 py-1.5 rounded-full bg-[#30499B] text-white text-xs font-medium shadow-md shadow-[#30499B]/20 transition-all hover:scale-105">全部</button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">环保市集</button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">植树活动</button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">垃圾分类</button>
+                                    <button className="px-4 py-1.5 rounded-full bg-[#30499B] text-white text-xs font-medium shadow-md shadow-[#30499B]/20 transition-all hover:scale-105">
+                                        {t('filters.all', '全部')}
+                                    </button>
+                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
+                                        {t('filters.market', '环保市集')}
+                                    </button>
+                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
+                                        {t('filters.planting', '植树活动')}
+                                    </button>
+                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
+                                        {t('filters.sorting', '垃圾分类')}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -346,18 +371,26 @@ export default function ActivitiesPage() {
                     >
                         {/* Quick Stats */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">活动统计</h3>
+                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
+                                {t('stats.title', '活动统计')}
+                            </h3>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">本月活动</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('stats.monthlyActivities', '本月活动')}
+                                    </span>
                                     <span className="text-lg font-bold text-[#56B949]">12</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">参与人数</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('stats.participants', '参与人数')}
+                                    </span>
                                     <span className="text-lg font-bold text-[#30499B]">1,234</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">我的报名</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('stats.myRegistrations', '我的报名')}
+                                    </span>
                                     <span className="text-lg font-bold text-[#F0A32F]">3</span>
                                 </div>
                             </div>
@@ -365,21 +398,29 @@ export default function ActivitiesPage() {
 
                         {/* Popular Categories */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">热门分类</h3>
+                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
+                                {t('categories.title', '热门分类')}
+                            </h3>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
                                     <Trees className="w-5 h-5 text-[#56B949]" />
-                                    <span className="text-sm text-slate-600">植树活动</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('categories.planting', '植树活动')}
+                                    </span>
                                     <span className="ml-auto text-xs text-slate-400">8</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
                                     <Waves className="w-5 h-5 text-[#30499B]" />
-                                    <span className="text-sm text-slate-600">净滩行动</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('categories.beachCleanup', '净滩行动')}
+                                    </span>
                                     <span className="ml-auto text-xs text-slate-400">5</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
                                     <Recycle className="w-5 h-5 text-[#F0A32F]" />
-                                    <span className="text-sm text-slate-600">回收利用</span>
+                                    <span className="text-sm text-slate-600">
+                                        {t('categories.recycling', '回收利用')}
+                                    </span>
                                     <span className="ml-auto text-xs text-slate-400">7</span>
                                 </div>
                             </div>
@@ -388,5 +429,24 @@ export default function ActivitiesPage() {
                 </motion.div>
             </motion.div >
         </Layout >
+    );
+}
+
+export default function ActivitiesPage() {
+    return (
+        <Suspense fallback={
+            <Layout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+                            YL
+                        </div>
+                        <p className="text-slate-600">加载中...</p>
+                    </div>
+                </div>
+            </Layout>
+        }>
+            <ActivitiesPageContent />
+        </Suspense>
     );
 }

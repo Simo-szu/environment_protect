@@ -17,7 +17,13 @@
         "all": "All",
         "more": "More",
         "viewAll": "View All",
-        "loadMore": "Load More"
+        "loadMore": "Load More",
+        "readReport": "Read Report",
+        "viewDetails": "View Details",
+        "learnNow": "Learn Now",
+        "signUpNow": "Sign Up Now",
+        "joinNow": "Join Now",
+        "viewContent": "View Content"
     },
     "navigation": {
         "home": "Home",
@@ -32,12 +38,23 @@
         "likes": "Likes",
         "login": "Login",
         "register": "Register",
-        "logout": "Logout"
+        "logout": "Logout",
+        "toggleMenu": "Toggle Menu",
+        "searchPlaceholder": "Search...",
+        "userId": "ID"
     },
     "home": {
         "title": "YOUTHLOOP",
         "subtitle": "Let Green Cycle, Change the Future with Action",
         "slogan": "National Environmental Action Season",
+        "enter": "Enter",
+        "viewAll": "View All",
+        "readReport": "Read Report",
+        "viewDetails": "View Details",
+        "learnNow": "Learn Now",
+        "signUpNow": "Sign Up Now",
+        "joinNow": "Join Now",
+        "viewContent": "View Content",
         "cards": {
             "points": {
                 "title": "Points·Exchange",
@@ -59,26 +76,458 @@
         "sections": {
             "science": {
                 "title": "Science Materials",
-                "subtitle": "TRUSTWORTHY KNOWLEDGE"
+                "subtitle": "TRUSTWORTHY KNOWLEDGE",
+                "items": {
+                    "guide": {
+                        "title": "2024 Sustainable Living Guide",
+                        "description": "Carbon reduction tips covering all aspects of life, with detailed data support.",
+                        "badge": "GUIDE"
+                    },
+                    "data": {
+                        "title": "Latest Global Carbon Emission Data",
+                        "description": "Real-time global environmental monitoring data with visual chart analysis.",
+                        "badge": "DATA"
+                    },
+                    "tips": {
+                        "title": "Efficient Waste Recycling Techniques",
+                        "description": "How to classify correctly? What can be turned into treasure? Expert video explanations.",
+                        "badge": "TIPS"
+                    }
+                }
             },
             "activities": {
                 "title": "Popular Activities",
-                "subtitle": "JOIN THE ACTION"
+                "subtitle": "JOIN THE ACTION",
+                "items": {
+                    "treePlanting": {
+                        "title": "City Tree Planting Festival",
+                        "date": "2024.05.12 · City Park",
+                        "badge": "HOT"
+                    },
+                    "beachCleanup": {
+                        "title": "Beach Cleanup Action",
+                        "date": "2024.06.05 · Sunshine Beach"
+                    },
+                    "communityExchange": {
+                        "title": "Community Item Exchange",
+                        "date": "Every Saturday · Community Center"
+                    }
+                }
             },
             "game": {
                 "title": "Start Your Green Exploration Journey",
                 "subtitle": "Plant trees in the virtual world, and we plant real trees for you in the real world. Make gaming meaningful.",
-                "button": "Start Game"
+                "button": "Start Game",
+                "badge": "INTERACTIVE GAME"
             },
             "points": {
                 "title": "Points Paradise",
                 "subtitle": "REWARDS & POINTS",
                 "dailyTask": "Complete Daily Tasks",
-                "pointsNeeded": "Need {points} more points today to upgrade badge"
+                "pointsNeeded": "Need {points} more points today to upgrade badge",
+                "tasks": {
+                    "walking": "Walking Check-in",
+                    "walkingPoints": "+10 Points",
+                    "sorting": "Waste Sorting",
+                    "sortingPoints": "+20 Points"
+                }
             }
         }
     },
+    "activities": {
+        "title": "Environmental Activities",
+        "subtitle": "Join Green Actions",
+        "description": "Participate in various environmental protection activities and contribute to a sustainable future",
+        "cards": {
+            "popular": {
+                "title": "Popular Activities",
+                "subtitle": "Most popular environmental actions"
+            },
+            "myActivities": {
+                "title": "My Activities",
+                "center": "Center",
+                "action": "View Registrations"
+            },
+            "create": {
+                "title": "Create Activity",
+                "subtitle": "Organize your environmental activity"
+            }
+        },
+        "filters": {
+            "title": "Categories",
+            "all": "All",
+            "market": "Eco Market",
+            "planting": "Tree Planting",
+            "sorting": "Waste Sorting"
+        },
+        "stats": {
+            "title": "Activity Statistics",
+            "monthlyActivities": "Monthly Activities",
+            "participants": "Participants",
+            "myRegistrations": "My Registrations"
+        },
+        "categories": {
+            "title": "Popular Categories",
+            "planting": "Tree Planting",
+            "beachCleanup": "Beach Cleanup",
+            "recycling": "Recycling"
+        },
+        "create": {
+            "title": "Create Activity",
+            "subtitle": "Create a new environmental activity",
+            "loading": "Loading...",
+            "form": {
+                "title": "Activity Title",
+                "titlePlaceholder": "Enter activity title",
+                "type": "Activity Type",
+                "types": {
+                    "tree": "Tree Planting",
+                    "recycle": "Recycling",
+                    "water": "Water Conservation",
+                    "energy": "Clean Energy"
+                },
+                "description": "Activity Description",
+                "descriptionPlaceholder": "Describe the activity content, goals and significance...",
+                "date": "Activity Date",
+                "time": "Activity Time",
+                "maxParticipants": "Max Participants",
+                "maxParticipantsPlaceholder": "Leave empty for unlimited",
+                "location": "Activity Location",
+                "locationPlaceholder": "Enter detailed address",
+                "requirements": "Participation Requirements",
+                "requirementsPlaceholder": "Describe what participants need to prepare or conditions to meet...",
+                "contact": "Contact Information",
+                "contactPlaceholder": "Enter phone number or WeChat ID",
+                "image": "Activity Image",
+                "imageUpload": "Click to upload activity image",
+                "imageSupport": "Supports JPG, PNG formats, max 5MB",
+                "publish": "Publish Activity",
+                "cancel": "Cancel"
+            }
+        },
+        "register": {
+            "title": "Activity Registration",
+            "subtitle": "Fill in registration information to participate",
+            "loading": "Loading...",
+            "mockActivity": {
+                "title": "Urban Oasis: Weekend Community Garden Planting Project",
+                "description": "Join us in creating green corners in the city center. We will plant native flowers together, learn about composting, and create a sustainable ecological space for the community.",
+                "date": "May 20, 2024",
+                "location": "Meet at East Gate of Central Park",
+                "organizer": "Green Living Association",
+                "requirements": "Please wear appropriate outdoor clothing, bring your own water bottle and sun protection",
+                "contactInfo": "Contact: Teacher Zhang 13800138000"
+            },
+            "activityInfo": {
+                "title": "Activity Information",
+                "participants": "people",
+                "organizer": "Organizer"
+            },
+            "form": {
+                "title": "Registration Information",
+                "name": "Name",
+                "namePlaceholder": "Enter your real name",
+                "phone": "Phone Number",
+                "phonePlaceholder": "Enter your phone number",
+                "email": "Email Address",
+                "emailPlaceholder": "Enter your email address",
+                "emergencyContact": "Emergency Contact",
+                "emergencyContactPlaceholder": "Emergency contact name",
+                "emergencyPhone": "Emergency Phone",
+                "emergencyPhonePlaceholder": "Emergency contact phone",
+                "specialRequirements": "Special Requirements or Notes",
+                "specialRequirementsPlaceholder": "If you have special requirements or other situations that need explanation, please fill in here...",
+                "activityRequirements": "Activity Requirements",
+                "agreementText": "I have read and agree to the activity agreement, understand the activity risks, and voluntarily participate in this environmental activity.",
+                "agreementNote": "Please follow the organizer's arrangements and pay attention to personal safety during the activity.",
+                "agreementRequired": "Please agree to the activity agreement first",
+                "submitSuccess": "Registration successful!",
+                "submit": "Confirm Registration"
+            }
+        },
+        "detail": {
+            "title": "Activity Details",
+            "subtitle": "Learn about activity details and register",
+            "date": "Date",
+            "time": "Time",
+            "location": "Location",
+            "participants": "Participants",
+            "detailsTitle": "Activity Details",
+            "requirements": "Participation Requirements",
+            "register": "Register Now",
+            "loginToRegister": "Login to Register",
+            "spotsLeft": "spots left",
+            "registered": "Registered",
+            "totalSpots": "Total Spots",
+            "organizerInfo": "Organizer Information",
+            "organization": "Environmental Organization",
+            "linkCopied": "Link copied to clipboard"
+        },
+        "status": {
+            "registering": "Registering",
+            "upcoming": "Upcoming",
+            "ended": "Ended"
+        },
+        "actions": {
+            "register": "Register",
+            "viewDetails": "View Details",
+            "oneClickRegister": "One-Click Register"
+        }
+    },
+    "science": {
+        "title": "Science Hub",
+        "subtitle": "Authoritative Environmental Knowledge",
+        "description": "Explore the latest environmental science research and data",
+        "categories": {
+            "all": "All Categories",
+            "climate": "Climate Change",
+            "energy": "Renewable Energy",
+            "waste": "Waste Management",
+            "biodiversity": "Biodiversity"
+        },
+        "hero": {
+            "badge": "Environmental Science Knowledge Base",
+            "title": "Scientific Environmental Protection",
+            "subtitle": "Guided by science, making environmental protection more effective"
+        },
+        "tips": {
+            "title": "Eco Tips",
+            "subtitle": "ECO TIPS",
+            "waterSaving": {
+                "title": "Water Conservation Tips",
+                "description": "Vegetable washing water can water flowers, laundry water can mop floors. Multiple uses for every drop maximize water value."
+            },
+            "wasteSorting": {
+                "title": "Waste Sorting Guide",
+                "description": "Proper waste classification not only reduces environmental pollution but also enables effective resource recycling."
+            },
+            "energySaving": {
+                "title": "Energy Saving Tips",
+                "description": "Turn off lights, use energy-efficient appliances, choose public transport. Small actions, big impact."
+            }
+        },
+        "news": {
+            "title": "Environmental News",
+            "subtitle": "Environmental News",
+            "articles": {
+                "greenTech": {
+                    "title": "Green Technology: Sustainable Energy Solutions for Future Cities",
+                    "description": "As global warming intensifies, how to integrate more green technology into urban development has become a key issue. This article explores the latest solar panel technology, wind energy utilization, and smart grid applications in modern cities..."
+                },
+                "oceanPlastic": {
+                    "title": "Ocean Plastic Pollution: More Than Just a Straw Problem",
+                    "description": "Millions of tons of plastic waste flow into the ocean every year, threatening marine life. This in-depth report will help you understand the dangers of microplastics and the cleanup actions and plastic reduction policies being taken by countries..."
+                },
+                "evBattery": {
+                    "title": "Electric Vehicles: Battery Recycling Knowledge You Need to Know",
+                    "description": "With the popularity of electric vehicles, the disposal of waste batteries has become a new environmental challenge. If not handled properly, heavy metals in batteries will cause serious pollution. Learn about proper recycling channels and regeneration technology..."
+                }
+            }
+        },
+        "actions": {
+            "learnMore": "Learn More",
+            "viewAll": "View All",
+            "readFull": "Read Full Article"
+        }
+    },
+    "article": {
+        "meta": {
+            "author": "Author",
+            "publishDate": "Published",
+            "readTime": "Read Time",
+            "views": "Views",
+            "category": "Category"
+        },
+        "actions": {
+            "back": "Back",
+            "like": "Like",
+            "favorite": "Favorite",
+            "share": "Share",
+            "comment": "Comment",
+            "login": "Login",
+            "reply": "Reply"
+        },
+        "content": {
+            "relatedArticles": "Related Articles",
+            "comments": "Comments",
+            "writeComment": "Share your thoughts...",
+            "postComment": "Post Comment",
+            "loginToComment": "Login to post comments",
+            "loginNow": "Login Now",
+            "linkCopied": "Link copied to clipboard"
+        },
+        "categories": {
+            "climate": "Climate Change",
+            "energy": "Renewable Energy",
+            "water": "Water Conservation",
+            "waste": "Waste Management",
+            "biodiversity": "Biodiversity"
+        },
+        "mockData": {
+            "article001": {
+                "title": "Impact of Climate Change on Biodiversity",
+                "subtitle": "Exploring how global warming is changing our ecosystems",
+                "author": "Environmental Science Institute",
+                "publishDate": "January 15, 2024",
+                "readTime": "8 min read",
+                "tags": [
+                    "Climate Change",
+                    "Biodiversity",
+                    "Ecosystems",
+                    "Global Warming"
+                ]
+            },
+            "article002": {
+                "title": "Future Trends in Renewable Energy",
+                "subtitle": "Latest developments in solar, wind and clean energy technologies",
+                "author": "Clean Energy Research Center",
+                "publishDate": "January 20, 2024",
+                "readTime": "6 min read",
+                "tags": [
+                    "Renewable Energy",
+                    "Solar Power",
+                    "Wind Energy",
+                    "Clean Technology"
+                ]
+            }
+        }
+    },
+    "points": {
+        "title": "Points Center",
+        "subtitle": "Rewards & Achievements",
+        "description": "Earn points through eco-friendly actions and unlock rewards",
+        "badge": "Points Reward System",
+        "paradise": "Paradise",
+        "subtitle": {
+            "complete": "Complete ",
+            "tasks": "tasks",
+            "earnPoints": " to earn points, ",
+            "use": "use ",
+            "action": "actions",
+            "getRewards": " to get rewards"
+        },
+        "level": "Lv.3 Green Apprentice",
+        "points": "Points",
+        "progress": {
+            "current": "Current Progress",
+            "nextBadge": "Need",
+            "points": "more points for next badge"
+        },
+        "exchangeStore": "Exchange Store",
+        "pointsHistory": "Points History",
+        "signInCalendar": "Sign-in Calendar",
+        "currentMonth": "May 2024",
+        "dailyTasks": "Daily Tasks",
+        "tasksRemaining": "Remaining today",
+        "dailyQuiz": "Daily Quiz",
+        "answerForPoints": "Answer correctly for points",
+        "refreshLimit": "Daily refresh limit: ",
+        "times": " times",
+        "remaining": " remaining",
+        "signIn": "Daily Sign-in",
+        "calendar": "Sign-in Calendar",
+        "quiz": "Daily Quiz",
+        "refreshCount": "Daily refresh limit: 5 times",
+        "calendar": {
+            "signedIn": "Signed in +5",
+            "clickToSignIn": "Click to sign in",
+            "missed": "Missed",
+            "signedDays": "Signed in",
+            "consecutiveDays": "Consecutive days",
+            "missedDays": "Missed days",
+            "days": "days",
+            "signIn": "Sign In"
+        },
+        "tasks": {
+            "readArticle": "Read \"Animal Protection\" article",
+            "publishArticle": "Publish \"Waste Sorting\" article",
+            "commentArticle": "Comment on featured article",
+            "shareToFriends": "Share with friends",
+            "points10": "+10 Points",
+            "points50": "+50 Points",
+            "completed": "Completed",
+            "rewardPending": "Reward pending",
+            "claim": "Claim",
+            "goComplete": "Go Complete"
+        },
+        "quiz": {
+            "correctAnswer": "✓ Correct!",
+            "wrongAnswer": "✗ Wrong answer",
+            "wrongAnswerWithCorrect": "✗ Wrong answer, correct answer is",
+            "enterNumber": "Enter number"
+        }
+    },
+    "profile": {
+        "loading": "Loading...",
+        "title": "My Profile",
+        "subtitle": "Personal Information",
+        "description": "Manage your account and preferences",
+        "badge": "Personal Profile",
+        "info": {
+            "gender": "Gender",
+            "location": "Location",
+            "points": "Eco Points",
+            "level": "Eco Level",
+            "bio": "Bio",
+            "male": "Male",
+            "female": "Female",
+            "other": "Other",
+            "defaultLocation": "Guangdong Province",
+            "pointsUnit": "points",
+            "levelTitle": "Eco Expert",
+            "defaultBio": "Environmental enthusiast committed to sustainable living practices. Contributing to environmental protection through daily actions."
+        },
+        "actions": {
+            "editProfile": "Edit Profile",
+            "logout": "Logout"
+        },
+        "quickActions": {
+            "likes": "My Likes",
+            "favorites": "My Favorites",
+            "activities": "My Activities",
+            "points": "My Points"
+        },
+        "recentActivities": {
+            "title": "Recent Activities",
+            "lowCarbonChallenge": "Completed a \"Low Carbon Travel\" challenge"
+        },
+        "recentLikes": {
+            "title": "Recent Likes",
+            "viewAll": "View All",
+            "articleType": "Science Article",
+            "articleTitle": "Eco Tips Sharing",
+            "articleDesc": "Sharing some daily eco-friendly tips...",
+            "likedDaysAgo": "Liked 2 days ago",
+            "activityType": "Eco Activity",
+            "activityTitle": "Urban Oasis Planting Plan",
+            "activityDesc": "Join us in creating green corners in the city center...",
+            "liked5DaysAgo": "Liked 5 days ago",
+            "commentType": "Comment Interaction",
+            "commentTitle": "Zhang Xiaoming's Comment",
+            "commentDesc": "Totally agree with your point! Environmental protection really needs...",
+            "liked1WeekAgo": "Liked 1 week ago"
+        },
+        "recentFavorites": {
+            "title": "Recent Favorites",
+            "viewAll": "View All",
+            "articleType": "Science Article",
+            "articleTitle": "Water Saving Tips",
+            "articleDesc": "Vegetable washing water can water flowers, laundry water can mop floors, multiple uses...",
+            "favorited3DaysAgo": "Favorited 3 days ago",
+            "activityType": "Eco Activity",
+            "activityTitle": "Upcycling DIY Workshop",
+            "activityDesc": "Learn how to turn waste into treasure...",
+            "favorited1WeekAgo": "Favorited 1 week ago"
+        },
+        "stats": {
+            "activitiesJoined": "Activities Joined",
+            "pointsEarned": "Points Earned",
+            "articlesLiked": "Articles Liked",
+            "treesPlanted": "Trees Planted"
+        }
+    },
     "notifications": {
+        "badge": "Message Notifications",
         "title": "Message Center",
         "subtitle": "Replies and Interactions",
         "description": "View replies and interactions from other users on your content",
@@ -117,7 +566,68 @@
         },
         "replyPlaceholder": "Enter your reply...",
         "replySupport": "Support emoji and @mentions",
-        "sendReply": "Send Reply"
+        "sendReply": "Send Reply",
+        "mockData": {
+            "users": {
+                "user1": "Li EcoExpert",
+                "user2": "Wang Green",
+                "user3": "Zhang EcoVolunteer",
+                "user4": "Chen EcoFriend",
+                "user5": "Liu GreenLife"
+            },
+            "contents": {
+                "content1": "I totally agree with your point! Environmental protection really needs to start with each person. I will pay more attention to energy saving and emission reduction in daily life. The tips you mentioned are very practical and I've started practicing them.",
+                "content2": "The waste sorting method you shared is very practical, I've bookmarked it! Hope to see more environmental tips like this.",
+                "content3": "I see that your sharing on environmental protection is very valuable, hope we can learn and exchange with each other!",
+                "content4": "Thank you for sharing such detailed energy-saving tips! I've started practicing them at home and the results are great.",
+                "content5": "Great environmental activity sharing! Hope to have the opportunity to participate in such activities."
+            },
+            "originalContents": {
+                "original1": "Each of us should contribute to environmental protection, starting from daily small things, such as saving water, waste sorting, green travel, etc...",
+                "original2": "Waste Sorting Knowledge - Let Environmental Protection Start from Details",
+                "original3": "Home energy saving is actually very simple, such as using LED bulbs, turning off appliances in time, setting air conditioning temperature reasonably, etc...",
+                "original4": "Thoughts on Participating in Community Tree Planting Activities",
+                "original5": "Environmental related original content..."
+            },
+            "timestamps": {
+                "hoursAgo": "hours ago",
+                "daysAgo": "days ago"
+            },
+            "randomContents": {
+                "content1": "Your environmental philosophy is great, learned a lot!",
+                "content2": "I've tried this method, it's really effective.",
+                "content3": "Thank you for sharing, very inspiring to me.",
+                "content4": "Hope to participate in more environmental activities with you.",
+                "content5": "Your sharing gave me a new understanding of environmental protection.",
+                "content6": "These tips are so practical, I've started practicing them.",
+                "content7": "I totally agree with your point, environmental protection needs everyone's effort.",
+                "content8": "Your experience sharing is very valuable, thank you!"
+            },
+            "randomNames": {
+                "name1": "Zhao Eco",
+                "name2": "Qian Green",
+                "name3": "Sun Energy",
+                "name4": "Li Reduce",
+                "name5": "Zhou Cycle",
+                "name6": "Wu LowCarbon",
+                "name7": "Zheng Clean",
+                "name8": "Wang Sustain",
+                "name9": "Feng Eco",
+                "name10": "Chen Green"
+            }
+        },
+        "messages": {
+            "markAsReadAlert": "Mark as read function requires backend support",
+            "replyEmptyAlert": "Please enter reply content",
+            "replySuccessAlert": "Reply sent successfully!",
+            "likeAlert": "Like function requires backend support",
+            "followAlert": "Follow function requires backend support",
+            "loginRequired": "Please login first to view message notifications",
+            "goLogin": "Go to Login",
+            "loading": "Loading...",
+            "originalComment": "Your original comment:",
+            "originalShare": "Your original share:"
+        }
     },
     "myActivities": {
         "title": "Activity Management",
@@ -168,8 +678,554 @@
             "pointsEarned": "Points Earned"
         }
     },
+    "favorites": {
+        "loading": "Loading...",
+        "badge": "My Favorites",
+        "title": "My Favorites",
+        "subtitle": "Saved Content",
+        "description": "Articles and activities you've bookmarked",
+        "tabs": {
+            "articles": "Articles",
+            "activities": "Activities"
+        },
+        "empty": {
+            "articles": "No favorite articles yet",
+            "activities": "No favorite activities yet"
+        },
+        "content": {
+            "favorited": "Favorited",
+            "articles": {
+                "title": "Environmental Article",
+                "description": "This is an article about environmental protection, introducing various environmental knowledge and tips...",
+                "favoritedDaysAgo": " days ago favorited"
+            },
+            "activities": {
+                "title": "Environmental Activity",
+                "description": "This is a meaningful environmental activity, everyone is welcome to participate...",
+                "location": "City Center Park",
+                "favoritedDaysAgo": " days ago favorited",
+                "treeActivity": "Tree Planting",
+                "ecoActivity": "Eco DIY"
+            }
+        }
+    },
+    "likes": {
+        "loading": "Loading...",
+        "badge": "My Likes",
+        "title": "My Likes",
+        "subtitle": "Liked Content",
+        "description": "Content you've liked and interactions",
+        "tabs": {
+            "articles": "Articles",
+            "activities": "Activities",
+            "comments": "Comments"
+        },
+        "empty": {
+            "articles": "No liked articles yet",
+            "activities": "No liked activities yet",
+            "comments": "No liked comments yet"
+        },
+        "content": {
+            "articles": {
+                "title": "Liked Article",
+                "description": "This is a great environmental article that received many likes...",
+                "likedDaysAgo": "days ago liked"
+            },
+            "activities": {
+                "title": "Liked Activity",
+                "description": "This is a popular environmental activity that received much support...",
+                "location": "City Center Park",
+                "likedDaysAgo": "days ago liked",
+                "treeActivity": "Tree Planting",
+                "ecoActivity": "Eco DIY"
+            },
+            "comments": {
+                "author": "User",
+                "content": "This is an insightful comment worth liking and supporting...",
+                "likedDaysAgo": "days ago liked",
+                "youLiked": "You liked this comment"
+            }
+        }
+    },
     "pagination": {
         "previous": "Previous",
         "next": "Next"
+    },
+    "footer": {
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "contact": "Contact Us",
+        "copyright": "© 2024 YouthLoop. Let Green Cycle, Change the Future with Action",
+        "description": "Let Green Cycle, Change the Future with Action. Join us to contribute to environmental protection.",
+        "quickNav": "Quick Navigation",
+        "home": "Home",
+        "science": "Environmental Science",
+        "activities": "Activity Plaza",
+        "points": "Points Center",
+        "game": "Eco Game",
+        "userService": "User Services",
+        "profile": "Profile Center",
+        "myActivities": "My Activities",
+        "favorites": "My Favorites",
+        "likes": "My Likes",
+        "editProfile": "Edit Profile",
+        "helpSupport": "Help & Support",
+        "help": "Help Center",
+        "feedback": "Feedback",
+        "address": "Environmental Building, Chaoyang District, Beijing",
+        "copyrightFull": "© 2024 YouthLoop. All rights reserved",
+        "slogan": "Let Green Cycle, Change the Future with Action",
+        "icp": "ICP Registration: Beijing ICP 2024000001",
+        "police": "Beijing Public Security 11010502000001"
+    },
+    "game": {
+        "title": "Green Game",
+        "subtitle": "Plant trees in the virtual world and contribute to the real world",
+        "virtualForest": {
+            "title": "Virtual Forest",
+            "description": "For every virtual tree planted, we plant a real tree in the real world"
+        },
+        "features": {
+            "title": "Game Features",
+            "realImpact": "Real environmental impact",
+            "interactiveLearning": "Interactive learning experience",
+            "communityPlanting": "Community collaborative planting",
+            "achievementSystem": "Achievement system rewards"
+        },
+        "stats": {
+            "title": "Game Statistics",
+            "treesPlanted": "Trees Planted",
+            "activePlayers": "Active Players",
+            "forestAreas": "Forest Areas"
+        },
+        "comingSoon": {
+            "title": "Game Coming Soon",
+            "description": "We are developing, stay tuned!"
+        },
+        "joinWaitlist": "Join Waitlist"
+    },
+    "contact": {
+        "title": "Contact Us",
+        "subtitle": "Get in Touch",
+        "description": "Have any questions or suggestions? We'd love to hear from you. Choose the most convenient way to contact us, and we'll get back to you as soon as possible.",
+        "badge": "Contact Us",
+        "success": {
+            "title": "Message Sent Successfully!",
+            "description": "Thank you for contacting us. We will reply to your message within 24 hours.",
+            "backHome": "Back to Home",
+            "continueContact": "Continue Contact"
+        },
+        "contactInfo": {
+            "title": "Contact Information",
+            "phone": {
+                "title": "Customer Service",
+                "number": "400-123-4567",
+                "hours": "Weekdays 9:00-18:00"
+            },
+            "email": {
+                "title": "Email Address",
+                "address": "contact@youthloop.org",
+                "response": "Reply within 24 hours"
+            },
+            "address": {
+                "title": "Office Address",
+                "location": "Environmental Building, Chaoyang District, Beijing",
+                "postal": "Postal Code: 100020"
+            },
+            "hours": {
+                "title": "Service Hours",
+                "schedule": "Monday to Sunday",
+                "support": "7×24 hours online support"
+            }
+        },
+        "about": {
+            "title": "YouthLoop",
+            "slogan": "Let Green Cycle, Change the Future with Action",
+            "description": "Let Green Cycle, Change the Future with Action. Join us to contribute to environmental protection.",
+            "stats": {
+                "users": "100k+ users",
+                "coverage": "Nationwide service",
+                "mission": "Environmental mission"
+            }
+        },
+        "form": {
+            "title": "Send Message",
+            "name": "Name *",
+            "namePlaceholder": "Please enter your name",
+            "email": "Email *",
+            "emailPlaceholder": "Please enter your email",
+            "phone": "Phone",
+            "phonePlaceholder": "Please enter your phone number",
+            "subject": "Subject *",
+            "subjectPlaceholder": "Please select a subject",
+            "subjects": {
+                "general": "General Inquiry",
+                "activity": "Activity Related",
+                "technical": "Technical Support",
+                "partnership": "Partnership",
+                "feedback": "Feedback",
+                "other": "Other"
+            },
+            "message": "Message Content *",
+            "messagePlaceholder": "Please describe your question or needs in detail...",
+            "send": "Send Message",
+            "cancel": "Cancel"
+        },
+        "quickLinks": {
+            "help": {
+                "title": "Help Center",
+                "description": "Frequently asked questions"
+            },
+            "feedback": {
+                "title": "Feedback",
+                "description": "Product suggestions and feedback"
+            },
+            "emergency": {
+                "title": "Emergency Contact",
+                "phone": "400-123-4567"
+            }
+        }
+    },
+    "help": {
+        "title": "Help Center",
+        "subtitle": "Help & Support",
+        "description": "Welcome to YouthLoop Help Center! Here you'll find all the information and support you need. If you can't find the answer, please feel free to contact our customer service team.",
+        "badge": "Help Support",
+        "quickContact": {
+            "title": "Quick Contact",
+            "phone": {
+                "title": "Customer Service",
+                "number": "400-123-4567"
+            },
+            "email": {
+                "title": "Email Support",
+                "address": "help@youthloop.org"
+            },
+            "chat": {
+                "title": "Online Customer Service",
+                "hours": "Weekdays 9:00-18:00"
+            },
+            "hours": {
+                "title": "Service Hours",
+                "schedule": "7×24 hours"
+            },
+            "contactUs": "Contact Us"
+        },
+        "search": {
+            "placeholder": "Search help content..."
+        },
+        "faq": {
+            "account": {
+                "title": "Account Related",
+                "register": {
+                    "q": "How to register a YouthLoop account?",
+                    "a": "Click the 'Register' button in the top right corner of the homepage and fill in the necessary information to complete registration. You can also use third-party accounts for quick login."
+                },
+                "password": {
+                    "q": "What to do if I forget my password?",
+                    "a": "Click 'Forgot Password' on the login page, enter your registered email, and we'll send a password reset link to your email."
+                },
+                "profile": {
+                    "q": "How to modify personal information?",
+                    "a": "After logging in, go to 'Personal Center' and click 'Edit Profile' to modify your personal information."
+                }
+            },
+            "activities": {
+                "title": "Activity Participation",
+                "register": {
+                    "q": "How to register for environmental activities?",
+                    "a": "Browse the activity plaza, select activities you're interested in, click 'Register Now' and fill in relevant information."
+                },
+                "cancel": {
+                    "q": "Can I cancel after registration?",
+                    "a": "Yes. You can cancel your registration in 'My Activities' up to 24 hours before the activity starts."
+                },
+                "cancelled": {
+                    "q": "What if an activity is cancelled?",
+                    "a": "If an activity is cancelled for any reason, we will notify all registered users promptly and provide alternative activity options."
+                }
+            },
+            "points": {
+                "title": "Points System",
+                "earn": {
+                    "q": "How to earn points?",
+                    "a": "Participate in environmental activities, complete daily check-ins, share environmental knowledge, invite friends, etc. can all earn point rewards."
+                },
+                "use": {
+                    "q": "What are points for?",
+                    "a": "Points can be used to redeem environmental gifts, participate in special activities, improve user level, etc."
+                },
+                "expire": {
+                    "q": "Do points expire?",
+                    "a": "Points are valid for 2 years. Points that exceed the validity period will be automatically cleared."
+                }
+            }
+        },
+        "moreHelp": {
+            "title": "Have other questions?",
+            "description": "If you haven't found the answer you need, our customer service team is always here to help.",
+            "contactService": "Contact Customer Service",
+            "feedback": "Feedback"
+        }
+    },
+    "privacy": {
+        "title": "Privacy Policy",
+        "subtitle": "Privacy Protection",
+        "lastUpdated": "Last updated: January 2024",
+        "badge": "Privacy Protection",
+        "sections": {
+            "introduction": {
+                "title": "1. Introduction",
+                "content": "YouthLoop (hereinafter referred to as 'we') attaches great importance to user privacy protection. This privacy policy explains how we collect, use, store and protect your personal information. Using our services means you agree to the terms of this privacy policy."
+            },
+            "infoCollection": {
+                "title": "2. Information We Collect",
+                "activeInfo": {
+                    "title": "2.1 Information You Actively Provide",
+                    "items": [
+                        "Registration information: username, password, email, phone number",
+                        "Personal profile: nickname, avatar, gender, age, region",
+                        "Activity participation: registration information, participation records, feedback",
+                        "User-generated content: comments, shares, uploaded images and text"
+                    ]
+                },
+                "autoInfo": {
+                    "title": "2.2 Automatically Collected Information",
+                    "items": [
+                        "Device information: device model, operating system, browser type",
+                        "Usage data: access time, page browsing records, feature usage",
+                        "Location information: IP address, approximate geographic location (only with your consent)",
+                        "Information collected by cookies and similar technologies"
+                    ]
+                }
+            },
+            "infoUse": {
+                "title": "3. Information Use Purposes",
+                "description": "We use the collected information for the following purposes:",
+                "items": [
+                    "Provide, maintain and improve our services",
+                    "Process your registration and account management",
+                    "Organize and manage environmental activities",
+                    "Personalized content recommendations and user experience",
+                    "Send service notifications and important updates",
+                    "Prevent fraud and ensure platform security",
+                    "Comply with legal and regulatory requirements",
+                    "Conduct data analysis to improve service quality"
+                ]
+            },
+            "infoSharing": {
+                "title": "4. Information Sharing and Disclosure",
+                "description": "We do not sell, rent or trade your personal information. We only share your information in the following circumstances:",
+                "items": [
+                    "With your explicit consent",
+                    "Share with service providers to support our service operations",
+                    "Comply with laws and regulations, court orders or government requirements",
+                    "Protect our or others' rights, property or safety",
+                    "In case of business transfer or merger"
+                ]
+            },
+            "dataSecurity": {
+                "title": "5. Data Security",
+                "description": "We take multiple security measures to protect your personal information:",
+                "items": [
+                    "Use SSL encryption to transmit sensitive data",
+                    "Implement access control and authentication",
+                    "Regular security audits and vulnerability scans",
+                    "Employee privacy training and confidentiality agreements",
+                    "Data backup and disaster recovery plans"
+                ]
+            },
+            "dataRetention": {
+                "title": "6. Data Retention",
+                "content": "We only retain your personal information for the necessary period. The specific retention period depends on the type of information and purpose of use. When information is no longer needed, we will securely delete or anonymize it. You can request deletion of your account and related data at any time."
+            },
+            "userRights": {
+                "title": "7. Your Rights",
+                "description": "Under applicable privacy laws, you have the following rights:",
+                "items": [
+                    "Access and view your personal information",
+                    "Correct inaccurate or incomplete information",
+                    "Delete your personal information",
+                    "Restrict or object to information processing",
+                    "Data portability rights",
+                    "Withdraw consent (where processing is based on consent)"
+                ]
+            },
+            "cookiePolicy": {
+                "title": "8. Cookie Policy",
+                "content": "We use cookies and similar technologies to improve user experience, analyze website usage and provide personalized content. You can manage cookie preferences through browser settings, but this may affect the normal use of certain features."
+            },
+            "childrenPrivacy": {
+                "title": "9. Children's Privacy",
+                "content": "Our services are primarily for users aged 13 and above. If we discover that we have collected personal information from children under 13, we will immediately delete such information. If you are a parent or guardian and discover that your child has provided us with personal information, please contact us."
+            },
+            "policyUpdates": {
+                "title": "10. Policy Updates",
+                "content": "We may update this privacy policy from time to time. Significant changes will be notified through website notifications, email or other appropriate means. Continued use of our services indicates your acceptance of the updated policy."
+            },
+            "contactUs": {
+                "title": "11. Contact Us",
+                "description": "If you have any questions about this privacy policy or need to exercise your rights, please contact us:",
+                "info": {
+                    "email": "Privacy Officer Email: privacy@youthloop.org",
+                    "phone": "Customer Service: 400-123-4567",
+                    "address": "Mailing Address: Environmental Building, Chaoyang District, Beijing, Privacy Protection Department",
+                    "chat": "Online Customer Service: Weekdays 9:00-18:00"
+                }
+            }
+        }
+    },
+    "terms": {
+        "title": "Terms of Service",
+        "badge": "Legal Terms",
+        "lastUpdated": "Last updated: January 2024",
+        "content": {
+            "section1": {
+                "title": "1. Acceptance of Terms of Service",
+                "content": "Welcome to YouthLoop environmental platform! When you register, access or use our services, you agree to comply with all terms and conditions of this User Service Agreement."
+            },
+            "section2": {
+                "title": "2. Service Description",
+                "content": "YouthLoop is an online platform dedicated to environmental education and action. We provide environmental knowledge popularization, activity organization, user interaction and points reward services."
+            },
+            "section3": {
+                "title": "3. User Responsibilities",
+                "content": "Users need to provide accurate registration information, protect account security, and comply with platform usage standards."
+            },
+            "section4": {
+                "title": "4. Contact Us",
+                "content": "If you have any questions about this agreement, please contact us through the following methods:"
+            },
+            "contact": {
+                "email": "Email: legal@youthloop.org",
+                "phone": "Phone: 400-123-4567",
+                "address": "Address: Environmental Building, Chaoyang District, Beijing"
+            }
+        }
+    },
+    "privacy": {
+        "title": "Privacy Policy",
+        "badge": "Privacy Protection",
+        "lastUpdated": "Last updated: January 2024",
+        "content": {
+            "section1": {
+                "title": "1. Introduction",
+                "content": "YouthLoop (hereinafter referred to as 'we') attaches great importance to user privacy protection. This privacy policy explains how we collect, use, store and protect your personal information. Using our services means you agree to the terms of this privacy policy."
+            },
+            "section2": {
+                "title": "2. Information We Collect",
+                "content": "We collect information you actively provide and automatically collected usage data to provide you with better services."
+            },
+            "section3": {
+                "title": "3. Purpose of Information Use",
+                "content": "We use the collected information to provide, maintain and improve our services, handle your account management, organize environmental activities, etc."
+            },
+            "section4": {
+                "title": "4. Contact Us",
+                "content": "If you have any questions about this privacy policy, please contact us:"
+            },
+            "contact": {
+                "email": "Email: privacy@youthloop.org",
+                "phone": "Phone: 400-123-4567",
+                "address": "Address: Environmental Building, Chaoyang District, Beijing"
+            }
+        }
+    },
+    "contact": {
+        "title": "Contact Us",
+        "badge": "Contact Us",
+        "description": "Have any questions or suggestions? We'd love to hear from you. Choose the most suitable contact method for you, and we'll get back to you as soon as possible.",
+        "success": {
+            "title": "Message sent successfully!",
+            "message": "Thank you for contacting us. We will reply to your message within 24 hours.",
+            "backHome": "Back to Home",
+            "continueContact": "Continue Contact"
+        },
+        "contactInfo": {
+            "title": "Contact Information",
+            "phone": {
+                "title": "Customer Service",
+                "number": "400-123-4567",
+                "hours": "Weekdays 9:00-18:00"
+            },
+            "email": {
+                "title": "Email Address",
+                "address": "contact@youthloop.org",
+                "response": "Reply within 24 hours"
+            },
+            "address": {
+                "title": "Office Address",
+                "location": "Environmental Building, Chaoyang District, Beijing",
+                "postal": "Postal Code: 100020"
+            },
+            "hours": {
+                "title": "Service Hours",
+                "days": "Monday to Sunday",
+                "support": "7×24 hours online support"
+            }
+        },
+        "about": {
+            "slogan": "Let green cycle, change the future with action",
+            "users": "100K+ users",
+            "coverage": "Nationwide service",
+            "mission": "Environmental mission"
+        },
+        "form": {
+            "title": "Send Message",
+            "name": {
+                "label": "Name",
+                "placeholder": "Please enter your name"
+            },
+            "email": {
+                "label": "Email",
+                "placeholder": "Please enter your email"
+            },
+            "phone": {
+                "label": "Phone",
+                "placeholder": "Please enter your phone number"
+            },
+            "subject": {
+                "label": "Subject",
+                "placeholder": "Please select a subject",
+                "options": {
+                    "general": "General Inquiry",
+                    "activity": "Activity Related",
+                    "technical": "Technical Support",
+                    "partnership": "Partnership",
+                    "feedback": "Feedback",
+                    "other": "Other"
+                }
+            },
+            "message": {
+                "label": "Message Content",
+                "placeholder": "Please describe your question or needs in detail..."
+            },
+            "submit": "Send Message",
+            "cancel": "Cancel"
+        },
+        "quickLinks": {
+            "help": {
+                "title": "Help Center",
+                "description": "Frequently Asked Questions"
+            },
+            "feedback": {
+                "title": "Feedback",
+                "description": "Submit Suggestions"
+            },
+            "emergency": {
+                "title": "Emergency Contact",
+                "phone": "400-123-4567"
+            }
+        }
+    },
+    "feedback": {
+        "title": "Feedback",
+        "badge": "User Feedback",
+        "description": "Your opinion is very important to us! Please tell us your thoughts and help us improve YouthLoop to provide a better environmental experience for more users."
+    },
+    "help": {
+        "title": "Help Center",
+        "badge": "Help Support",
+        "description": "Welcome to YouthLoop Help Center! Here you'll find all the information and support you need. If you can't find the answer, please feel free to contact our customer service team."
     }
 }

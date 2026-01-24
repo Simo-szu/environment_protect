@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     ArrowLeft,
     Calendar,
@@ -99,7 +100,7 @@ function RegisterActivityContent() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('register.loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -158,7 +159,7 @@ function RegisterActivityContent() {
         }
 
         if (!formData.agreement) {
-            alert('请先同意活动协议');
+            alert(t('register.form.agreementRequired', '请先同意活动协议'));
             return;
         }
 
@@ -217,8 +218,8 @@ function RegisterActivityContent() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">活动报名</h1>
-                            <p className="text-slate-600">填写报名信息参与活动</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">{t('register.title', '活动报名')}</h1>
+                            <p className="text-slate-600">{t('register.subtitle', '填写报名信息参与活动')}</p>
                         </div>
                     </div>
                 </div>
@@ -323,7 +324,7 @@ function RegisterActivityContent() {
                         className="lg:col-span-2"
                     >
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
-                            <h3 className="text-xl font-semibold text-[#30499B] mb-6">报名信息</h3>
+                            <h3 className="text-xl font-semibold text-[#30499B] mb-6">{t('register.form.title', '报名信息')}</h3>
 
                             <div className="space-y-6">
                                 {/* 基本信息 */}
@@ -331,7 +332,7 @@ function RegisterActivityContent() {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             <User className="w-4 h-4 inline mr-2" />
-                                            姓名 *
+                                            {t('register.form.name', '姓名')} *
                                         </label>
                                         <input
                                             type="text"
@@ -339,14 +340,14 @@ function RegisterActivityContent() {
                                             value={formData.name}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="请输入真实姓名"
+                                            placeholder={t('register.form.namePlaceholder', '请输入真实姓名')}
                                             required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             <Phone className="w-4 h-4 inline mr-2" />
-                                            联系电话 *
+                                            {t('register.form.phone', '联系电话')} *
                                         </label>
                                         <input
                                             type="tel"
@@ -354,7 +355,7 @@ function RegisterActivityContent() {
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="请输入手机号码"
+                                            placeholder={t('register.form.phonePlaceholder', '请输入手机号码')}
                                             required
                                         />
                                     </div>
@@ -390,7 +391,7 @@ function RegisterActivityContent() {
                                         onChange={handleInputChange}
                                         rows={3}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                        placeholder="如有特殊需求或其他需要说明的情况，请在此填写..."
+                                        placeholder={t('register.form.specialRequirementsPlaceholder', '如有特殊需求或其他需要说明的情况，请在此填写...')}
                                     />
                                 </div>
 
@@ -406,10 +407,10 @@ function RegisterActivityContent() {
                                     />
                                     <div className="text-sm">
                                         <p className="text-slate-700">
-                                            我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。
+                                            {t('register.form.agreementText', '我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。')}
                                         </p>
                                         <p className="text-slate-500 mt-1">
-                                            参与活动期间请遵守组织方安排，注意人身安全。
+                                            {t('register.form.agreementNote', '参与活动期间请遵守组织方安排，注意人身安全。')}
                                         </p>
                                     </div>
                                 </div>
@@ -438,7 +439,7 @@ function RegisterActivityContent() {
                                         disabled={submitting}
                                         className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        取消
+                                        {tCommon('cancel', '取消')}
                                     </button>
                                 </div>
                             </div>

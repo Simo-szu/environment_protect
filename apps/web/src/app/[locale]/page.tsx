@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Leaf, BarChart3, Trash2, ArrowRight, Trees, Waves, PlayCircle, Coins, Footprints, Trash, Recycle } from 'lucide-react';
 import { useAuth, showLoginPrompt } from '@/hooks/useAuth';
-import { useTranslations } from 'next-intl';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
@@ -61,35 +60,35 @@ export default function HomePage() {
     const cardsData: CardData[] = [
         {
             id: 'points',
-            title: t('cards.points.title'),
-            sub: t('cards.points.subtitle'),
+            title: t('cards.points.title', '积分·兑换'),
+            sub: t('cards.points.subtitle', '累积环保值'),
             color: '#F0A32F',
             icon: Coins,
-            link: '/zh/points'
+            link: `/${locale}/points`
         },
         {
             id: 'game',
-            title: t('cards.game.title'),
-            sub: t('cards.game.subtitle'),
+            title: t('cards.game.title', '绿色游戏'),
+            sub: t('cards.game.subtitle', '虚拟种植'),
             color: '#56B949',
             icon: PlayCircle,
-            link: '/zh/game'
+            link: `/${locale}/game`
         },
         {
             id: 'science',
-            title: t('cards.science.title'),
-            sub: t('cards.science.subtitle'),
+            title: t('cards.science.title', '权威科普'),
+            sub: t('cards.science.subtitle', '科学数据'),
             color: '#30499B',
             icon: Leaf,
-            link: '/zh/science'
+            link: `/${locale}/science`
         },
         {
             id: 'activity',
-            title: t('cards.activity.title'),
-            sub: t('cards.activity.subtitle'),
+            title: t('cards.activity.title', '环保活动'),
+            sub: t('cards.activity.subtitle', '参与行动'),
             color: '#EE4035',
             icon: Trees,
-            link: '/zh/activities'
+            link: `/${locale}/activities`
         }
     ];
 
@@ -145,7 +144,7 @@ export default function HomePage() {
         if (!isLoggedIn) {
             showLoginPrompt('请先登录再查看积分');
         } else {
-            window.location.href = '/zh/points';
+            window.location.href = `/${locale}/points`;
         }
     };
 
@@ -161,15 +160,15 @@ export default function HomePage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
                     </span>
-                    {t('slogan')}
+                    {t('slogan', '全民环保行动季')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
-                    {t('title')}
+                    {t('title', 'YOUTHLOOP')}
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
                     <div className="flex items-center gap-2">
                         <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
-                        <span>{t('subtitle')}</span>
+                        <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
                     </div>
                 </div>
             </AnimatedSection>
@@ -205,7 +204,7 @@ export default function HomePage() {
                                         {data.title}
                                     </h3>
                                     <button className="glass-btn px-4 py-1.5 rounded-full text-white text-xs font-medium hover:bg-white/30 transition-colors">
-                                        进入
+                                        {t('enter', '进入')}
                                     </button>
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
                                 </div>
@@ -255,12 +254,12 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">科普资料</h2>
-                                <p className="text-xs text-slate-400 mt-1">TRUSTWORTHY KNOWLEDGE</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.science.title', '科普资料')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.science.subtitle', 'TRUSTWORTHY KNOWLEDGE')}</p>
                             </div>
                         </div>
-                        <Link href="/zh/science" className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            查看全部 -&gt;
+                        <Link href={`/${locale}/science`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                            {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
 
@@ -388,12 +387,12 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#EE4035] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">热门活动</h2>
-                                <p className="text-xs text-slate-400 mt-1">JOIN THE ACTION</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.activities.title', '热门活动')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.activities.subtitle', 'JOIN THE ACTION')}</p>
                             </div>
                         </div>
-                        <Link href="/zh/activities" className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            查看全部 -&gt;
+                        <Link href={`/${locale}/activities`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                            {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
 
@@ -528,21 +527,21 @@ export default function HomePage() {
                                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
                                     <div className="text-center md:text-left">
                                         <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium mb-4 border border-white/30">
-                                            INTERACTIVE GAME
+                                            {t('sections.game.badge', 'INTERACTIVE GAME')}
                                         </span>
                                         <h3 className="text-3xl md:text-4xl text-white font-serif font-medium mb-3">
-                                            开启你的绿色探索之旅
+                                            {t('sections.game.title', '开启你的绿色探索之旅')}
                                         </h3>
                                         <p className="text-white/80 text-sm md:text-base max-w-md mx-auto md:mx-0">
-                                            在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。
+                                            {t('sections.game.subtitle', '在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。')}
                                         </p>
                                     </div>
 
                                     {/* Main Button */}
-                                    <Link href="/zh/game">
+                                    <Link href={`/${locale}/game`}>
                                         <button className="flex-shrink-0 relative overflow-hidden bg-white text-[#56B949] hover:text-[#30499B] px-8 py-3 rounded-xl text-lg font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95">
                                             <span className="flex items-center gap-2">
-                                                开始游戏
+                                                {t('sections.game.button', '开始游戏')}
                                                 <PlayCircle className="w-5 h-5" />
                                             </span>
                                         </button>
@@ -559,8 +558,8 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#F0A32F] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">积分乐园</h2>
-                                <p className="text-xs text-slate-400 mt-1">REWARDS &amp; POINTS</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.points.title', '积分乐园')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.points.subtitle', 'REWARDS & POINTS')}</p>
                             </div>
                         </div>
                     </div>
@@ -577,9 +576,9 @@ export default function HomePage() {
                                 <Coins className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
                             <div>
-                                <h3 className="text-lg md:text-xl font-bold text-[#30499B] dark:text-[#56B949]">完成每日任务</h3>
+                                <h3 className="text-lg md:text-xl font-bold text-[#30499B] dark:text-[#56B949]">{t('sections.points.dailyTask', '完成每日任务')}</h3>
                                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                                    今天还需 <span className="text-[#EE4035] font-bold">50</span> 积分即可升级勋章
+                                    {t('sections.points.pointsNeeded', '今天还需 {points} 积分即可升级勋章', { points: 50 })}
                                 </p>
                             </div>
                         </div>
@@ -588,15 +587,15 @@ export default function HomePage() {
                             <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
                                 <Footprints className="w-5 h-5 text-[#56B949]" />
                                 <div>
-                                    <div className="text-xs text-slate-400">步行打卡</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">+10 积分</div>
+                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.walking', '步行打卡')}</div>
+                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.walkingPoints', '+10 积分')}</div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
                                 <Trash className="w-5 h-5 text-[#30499B]" />
                                 <div>
-                                    <div className="text-xs text-slate-400">垃圾分类</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">+20 积分</div>
+                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.sorting', '垃圾分类')}</div>
+                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.sortingPoints', '+20 积分')}</div>
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,18 +18,20 @@ import {
     Recycle,
     Droplets,
     Sun,
-    Leaf
+    Leaf,
+    MessageCircle
 } from 'lucide-react';
 import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 import { contentApi, interactionApi } from '@/lib/api';
 import type { ContentDetail, ContentItem, Comment } from '@/lib/api/content';
 
 export default function ScienceArticleDetailPage() {
-    const { user, isLoggedIn } = useAuth();
     const router = useRouter();
     const params = useParams();
     const articleId = params.id as string;
-    const locale = params.locale as string;
+    const locale = params.locale as string || 'zh';
+    const { t } = useSafeTranslation('article');
+    const { user, isLoggedIn } = useAuth();
 
     // 状态管理
     const [article, setArticle] = useState<ContentDetail | null>(null);
@@ -149,7 +151,7 @@ export default function ScienceArticleDetailPage() {
             });
         } else {
             navigator.clipboard.writeText(window.location.href);
-            alert('链接已复制到剪贴板');
+            alert(t('content.linkCopied', '链接已复制到剪贴板'));
         }
     };
 
@@ -217,7 +219,7 @@ export default function ScienceArticleDetailPage() {
                 variants={pageEnter}
                 className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
             >
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="flex items-center gap-4 mb-6">
                         <button
                             onClick={handleBack}
@@ -225,10 +227,65 @@ export default function ScienceArticleDetailPage() {
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">环保科普</h1>
-                            <p className="text-slate-600">深入了解环保知识</p>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                                {getCategoryIcon(article.category)}
+                                <span className="text-sm text-[#30499B] font-medium">{getCategoryName(article.category)}</span>
+                            </div>
+                            <h1 className="text-2xl md:text-3xl font-serif font-semibold text-[#30499B] leading-tight">
+                                {article.title}
+                            </h1>
                         </div>
+                    </div>
+
+                    {/* Article Meta */}
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 mb-6">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold text-sm">
+                                {article.authorAvatar}
+                            </div>
+                            <span>{article.author}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{article.publishDate}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            <span>{article.views} {locale === 'zh' ? '阅读' : 'views'}</span>
+                        </div>
+                        <span>{article.readTime}</span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleLike}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${isLiked
+                                ? 'border-[#EE4035] bg-[#EE4035]/10 text-[#EE4035]'
+                                : 'border-slate-200 hover:border-[#EE4035] hover:text-[#EE4035]'
+                                }`}
+                        >
+                            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                            <span>{article.likes}</span>
+                        </button>
+                        <button
+                            onClick={handleFavorite}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${isFavorited
+                                ? 'border-[#56B949] bg-[#56B949]/10 text-[#56B949]'
+                                : 'border-slate-200 hover:border-[#56B949] hover:text-[#56B949]'
+                                }`}
+                        >
+                            <BookmarkPlus className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+                            <span>{t('actions.favorite', '收藏')}</span>
+                        </button>
+                        <button
+                            onClick={handleShare}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:border-[#30499B] hover:text-[#30499B] transition-all"
+                        >
+                            <Share2 className="w-4 h-4" />
+                            <span>{t('actions.share', '分享')}</span>
+                        </button>
                     </div>
                 </div>
             </motion.div>
@@ -240,7 +297,7 @@ export default function ScienceArticleDetailPage() {
                 variants={staggerContainer}
                 className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
             >
-                {/* Article Header */}
+                {/* Article Content */}
                 <motion.div
                     variants={staggerItem}
                     className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
@@ -292,8 +349,9 @@ export default function ScienceArticleDetailPage() {
                                 <span>{article.viewCount}</span>
                             </div>
                         </div>
-
-                        <div className="flex gap-2">
+                    ) : (
+                        <div className="mb-6 p-4 bg-slate-50 rounded-lg text-center">
+                            <p className="text-slate-600 mb-3">{t('content.loginToComment', '登录后可以发表评论')}</p>
                             <button
                                 onClick={handleLike}
                                 className={`flex items-center gap-1 px-3 py-1 rounded-lg border transition-colors ${isLiked
@@ -321,17 +379,6 @@ export default function ScienceArticleDetailPage() {
                             </button>
                         </div>
                     </div>
-                </motion.div>
-
-                {/* Article Content */}
-                <motion.div
-                    variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
-                >
-                    <div
-                        className="prose prose-slate prose-lg max-w-none"
-                        dangerouslySetInnerHTML={{ __html: article.content }}
-                    />
                 </motion.div>
 
                 {/* Related Articles */}

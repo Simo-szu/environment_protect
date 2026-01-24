@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
@@ -18,6 +18,8 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animatio
 export default function ProfileEditPage() {
     const { user, isLoggedIn, loading } = useAuth();
     const router = useRouter();
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
 
     const [formData, setFormData] = useState({
         nickname: '',
@@ -28,7 +30,7 @@ export default function ProfileEditPage() {
 
     useEffect(() => {
         if (!loading && !isLoggedIn) {
-            router.replace('/login');
+            router.replace(`/${locale}/login`);
         }
 
         if (user) {
@@ -72,11 +74,11 @@ export default function ProfileEditPage() {
         // 这里应该调用API保存用户信息
         console.log('保存用户信息:', formData);
         // 保存成功后返回个人资料页
-        router.push('/profile');
+        router.push(`/${locale}/profile`);
     };
 
     const handleCancel = () => {
-        router.push('/profile');
+        router.push(`/${locale}/profile`);
     };
 
     return (

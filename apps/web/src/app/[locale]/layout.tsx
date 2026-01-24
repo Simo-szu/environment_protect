@@ -22,8 +22,15 @@ export default async function LocaleLayout({
         notFound();
     }
 
-    // 获取翻译消息
-    const messages = await getMessages();
+    // 安全地获取翻译消息
+    let messages;
+    try {
+        messages = await getMessages();
+    } catch (error) {
+        console.error('Failed to load messages:', error);
+        // 如果翻译加载失败，使用空对象，让组件使用fallback
+        messages = {};
+    }
 
     return (
         <NextIntlClientProvider messages={messages} locale={locale}>
