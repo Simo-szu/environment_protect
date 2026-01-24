@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,9 +18,9 @@ import {
   Droplets,
   Sun
 } from 'lucide-react';
-import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
+import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
-export default function RegisterActivityPage() {
+function RegisterActivityContent() {
   const { user, isLoggedIn, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -353,5 +353,24 @@ export default function RegisterActivityPage() {
         </div>
       </motion.div>
     </Layout>
+  );
+}
+
+export default function RegisterActivityPage() {
+  return (
+    <Suspense fallback={
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+              YL
+            </div>
+            <p className="text-slate-600">加载中...</p>
+          </div>
+        </div>
+      </Layout>
+    }>
+      <RegisterActivityContent />
+    </Suspense>
   );
 }
