@@ -20,8 +20,7 @@ public class EventType {
     // === Interaction 相关事件 ===
     public static final String COMMENT_CREATED = "COMMENT_CREATED";
     public static final String COMMENT_DELETED = "COMMENT_DELETED";
-    public static final String REACTION_CREATED = "REACTION_CREATED";
-    public static final String REACTION_DELETED = "REACTION_DELETED";
+    public static final String REACTION_CHANGED = "REACTION_CHANGED"; // 统一使用REACTION_CHANGED
     
     // === Points 相关事件 ===
     public static final String POINTS_EARNED = "POINTS_EARNED";

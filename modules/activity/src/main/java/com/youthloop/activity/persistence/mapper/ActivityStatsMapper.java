@@ -21,4 +21,9 @@ public interface ActivityStatsMapper {
      * 根据活动 ID 查询统计
      */
     ActivityStatsEntity selectByActivityId(@Param("activityId") UUID activityId);
+    
+    /**
+     * 更新统计记录
+     */
+    int update(ActivityStatsEntity entity);
 }

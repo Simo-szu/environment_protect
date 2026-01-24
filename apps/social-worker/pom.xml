@@ -40,6 +40,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Activity Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-activity</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Points Module -->
         <dependency>
             <groupId>com.youthloop</groupId>

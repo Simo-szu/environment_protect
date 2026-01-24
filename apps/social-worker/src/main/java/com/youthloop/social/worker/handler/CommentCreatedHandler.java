@@ -1,6 +1,7 @@
 package com.youthloop.social.worker.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.youthloop.activity.application.service.ActivityStatsUpdateService;
 import com.youthloop.content.application.service.ContentStatsUpdateService;
 import com.youthloop.event.domain.EventType;
 import com.youthloop.event.domain.payload.CommentCreatedPayload;
@@ -23,7 +24,7 @@ public class CommentCreatedHandler implements EventHandler {
     
     private final ObjectMapper objectMapper;
     private final ContentStatsUpdateService contentStatsUpdateService;
-    // TODO: 添加 ActivityStatsUpdateService
+    private final ActivityStatsUpdateService activityStatsUpdateService;
     // TODO: 添加 NotificationService
     
     @Override
@@ -42,8 +43,7 @@ public class CommentCreatedHandler implements EventHandler {
             contentStatsUpdateService.incrementCommentCount(payload.getTargetId());
         } else if (payload.getTargetType() == 2) {
             // 活动
-            // TODO: activityStatsUpdateService.incrementCommentCount(payload.getTargetId());
-            log.info("活动评论数统计更新（待实现）: activityId={}", payload.getTargetId());
+            activityStatsUpdateService.incrementCommentCount(payload.getTargetId());
         }
         
         // TODO: 如果是回复，创建通知

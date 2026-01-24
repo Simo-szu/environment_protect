@@ -1,6 +1,7 @@
 package com.youthloop.social.worker.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.youthloop.activity.application.service.ActivityStatsUpdateService;
 import com.youthloop.content.application.service.ContentStatsUpdateService;
 import com.youthloop.event.domain.EventType;
 import com.youthloop.event.domain.payload.ReactionChangedPayload;
@@ -22,7 +23,7 @@ public class ReactionChangedHandler implements EventHandler {
     
     private final ObjectMapper objectMapper;
     private final ContentStatsUpdateService contentStatsUpdateService;
-    // TODO: 添加 ActivityStatsUpdateService
+    private final ActivityStatsUpdateService activityStatsUpdateService;
     
     @Override
     public void handle(OutboxEventEntity event) throws Exception {
@@ -48,7 +49,7 @@ public class ReactionChangedHandler implements EventHandler {
     
     @Override
     public String supportedEventType() {
-        return EventType.REACTION_CREATED;
+        return EventType.REACTION_CHANGED; // 修改为REACTION_CHANGED
     }
     
     // === 私有方法 ===
@@ -84,8 +85,32 @@ public class ReactionChangedHandler implements EventHandler {
     }
     
     private void updateActivityStats(ReactionChangedPayload payload) {
-        // TODO: 实现活动统计更新
-        log.info("活动统计更新（待实现）: activityId={}, reactionType={}, action={}", 
-            payload.getTargetId(), payload.getReactionType(), payload.getAction());
+        boolean isCreate = (payload.getAction() == 1);
+        
+        switch (payload.getReactionType()) {
+            case 1: // 点赞
+                if (isCreate) {
+                    activityStatsUpdateService.incrementLikeCount(payload.getTargetId());
+                } else {
+                    activityStatsUpdateService.decrementLikeCount(payload.getTargetId());
+                }
+                break;
+            case 2: // 收藏
+                if (isCreate) {
+                    activityStatsUpdateService.incrementFavCount(payload.getTargetId());
+                } else {
+                    activityStatsUpdateService.decrementFavCount(payload.getTargetId());
+                }
+                break;
+            case 3: // 踩
+                if (isCreate) {
+                    activityStatsUpdateService.incrementDownCount(payload.getTargetId());
+                } else {
+                    activityStatsUpdateService.decrementDownCount(payload.getTargetId());
+                }
+                break;
+            default:
+                log.warn("未知的反应类型: {}", payload.getReactionType());
+        }
     }
 }

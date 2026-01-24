@@ -4,6 +4,8 @@ import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.event.application.service.OutboxEventService;
+import com.youthloop.event.domain.EventType;
+import com.youthloop.event.domain.payload.ReactionChangedPayload;
 import com.youthloop.interaction.api.dto.ToggleReactionRequest;
 import com.youthloop.interaction.persistence.entity.ReactionEntity;
 import com.youthloop.interaction.persistence.mapper.ReactionMapper;
@@ -13,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -70,14 +70,16 @@ public class ReactionService {
         log.info("添加反应成功: id={}", reaction.getId());
         
         // 发布 Outbox 事件（用于更新统计）
-        Map<String, Object> eventPayload = new HashMap<>();
-        eventPayload.put("userId", userId.toString());
-        eventPayload.put("targetType", request.getTargetType());
-        eventPayload.put("targetId", request.getTargetId().toString());
-        eventPayload.put("reactionType", request.getReactionType());
-        eventPayload.put("action", "add");
+        ReactionChangedPayload eventPayload = new ReactionChangedPayload(
+            reaction.getId(),
+            request.getReactionType(),
+            request.getTargetType(),
+            request.getTargetId(),
+            userId,
+            1 // action: 1=创建
+        );
         
-        outboxEventService.publishEvent("REACTION_CHANGED", eventPayload);
+        outboxEventService.publishEvent(EventType.REACTION_CHANGED, eventPayload);
     }
     
     /**
@@ -113,13 +115,15 @@ public class ReactionService {
         log.info("删除反应成功: id={}", existing.getId());
         
         // 发布 Outbox 事件（用于更新统计）
-        Map<String, Object> eventPayload = new HashMap<>();
-        eventPayload.put("userId", userId.toString());
-        eventPayload.put("targetType", request.getTargetType());
-        eventPayload.put("targetId", request.getTargetId().toString());
-        eventPayload.put("reactionType", request.getReactionType());
-        eventPayload.put("action", "remove");
+        ReactionChangedPayload eventPayload = new ReactionChangedPayload(
+            existing.getId(),
+            request.getReactionType(),
+            request.getTargetType(),
+            request.getTargetId(),
+            userId,
+            2 // action: 2=删除
+        );
         
-        outboxEventService.publishEvent("REACTION_CHANGED", eventPayload);
+        outboxEventService.publishEvent(EventType.REACTION_CHANGED, eventPayload);
     }
 }

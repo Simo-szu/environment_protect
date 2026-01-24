@@ -20,4 +20,18 @@
         WHERE activity_id = #{activityId}
     </select>
 
+    <update id="update">
+        UPDATE social.activity_stats
+        <set>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="favCount != null">fav_count = #{favCount},</if>
+            <if test="downCount != null">down_count = #{downCount},</if>
+            <if test="commentCount != null">comment_count = #{commentCount},</if>
+            <if test="hotScore != null">hot_score = #{hotScore},</if>
+            <if test="hotRuleId != null">hot_rule_id = #{hotRuleId}::uuid,</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE activity_id = #{activityId}::uuid
+    </update>
+
 </mapper>
