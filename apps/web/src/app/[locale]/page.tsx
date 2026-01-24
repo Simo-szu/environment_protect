@@ -8,6 +8,7 @@ import { useAuth, showLoginPrompt } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 interface CardData {
     id: string;
@@ -22,41 +23,40 @@ export default function HomePage() {
     const { isLoggedIn } = useAuth();
     const [activeIndex, setActiveIndex] = useState(1);
     const mounted = useClientMounted();
-    // 暂时移除翻译，使用静态文本
-    // const t = useTranslations('home');
+    const { t, locale } = useSafeTranslation('home');
 
     const cardsData: CardData[] = [
         {
             id: 'points',
-            title: '积分·兑换',
-            sub: '累积环保值',
+            title: t('cards.points.title', '积分·兑换'),
+            sub: t('cards.points.subtitle', '累积环保值'),
             color: '#F0A32F',
             icon: Coins,
-            link: '/zh/points'
+            link: `/${locale}/points`
         },
         {
             id: 'game',
-            title: '绿色游戏',
-            sub: '虚拟种植',
+            title: t('cards.game.title', '绿色游戏'),
+            sub: t('cards.game.subtitle', '虚拟种植'),
             color: '#56B949',
             icon: PlayCircle,
-            link: '/zh/game'
+            link: `/${locale}/game`
         },
         {
             id: 'science',
-            title: '权威科普',
-            sub: '科学数据',
+            title: t('cards.science.title', '权威科普'),
+            sub: t('cards.science.subtitle', '科学数据'),
             color: '#30499B',
             icon: Leaf,
-            link: '/zh/science'
+            link: `/${locale}/science`
         },
         {
             id: 'activity',
-            title: '环保活动',
-            sub: '参与行动',
+            title: t('cards.activity.title', '环保活动'),
+            sub: t('cards.activity.subtitle', '参与行动'),
             color: '#EE4035',
             icon: Trees,
-            link: '/zh/activities'
+            link: `/${locale}/activities`
         }
     ];
 
@@ -112,7 +112,7 @@ export default function HomePage() {
         if (!isLoggedIn) {
             showLoginPrompt('请先登录再查看积分');
         } else {
-            window.location.href = '/zh/points';
+            window.location.href = `/${locale}/points`;
         }
     };
 
@@ -128,15 +128,15 @@ export default function HomePage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
                     </span>
-                    全民环保行动季
+                    {t('slogan', '全民环保行动季')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
-                    YOUTH<span className="text-[#56B949] dark:text-[#F0A32F]">LOOP</span>
+                    {t('title', 'YOUTHLOOP')}
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
                     <div className="flex items-center gap-2">
                         <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
-                        <span>让绿色循环，用行动改变未来</span>
+                        <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
                     </div>
                 </div>
             </AnimatedSection>
@@ -172,7 +172,7 @@ export default function HomePage() {
                                         {data.title}
                                     </h3>
                                     <button className="glass-btn px-4 py-1.5 rounded-full text-white text-xs font-medium hover:bg-white/30 transition-colors">
-                                        进入
+                                        {t('enter', '进入')}
                                     </button>
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
                                 </div>
@@ -222,32 +222,32 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">科普资料</h2>
-                                <p className="text-xs text-slate-400 mt-1">TRUSTWORTHY KNOWLEDGE</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.science.title', '科普资料')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.science.subtitle', 'TRUSTWORTHY KNOWLEDGE')}</p>
                             </div>
                         </div>
-                        <Link href="/zh/science" className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            查看全部 -&gt;
+                        <Link href={`/${locale}/science`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                            {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Item 1 */}
                         <AnimatedSection delay={0.2}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                            <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
                                 {mounted && (
                                     <motion.div whileHover={{ y: -4 }}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
                                                 <Leaf className="w-5 h-5" />
                                             </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">GUIDE</span>
+                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">{t('sections.science.items.guide.badge', 'GUIDE')}</span>
                                         </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">2024 可持续生活指南</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。</p>
+                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">{t('sections.science.items.guide.title', '2024 可持续生活指南')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{t('sections.science.items.guide.description', '涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。')}</p>
                                         <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
                                         <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            阅读报告 <ArrowRight className="w-3 h-3" />
+                                            {t('readReport', '阅读报告')} <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </motion.div>
                                 )}
@@ -256,20 +256,20 @@ export default function HomePage() {
 
                         {/* Item 2 */}
                         <AnimatedSection delay={0.3}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                            <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
                                 {mounted && (
                                     <motion.div whileHover={{ y: -4 }}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
                                                 <BarChart3 className="w-5 h-5" />
                                             </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">DATA</span>
+                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">{t('sections.science.items.data.badge', 'DATA')}</span>
                                         </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">全球碳排放最新数据</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">实时更新的全球环境监测数据，可视化图表分析。</p>
+                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">{t('sections.science.items.data.title', '全球碳排放最新数据')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{t('sections.science.items.data.description', '实时更新的全球环境监测数据，可视化图表分析。')}</p>
                                         <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
                                         <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            查看详情 <ArrowRight className="w-3 h-3" />
+                                            {t('viewDetails', '查看详情')} <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </motion.div>
                                 )}
@@ -278,20 +278,20 @@ export default function HomePage() {
 
                         {/* Item 3 */}
                         <AnimatedSection delay={0.4}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                            <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
                                 {mounted && (
                                     <motion.div whileHover={{ y: -4 }}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
                                                 <Trash2 className="w-5 h-5" />
                                             </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">TIPS</span>
+                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">{t('sections.science.items.tips.badge', 'TIPS')}</span>
                                         </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">高效废弃物回收术</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">如何正确分类？哪些可以变废为宝？专家视频讲解。</p>
+                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">{t('sections.science.items.tips.title', '高效废弃物回收术')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{t('sections.science.items.tips.description', '如何正确分类？哪些可以变废为宝？专家视频讲解。')}</p>
                                         <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
                                         <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            立即学习 <ArrowRight className="w-3 h-3" />
+                                            {t('learnNow', '立即学习')} <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </motion.div>
                                 )}
@@ -306,12 +306,12 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#EE4035] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">热门活动</h2>
-                                <p className="text-xs text-slate-400 mt-1">JOIN THE ACTION</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.activities.title', '热门活动')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.activities.subtitle', 'JOIN THE ACTION')}</p>
                             </div>
                         </div>
-                        <Link href="/zh/activities" className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            查看全部 -&gt;
+                        <Link href={`/${locale}/activities`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                            {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
 
@@ -321,16 +321,16 @@ export default function HomePage() {
                             <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
                                 {mounted && (
                                     <motion.div whileHover={{ y: -4 }}>
-                                        <div className="absolute top-3 left-3 z-10 bg-[#EE4035] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">HOT</div>
+                                        <div className="absolute top-3 left-3 z-10 bg-[#EE4035] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">{t('sections.activities.items.treePlanting.badge', 'HOT')}</div>
                                         <div className="h-32 bg-[#F0A32F]/10 dark:bg-[#F0A32F]/20 flex items-center justify-center relative overflow-hidden">
                                             <div className="absolute -right-4 -top-4 w-20 h-20 bg-[#EE4035]/10 rounded-full"></div>
                                             <Trees className="w-12 h-12 text-[#F0A32F]/60 transform group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">城市植树节</h3>
-                                            <p className="text-xs text-slate-400 mb-4">2024.05.12 · 城市公园</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#EE4035] text-[#EE4035] text-sm font-medium hover:bg-[#EE4035] hover:text-white transition-all active:scale-95">立即报名</button>
+                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">{t('sections.activities.items.treePlanting.title', '城市植树节')}</h3>
+                                            <p className="text-xs text-slate-400 mb-4">{t('sections.activities.items.treePlanting.date', '2024.05.12 · 城市公园')}</p>
+                                            <Link href={`/${locale}/activities`}>
+                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#EE4035] text-[#EE4035] text-sm font-medium hover:bg-[#EE4035] hover:text-white transition-all active:scale-95">{t('signUpNow', '立即报名')}</button>
                                             </Link>
                                         </div>
                                     </motion.div>
@@ -347,10 +347,10 @@ export default function HomePage() {
                                             <Waves className="w-12 h-12 text-[#30499B]/60 transform group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">海滩净滩行动</h3>
-                                            <p className="text-xs text-slate-400 mb-4">2024.06.05 · 阳光海滩</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-[#30499B] text-white text-sm font-medium hover:bg-[#253a7a] transition-all shadow-lg shadow-[#30499B]/20 active:scale-95">一键参加</button>
+                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">{t('sections.activities.items.beachCleanup.title', '海滩净滩行动')}</h3>
+                                            <p className="text-xs text-slate-400 mb-4">{t('sections.activities.items.beachCleanup.date', '2024.06.05 · 阳光海滩')}</p>
+                                            <Link href={`/${locale}/activities`}>
+                                                <button className="w-full py-2 rounded-lg bg-[#30499B] text-white text-sm font-medium hover:bg-[#253a7a] transition-all shadow-lg shadow-[#30499B]/20 active:scale-95">{t('joinNow', '一键参加')}</button>
                                             </Link>
                                         </div>
                                     </motion.div>
@@ -367,10 +367,10 @@ export default function HomePage() {
                                             <Recycle className="w-12 h-12 text-[#56B949]/60 transform group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">社区旧物交换</h3>
-                                            <p className="text-xs text-slate-400 mb-4">每周六 · 社区中心</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#56B949] text-[#56B949] text-sm font-medium hover:bg-[#56B949] hover:text-white transition-all active:scale-95">查看详情</button>
+                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">{t('sections.activities.items.communityExchange.title', '社区旧物交换')}</h3>
+                                            <p className="text-xs text-slate-400 mb-4">{t('sections.activities.items.communityExchange.date', '每周六 · 社区中心')}</p>
+                                            <Link href={`/${locale}/activities`}>
+                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#56B949] text-[#56B949] text-sm font-medium hover:bg-[#56B949] hover:text-white transition-all active:scale-95">{t('viewContent', '查看详情')}</button>
                                             </Link>
                                         </div>
                                     </motion.div>
@@ -392,21 +392,21 @@ export default function HomePage() {
                                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
                                     <div className="text-center md:text-left">
                                         <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium mb-4 border border-white/30">
-                                            INTERACTIVE GAME
+                                            {t('sections.game.badge', 'INTERACTIVE GAME')}
                                         </span>
                                         <h3 className="text-3xl md:text-4xl text-white font-serif font-medium mb-3">
-                                            开启你的绿色探索之旅
+                                            {t('sections.game.title', '开启你的绿色探索之旅')}
                                         </h3>
                                         <p className="text-white/80 text-sm md:text-base max-w-md mx-auto md:mx-0">
-                                            在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。
+                                            {t('sections.game.subtitle', '在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。')}
                                         </p>
                                     </div>
 
                                     {/* Main Button */}
-                                    <Link href="/zh/game">
+                                    <Link href={`/${locale}/game`}>
                                         <button className="flex-shrink-0 relative overflow-hidden bg-white text-[#56B949] hover:text-[#30499B] px-8 py-3 rounded-xl text-lg font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95">
                                             <span className="flex items-center gap-2">
-                                                开始游戏
+                                                {t('sections.game.button', '开始游戏')}
                                                 <PlayCircle className="w-5 h-5" />
                                             </span>
                                         </button>
@@ -423,8 +423,8 @@ export default function HomePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-8 bg-[#F0A32F] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">积分乐园</h2>
-                                <p className="text-xs text-slate-400 mt-1">REWARDS &amp; POINTS</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.points.title', '积分乐园')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('sections.points.subtitle', 'REWARDS & POINTS')}</p>
                             </div>
                         </div>
                     </div>
@@ -441,9 +441,9 @@ export default function HomePage() {
                                 <Coins className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
                             <div>
-                                <h3 className="text-lg md:text-xl font-bold text-[#30499B] dark:text-[#56B949]">完成每日任务</h3>
+                                <h3 className="text-lg md:text-xl font-bold text-[#30499B] dark:text-[#56B949]">{t('sections.points.dailyTask', '完成每日任务')}</h3>
                                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                                    今天还需 <span className="text-[#EE4035] font-bold">50</span> 积分即可升级勋章
+                                    {t('sections.points.pointsNeeded', '今天还需 {points} 积分即可升级勋章', { points: 50 })}
                                 </p>
                             </div>
                         </div>
@@ -452,15 +452,15 @@ export default function HomePage() {
                             <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
                                 <Footprints className="w-5 h-5 text-[#56B949]" />
                                 <div>
-                                    <div className="text-xs text-slate-400">步行打卡</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">+10 积分</div>
+                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.walking', '步行打卡')}</div>
+                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.walkingPoints', '+10 积分')}</div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
                                 <Trash className="w-5 h-5 text-[#30499B]" />
                                 <div>
-                                    <div className="text-xs text-slate-400">垃圾分类</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">+20 积分</div>
+                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.sorting', '垃圾分类')}</div>
+                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.sortingPoints', '+20 积分')}</div>
                                 </div>
                             </div>
                         </div>

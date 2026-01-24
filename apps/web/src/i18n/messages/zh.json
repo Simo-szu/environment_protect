@@ -32,12 +32,23 @@
         "likes": "我的点赞",
         "login": "登录",
         "register": "注册",
-        "logout": "退出登录"
+        "logout": "退出登录",
+        "toggleMenu": "切换菜单",
+        "searchPlaceholder": "搜索...",
+        "userId": "用户ID"
     },
     "home": {
         "title": "YOUTHLOOP",
         "subtitle": "让绿色循环，用行动改变未来",
         "slogan": "全民环保行动季",
+        "enter": "进入",
+        "viewAll": "查看全部",
+        "readReport": "阅读报告",
+        "viewDetails": "查看详情",
+        "learnNow": "立即学习",
+        "signUpNow": "立即报名",
+        "joinNow": "一键参加",
+        "viewContent": "查看详情",
         "cards": {
             "points": {
                 "title": "积分·兑换",
@@ -59,26 +70,296 @@
         "sections": {
             "science": {
                 "title": "科普资料",
-                "subtitle": "TRUSTWORTHY KNOWLEDGE"
+                "subtitle": "TRUSTWORTHY KNOWLEDGE",
+                "items": {
+                    "guide": {
+                        "title": "2024 可持续生活指南",
+                        "description": "涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。",
+                        "badge": "GUIDE"
+                    },
+                    "data": {
+                        "title": "全球碳排放最新数据",
+                        "description": "实时更新的全球环境监测数据，可视化图表分析。",
+                        "badge": "DATA"
+                    },
+                    "tips": {
+                        "title": "高效废弃物回收术",
+                        "description": "如何正确分类？哪些可以变废为宝？专家视频讲解。",
+                        "badge": "TIPS"
+                    }
+                }
             },
             "activities": {
                 "title": "热门活动",
-                "subtitle": "JOIN THE ACTION"
+                "subtitle": "JOIN THE ACTION",
+                "items": {
+                    "treePlanting": {
+                        "title": "城市植树节",
+                        "date": "2024.05.12 · 城市公园",
+                        "badge": "HOT"
+                    },
+                    "beachCleanup": {
+                        "title": "海滩净滩行动",
+                        "date": "2024.06.05 · 阳光海滩"
+                    },
+                    "communityExchange": {
+                        "title": "社区旧物交换",
+                        "date": "每周六 · 社区中心"
+                    }
+                }
             },
             "game": {
                 "title": "开启你的绿色探索之旅",
                 "subtitle": "在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。",
-                "button": "开始游戏"
+                "button": "开始游戏",
+                "badge": "INTERACTIVE GAME"
             },
             "points": {
                 "title": "积分乐园",
                 "subtitle": "REWARDS & POINTS",
                 "dailyTask": "完成每日任务",
-                "pointsNeeded": "今天还需 {points} 积分即可升级勋章"
+                "pointsNeeded": "今天还需 {points} 积分即可升级勋章",
+                "tasks": {
+                    "walking": "步行打卡",
+                    "walkingPoints": "+10 积分",
+                    "sorting": "垃圾分类",
+                    "sortingPoints": "+20 积分"
+                }
             }
         }
     },
+    "activities": {
+        "title": "环保活动",
+        "subtitle": "参与绿色行动",
+        "description": "参与各种环保活动，为可持续未来贡献力量",
+        "cards": {
+            "popular": {
+                "title": "热门活动",
+                "subtitle": "最受欢迎的环保行动"
+            },
+            "myActivities": {
+                "title": "我的活动",
+                "center": "中心",
+                "action": "查看报名"
+            },
+            "create": {
+                "title": "创建活动",
+                "subtitle": "组织您的环保活动"
+            }
+        },
+        "filters": {
+            "title": "分类",
+            "all": "全部",
+            "market": "环保市集",
+            "planting": "植树造林",
+            "sorting": "垃圾分类"
+        },
+        "stats": {
+            "title": "活动统计",
+            "monthlyActivities": "月度活动",
+            "participants": "参与人数",
+            "myRegistrations": "我的报名"
+        },
+        "categories": {
+            "title": "热门分类",
+            "planting": "植树造林",
+            "beachCleanup": "海滩清洁",
+            "recycling": "回收利用"
+        },
+        "create": {
+            "title": "创建活动",
+            "subtitle": "创建新的环保活动",
+            "loading": "加载中...",
+            "form": {
+                "title": "活动标题",
+                "titlePlaceholder": "请输入活动标题",
+                "type": "活动类型",
+                "types": {
+                    "tree": "植树造林",
+                    "recycle": "回收利用",
+                    "water": "节水保护",
+                    "energy": "清洁能源"
+                },
+                "description": "活动描述",
+                "descriptionPlaceholder": "描述活动内容、目标和意义...",
+                "date": "活动日期",
+                "time": "活动时间",
+                "maxParticipants": "最大参与人数",
+                "maxParticipantsPlaceholder": "留空表示不限制",
+                "location": "活动地点",
+                "locationPlaceholder": "请输入详细地址",
+                "requirements": "参与要求",
+                "requirementsPlaceholder": "描述参与者需要准备什么或满足什么条件...",
+                "contact": "联系信息",
+                "contactPlaceholder": "请输入电话号码或微信号",
+                "image": "活动图片",
+                "imageUpload": "点击上传活动图片",
+                "imageSupport": "支持JPG、PNG格式，最大5MB",
+                "publish": "发布活动",
+                "cancel": "取消"
+            }
+        },
+        "register": {
+            "title": "活动报名",
+            "subtitle": "填写报名信息参与活动",
+            "loading": "加载中...",
+            "mockActivity": {
+                "title": "城市绿洲：周末社区花园种植计划",
+                "description": "加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。",
+                "date": "2024年5月20日",
+                "location": "市中心公园东门集合",
+                "organizer": "绿色生活协会",
+                "requirements": "请穿着适合户外活动的服装，自备水杯和防晒用品",
+                "contactInfo": "联系人：张老师 13800138000"
+            },
+            "activityInfo": {
+                "title": "活动信息",
+                "participants": "人",
+                "organizer": "主办方"
+            },
+            "form": {
+                "title": "报名信息",
+                "name": "姓名",
+                "namePlaceholder": "请输入真实姓名",
+                "phone": "联系电话",
+                "phonePlaceholder": "请输入手机号码",
+                "email": "邮箱地址",
+                "emailPlaceholder": "请输入邮箱地址",
+                "emergencyContact": "紧急联系人",
+                "emergencyContactPlaceholder": "紧急联系人姓名",
+                "emergencyPhone": "紧急联系电话",
+                "emergencyPhonePlaceholder": "紧急联系人电话",
+                "specialRequirements": "特殊需求或备注",
+                "specialRequirementsPlaceholder": "如有特殊需求或其他需要说明的情况，请在此填写...",
+                "activityRequirements": "活动要求",
+                "agreementText": "我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。",
+                "agreementNote": "参与活动期间请遵守组织方安排，注意人身安全。",
+                "agreementRequired": "请先同意活动协议",
+                "submitSuccess": "报名成功！",
+                "submit": "确认报名"
+            }
+        },
+        "detail": {
+            "title": "活动详情",
+            "subtitle": "了解活动详情并报名",
+            "date": "日期",
+            "time": "时间",
+            "location": "地点",
+            "participants": "参与者",
+            "detailsTitle": "活动详情",
+            "requirements": "参与要求",
+            "register": "立即报名",
+            "loginToRegister": "登录后报名",
+            "spotsLeft": "个名额",
+            "registered": "已报名",
+            "totalSpots": "总名额",
+            "organizerInfo": "组织者信息",
+            "organization": "环保组织",
+            "linkCopied": "链接已复制到剪贴板"
+        },
+        "status": {
+            "registering": "正在报名",
+            "upcoming": "即将开始",
+            "ended": "报名结束"
+        },
+        "actions": {
+            "register": "一键报名",
+            "viewDetails": "了解详情",
+            "oneClickRegister": "一键报名"
+        }
+    },
+    "science": {
+        "title": "科普中心",
+        "subtitle": "权威环保知识",
+        "description": "探索最新的环境科学研究和数据",
+        "categories": {
+            "all": "全部分类",
+            "climate": "气候变化",
+            "energy": "可再生能源",
+            "waste": "废物管理",
+            "biodiversity": "生物多样性"
+        },
+        "hero": {
+            "badge": "环境科学知识库",
+            "title": "科学环保",
+            "subtitle": "以科学为指导，让环保更有效"
+        },
+        "tips": {
+            "title": "环保小贴士",
+            "subtitle": "ECO TIPS",
+            "waterSaving": {
+                "title": "节水小窍门",
+                "description": "洗菜水可以浇花，洗衣水可以拖地。每一滴水的多重利用，最大化水资源价值。"
+            },
+            "wasteSorting": {
+                "title": "垃圾分类指南",
+                "description": "正确的垃圾分类不仅能减少环境污染，还能实现资源的有效回收利用。"
+            },
+            "energySaving": {
+                "title": "节能小技巧",
+                "description": "随手关灯、使用节能电器、选择公共交通。小行动，大影响。"
+            }
+        },
+        "news": {
+            "title": "环保资讯",
+            "subtitle": "环保资讯",
+            "articles": {
+                "greenTech": {
+                    "title": "绿色科技：未来城市的可持续能源解决方案",
+                    "description": "随着全球变暖加剧，如何将更多绿色科技融入城市发展成为关键议题。本文探讨最新太阳能板技术、风能利用以及智能电网在现代城市中的应用..."
+                },
+                "oceanPlastic": {
+                    "title": "海洋塑料污染：不仅仅是吸管的问题",
+                    "description": "每年有数百万吨塑料垃圾流入海洋，威胁海洋生物。这份深度报告将帮助您了解微塑料的危害，以及各国正在采取的清理行动和减塑政策..."
+                },
+                "evBattery": {
+                    "title": "电动汽车：您需要了解的电池回收知识",
+                    "description": "随着电动汽车的普及，废旧电池的处理成为新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术..."
+                }
+            }
+        },
+        "actions": {
+            "learnMore": "了解更多",
+            "viewAll": "查看全部",
+            "readFull": "阅读全文"
+        }
+    },
+    "article": {
+        "meta": {
+            "author": "作者",
+            "publishDate": "发布日期",
+            "readTime": "阅读时间",
+            "views": "阅读量",
+            "category": "分类"
+        },
+        "actions": {
+            "back": "返回",
+            "like": "点赞",
+            "favorite": "收藏",
+            "share": "分享",
+            "comment": "评论",
+            "login": "登录",
+            "reply": "回复"
+        },
+        "content": {
+            "relatedArticles": "相关文章",
+            "comments": "评论",
+            "writeComment": "写下你的想法...",
+            "postComment": "发表评论",
+            "loginToComment": "登录后可以发表评论",
+            "loginNow": "立即登录",
+            "linkCopied": "链接已复制到剪贴板"
+        },
+        "categories": {
+            "climate": "气候变化",
+            "energy": "可再生能源",
+            "water": "水资源保护",
+            "waste": "废物管理",
+            "biodiversity": "生物多样性"
+        }
+    },
     "notifications": {
+        "badge": "消息通知",
         "title": "消息中心",
         "subtitle": "回复和互动",
         "description": "查看其他用户对您内容的回复和互动",
@@ -117,7 +398,68 @@
         },
         "replyPlaceholder": "输入你的回复...",
         "replySupport": "支持表情和@提醒",
-        "sendReply": "发送回复"
+        "sendReply": "发送回复",
+        "mockData": {
+            "users": {
+                "user1": "李环保达人",
+                "user2": "王小绿",
+                "user3": "张环保志愿者",
+                "user4": "陈小环",
+                "user5": "刘绿色生活"
+            },
+            "contents": {
+                "content1": "非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。",
+                "content2": "你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。",
+                "content3": "看到你在环保方面的分享很有价值，希望能互相学习交流！",
+                "content4": "感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。",
+                "content5": "很棒的环保活动分享！希望有机会也能参与这样的活动。"
+            },
+            "originalContents": {
+                "original1": "我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...",
+                "original2": "垃圾分类小知识 - 让环保从细节做起",
+                "original3": "家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...",
+                "original4": "参与社区植树活动的感想",
+                "original5": "环保相关的原始内容..."
+            },
+            "timestamps": {
+                "hoursAgo": "小时前",
+                "daysAgo": "天前"
+            },
+            "randomContents": {
+                "content1": "你的环保理念很棒，学到了很多！",
+                "content2": "这个方法我试过，确实很有效果。",
+                "content3": "感谢分享，对我很有启发。",
+                "content4": "希望能和你一起参与更多环保活动。",
+                "content5": "你的分享让我对环保有了新的认识。",
+                "content6": "这些小贴士太实用了，已经开始实践。",
+                "content7": "非常认同你的观点，环保需要大家一起努力。",
+                "content8": "你的经验分享很有价值，谢谢！"
+            },
+            "randomNames": {
+                "name1": "赵环保",
+                "name2": "钱绿色",
+                "name3": "孙节能",
+                "name4": "李减排",
+                "name5": "周循环",
+                "name6": "吴低碳",
+                "name7": "郑清洁",
+                "name8": "王可持续",
+                "name9": "冯生态",
+                "name10": "陈绿化"
+            }
+        },
+        "messages": {
+            "markAsReadAlert": "标记为已读功能需要后端支持",
+            "replyEmptyAlert": "请输入回复内容",
+            "replySuccessAlert": "回复发送成功！",
+            "likeAlert": "点赞功能需要后端支持",
+            "followAlert": "关注功能需要后端支持",
+            "loginRequired": "请先登录查看消息通知",
+            "goLogin": "去登录",
+            "loading": "加载中...",
+            "originalComment": "你的原评论：",
+            "originalShare": "你的原分享："
+        }
     },
     "myActivities": {
         "title": "活动管理",
@@ -168,8 +510,463 @@
             "pointsEarned": "获得积分"
         }
     },
+    "profile": {
+        "loading": "加载中...",
+        "title": "个人资料",
+        "subtitle": "个人信息",
+        "description": "管理你的个人信息和偏好设置",
+        "badge": "个人资料",
+        "info": {
+            "gender": "性别",
+            "location": "家乡",
+            "points": "环保积分",
+            "level": "环保等级",
+            "bio": "个人简介",
+            "male": "男",
+            "female": "女",
+            "other": "其他",
+            "defaultLocation": "广东省",
+            "pointsUnit": "分",
+            "levelTitle": "环保达人",
+            "defaultBio": "热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。"
+        },
+        "actions": {
+            "editProfile": "编辑资料",
+            "logout": "退出登录"
+        },
+        "quickActions": {
+            "likes": "我的点赞",
+            "favorites": "我的收藏",
+            "activities": "我的活动",
+            "points": "我的积分"
+        },
+        "recentActivities": {
+            "title": "最近动态",
+            "lowCarbonChallenge": "完成了一次「低碳出行」挑战"
+        },
+        "recentLikes": {
+            "title": "最近点赞",
+            "viewAll": "查看全部",
+            "articleType": "科普文章",
+            "articleTitle": "环保小贴士分享",
+            "articleDesc": "分享一些日常生活中的环保小技巧...",
+            "likedDaysAgo": "2天前点赞",
+            "activityType": "环保活动",
+            "activityTitle": "城市绿洲种植计划",
+            "activityDesc": "加入我们在市中心创建绿色角落...",
+            "liked5DaysAgo": "5天前点赞",
+            "commentType": "评论互动",
+            "commentTitle": "张小明的评论",
+            "commentDesc": "非常赞同你的观点！环保确实需要...",
+            "liked1WeekAgo": "1周前点赞"
+        },
+        "recentFavorites": {
+            "title": "最近收藏",
+            "viewAll": "查看全部",
+            "articleType": "科普文章",
+            "articleTitle": "节约用水小妙招",
+            "articleDesc": "洗菜水可以浇花，洗衣水可以拖地，一水多用...",
+            "favorited3DaysAgo": "3天前收藏",
+            "activityType": "环保活动",
+            "activityTitle": "旧物新生DIY工作坊",
+            "activityDesc": "学习如何将废弃物品变废为宝...",
+            "favorited1WeekAgo": "1周前收藏"
+        }
+    },
+    "favorites": {
+        "loading": "加载中...",
+        "badge": "我的收藏",
+        "title": "我的收藏",
+        "subtitle": "收藏内容",
+        "description": "这里保存了你收藏的所有内容",
+        "tabs": {
+            "articles": "科普文章",
+            "activities": "环保活动"
+        },
+        "empty": {
+            "articles": "暂无收藏文章",
+            "activities": "暂无收藏活动"
+        },
+        "content": {
+            "favorited": "已收藏",
+            "articles": {
+                "title": "环保文章",
+                "description": "这是一篇关于环保的文章，介绍了各种环保知识和技巧...",
+                "favoritedDaysAgo": "天前收藏"
+            },
+            "activities": {
+                "title": "环保活动",
+                "description": "这是一个很有意义的环保活动，欢迎大家参与...",
+                "location": "市中心公园",
+                "favoritedDaysAgo": "天前收藏",
+                "treeActivity": "植树活动",
+                "ecoActivity": "环保DIY"
+            }
+        }
+    },
+    "likes": {
+        "loading": "加载中...",
+        "badge": "我的点赞",
+        "title": "我的点赞",
+        "subtitle": "点赞内容",
+        "description": "这里记录了你点赞过的所有内容",
+        "tabs": {
+            "articles": "科普文章",
+            "activities": "环保活动",
+            "comments": "评论互动"
+        },
+        "empty": {
+            "articles": "暂无点赞文章",
+            "activities": "暂无点赞活动",
+            "comments": "暂无点赞评论"
+        },
+        "content": {
+            "articles": {
+                "title": "点赞文章",
+                "description": "这是一篇很棒的环保文章，获得了很多点赞...",
+                "likedDaysAgo": "天前点赞"
+            },
+            "activities": {
+                "title": "点赞活动",
+                "description": "这是一个很受欢迎的环保活动，获得了很多支持...",
+                "location": "市中心公园",
+                "likedDaysAgo": "天前点赞",
+                "treeActivity": "植树活动",
+                "ecoActivity": "环保DIY"
+            },
+            "comments": {
+                "author": "用户",
+                "content": "这是一条很有见地的评论，值得点赞支持...",
+                "likedDaysAgo": "天前点赞",
+                "youLiked": "你点赞了这条评论"
+            }
+        }
+    },
     "pagination": {
         "previous": "上一页",
         "next": "下一页"
+    },
+    "contact": {
+        "title": "联系我们",
+        "badge": "联系我们",
+        "description": "有任何问题或建议？我们很乐意听到您的声音。选择最适合您的联系方式，我们会尽快回复。"
+    },
+    "help": {
+        "title": "帮助中心",
+        "badge": "帮助支持",
+        "description": "欢迎来到YouthLoop帮助中心！这里有您需要的所有信息和支持。如果找不到答案，请随时联系我们的客服团队。"
+    },
+    "privacy": {
+        "title": "隐私政策",
+        "badge": "隐私保护",
+        "lastUpdated": "最后更新时间：2024年1月"
+    },
+    "terms": {
+        "title": "用户服务协议",
+        "badge": "法律条款",
+        "lastUpdated": "最后更新时间：2024年1月",
+        "content": {
+            "section1": {
+                "title": "1. 服务条款的接受",
+                "content": "欢迎使用YouthLoop环保平台！当您注册、访问或使用我们的服务时，即表示您同意遵守本用户服务协议的所有条款和条件。"
+            },
+            "section2": {
+                "title": "2. 服务描述",
+                "content": "YouthLoop是一个致力于环保教育和行动的在线平台，我们提供环保知识科普、活动组织、用户互动和积分奖励等服务。"
+            },
+            "section3": {
+                "title": "3. 用户责任",
+                "content": "用户需要提供准确的注册信息，保护账户安全，并遵守平台的使用规范。"
+            },
+            "section4": {
+                "title": "4. 联系我们",
+                "content": "如果您对本协议有任何疑问，请通过以下方式联系我们："
+            },
+            "contact": {
+                "email": "邮箱：legal@youthloop.org",
+                "phone": "电话：400-123-4567",
+                "address": "地址：北京市朝阳区环保大厦"
+            }
+        }
+    },
+    "privacy": {
+        "title": "隐私政策",
+        "badge": "隐私保护",
+        "lastUpdated": "最后更新时间：2024年1月",
+        "content": {
+            "section1": {
+                "title": "1. 引言",
+                "content": "YouthLoop（以下简称\"我们\"）非常重视用户的隐私保护。本隐私政策说明了我们如何收集、使用、存储和保护您的个人信息。使用我们的服务即表示您同意本隐私政策的条款。"
+            },
+            "section2": {
+                "title": "2. 我们收集的信息",
+                "content": "我们收集您主动提供的信息以及自动收集的使用数据，以便为您提供更好的服务。"
+            },
+            "section3": {
+                "title": "3. 信息使用目的",
+                "content": "我们使用收集的信息来提供、维护和改进我们的服务，处理您的账户管理，组织环保活动等。"
+            },
+            "section4": {
+                "title": "4. 联系我们",
+                "content": "如果您对本隐私政策有任何疑问，请联系我们："
+            },
+            "contact": {
+                "email": "邮箱：privacy@youthloop.org",
+                "phone": "电话：400-123-4567",
+                "address": "地址：北京市朝阳区环保大厦"
+            }
+        }
+    },
+    "contact": {
+        "title": "联系我们",
+        "badge": "联系我们",
+        "description": "有任何问题或建议？我们很乐意听到您的声音。选择最适合您的联系方式，我们会尽快回复。",
+        "success": {
+            "title": "消息发送成功！",
+            "message": "感谢您的联系，我们会在24小时内回复您的消息。",
+            "backHome": "返回首页",
+            "continueContact": "继续联系"
+        },
+        "contactInfo": {
+            "title": "联系方式",
+            "phone": {
+                "title": "客服热线",
+                "number": "400-123-4567",
+                "hours": "工作日 9:00-18:00"
+            },
+            "email": {
+                "title": "邮箱地址",
+                "address": "contact@youthloop.org",
+                "response": "24小时内回复"
+            },
+            "address": {
+                "title": "办公地址",
+                "location": "北京市朝阳区环保大厦",
+                "postal": "邮编：100020"
+            },
+            "hours": {
+                "title": "服务时间",
+                "days": "周一至周日",
+                "support": "7×24小时在线支持"
+            }
+        },
+        "about": {
+            "slogan": "让绿色循环，用行动改变未来",
+            "users": "10万+用户",
+            "coverage": "全国服务",
+            "mission": "环保使命"
+        },
+        "form": {
+            "title": "发送消息",
+            "name": {
+                "label": "姓名",
+                "placeholder": "请输入您的姓名"
+            },
+            "email": {
+                "label": "邮箱",
+                "placeholder": "请输入您的邮箱"
+            },
+            "phone": {
+                "label": "电话",
+                "placeholder": "请输入您的电话"
+            },
+            "subject": {
+                "label": "主题",
+                "placeholder": "请选择主题",
+                "options": {
+                    "general": "一般咨询",
+                    "activity": "活动相关",
+                    "technical": "技术支持",
+                    "partnership": "合作洽谈",
+                    "feedback": "意见反馈",
+                    "other": "其他"
+                }
+            },
+            "message": {
+                "label": "消息内容",
+                "placeholder": "请详细描述您的问题或需求..."
+            },
+            "submit": "发送消息",
+            "cancel": "取消"
+        },
+        "quickLinks": {
+            "help": {
+                "title": "帮助中心",
+                "description": "常见问题解答"
+            },
+            "feedback": {
+                "title": "意见反馈",
+                "description": "提交建议"
+            },
+            "emergency": {
+                "title": "紧急联系",
+                "phone": "400-123-4567"
+            }
+        }
+    },
+    "feedback": {
+        "title": "意见反馈",
+        "badge": "用户反馈",
+        "description": "您的意见对我们非常重要！请告诉我们您的想法，帮助我们改进YouthLoop，为更多用户提供更好的环保体验。"
+    },
+    "footer": {
+        "terms": "服务协议",
+        "privacy": "隐私政策",
+        "contact": "联系我们",
+        "copyright": "© 2024 YouthLoop. 让绿色循环，用行动改变未来",
+        "description": "让绿色循环，用行动改变未来。加入我们，一起为地球环保贡献力量。",
+        "quickNav": "快速导航",
+        "home": "首页",
+        "science": "环保科普",
+        "activities": "活动广场",
+        "points": "积分中心",
+        "game": "环保游戏",
+        "userService": "用户服务",
+        "profile": "个人中心",
+        "myActivities": "我的活动",
+        "favorites": "我的收藏",
+        "likes": "我的点赞",
+        "editProfile": "修改资料",
+        "helpSupport": "帮助与支持",
+        "help": "帮助中心",
+        "feedback": "意见反馈",
+        "address": "北京市朝阳区环保大厦",
+        "copyrightFull": "© 2024 YouthLoop. 保留所有权利",
+        "slogan": "让绿色循环，用行动改变未来",
+        "icp": "ICP备案号：京ICP备2024000001号",
+        "police": "京公网安备 11010502000001号"
+    },
+    "points": {
+        "badge": "积分奖励系统",
+        "title": "积分",
+        "paradise": "乐园",
+        "subtitle": {
+            "complete": "完成",
+            "tasks": "任务",
+            "earnPoints": "赚积分，",
+            "use": "用",
+            "action": "行动",
+            "getRewards": "换奖励"
+        },
+        "level": "Lv.3 绿色见习者",
+        "points": "积分",
+        "progress": {
+            "current": "当前进度",
+            "nextBadge": "距离下一个徽章还差",
+            "points": "积分"
+        },
+        "exchangeStore": "兑换商城",
+        "pointsHistory": "积分记录",
+        "signInCalendar": "签到日历",
+        "currentMonth": "2024年5月",
+        "calendar": {
+            "signIn": "签到",
+            "signedIn": "已签到 +5",
+            "clickToSignIn": "点击签到",
+            "signedDays": "已签到",
+            "days": "天",
+            "consecutiveDays": "连续签到",
+            "missedDays": "已漏签"
+        },
+        "dailyTasks": "每日任务",
+        "tasksRemaining": "今日剩余",
+        "tasks": {
+            "readArticle": "浏览\"保护动物\"文章",
+            "points10": "+10 积分",
+            "publishArticle": "发布\"垃圾分类\"文章",
+            "completed": "已完成",
+            "commentArticle": "评论精选文章",
+            "rewardPending": "奖励待领取",
+            "claim": "领取",
+            "shareToFriends": "分享给好友",
+            "points50": "+50 积分",
+            "goComplete": "去完成"
+        },
+        "dailyQuiz": "每日问答",
+        "answerForPoints": "答对得积分",
+        "refreshLimit": "每日可刷新",
+        "times": "次",
+        "remaining": "次剩余",
+        "quiz": {
+            "correctAnswer": "✓ 回答正确！",
+            "wrongAnswer": "✗ 回答错误",
+            "wrongAnswerWithCorrect": "✗ 回答错误，正确答案是",
+            "enterNumber": "请输入数字",
+            "set1": {
+                "q1": {
+                    "question": "哪种垃圾属于可回收垃圾？",
+                    "optionA": "A. 废纸",
+                    "optionB": "B. 电池"
+                },
+                "q2": {
+                    "question": "一个塑料瓶完全分解需要多少年？"
+                },
+                "q3": {
+                    "question": "以下哪项不是节能减排的方法？",
+                    "optionA": "A. 使用LED灯泡",
+                    "optionB": "B. 长时间开空调"
+                }
+            },
+            "set2": {
+                "q1": {
+                    "question": "微塑料污染主要来源于哪里？",
+                    "optionA": "A. 轮胎磨损颗粒",
+                    "optionB": "B. 天然橡胶"
+                },
+                "q2": {
+                    "question": "生活垃圾可分为几大类？"
+                },
+                "q3": {
+                    "question": "哪种能源属于可再生能源？",
+                    "optionA": "A. 煤炭",
+                    "optionB": "B. 太阳能"
+                }
+            },
+            "set3": {
+                "q1": {
+                    "question": "以下哪项是造成温室效应的主要气体？",
+                    "optionA": "A. 二氧化碳",
+                    "optionB": "B. 氧气"
+                },
+                "q2": {
+                    "question": "一棵成年树每年能吸收多少公斤二氧化碳？（约数）"
+                },
+                "q3": {
+                    "question": "生物多样性保护最重要的措施是？",
+                    "optionA": "A. 建设更多城市",
+                    "optionB": "B. 保护自然栖息地"
+                }
+            },
+            "set4": {
+                "q1": {
+                    "question": "海洋塑料垃圾的主要危害是？",
+                    "optionA": "A. 影响海洋生物生存",
+                    "optionB": "B. 增加海水盐分"
+                },
+                "q2": {
+                    "question": "节约用水，每次刷牙时关闭水龙头可节约多少升水？"
+                },
+                "q3": {
+                    "question": "以下哪种交通方式最环保？",
+                    "optionA": "A. 私家车",
+                    "optionB": "B. 自行车"
+                }
+            },
+            "set5": {
+                "q1": {
+                    "question": "森林砍伐的主要环境影响是？",
+                    "optionA": "A. 加剧气候变化",
+                    "optionB": "B. 增加降雨量"
+                },
+                "q2": {
+                    "question": "全球每年产生多少亿吨塑料垃圾？（约数）"
+                },
+                "q3": {
+                    "question": "哪种做法有助于减少碳足迹？",
+                    "optionA": "A. 增加肉类消费",
+                    "optionB": "B. 选择本地食材"
+                }
+            }
+        }
     }
 }

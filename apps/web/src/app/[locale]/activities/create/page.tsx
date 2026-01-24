@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     ArrowLeft,
     Calendar,
@@ -18,11 +19,15 @@ import {
     Droplets,
     Sun
 } from 'lucide-react';
-import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
+import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
-export default function CreateActivityPage() {
+function CreateActivityContent() {
     const { user, isLoggedIn, loading } = useAuth();
     const router = useRouter();
+    const params = useParams();
+    const locale = params.locale as string || 'zh';
+    const { t } = useSafeTranslation('activities');
+    const { t: tCommon } = useSafeTranslation('common');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -38,9 +43,9 @@ export default function CreateActivityPage() {
 
     useEffect(() => {
         if (!loading && !isLoggedIn) {
-            router.replace('/login');
+            router.replace(`/${locale}/login`);
         }
-    }, [loading, isLoggedIn, router]);
+    }, [loading, isLoggedIn, router, locale]);
 
     if (loading) {
         return (
@@ -50,7 +55,9 @@ export default function CreateActivityPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">
+                            {t('create.loading', '加载中...')}
+                        </p>
                     </div>
                 </div>
             </Layout>
@@ -73,11 +80,11 @@ export default function CreateActivityPage() {
         // 这里应该调用API创建活动
         console.log('创建活动:', formData);
         // 创建成功后返回活动列表页
-        router.push('/activities');
+        router.push(`/${locale}/activities`);
     };
 
     const handleCancel = () => {
-        router.push('/activities');
+        router.push(`/${locale}/activities`);
     };
 
     const getTypeIcon = (type: string) => {
@@ -118,8 +125,12 @@ export default function CreateActivityPage() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">发起活动</h1>
-                            <p className="text-slate-600">创建一个新的环保活动</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">
+                                {t('create.title', '发起活动')}
+                            </h1>
+                            <p className="text-slate-600">
+                                {t('create.subtitle', '创建一个新的环保活动')}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -141,7 +152,7 @@ export default function CreateActivityPage() {
                         {/* 活动标题 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                活动标题 *
+                                {t('create.form.title', '活动标题')} *
                             </label>
                             <input
                                 type="text"
@@ -149,7 +160,7 @@ export default function CreateActivityPage() {
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                placeholder="请输入活动标题"
+                                placeholder={t('create.form.titlePlaceholder', '请输入活动标题')}
                                 required
                             />
                         </div>
@@ -157,22 +168,22 @@ export default function CreateActivityPage() {
                         {/* 活动类型 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-3">
-                                活动类型 *
+                                {t('create.form.type', '活动类型')} *
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {[
-                                    { value: 'tree', label: '植树活动' },
-                                    { value: 'recycle', label: '回收利用' },
-                                    { value: 'water', label: '水资源保护' },
-                                    { value: 'sun', label: '清洁能源' }
+                                    { value: 'tree', label: t('create.form.types.tree', '植树造林') },
+                                    { value: 'recycle', label: t('create.form.types.recycle', '回收利用') },
+                                    { value: 'water', label: t('create.form.types.water', '节水保护') },
+                                    { value: 'sun', label: t('create.form.types.energy', '清洁能源') }
                                 ].map((type) => (
                                     <button
                                         key={type.value}
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, type: type.value }))}
                                         className={`p-4 rounded-lg border-2 transition-all ${formData.type === type.value
-                                                ? getTypeColor(type.value)
-                                                : 'border-slate-200 hover:border-slate-300'
+                                            ? getTypeColor(type.value)
+                                            : 'border-slate-200 hover:border-slate-300'
                                             }`}
                                     >
                                         <div className="flex flex-col items-center gap-2">
@@ -188,7 +199,7 @@ export default function CreateActivityPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 <FileText className="w-4 h-4 inline mr-2" />
-                                活动描述 *
+                                {t('create.form.description', '活动描述')} *
                             </label>
                             <textarea
                                 name="description"
@@ -196,7 +207,7 @@ export default function CreateActivityPage() {
                                 onChange={handleInputChange}
                                 rows={4}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                placeholder="详细描述活动内容、目标和意义..."
+                                placeholder={t('create.form.descriptionPlaceholder', '描述活动内容、目标和意义...')}
                                 required
                             />
                         </div>
@@ -206,7 +217,7 @@ export default function CreateActivityPage() {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
                                     <Calendar className="w-4 h-4 inline mr-2" />
-                                    活动日期 *
+                                    {t('create.form.date', '活动日期')} *
                                 </label>
                                 <input
                                     type="date"
@@ -219,7 +230,7 @@ export default function CreateActivityPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    活动时间 *
+                                    {t('create.form.time', '活动时间')} *
                                 </label>
                                 <input
                                     type="time"
@@ -233,7 +244,7 @@ export default function CreateActivityPage() {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
                                     <Users className="w-4 h-4 inline mr-2" />
-                                    最大人数
+                                    {t('create.form.maxParticipants', '最大参与人数')}
                                 </label>
                                 <input
                                     type="number"
@@ -241,7 +252,7 @@ export default function CreateActivityPage() {
                                     value={formData.maxParticipants}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                    placeholder="不限制可留空"
+                                    placeholder={t('create.form.maxParticipantsPlaceholder', '留空表示不限制')}
                                     min="1"
                                 />
                             </div>
@@ -251,7 +262,7 @@ export default function CreateActivityPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 <MapPin className="w-4 h-4 inline mr-2" />
-                                活动地点 *
+                                {t('create.form.location', '活动地点')} *
                             </label>
                             <input
                                 type="text"
@@ -259,7 +270,7 @@ export default function CreateActivityPage() {
                                 value={formData.location}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                placeholder="请输入详细地址"
+                                placeholder={t('create.form.locationPlaceholder', '请输入详细地址')}
                                 required
                             />
                         </div>
@@ -267,7 +278,7 @@ export default function CreateActivityPage() {
                         {/* 参与要求 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                参与要求
+                                {t('create.form.requirements', '参与要求')}
                             </label>
                             <textarea
                                 name="requirements"
@@ -275,14 +286,14 @@ export default function CreateActivityPage() {
                                 onChange={handleInputChange}
                                 rows={3}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                placeholder="请说明参与者需要准备的物品或满足的条件..."
+                                placeholder={t('create.form.requirementsPlaceholder', '描述参与者需要准备什么或满足什么条件...')}
                             />
                         </div>
 
                         {/* 联系方式 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                联系方式 *
+                                {t('create.form.contact', '联系信息')} *
                             </label>
                             <input
                                 type="text"
@@ -290,7 +301,7 @@ export default function CreateActivityPage() {
                                 value={formData.contactInfo}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                placeholder="请输入联系电话或微信号"
+                                placeholder={t('create.form.contactPlaceholder', '请输入电话号码或微信号')}
                                 required
                             />
                         </div>
@@ -299,12 +310,12 @@ export default function CreateActivityPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 <Image className="w-4 h-4 inline mr-2" />
-                                活动图片
+                                {t('create.form.image', '活动图片')}
                             </label>
                             <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-[#56B949] transition-colors cursor-pointer">
                                 <Image className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                                <p className="text-slate-500">点击上传活动图片</p>
-                                <p className="text-xs text-slate-400 mt-2">支持 JPG、PNG 格式，最大 5MB</p>
+                                <p className="text-slate-500">{t('create.form.imageUpload', '点击上传活动图片')}</p>
+                                <p className="text-xs text-slate-400 mt-2">{t('create.form.imageSupport', '支持JPG、PNG格式，最大5MB')}</p>
                             </div>
                         </div>
 
@@ -315,18 +326,37 @@ export default function CreateActivityPage() {
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                             >
                                 <Save className="w-4 h-4" />
-                                发布活动
+                                {t('create.form.publish', '发布活动')}
                             </button>
                             <button
                                 onClick={handleCancel}
                                 className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                             >
-                                取消
+                                {tCommon('cancel', '取消')}
                             </button>
                         </div>
                     </div>
                 </motion.div>
             </motion.div>
         </Layout>
+    );
+}
+
+export default function CreateActivityPage() {
+    return (
+        <Suspense fallback={
+            <Layout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+                            YL
+                        </div>
+                        <p className="text-slate-600">加载中...</p>
+                    </div>
+                </div>
+            </Layout>
+        }>
+            <CreateActivityContent />
+        </Suspense>
     );
 }

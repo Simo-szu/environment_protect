@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -11,16 +12,16 @@ import {
     ThumbsUp,
     MapPin,
     Eye,
-    ArrowRight,
     TreePine,
     Recycle,
     Droplets,
     MessageCircle
 } from 'lucide-react';
-import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
+import { staggerContainer, pageEnter } from '@/lib/animations';
 
 export default function LikesPage() {
     const { user, isLoggedIn, loading } = useAuth();
+    const { t } = useSafeTranslation('likes');
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
     const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +41,7 @@ export default function LikesPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -54,29 +55,29 @@ export default function LikesPage() {
     // 模拟数据 - 实际项目中这些数据会从API获取
     const mockArticles = Array.from({ length: 32 }, (_, i) => ({
         id: i + 1,
-        title: `点赞文章 ${i + 1}`,
-        description: '这是一篇很棒的环保文章，获得了很多点赞...',
+        title: `${t('content.articles.title', '点赞文章')} ${i + 1}`,
+        description: t('content.articles.description', '这是一篇很棒的环保文章，获得了很多点赞...'),
         type: i % 3 === 0 ? 'water' : i % 3 === 1 ? 'recycle' : 'tree',
         likes: Math.floor(Math.random() * 20) + 5,
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
+        date: `${Math.floor(Math.random() * 30) + 1}${t('content.articles.likedDaysAgo', '天前点赞')}`
     }));
 
     const mockActivities = Array.from({ length: 24 }, (_, i) => ({
         id: i + 1,
-        title: `点赞活动 ${i + 1}`,
-        description: '这是一个很受欢迎的环保活动，获得了很多支持...',
-        location: '市中心公园',
+        title: `${t('content.activities.title', '点赞活动')} ${i + 1}`,
+        description: t('content.activities.description', '这是一个很受欢迎的环保活动，获得了很多支持...'),
+        location: t('content.activities.location', '市中心公园'),
         views: Math.floor(Math.random() * 200) + 50,
         likes: Math.floor(Math.random() * 50) + 10,
         type: i % 2 === 0 ? 'tree' : 'recycle',
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
+        date: `${Math.floor(Math.random() * 30) + 1}${t('content.activities.likedDaysAgo', '天前点赞')}`
     }));
 
     const mockComments = Array.from({ length: 15 }, (_, i) => ({
         id: i + 1,
-        author: `用户${i + 1}`,
-        content: '这是一条很有见地的评论，值得点赞支持...',
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
+        author: `${t('content.comments.author', '用户')}${i + 1}`,
+        content: t('content.comments.content', '这是一条很有见地的评论，值得点赞支持...'),
+        date: `${Math.floor(Math.random() * 30) + 1}${t('content.comments.likedDaysAgo', '天前点赞')}`
     }));
 
     const getCurrentData = () => {
@@ -116,10 +117,10 @@ export default function LikesPage() {
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EE4035]/10 text-[#EE4035] text-xs font-semibold mb-4 border border-[#EE4035]/20">
                             <Heart className="w-3 h-3" />
-                            我的点赞
+                            {t('badge', '我的点赞')}
                         </div>
-                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">我的点赞</h1>
-                        <p className="text-slate-600">这里记录了你点赞过的所有内容</p>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '我的点赞')}</h1>
+                        <p className="text-slate-600">{t('description', '这里记录了你点赞过的所有内容')}</p>
                     </div>
                 </div>
             </motion.div>
@@ -141,7 +142,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <Heart className="w-4 h-4" />
-                        科普文章 ({mockArticles.length})
+                        {t('tabs.articles', '科普文章')} ({mockArticles.length})
                     </button>
                     <button
                         onClick={() => handleTabChange('activities')}
@@ -151,7 +152,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <ThumbsUp className="w-4 h-4" />
-                        环保活动 ({mockActivities.length})
+                        {t('tabs.activities', '环保活动')} ({mockActivities.length})
                     </button>
                     <button
                         onClick={() => handleTabChange('comments')}
@@ -161,7 +162,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <MessageCircle className="w-4 h-4" />
-                        评论互动 ({mockComments.length})
+                        {t('tabs.comments', '评论互动')} ({mockComments.length})
                     </button>
                 </div>
 
@@ -212,7 +213,7 @@ export default function LikesPage() {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#56B949]/10 text-[#56B949] border border-[#56B949]/20">
-                                                        {activity.type === 'tree' ? '植树活动' : '环保DIY'}
+                                                        {activity.type === 'tree' ? t('content.activities.treeActivity', '植树活动') : t('content.activities.ecoActivity', '环保DIY')}
                                                     </span>
                                                     <span className="text-xs text-slate-400">{activity.date}</span>
                                                 </div>
@@ -265,7 +266,7 @@ export default function LikesPage() {
                                                 <p className="text-sm text-slate-600 mb-2">{comment.content}</p>
                                                 <div className="flex items-center gap-1 text-[#EE4035]">
                                                     <Heart className="w-4 h-4 fill-current" />
-                                                    <span className="text-sm font-medium">你点赞了这条评论</span>
+                                                    <span className="text-sm font-medium">{t('content.comments.youLiked', '你点赞了这条评论')}</span>
                                                 </div>
                                             </div>
                                         </div>

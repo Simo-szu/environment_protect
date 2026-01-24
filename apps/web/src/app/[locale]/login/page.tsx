@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     User,
     Lock,
@@ -17,6 +18,7 @@ import {
 export default function LoginPage() {
     const params = useParams();
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('auth');
 
     const [formData, setFormData] = useState({
         username: '',
@@ -33,7 +35,7 @@ export default function LoginPage() {
         setError('');
 
         if (!formData.username || !formData.password) {
-            setError('请填写完整的登录信息');
+            setError(t('errors.fillComplete', '请填写完整的登录信息'));
             return;
         }
 
@@ -52,7 +54,7 @@ export default function LoginPage() {
             login(userData);
             router.push(`/${locale}`);
         } else {
-            setError('用户名或密码错误');
+            setError(t('errors.invalidCredentials', '用户名或密码错误'));
         }
     };
 
@@ -83,17 +85,21 @@ export default function LoginPage() {
                             <span className="font-serif font-bold text-2xl text-white">YL</span>
                         </div>
                         <div className="text-[#30499B] font-bold text-xl tracking-wide">YouthLoop</div>
-                        <p className="text-slate-500 text-sm mt-2">欢迎回来，继续你的环保之旅</p>
+                        <p className="text-slate-500 text-sm mt-2">
+                            {t('welcome', '欢迎回来，继续你的环保之旅')}
+                        </p>
                     </div>
 
                     {/* Login Form */}
                     <div className="space-y-6">
                         <div className="flex items-baseline justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-[#30499B]">登录</h2>
+                            <h2 className="text-2xl font-bold text-[#30499B]">
+                                {t('login.title', '登录')}
+                            </h2>
                             <div className="text-sm text-slate-500 font-medium">
-                                没有账号？{' '}
+                                {t('login.noAccount', '没有账号？')}{' '}
                                 <Link href={`/${locale}/register`} className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2">
-                                    立即注册
+                                    {t('login.registerNow', '立即注册')}
                                 </Link>
                             </div>
                         </div>
@@ -114,7 +120,7 @@ export default function LoginPage() {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="账号/手机号"
+                                    placeholder={t('login.usernamePlaceholder', '账号/手机号')}
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                 />
                             </div>
@@ -128,7 +134,7 @@ export default function LoginPage() {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    placeholder="请输入密码"
+                                    placeholder={t('login.passwordPlaceholder', '请输入密码')}
                                     className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                 />
                                 <button
@@ -150,33 +156,37 @@ export default function LoginPage() {
                                         onChange={handleChange}
                                         className="w-4 h-4 rounded border-slate-300 text-[#30499B] focus:ring-[#30499B]/20 cursor-pointer"
                                     />
-                                    <label htmlFor="remember" className="text-sm text-slate-500 select-none cursor-pointer">记住我</label>
+                                    <label htmlFor="remember" className="text-sm text-slate-500 select-none cursor-pointer">
+                                        {t('login.rememberMe', '记住我')}
+                                    </label>
                                 </div>
-                                <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">忘记密码?</a>
+                                <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">
+                                    {t('login.forgotPassword', '忘记密码?')}
+                                </a>
                             </div>
 
                             <button
                                 type="submit"
                                 className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide"
                             >
-                                立即登录
+                                {t('login.loginButton', '立即登录')}
                             </button>
 
                             {/* 用户协议提示 */}
                             <div className="text-center text-xs text-slate-500 leading-relaxed">
-                                登录即代表同意{' '}
+                                {t('login.agreeTerms', '登录即代表同意')}{' '}
                                 <Link
                                     href={`/${locale}/terms`}
                                     className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2"
                                 >
-                                    《用户服务协议》
+                                    {t('login.userAgreement', '《用户服务协议》')}
                                 </Link>
-                                {' '}和{' '}
+                                {' '}{t('login.and', '和')}{' '}
                                 <Link
                                     href={`/${locale}/privacy`}
                                     className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2"
                                 >
-                                    《隐私政策》
+                                    {t('login.privacyPolicy', '《隐私政策》')}
                                 </Link>
                             </div>
                         </form>
@@ -187,7 +197,9 @@ export default function LoginPage() {
                                 <div className="w-full border-t border-slate-200"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-slate-400">或者</span>
+                                <span className="px-4 bg-white text-slate-400">
+                                    {t('login.or', '或者')}
+                                </span>
                             </div>
                         </div>
 
@@ -195,14 +207,14 @@ export default function LoginPage() {
                         <div className="grid grid-cols-2 gap-3">
                             <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                                 <Smartphone className="w-4 h-4" />
-                                手机验证码
+                                {t('login.phoneVerification', '手机验证码')}
                             </button>
                             <button
-                                onClick={() => alert('扫码登录功能开发中')}
+                                onClick={() => alert(t('login.qrCodeDevelopment', '扫码登录功能开发中'))}
                                 className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors"
                             >
                                 <ScanLine className="w-4 h-4" />
-                                扫码登录
+                                {t('login.qrCodeLogin', '扫码登录')}
                             </button>
                         </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
@@ -24,21 +24,25 @@ import {
     FileText
 } from 'lucide-react';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 export default function ProfilePage() {
     const { user, isLoggedIn, loading, logout } = useAuth();
+    const { t } = useSafeTranslation('profile');
     const router = useRouter();
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
 
     // ✅ 只在 loading 完成后再重定向
     useEffect(() => {
         if (!loading && !isLoggedIn) {
-            router.replace('/login');
+            router.replace(`/${locale}/login`);
         }
-    }, [loading, isLoggedIn, router]);
+    }, [loading, isLoggedIn, router, locale]);
 
     const handleLogout = () => {
         logout();
-        router.push('/');
+        router.push(`/${locale}`);
     };
 
     // ✅ loading 阶段只显示 loading
@@ -50,7 +54,9 @@ export default function ProfilePage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">
+                            {t('loading', '加载中...')}
+                        </p>
                     </div>
                 </div>
             </Layout>
@@ -76,10 +82,10 @@ export default function ProfilePage() {
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#56B949]/10 text-[#56B949] text-xs font-semibold mb-4 border border-[#56B949]/20">
                             <User className="w-3 h-3" />
-                            个人资料
+                            {t('badge', '个人资料')}
                         </div>
-                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">个人资料</h1>
-                        <p className="text-slate-600">管理你的个人信息和偏好设置</p>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '个人资料')}</h1>
+                        <p className="text-slate-600">{t('description', '管理你的个人信息和偏好设置')}</p>
                     </div>
                 </div>
             </motion.div>
@@ -114,22 +120,22 @@ export default function ProfilePage() {
                                     <div className="flex items-center gap-4 text-slate-600">
                                         <div className="flex items-center gap-1">
                                             <User className="w-4 h-4" />
-                                            <span>{user?.gender === 'male' ? '男' : user?.gender === 'female' ? '女' : user?.gender === 'other' ? '其他' : '女'}</span>
+                                            <span>{user?.gender === 'male' ? t('info.male', '男') : user?.gender === 'female' ? t('info.female', '女') : user?.gender === 'other' ? t('info.other', '其他') : t('info.female', '女')}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <MapPin className="w-4 h-4" />
-                                            <span>{user?.hometown || '广东省'}</span>
+                                            <span>{user?.hometown || t('info.defaultLocation', '广东省')}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Edit Button */}
                                 <Link
-                                    href="/profile/edit"
+                                    href={`/${locale}/profile/edit`}
                                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 mt-4 md:mt-0"
                                 >
                                     <Edit className="w-4 h-4" />
-                                    编辑资料
+                                    {t('actions.editProfile', '编辑资料')}
                                 </Link>
                             </div>
 
@@ -141,8 +147,8 @@ export default function ProfilePage() {
                                         <User className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">性别</p>
-                                        <p className="font-medium text-slate-800">女</p>
+                                        <p className="text-xs text-slate-500">{t('info.gender', '性别')}</p>
+                                        <p className="font-medium text-slate-800">{t('info.female', '女')}</p>
                                     </div>
                                 </div>
 
@@ -152,8 +158,8 @@ export default function ProfilePage() {
                                         <MapPin className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">家乡</p>
-                                        <p className="font-medium text-slate-800">广东省</p>
+                                        <p className="text-xs text-slate-500">{t('info.location', '家乡')}</p>
+                                        <p className="font-medium text-slate-800">{t('info.defaultLocation', '广东省')}</p>
                                     </div>
                                 </div>
 
@@ -163,8 +169,8 @@ export default function ProfilePage() {
                                         <Trophy className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">环保积分</p>
-                                        <p className="font-medium text-slate-800">{user?.points || 0} 分</p>
+                                        <p className="text-xs text-slate-500">{t('info.points', '环保积分')}</p>
+                                        <p className="font-medium text-slate-800">{user?.points || 0} {t('info.pointsUnit', '分')}</p>
                                     </div>
                                 </div>
 
@@ -174,9 +180,9 @@ export default function ProfilePage() {
                                         <TreePine className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">环保等级</p>
+                                        <p className="text-xs text-slate-500">{t('info.level', '环保等级')}</p>
                                         <p className="font-medium text-slate-800">
-                                            {user?.level ? `Lv.${user.level}` : 'Lv.1'} 环保达人
+                                            {user?.level ? `Lv.${user.level}` : 'Lv.1'} {t('info.levelTitle', '环保达人')}
                                         </p>
                                     </div>
                                 </div>
@@ -186,10 +192,10 @@ export default function ProfilePage() {
                             <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
                                 <div className="flex items-center gap-2 mb-2">
                                     <FileText className="w-4 h-4 text-[#56B949]" />
-                                    <span className="text-sm font-medium text-[#30499B]">个人简介</span>
+                                    <span className="text-sm font-medium text-[#30499B]">{t('info.bio', '个人简介')}</span>
                                 </div>
                                 <p className="text-sm text-slate-600 leading-relaxed">
-                                    {user?.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'}
+                                    {user?.bio || t('info.defaultBio', '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。')}
                                 </p>
                             </div>
                         </div>
@@ -201,10 +207,10 @@ export default function ProfilePage() {
                     variants={staggerContainer}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
                 >
-                    <QuickActionCard href="/likes" icon={Heart} title="我的点赞" />
-                    <QuickActionCard href="/favorites" icon={Bookmark} title="我的收藏" />
-                    <QuickActionCard href="/my-activities" icon={Calendar} title="我的活动" />
-                    <QuickActionCard href="/points" icon={Trophy} title="我的积分" />
+                    <QuickActionCard href={`/${locale}/likes`} icon={Heart} title={t('quickActions.likes', '我的点赞')} />
+                    <QuickActionCard href={`/${locale}/favorites`} icon={Bookmark} title={t('quickActions.favorites', '我的收藏')} />
+                    <QuickActionCard href={`/${locale}/my-activities`} icon={Calendar} title={t('quickActions.activities', '我的活动')} />
+                    <QuickActionCard href={`/${locale}/points`} icon={Trophy} title={t('quickActions.points', '我的积分')} />
                 </motion.div>
 
                 {/* Recent Activities */}
@@ -212,7 +218,7 @@ export default function ProfilePage() {
                     variants={staggerItem}
                     className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
                 >
-                    <h3 className="text-lg font-semibold text-[#30499B] mb-6">最近动态</h3>
+                    <h3 className="text-lg font-semibold text-[#30499B] mb-6">{t('recentActivities.title', '最近动态')}</h3>
 
                     <div className="space-y-4">
                         {/* Activity Item 1 */}
@@ -221,7 +227,7 @@ export default function ProfilePage() {
                                 <TreePine className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-medium text-slate-800 text-sm mb-1">完成了一次「低碳出行」挑战</h4>
+                                <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
                                 <p className="text-xs text-slate-500">2024-05-11 14:30</p>
                             </div>
                             <ArrowRight className="w-4 h-4 text-slate-400" />
@@ -233,7 +239,7 @@ export default function ProfilePage() {
                                 <TreePine className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-medium text-slate-800 text-sm mb-1">完成了一次「低碳出行」挑战</h4>
+                                <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
                                 <p className="text-xs text-slate-500">2024-05-12 14:30</p>
                             </div>
                             <ArrowRight className="w-4 h-4 text-slate-400" />
@@ -249,13 +255,13 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
                             <Heart className="w-5 h-5 text-[#EE4035]" />
-                            最近点赞
+                            {t('recentLikes.title', '最近点赞')}
                         </h3>
                         <Link
-                            href="/likes"
+                            href={`/${locale}/likes`}
                             className="flex items-center gap-1 text-sm text-[#EE4035] hover:text-[#d63384] transition-colors"
                         >
-                            查看全部
+                            {t('recentLikes.viewAll', '查看全部')}
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
@@ -265,13 +271,13 @@ export default function ProfilePage() {
                         <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
-                                <span className="text-xs text-slate-500">科普文章</span>
+                                <span className="text-xs text-slate-500">{t('recentLikes.articleType', '科普文章')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">环保小贴士分享</h4>
-                            <p className="text-xs text-slate-500 mb-2">分享一些日常生活中的环保小技巧...</p>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.articleTitle', '环保小贴士分享')}</h4>
+                            <p className="text-xs text-slate-500 mb-2">{t('recentLikes.articleDesc', '分享一些日常生活中的环保小技巧...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035]">
                                 <Heart className="w-3 h-3 fill-current" />
-                                <span className="text-xs">2天前点赞</span>
+                                <span className="text-xs">{t('recentLikes.likedDaysAgo', '2天前点赞')}</span>
                             </div>
                         </div>
 
@@ -279,13 +285,13 @@ export default function ProfilePage() {
                         <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                             <div className="flex items-center gap-2 mb-2">
                                 <TreePine className="w-4 h-4 text-[#56B949]" />
-                                <span className="text-xs text-slate-500">环保活动</span>
+                                <span className="text-xs text-slate-500">{t('recentLikes.activityType', '环保活动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">城市绿洲种植计划</h4>
-                            <p className="text-xs text-slate-500 mb-2">加入我们在市中心创建绿色角落...</p>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.activityTitle', '城市绿洲种植计划')}</h4>
+                            <p className="text-xs text-slate-500 mb-2">{t('recentLikes.activityDesc', '加入我们在市中心创建绿色角落...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035]">
                                 <Heart className="w-3 h-3 fill-current" />
-                                <span className="text-xs">5天前点赞</span>
+                                <span className="text-xs">{t('recentLikes.liked5DaysAgo', '5天前点赞')}</span>
                             </div>
                         </div>
 
@@ -293,13 +299,13 @@ export default function ProfilePage() {
                         <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                             <div className="flex items-center gap-2 mb-2">
                                 <MessageCircle className="w-4 h-4 text-[#F0A32F]" />
-                                <span className="text-xs text-slate-500">评论互动</span>
+                                <span className="text-xs text-slate-500">{t('recentLikes.commentType', '评论互动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">张小明的评论</h4>
-                            <p className="text-xs text-slate-500 mb-2">非常赞同你的观点！环保确实需要...</p>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.commentTitle', '张小明的评论')}</h4>
+                            <p className="text-xs text-slate-500 mb-2">{t('recentLikes.commentDesc', '非常赞同你的观点！环保确实需要...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035]">
                                 <Heart className="w-3 h-3 fill-current" />
-                                <span className="text-xs">1周前点赞</span>
+                                <span className="text-xs">{t('recentLikes.liked1WeekAgo', '1周前点赞')}</span>
                             </div>
                         </div>
                     </div>
@@ -313,13 +319,13 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
                             <Bookmark className="w-5 h-5 text-[#56B949]" />
-                            最近收藏
+                            {t('recentFavorites.title', '最近收藏')}
                         </h3>
                         <Link
-                            href="/favorites"
+                            href={`/${locale}/favorites`}
                             className="flex items-center gap-1 text-sm text-[#56B949] hover:text-[#4aa840] transition-colors"
                         >
-                            查看全部
+                            {t('recentFavorites.viewAll', '查看全部')}
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
@@ -329,13 +335,13 @@ export default function ProfilePage() {
                         <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
-                                <span className="text-xs text-slate-500">科普文章</span>
+                                <span className="text-xs text-slate-500">{t('recentFavorites.articleType', '科普文章')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">节约用水小妙招</h4>
-                            <p className="text-xs text-slate-500 mb-2">洗菜水可以浇花，洗衣水可以拖地，一水多用...</p>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.articleTitle', '节约用水小妙招')}</h4>
+                            <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.articleDesc', '洗菜水可以浇花，洗衣水可以拖地，一水多用...')}</p>
                             <div className="flex items-center gap-1 text-[#56B949]">
                                 <Bookmark className="w-3 h-3 fill-current" />
-                                <span className="text-xs">3天前收藏</span>
+                                <span className="text-xs">{t('recentFavorites.favorited3DaysAgo', '3天前收藏')}</span>
                             </div>
                         </div>
 
@@ -343,13 +349,13 @@ export default function ProfilePage() {
                         <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                             <div className="flex items-center gap-2 mb-2">
                                 <Recycle className="w-4 h-4 text-[#F0A32F]" />
-                                <span className="text-xs text-slate-500">环保活动</span>
+                                <span className="text-xs text-slate-500">{t('recentFavorites.activityType', '环保活动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">旧物新生DIY工作坊</h4>
-                            <p className="text-xs text-slate-500 mb-2">学习如何将废弃物品变废为宝...</p>
+                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.activityTitle', '旧物新生DIY工作坊')}</h4>
+                            <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.activityDesc', '学习如何将废弃物品变废为宝...')}</p>
                             <div className="flex items-center gap-1 text-[#56B949]">
                                 <Bookmark className="w-3 h-3 fill-current" />
-                                <span className="text-xs">1周前收藏</span>
+                                <span className="text-xs">{t('recentFavorites.favorited1WeekAgo', '1周前收藏')}</span>
                             </div>
                         </div>
                     </div>
@@ -365,7 +371,7 @@ export default function ProfilePage() {
                         className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
                         <LogOut className="w-4 h-4" />
-                        退出登录
+                        {t('actions.logout', '退出登录')}
                     </button>
                 </motion.div>
             </motion.div>

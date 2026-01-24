@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Recycle,
@@ -15,8 +16,13 @@ import {
 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, hoverLift } from '@/lib/animations';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 export default function SciencePage() {
+    const { t } = useSafeTranslation('science');
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
+
     useEffect(() => {
         // 创建落叶动画
         const createLeaf = () => {
@@ -42,7 +48,7 @@ export default function SciencePage() {
     }, []);
 
     const viewArticle = (articleId: string) => {
-        window.location.href = `/science/${articleId}`;
+        window.location.href = `/${locale}/science/${articleId}`;
     };
 
     return (
@@ -59,17 +65,20 @@ export default function SciencePage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30499B] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#30499B]"></span>
                     </span>
-                    环保科普知识库
+                    {t('hero.badge', '环保科普知识库')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
-                    科学<span className="text-[#56B949] dark:text-[#F0A32F]">环保</span>
+                    {locale === 'zh' ? (
+                        <>科学<span className="text-[#56B949] dark:text-[#F0A32F]">环保</span></>
+                    ) : (
+                        <>Scientific <span className="text-[#56B949] dark:text-[#F0A32F]">Environmental</span> Protection</>
+                    )}
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
                     <div className="flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-[#30499B]" />
-                        <span>用<span className="text-[#30499B] font-medium border-b-2 border-[#30499B]/30">科学</span>指导，</span>
+                        <span>{t('hero.subtitle', '用科学指导，让环保更有效')}</span>
                     </div>
-                    <span>让<span className="text-[#56B949] font-medium border-b-2 border-[#56B949]/30">环保</span>更有效</span>
                 </div>
             </motion.section>
 
@@ -85,8 +94,8 @@ export default function SciencePage() {
                 <motion.div variants={staggerItem} className="flex items-center gap-3 mb-8 px-2">
                     <div className="w-1.5 h-8 bg-[#56B949] rounded-full"></div>
                     <div>
-                        <h2 className="text-2xl font-serif font-semibold text-[#30499B] tracking-tight">环保小贴士</h2>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">ECO TIPS</p>
+                        <h2 className="text-2xl font-serif font-semibold text-[#30499B] tracking-tight">{t('tips.title', '环保小贴士')}</h2>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{t('tips.subtitle', 'ECO TIPS')}</p>
                     </div>
                 </motion.div>
 
@@ -107,13 +116,13 @@ export default function SciencePage() {
                                 </div>
                                 <span className="px-2 py-1 rounded bg-[#56B949]/10 text-[#56B949] text-[10px] font-bold tracking-wider uppercase">TIP</span>
                             </div>
-                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#56B949] transition-colors">节约用水小妙招</h3>
-                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">洗菜水可以浇花，洗衣水可以拖地，一水多用让每一滴水都发挥最大价值。</p>
+                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#56B949] transition-colors">{t('tips.waterSaving.title', '节约用水小妙招')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">{t('tips.waterSaving.description', '洗菜水可以浇花，洗衣水可以拖地，一水多用让每一滴水都发挥最大价值。')}</p>
                             <button
                                 onClick={() => viewArticle('article-004')}
                                 className="text-xs font-medium text-[#56B949] flex items-center gap-1 group/link mt-auto cursor-pointer hover:underline"
                             >
-                                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                                {t('actions.learnMore', '了解更多')} <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
                             </button>
                         </motion.div>
                     </motion.div>
@@ -130,13 +139,13 @@ export default function SciencePage() {
                                 </div>
                                 <span className="px-2 py-1 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-[10px] font-bold tracking-wider uppercase">TIP</span>
                             </div>
-                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#F0A32F] transition-colors">垃圾分类指南</h3>
-                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">正确分类垃圾不仅能减少环境污染，还能让资源得到有效回收利用。</p>
+                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#F0A32F] transition-colors">{t('tips.wasteSorting.title', '垃圾分类指南')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">{t('tips.wasteSorting.description', '正确分类垃圾不仅能减少环境污染，还能让资源得到有效回收利用。')}</p>
                             <button
                                 onClick={() => viewArticle('article-005')}
                                 className="text-xs font-medium text-[#30499B] hover:text-[#F0A32F] flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
                             >
-                                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                                {t('actions.learnMore', '了解更多')} <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
                             </button>
                         </motion.div>
                     </motion.div>
@@ -153,13 +162,13 @@ export default function SciencePage() {
                                 </div>
                                 <span className="px-2 py-1 rounded bg-[#30499B]/10 text-[#30499B] text-[10px] font-bold tracking-wider uppercase">TIP</span>
                             </div>
-                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#30499B]/80 transition-colors">节能减排妙招</h3>
-                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">随手关灯、使用节能电器、选择公共交通，小行动大影响。</p>
+                            <h3 className="text-lg font-serif font-semibold text-[#30499B] mb-3 tracking-tight group-hover:text-[#30499B]/80 transition-colors">{t('tips.energySaving.title', '节能减排妙招')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed mb-8 line-clamp-3">{t('tips.energySaving.description', '随手关灯、使用节能电器、选择公共交通，小行动大影响。')}</p>
                             <button
                                 onClick={() => viewArticle('article-006')}
                                 className="text-xs font-medium text-[#30499B] hover:text-[#30499B]/80 flex items-center gap-1 group/link mt-auto transition-colors cursor-pointer hover:underline"
                             >
-                                了解更多 <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                                {t('actions.learnMore', '了解更多')} <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
                             </button>
                         </motion.div>
                     </motion.div>
@@ -181,12 +190,12 @@ export default function SciencePage() {
                         <div className="flex items-center gap-3">
                             <div className="w-1 h-6 bg-[#30499B] rounded-full"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-serif font-semibold text-[#30499B] tracking-tight">环保新闻</h2>
-                                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Environmental News</p>
+                                <h2 className="text-xl md:text-2xl font-serif font-semibold text-[#30499B] tracking-tight">{t('news.title', '环保新闻')}</h2>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{t('news.subtitle', 'Environmental News')}</p>
                             </div>
                         </div>
                         <button className="text-xs font-medium text-[#30499B] hover:text-[#56B949] transition-colors flex items-center gap-1 group">
-                            查看全部 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                            {t('actions.viewAll', '查看全部')} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </motion.div>
 
@@ -219,9 +228,9 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-001')}
                                         className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
                                     >
-                                        绿色科技：未来城市的可持续能源解决方案
+                                        {t('news.articles.greenTech.title', '绿色科技：未来城市的可持续能源解决方案')}
                                     </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.greenTech.description', '随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...')}</p>
                                 </div>
                                 <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
                                     <div className="flex items-center gap-4 text-xs text-slate-400">
@@ -236,7 +245,7 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-001')}
                                         className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                     >
-                                        阅读全文
+                                        {t('actions.readFull', '阅读全文')}
                                     </button>
                                 </div>
                             </div>
@@ -266,9 +275,9 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-002')}
                                         className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#F0A32F] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
                                     >
-                                        海洋塑料污染：不仅仅是吸管的问题
+                                        {t('news.articles.oceanPlastic.title', '海洋塑料污染：不仅仅是吸管的问题')}
                                     </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.oceanPlastic.description', '每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...')}</p>
                                 </div>
                                 <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
                                     <div className="flex items-center gap-4 text-xs text-slate-400">
@@ -283,7 +292,7 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-002')}
                                         className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                     >
-                                        阅读全文
+                                        {t('actions.readFull', '阅读全文')}
                                     </button>
                                 </div>
                             </div>
@@ -313,9 +322,9 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-003')}
                                         className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
                                     >
-                                        电动汽车：你需要知道的电池回收知识
+                                        {t('news.articles.evBattery.title', '电动汽车：你需要知道的电池回收知识')}
                                     </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.evBattery.description', '随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...')}</p>
                                 </div>
                                 <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
                                     <div className="flex items-center gap-4 text-xs text-slate-400">
@@ -330,7 +339,7 @@ export default function SciencePage() {
                                         onClick={() => viewArticle('article-003')}
                                         className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                     >
-                                        阅读全文
+                                        {t('actions.readFull', '阅读全文')}
                                     </button>
                                 </div>
                             </div>
@@ -348,7 +357,7 @@ export default function SciencePage() {
                 className="flex justify-center items-center gap-4 py-8"
             >
                 <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    上一页
+                    {locale === 'zh' ? '上一页' : 'Previous'}
                 </button>
                 <div className="flex items-center gap-2">
                     <button className="w-8 h-8 rounded-lg bg-[#30499B] text-white text-sm font-medium">1</button>
@@ -358,7 +367,7 @@ export default function SciencePage() {
                     <button className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm">10</button>
                 </div>
                 <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
-                    下一页
+                    {locale === 'zh' ? '下一页' : 'Next'}
                 </button>
             </motion.div>
         </Layout>

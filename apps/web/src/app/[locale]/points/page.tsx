@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import {
     Coins,
@@ -19,9 +19,11 @@ import { useAuth } from '@/hooks/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/lib/animations';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
+    const { t } = useSafeTranslation('points');
     const [quizStates, setQuizStates] = useState<{ [key: number]: { answered: boolean; correct: boolean } }>({
         1: { answered: false, correct: false },
         2: { answered: false, correct: false },
@@ -40,28 +42,28 @@ function PointsPageContent() {
     const [currentQuizSet, setCurrentQuizSet] = useState(0); // 当前题目集
 
     // 题库 - 多套环保知识问答
-    const quizSets = [
+    const getQuizSets = () => [
         // 第一套题目（默认）
         {
             quiz1: {
-                question: "哪种垃圾属于可回收垃圾？",
+                question: t('quiz.set1.q1.question', '哪种垃圾属于可回收垃圾？'),
                 options: [
-                    { text: "A. 废纸", correct: true },
-                    { text: "B. 电池", correct: false }
+                    { text: t('quiz.set1.q1.optionA', 'A. 废纸'), correct: true },
+                    { text: t('quiz.set1.q1.optionB', 'B. 电池'), correct: false }
                 ],
                 points: 5
             },
             quiz2: {
-                question: "一个塑料瓶完全分解需要多少年？",
+                question: t('quiz.set1.q2.question', '一个塑料瓶完全分解需要多少年？'),
                 type: "fill",
                 answer: "450",
                 points: 10
             },
             quiz3: {
-                question: "以下哪项不是节能减排的方法？",
+                question: t('quiz.set1.q3.question', '以下哪项不是节能减排的方法？'),
                 options: [
-                    { text: "A. 使用LED灯泡", correct: false },
-                    { text: "B. 长时间开空调", correct: true }
+                    { text: t('quiz.set1.q3.optionA', 'A. 使用LED灯泡'), correct: false },
+                    { text: t('quiz.set1.q3.optionB', 'B. 长时间开空调'), correct: true }
                 ],
                 points: 15
             }
@@ -69,24 +71,24 @@ function PointsPageContent() {
         // 第二套题目
         {
             quiz1: {
-                question: "微塑料污染主要来源于哪里？",
+                question: t('quiz.set2.q1.question', '微塑料污染主要来源于哪里？'),
                 options: [
-                    { text: "A. 轮胎磨损颗粒", correct: true },
-                    { text: "B. 天然橡胶", correct: false }
+                    { text: t('quiz.set2.q1.optionA', 'A. 轮胎磨损颗粒'), correct: true },
+                    { text: t('quiz.set2.q1.optionB', 'B. 天然橡胶'), correct: false }
                 ],
                 points: 5
             },
             quiz2: {
-                question: "生活垃圾可分为几大类？",
+                question: t('quiz.set2.q2.question', '生活垃圾可分为几大类？'),
                 type: "fill",
                 answer: "4",
                 points: 10
             },
             quiz3: {
-                question: "哪种能源属于可再生能源？",
+                question: t('quiz.set2.q3.question', '哪种能源属于可再生能源？'),
                 options: [
-                    { text: "A. 煤炭", correct: false },
-                    { text: "B. 太阳能", correct: true }
+                    { text: t('quiz.set2.q3.optionA', 'A. 煤炭'), correct: false },
+                    { text: t('quiz.set2.q3.optionB', 'B. 太阳能'), correct: true }
                 ],
                 points: 15
             }
@@ -94,24 +96,24 @@ function PointsPageContent() {
         // 第三套题目
         {
             quiz1: {
-                question: "以下哪项是造成温室效应的主要气体？",
+                question: t('quiz.set3.q1.question', '以下哪项是造成温室效应的主要气体？'),
                 options: [
-                    { text: "A. 二氧化碳", correct: true },
-                    { text: "B. 氧气", correct: false }
+                    { text: t('quiz.set3.q1.optionA', 'A. 二氧化碳'), correct: true },
+                    { text: t('quiz.set3.q1.optionB', 'B. 氧气'), correct: false }
                 ],
                 points: 5
             },
             quiz2: {
-                question: "一棵成年树每年能吸收多少公斤二氧化碳？（约数）",
+                question: t('quiz.set3.q2.question', '一棵成年树每年能吸收多少公斤二氧化碳？（约数）'),
                 type: "fill",
                 answer: "22",
                 points: 10
             },
             quiz3: {
-                question: "生物多样性保护最重要的措施是？",
+                question: t('quiz.set3.q3.question', '生物多样性保护最重要的措施是？'),
                 options: [
-                    { text: "A. 建设更多城市", correct: false },
-                    { text: "B. 保护自然栖息地", correct: true }
+                    { text: t('quiz.set3.q3.optionA', 'A. 建设更多城市'), correct: false },
+                    { text: t('quiz.set3.q3.optionB', 'B. 保护自然栖息地'), correct: true }
                 ],
                 points: 15
             }
@@ -119,24 +121,24 @@ function PointsPageContent() {
         // 第四套题目
         {
             quiz1: {
-                question: "海洋塑料垃圾的主要危害是？",
+                question: t('quiz.set4.q1.question', '海洋塑料垃圾的主要危害是？'),
                 options: [
-                    { text: "A. 影响海洋生物生存", correct: true },
-                    { text: "B. 增加海水盐分", correct: false }
+                    { text: t('quiz.set4.q1.optionA', 'A. 影响海洋生物生存'), correct: true },
+                    { text: t('quiz.set4.q1.optionB', 'B. 增加海水盐分'), correct: false }
                 ],
                 points: 5
             },
             quiz2: {
-                question: "节约用水，每次刷牙时关闭水龙头可节约多少升水？",
+                question: t('quiz.set4.q2.question', '节约用水，每次刷牙时关闭水龙头可节约多少升水？'),
                 type: "fill",
                 answer: "6",
                 points: 10
             },
             quiz3: {
-                question: "以下哪种交通方式最环保？",
+                question: t('quiz.set4.q3.question', '以下哪种交通方式最环保？'),
                 options: [
-                    { text: "A. 私家车", correct: false },
-                    { text: "B. 自行车", correct: true }
+                    { text: t('quiz.set4.q3.optionA', 'A. 私家车'), correct: false },
+                    { text: t('quiz.set4.q3.optionB', 'B. 自行车'), correct: true }
                 ],
                 points: 15
             }
@@ -144,29 +146,31 @@ function PointsPageContent() {
         // 第五套题目
         {
             quiz1: {
-                question: "森林砍伐的主要环境影响是？",
+                question: t('quiz.set5.q1.question', '森林砍伐的主要环境影响是？'),
                 options: [
-                    { text: "A. 加剧气候变化", correct: true },
-                    { text: "B. 增加降雨量", correct: false }
+                    { text: t('quiz.set5.q1.optionA', 'A. 加剧气候变化'), correct: true },
+                    { text: t('quiz.set5.q1.optionB', 'B. 增加降雨量'), correct: false }
                 ],
                 points: 5
             },
             quiz2: {
-                question: "全球每年产生多少亿吨塑料垃圾？（约数）",
+                question: t('quiz.set5.q2.question', '全球每年产生多少亿吨塑料垃圾？（约数）'),
                 type: "fill",
                 answer: "3",
                 points: 10
             },
             quiz3: {
-                question: "哪种做法有助于减少碳足迹？",
+                question: t('quiz.set5.q3.question', '哪种做法有助于减少碳足迹？'),
                 options: [
-                    { text: "A. 增加肉类消费", correct: false },
-                    { text: "B. 选择本地食材", correct: true }
+                    { text: t('quiz.set5.q3.optionA', 'A. 增加肉类消费'), correct: false },
+                    { text: t('quiz.set5.q3.optionB', 'B. 选择本地食材'), correct: true }
                 ],
                 points: 15
             }
         }
     ];
+
+    const quizSets = getQuizSets();
 
     // 处理签到
     const handleCheckIn = () => {
@@ -187,8 +191,8 @@ function PointsPageContent() {
         if (refreshCount >= maxRefreshCount) return; // 达到最大刷新次数
 
         setRefreshCount(prev => prev + 1);
-        // 随机选择新的题目集
-        const newQuizSet = Math.floor(Math.random() * quizSets.length);
+        // 使用确定性的方式选择新的题目集，避免随机数导致hydration mismatch
+        const newQuizSet = (currentQuizSet + 1) % quizSets.length;
         setCurrentQuizSet(newQuizSet);
         // 重置所有问答状态
         setQuizStates({
@@ -246,17 +250,17 @@ function PointsPageContent() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
                     </span>
-                    积分奖励系统
+                    {t('badge', '积分奖励系统')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight">
-                    积分<span className="text-[#F0A32F]">乐园</span>
+                    {t('title', '积分')}<span className="text-[#F0A32F]">{t('paradise', '乐园')}</span>
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
                     <div className="flex items-center gap-2">
                         <Coins className="w-5 h-5 text-[#F0A32F]" />
-                        <span>完成<span className="text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">任务</span>赚积分，</span>
+                        <span>{t('subtitle.complete', '完成')}<span className="text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">{t('subtitle.tasks', '任务')}</span>{t('subtitle.earnPoints', '赚积分，')}</span>
                     </div>
-                    <span>用<span className="text-[#56B949] font-medium border-b-2 border-[#56B949]/30">行动</span>换奖励</span>
+                    <span>{t('subtitle.use', '用')}<span className="text-[#56B949] font-medium border-b-2 border-[#56B949]/30">{t('subtitle.action', '行动')}</span>{t('subtitle.getRewards', '换奖励')}</span>
                 </div>
             </motion.section>
 
@@ -282,7 +286,9 @@ function PointsPageContent() {
                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg shadow-slate-200 flex items-center justify-center overflow-hidden">
                                 <User className="w-10 h-10 text-slate-400" />
                             </div>
-                            <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">Lv.3 绿色见习者</span>
+                            <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
+                                {t('level', 'Lv.3 绿色见习者')}
+                            </span>
                         </div>
 
                         {/* 积分与进度 */}
@@ -290,14 +296,14 @@ function PointsPageContent() {
                             <div className="flex items-baseline gap-2">
                                 <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B]">100</span>
                                 <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
-                                    <Coins className="w-3 h-3" /> 积分
+                                    <Coins className="w-3 h-3" /> {t('points', '积分')}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm text-[#30499B]/70 font-medium">
-                                    <span>当前进度</span>
-                                    <span>距离下一个徽章还差 <span className="text-[#EE4035]">50</span> 积分</span>
+                                    <span>{t('progress.current', '当前进度')}</span>
+                                    <span>{t('progress.nextBadge', '距离下一个徽章还差')} <span className="text-[#EE4035]">50</span> {t('progress.points', '积分')}</span>
                                 </div>
                                 <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
                                     <div className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative w-2/3">
@@ -315,8 +321,12 @@ function PointsPageContent() {
 
                         {/* 右侧按钮 */}
                         <div className="flex-shrink-0 flex md:flex-col gap-3">
-                            <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">兑换商城</button>
-                            <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">积分记录</button>
+                            <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">
+                                {t('exchangeStore', '兑换商城')}
+                            </button>
+                            <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">
+                                {t('pointsHistory', '积分记录')}
+                            </button>
                         </div>
                     </div>
                 </motion.section>
@@ -334,8 +344,12 @@ function PointsPageContent() {
                         className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">签到日历</h3>
-                            <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">2024年5月</div>
+                            <h3 className="text-xl font-bold text-[#30499B] font-serif">
+                                {t('signInCalendar', '签到日历')}
+                            </h3>
+                            <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                                {t('currentMonth', '2024年5月')}
+                            </div>
                         </div>
 
                         {/* 日历可视区域 */}
@@ -396,7 +410,7 @@ function PointsPageContent() {
                                     {todayCheckedIn ? (
                                         <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
                                     ) : (
-                                        <div className="text-xs font-bold text-[#56B949]">签到</div>
+                                        <div className="text-xs font-bold text-[#56B949]">{t('calendar.signIn', '签到')}</div>
                                     )}
 
                                     {/* 签到成功动画 */}
@@ -409,7 +423,7 @@ function PointsPageContent() {
 
                                     {/* 提示文字 */}
                                     <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
-                                        {todayCheckedIn ? '已签到 +5' : '点击签到'}
+                                        {todayCheckedIn ? t('calendar.signedIn', '已签到 +5') : t('calendar.clickToSignIn', '点击签到')}
                                     </div>
                                 </div>
 
@@ -421,11 +435,11 @@ function PointsPageContent() {
                         </div>
 
                         <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium px-2">
-                            <span>已签到 <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> 天</span>
+                            <span>{t('calendar.signedDays', '已签到')} <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> {t('calendar.days', '天')}</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>连续签到 <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> 天</span>
+                            <span>{t('calendar.consecutiveDays', '连续签到')} <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> {t('calendar.days', '天')}</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>已漏签 <b className="text-[#EE4035]">2</b> 天</span>
+                            <span>{t('calendar.missedDays', '已漏签')} <b className="text-[#EE4035]">2</b> {t('calendar.days', '天')}</span>
                         </div>
                     </motion.section>
 
@@ -438,8 +452,12 @@ function PointsPageContent() {
                         className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">每日任务</h3>
-                            <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">今日剩余 2</span>
+                            <h3 className="text-xl font-bold text-[#30499B] font-serif">
+                                {t('dailyTasks', '每日任务')}
+                            </h3>
+                            <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
+                                {t('tasksRemaining', '今日剩余')} 2
+                            </span>
                         </div>
 
                         <div className="space-y-3 flex-1">
@@ -450,13 +468,13 @@ function PointsPageContent() {
                                         <BookOpen className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">浏览"保护动物"文章</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">+10 积分</div>
+                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.readArticle', '浏览"保护动物"文章')}</div>
+                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.points10', '+10 积分')}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs font-medium text-slate-400 group-hover:text-[#30499B] transition-colors">1/3</span>
-                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">去完成</button>
+                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">{t('tasks.goComplete', '去完成')}</button>
                                 </div>
                             </div>
 
@@ -467,13 +485,13 @@ function PointsPageContent() {
                                         <CheckCircle className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-semibold text-slate-400 line-through">发布"垃圾分类"文章</div>
-                                        <div className="text-xs text-slate-400 font-medium">已完成</div>
+                                        <div className="text-sm font-semibold text-slate-400 line-through">{t('tasks.publishArticle', '发布"垃圾分类"文章')}</div>
+                                        <div className="text-xs text-slate-400 font-medium">{t('tasks.completed', '已完成')}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs font-medium text-[#56B949]">2/2</span>
-                                    <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">已完成</button>
+                                    <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">{t('tasks.completed', '已完成')}</button>
                                 </div>
                             </div>
 
@@ -485,13 +503,13 @@ function PointsPageContent() {
                                         <Gift className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">评论精选文章</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">奖励待领取</div>
+                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.commentArticle', '评论精选文章')}</div>
+                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.rewardPending', '奖励待领取')}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 relative z-10">
                                     <span className="text-xs font-medium text-[#F0A32F]">5/5</span>
-                                    <button className="px-3 py-1.5 bg-[#F0A32F] text-xs font-medium text-white rounded-lg shadow-md shadow-[#F0A32F]/30 hover:bg-[#d9901e] transition-all animate-pulse">领取</button>
+                                    <button className="px-3 py-1.5 bg-[#F0A32F] text-xs font-medium text-white rounded-lg shadow-md shadow-[#F0A32F]/30 hover:bg-[#d9901e] transition-all animate-pulse">{t('tasks.claim', '领取')}</button>
                                 </div>
                             </div>
 
@@ -502,13 +520,13 @@ function PointsPageContent() {
                                         <Share2 className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">分享给好友</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">+50 积分</div>
+                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.shareToFriends', '分享给好友')}</div>
+                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.points50', '+50 积分')}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs font-medium text-slate-400 group-hover:text-[#30499B] transition-colors">0/1</span>
-                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">去完成</button>
+                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">{t('tasks.goComplete', '去完成')}</button>
                                 </div>
                             </div>
                         </div>
@@ -520,7 +538,9 @@ function PointsPageContent() {
                     variants={staggerItem}
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <h3 className="text-xl font-bold text-[#30499B] font-serif">每日问答</h3>
+                        <h3 className="text-xl font-bold text-[#30499B] font-serif">
+                            {t('dailyQuiz', '每日问答')}
+                        </h3>
 
                         {/* 刷新按钮 */}
                         <button
@@ -535,11 +555,13 @@ function PointsPageContent() {
                             <RefreshCw className={`w-4 h-4 ${refreshCount >= maxRefreshCount ? '' : 'hover:rotate-180 transition-transform duration-300'}`} />
                         </button>
 
-                        <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">答对得积分</span>
+                        <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
+                            {t('answerForPoints', '答对得积分')}
+                        </span>
 
                         {/* 刷新次数提示 */}
                         <span className="text-[10px] text-slate-400 ml-auto">
-                            每日可刷新{maxRefreshCount}次 ({maxRefreshCount - refreshCount}次剩余)
+                            {t('refreshLimit', '每日可刷新')}5{t('times', '次')} ({maxRefreshCount - refreshCount}{t('remaining', '次剩余')})
                         </span>
                     </div>
 
@@ -579,7 +601,7 @@ function PointsPageContent() {
                                 </div>
                                 {quizStates[1].answered && (
                                     <div className={`text-xs font-medium ${quizStates[1].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[1].correct ? '✓ 回答正确！' : '✗ 回答错误'}
+                                        {quizStates[1].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
                                     </div>
                                 )}
                             </div>
@@ -600,7 +622,7 @@ function PointsPageContent() {
                                 <div className="mb-4">
                                     <input
                                         type="text"
-                                        placeholder="请输入数字"
+                                        placeholder={t('quiz.enterNumber', '请输入数字')}
                                         className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:border-[#F0A32F] focus:outline-none"
                                         onChange={(e) => handleFillBlank(2, e.target.value)}
                                         disabled={quizStates[2].answered}
@@ -608,7 +630,7 @@ function PointsPageContent() {
                                 </div>
                                 {quizStates[2].answered && (
                                     <div className={`text-xs font-medium ${quizStates[2].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[2].correct ? '✓ 回答正确！' : `✗ 回答错误，正确答案是${getCurrentQuiz(2).answer}`}
+                                        {quizStates[2].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : `${t('quiz.wrongAnswerWithCorrect', '✗ 回答错误，正确答案是')}${getCurrentQuiz(2).answer}`}
                                     </div>
                                 )}
                             </div>
@@ -643,7 +665,7 @@ function PointsPageContent() {
                                 </div>
                                 {quizStates[3].answered && (
                                     <div className={`text-xs font-medium ${quizStates[3].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[3].correct ? '✓ 回答正确！' : '✗ 回答错误'}
+                                        {quizStates[3].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
                                     </div>
                                 )}
                             </div>
@@ -665,7 +687,20 @@ function PointsPageContent() {
 export default function PointsPage() {
     return (
         <ProtectedRoute>
-            <PointsPageContent />
+            <Suspense fallback={
+                <Layout>
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#d9901e] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+                                YL
+                            </div>
+                            <p className="text-slate-600">加载中...</p>
+                        </div>
+                    </div>
+                </Layout>
+            }>
+                <PointsPageContent />
+            </Suspense>
         </ProtectedRoute>
     );
 }

@@ -1,3 +1,5 @@
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
 // 支持的语言列表
@@ -20,6 +22,19 @@ export default async function LocaleLayout({
         notFound();
     }
 
-    // 暂时不使用翻译，直接返回children
-    return <>{children}</>;
+    // 安全地获取翻译消息
+    let messages;
+    try {
+        messages = await getMessages();
+    } catch (error) {
+        console.error('Failed to load messages:', error);
+        // 如果翻译加载失败，使用空对象，让组件使用fallback
+        messages = {};
+    }
+
+    return (
+        <NextIntlClientProvider messages={messages} locale={locale}>
+            {children}
+        </NextIntlClientProvider>
+    );
 }

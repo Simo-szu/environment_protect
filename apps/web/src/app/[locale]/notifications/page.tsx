@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import { MessageCircle, Clock, Heart, UserPlus, Reply, Check, ExternalLink, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
@@ -23,60 +25,74 @@ interface Message {
 }
 
 // 扩展模拟数据到更多消息
-const generateMockMessages = (): Message[] => {
+const generateMockMessages = (t: any, locale: string): Message[] => {
     const baseMessages = [
         {
             id: '1',
             type: 'replies' as const,
             isRead: false,
-            user: { name: '李环保达人', avatar: '李' },
-            content: '非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。',
-            originalContent: '我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...',
-            timestamp: '2小时前'
+            user: { name: t('mockData.users.user1', '李环保达人'), avatar: t('mockData.users.user1', '李环保达人').charAt(0) },
+            content: t('mockData.contents.content1', '非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。'),
+            originalContent: t('mockData.originalContents.original1', '我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...'),
+            timestamp: `2${t('mockData.timestamps.hoursAgo', '小时前')}`
         },
         {
             id: '2',
             type: 'likes' as const,
             isRead: false,
-            user: { name: '王小绿', avatar: '王' },
-            content: '你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。',
-            originalContent: '垃圾分类小知识 - 让环保从细节做起',
-            timestamp: '4小时前'
+            user: { name: t('mockData.users.user2', '王小绿'), avatar: t('mockData.users.user2', '王小绿').charAt(0) },
+            content: t('mockData.contents.content2', '你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。'),
+            originalContent: t('mockData.originalContents.original2', '垃圾分类小知识 - 让环保从细节做起'),
+            timestamp: `4${t('mockData.timestamps.hoursAgo', '小时前')}`
         },
         {
             id: '3',
             type: 'follows' as const,
             isRead: false,
-            user: { name: '张环保志愿者', avatar: '张' },
-            content: '看到你在环保方面的分享很有价值，希望能互相学习交流！',
-            timestamp: '1天前'
+            user: { name: t('mockData.users.user3', '张环保志愿者'), avatar: t('mockData.users.user3', '张环保志愿者').charAt(0) },
+            content: t('mockData.contents.content3', '看到你在环保方面的分享很有价值，希望能互相学习交流！'),
+            timestamp: `1${t('mockData.timestamps.daysAgo', '天前')}`
         },
         {
             id: '4',
             type: 'replies' as const,
             isRead: true,
-            user: { name: '陈小环', avatar: '陈' },
-            content: '感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。',
-            originalContent: '家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...',
-            timestamp: '2天前',
+            user: { name: t('mockData.users.user4', '陈小环'), avatar: t('mockData.users.user4', '陈小环').charAt(0) },
+            content: t('mockData.contents.content4', '感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。'),
+            originalContent: t('mockData.originalContents.original3', '家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...'),
+            timestamp: `2${t('mockData.timestamps.daysAgo', '天前')}`,
             isLiked: true
         },
         {
             id: '5',
             type: 'likes' as const,
             isRead: true,
-            user: { name: '刘绿色生活', avatar: '刘' },
-            content: '很棒的环保活动分享！希望有机会也能参与这样的活动。',
-            originalContent: '参与社区植树活动的感想',
-            timestamp: '3天前'
+            user: { name: t('mockData.users.user5', '刘绿色生活'), avatar: t('mockData.users.user5', '刘绿色生活').charAt(0) },
+            content: t('mockData.contents.content5', '很棒的环保活动分享！希望有机会也能参与这样的活动。'),
+            originalContent: t('mockData.originalContents.original4', '参与社区植树活动的感想'),
+            timestamp: `3${t('mockData.timestamps.daysAgo', '天前')}`
         }
     ];
 
     // 生成更多模拟数据
     const additionalMessages: Message[] = [];
-    const names = ['赵环保', '钱绿色', '孙节能', '李减排', '周循环', '吴低碳', '郑清洁', '王可持续', '冯生态', '陈绿化'];
+    // 根据语言环境使用不同的数组
+    const names = locale === 'en' ?
+        ['Zhao Eco', 'Qian Green', 'Sun Energy', 'Li Reduce', 'Zhou Cycle', 'Wu LowCarbon', 'Zheng Clean', 'Wang Sustain', 'Feng Eco', 'Chen Green'] :
+        ['赵环保', '钱绿色', '孙节能', '李减排', '周循环', '吴低碳', '郑清洁', '王可持续', '冯生态', '陈绿化'];
+
     const types: ('replies' | 'likes' | 'follows')[] = ['replies', 'likes', 'follows'];
-    const contents = [
+
+    const contents = locale === 'en' ? [
+        'Your environmental philosophy is great, learned a lot!',
+        'I\'ve tried this method, it\'s really effective.',
+        'Thank you for sharing, very inspiring to me.',
+        'Hope to participate in more environmental activities with you.',
+        'Your sharing gave me a new understanding of environmental protection.',
+        'These tips are so practical, I\'ve started practicing them.',
+        'I totally agree with your point, environmental protection needs everyone\'s effort.',
+        'Your experience sharing is very valuable, thank you!'
+    ] : [
         '你的环保理念很棒，学到了很多！',
         '这个方法我试过，确实很有效果。',
         '感谢分享，对我很有启发。',
@@ -98,8 +114,8 @@ const generateMockMessages = (): Message[] => {
             isRead: Math.random() > 0.3, // 70% 已读
             user: { name, avatar: name.charAt(0) },
             content,
-            originalContent: type !== 'follows' ? '环保相关的原始内容...' : undefined,
-            timestamp: `${Math.floor(Math.random() * 7) + 1}天前`,
+            originalContent: type !== 'follows' ? t('mockData.originalContents.original5', '环保相关的原始内容...') : undefined,
+            timestamp: `${Math.floor(Math.random() * 7) + 1}${t('mockData.timestamps.daysAgo', '天前')}`,
             isLiked: Math.random() > 0.5,
             isFollowedBack: type === 'follows' ? Math.random() > 0.5 : undefined
         });
@@ -110,7 +126,10 @@ const generateMockMessages = (): Message[] => {
 
 export default function NotificationsPage() {
     const { isLoggedIn, loading } = useAuth();
-    const [allMessages] = useState<Message[]>(generateMockMessages());
+    const { t } = useSafeTranslation('notifications');
+    const params = useParams();
+    const locale = params?.locale as string || 'zh';
+    const [allMessages] = useState<Message[]>(generateMockMessages(t, locale));
     const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'replies' | 'likes'>('all');
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [replyContent, setReplyContent] = useState('');
@@ -120,16 +139,16 @@ export default function NotificationsPage() {
     // 如果未登录，重定向到登录页
     useEffect(() => {
         if (!loading && !isLoggedIn) {
-            window.location.href = '/zh/login';
+            window.location.href = `/${locale}/login`;
         }
-    }, [isLoggedIn, loading]);
+    }, [isLoggedIn, loading, locale]);
 
     // 显示加载状态
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-lg text-slate-600 mb-4">加载中...</div>
+                    <div className="text-lg text-slate-600 mb-4">{t('messages.loading', '加载中...')}</div>
                 </div>
             </div>
         );
@@ -139,9 +158,9 @@ export default function NotificationsPage() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-lg text-slate-600 mb-4">请先登录查看消息通知</div>
+                    <div className="text-lg text-slate-600 mb-4">{t('messages.loginRequired', '请先登录查看消息通知')}</div>
                     <Link href="/zh/login" className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
-                        去登录
+                        {t('messages.goLogin', '去登录')}
                     </Link>
                 </div>
             </div>
@@ -179,7 +198,7 @@ export default function NotificationsPage() {
     const totalReplies = 28;
 
     const handleMarkAsRead = () => {
-        alert('标记为已读功能需要后端支持');
+        alert(t('messages.markAsReadAlert', '标记为已读功能需要后端支持'));
     };
 
     const handleReply = (messageId: string) => {
@@ -194,21 +213,21 @@ export default function NotificationsPage() {
 
     const handleSendReply = () => {
         if (!replyContent.trim()) {
-            alert('请输入回复内容');
+            alert(t('messages.replyEmptyAlert', '请输入回复内容'));
             return;
         }
 
-        alert('回复发送成功！');
+        alert(t('messages.replySuccessAlert', '回复发送成功！'));
         setReplyingTo(null);
         setReplyContent('');
     };
 
     const handleLikeMessage = () => {
-        alert('点赞功能需要后端支持');
+        alert(t('messages.likeAlert', '点赞功能需要后端支持'));
     };
 
     const handleFollowBack = () => {
-        alert('关注功能需要后端支持');
+        alert(t('messages.followAlert', '关注功能需要后端支持'));
     };
 
     const getMessageIcon = (type: string) => {
@@ -222,10 +241,10 @@ export default function NotificationsPage() {
 
     const getMessageTypeText = (type: string) => {
         switch (type) {
-            case 'replies': return '回复了你的内容';
-            case 'likes': return '点赞了你的内容';
-            case 'follows': return '关注了你';
-            default: return '互动了你的内容';
+            case 'replies': return t('types.replied', '回复了你的内容');
+            case 'likes': return t('types.liked', '点赞了你的内容');
+            case 'follows': return t('types.followed', '关注了你');
+            default: return t('types.replied', '互动了你的内容');
         }
     };
 
@@ -241,13 +260,13 @@ export default function NotificationsPage() {
     };
 
     const getBadgeText = (type: string, isRead: boolean) => {
-        if (isRead) return '已读';
+        if (isRead) return t('badges.read', '已读');
 
         switch (type) {
-            case 'replies': return '新回复';
-            case 'likes': return '新点赞';
-            case 'follows': return '新关注';
-            default: return '新消息';
+            case 'replies': return t('badges.newReply', '新回复');
+            case 'likes': return t('badges.newLike', '新点赞');
+            case 'follows': return t('badges.newFollow', '新关注');
+            default: return t('badges.newReply', '新消息');
         }
     };
 
@@ -259,29 +278,29 @@ export default function NotificationsPage() {
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#30499B]/10 text-[#30499B] rounded-full text-sm font-semibold mb-4">
                             <MessageCircle className="w-4 h-4" />
-                            消息通知
+                            {t('badge', '消息通知')}
                         </div>
-                        <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">消息中心</h2>
-                        <p className="text-slate-500">查看所有互动消息和通知</p>
+                        <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">{t('title', '消息中心')}</h2>
+                        <p className="text-slate-500">{t('description', '查看所有互动消息和通知')}</p>
                     </div>
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#EE4035] mb-1">{unreadCount}</div>
-                            <div className="text-sm text-slate-500">未读消息</div>
+                            <div className="text-sm text-slate-500">{t('stats.unread', '未读消息')}</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#F0A32F] mb-1">{todayReplies}</div>
-                            <div className="text-sm text-slate-500">今日回复</div>
+                            <div className="text-sm text-slate-500">{t('stats.todayReplies', '今日回复')}</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#56B949] mb-1">{totalLikes}</div>
-                            <div className="text-sm text-slate-500">总点赞数</div>
+                            <div className="text-sm text-slate-500">{t('stats.totalLikes', '总点赞数')}</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#30499B] mb-1">{totalReplies}</div>
-                            <div className="text-sm text-slate-500">总回复数</div>
+                            <div className="text-sm text-slate-500">{t('stats.totalReplies', '总回复数')}</div>
                         </div>
                     </div>
 
@@ -294,7 +313,7 @@ export default function NotificationsPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            全部
+                            {t('filters.all', '全部')}
                         </button>
                         <button
                             onClick={() => handleFilterChange('unread')}
@@ -304,7 +323,7 @@ export default function NotificationsPage() {
                                 }`}
                         >
                             <span className="flex items-center gap-2">
-                                未读
+                                {t('filters.unread', '未读')}
                                 {unreadCount > 0 && <span className="w-2 h-2 bg-[#EE4035] rounded-full"></span>}
                             </span>
                         </button>
@@ -315,7 +334,7 @@ export default function NotificationsPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            回复
+                            {t('filters.replies', '回复')}
                         </button>
                         <button
                             onClick={() => handleFilterChange('likes')}
@@ -324,7 +343,7 @@ export default function NotificationsPage() {
                                 : 'text-slate-600 hover:text-[#30499B]'
                                 }`}
                         >
-                            点赞
+                            {t('filters.likes', '点赞')}
                         </button>
                     </div>
 
@@ -361,7 +380,12 @@ export default function NotificationsPage() {
 
                                         {message.originalContent && (
                                             <div className="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#56B949]">
-                                                <div className="text-xs text-slate-500 mb-1">你的原{message.type === 'replies' ? '评论' : '分享'}：</div>
+                                                <div className="text-xs text-slate-500 mb-1">
+                                                    {message.type === 'replies'
+                                                        ? t('messages.originalComment', '你的原评论：')
+                                                        : t('messages.originalShare', '你的原分享：')
+                                                    }
+                                                </div>
                                                 <p className="text-sm text-slate-600">{message.originalContent}</p>
                                             </div>
                                         )}
@@ -373,7 +397,7 @@ export default function NotificationsPage() {
                                                     className="flex items-center gap-2 px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm"
                                                 >
                                                     <Reply className="w-4 h-4" />
-                                                    回复
+                                                    {t('actions.reply', '回复')}
                                                 </button>
                                             )}
 
@@ -383,7 +407,7 @@ export default function NotificationsPage() {
                                                     className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
-                                                    查看内容
+                                                    {t('actions.viewContent', '查看内容')}
                                                 </button>
                                             )}
 
@@ -394,14 +418,14 @@ export default function NotificationsPage() {
                                                         className="flex items-center gap-2 px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm"
                                                     >
                                                         <UserPlus className="w-4 h-4" />
-                                                        回关
+                                                        {t('actions.follow', '回关')}
                                                     </button>
                                                     <button
                                                         onClick={() => alert('跳转到用户资料页面...')}
                                                         className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm"
                                                     >
                                                         <User className="w-4 h-4" />
-                                                        查看资料
+                                                        {t('actions.viewProfile', '查看资料')}
                                                     </button>
                                                 </>
                                             )}
@@ -412,7 +436,7 @@ export default function NotificationsPage() {
                                                     className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm cursor-not-allowed"
                                                 >
                                                     <Check className="w-4 h-4" />
-                                                    已关注
+                                                    {t('actions.followed', '已关注')}
                                                 </button>
                                             )}
 
@@ -425,7 +449,7 @@ export default function NotificationsPage() {
                                                         }`}
                                                 >
                                                     <Heart className={`w-4 h-4 ${message.isLiked ? 'fill-current' : ''}`} />
-                                                    {message.isLiked ? '已点赞' : '点赞'}
+                                                    {message.isLiked ? t('actions.liked', '已点赞') : t('actions.like', '点赞')}
                                                 </button>
                                             )}
 
@@ -445,27 +469,27 @@ export default function NotificationsPage() {
                                                 <textarea
                                                     value={replyContent}
                                                     onChange={(e) => setReplyContent(e.target.value)}
-                                                    placeholder="输入你的回复..."
+                                                    placeholder={t('replyPlaceholder', '输入你的回复...')}
                                                     className="w-full p-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B] outline-none"
                                                     rows={3}
                                                 />
                                                 <div className="flex items-center justify-between mt-3">
                                                     <div className="flex items-center gap-2 text-sm text-slate-500">
                                                         <span>💭</span>
-                                                        <span>支持 Markdown 格式</span>
+                                                        <span>{t('replySupport', '支持 Markdown 格式')}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={() => handleReply(message.id)}
                                                             className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm"
                                                         >
-                                                            取消
+                                                            {t('common.cancel', '取消')}
                                                         </button>
                                                         <button
                                                             onClick={() => handleSendReply()}
                                                             className="px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm"
                                                         >
-                                                            发送回复
+                                                            {t('sendReply', '发送回复')}
                                                         </button>
                                                     </div>
                                                 </div>

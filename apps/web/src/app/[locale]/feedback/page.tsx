@@ -5,11 +5,13 @@ import Layout from '@/components/Layout';
 import Link from 'next/link';
 import BackButton from '@/components/ui/BackButton';
 import { useParams } from 'next/navigation';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import { ArrowLeft, MessageSquare, Star, Send, CheckCircle } from 'lucide-react';
 
 export default function FeedbackPage() {
     const params = useParams();
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('feedback');
 
     const [formData, setFormData] = useState({
         type: 'suggestion',
@@ -22,10 +24,10 @@ export default function FeedbackPage() {
     const [submitted, setSubmitted] = useState(false);
 
     const feedbackTypes = [
-        { value: 'suggestion', label: '功能建议', color: 'text-[#56B949]' },
-        { value: 'bug', label: '问题反馈', color: 'text-[#EE4035]' },
-        { value: 'praise', label: '表扬建议', color: 'text-[#F0A32F]' },
-        { value: 'other', label: '其他意见', color: 'text-[#30499B]' }
+        { value: 'suggestion', label: t('form.type.options.suggestion'), color: 'text-[#56B949]' },
+        { value: 'bug', label: t('form.type.options.bug'), color: 'text-[#EE4035]' },
+        { value: 'praise', label: t('form.type.options.praise'), color: 'text-[#F0A32F]' },
+        { value: 'other', label: t('form.type.options.other'), color: 'text-[#30499B]' }
     ];
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -67,17 +69,17 @@ export default function FeedbackPage() {
                             <CheckCircle className="w-8 h-8" />
                         </div>
                         <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-4">
-                            反馈提交成功！
+                            {t('success.title')}
                         </h2>
                         <p className="text-slate-600 mb-8">
-                            感谢您的宝贵意见，我们会认真考虑您的建议，并在必要时与您联系。
+                            {t('success.description')}
                         </p>
                         <div className="flex gap-4 justify-center">
                             <Link
                                 href={`/${locale}`}
                                 className="px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300"
                             >
-                                返回首页
+                                {t('success.backHome')}
                             </Link>
                             <button
                                 onClick={() => {
@@ -93,7 +95,7 @@ export default function FeedbackPage() {
                                 }}
                                 className="px-6 py-3 border border-[#56B949] text-[#56B949] rounded-lg font-medium hover:bg-[#56B949] hover:text-white transition-all duration-300"
                             >
-                                继续反馈
+                                {t('success.continueFeedback')}
                             </button>
                         </div>
                     </div>
@@ -114,11 +116,11 @@ export default function FeedbackPage() {
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-semibold mb-4 border border-[#F0A32F]/20">
                         <MessageSquare className="w-3 h-3" />
-                        用户反馈
+                        {t('badge')}
                     </div>
-                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">意见反馈</h1>
+                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title')}</h1>
                     <p className="text-slate-600 max-w-2xl mx-auto">
-                        您的意见对我们非常重要！请告诉我们您的想法，帮助我们改进YouthLoop，为更多用户提供更好的环保体验。
+                        {t('description')}
                     </p>
                 </div>
 
@@ -128,7 +130,7 @@ export default function FeedbackPage() {
                         {/* 反馈类型 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-3">
-                                反馈类型 *
+                                {t('form.type.label')}
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {feedbackTypes.map((type) => (
@@ -159,7 +161,7 @@ export default function FeedbackPage() {
                         {/* 满意度评分 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-3">
-                                整体满意度
+                                {t('form.rating.label')}
                             </label>
                             <div className="flex items-center gap-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
@@ -176,7 +178,7 @@ export default function FeedbackPage() {
                                     </button>
                                 ))}
                                 <span className="ml-2 text-sm text-slate-600">
-                                    {formData.rating} 星
+                                    {formData.rating} {t('form.rating.stars')}
                                 </span>
                             </div>
                         </div>
@@ -184,7 +186,7 @@ export default function FeedbackPage() {
                         {/* 反馈标题 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                反馈标题 *
+                                {t('form.title.label')}
                             </label>
                             <input
                                 type="text"
@@ -192,7 +194,7 @@ export default function FeedbackPage() {
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                placeholder="请简要描述您的反馈内容"
+                                placeholder={t('form.title.placeholder')}
                                 required
                             />
                         </div>
@@ -200,7 +202,7 @@ export default function FeedbackPage() {
                         {/* 详细内容 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                详细内容 *
+                                {t('form.content.label')}
                             </label>
                             <textarea
                                 name="content"
@@ -208,7 +210,7 @@ export default function FeedbackPage() {
                                 onChange={handleInputChange}
                                 rows={6}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                placeholder="请详细描述您的意见、建议或遇到的问题..."
+                                placeholder={t('form.content.placeholder')}
                                 required
                             />
                         </div>
@@ -216,7 +218,7 @@ export default function FeedbackPage() {
                         {/* 联系方式 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                联系方式（可选）
+                                {t('form.contact.label')}
                             </label>
                             <input
                                 type="text"
@@ -224,7 +226,7 @@ export default function FeedbackPage() {
                                 value={formData.contact}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                placeholder="邮箱或手机号，方便我们与您联系"
+                                placeholder={t('form.contact.placeholder')}
                             />
                         </div>
 
@@ -238,7 +240,7 @@ export default function FeedbackPage() {
                                 className="w-4 h-4 text-[#56B949] border-slate-300 rounded focus:ring-[#56B949]"
                             />
                             <label className="text-sm text-slate-700">
-                                匿名反馈（我们不会记录您的个人信息）
+                                {t('form.anonymous')}
                             </label>
                         </div>
 
@@ -249,13 +251,13 @@ export default function FeedbackPage() {
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                             >
                                 <Send className="w-4 h-4" />
-                                提交反馈
+                                {t('form.submit')}
                             </button>
                             <Link
                                 href={`/${locale}`}
                                 className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                             >
-                                取消
+                                {t('form.cancel')}
                             </Link>
                         </div>
                     </form>
@@ -263,19 +265,19 @@ export default function FeedbackPage() {
 
                 {/* 其他联系方式 */}
                 <div className="mt-8 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 rounded-xl p-6 border border-[#56B949]/20">
-                    <h3 className="text-lg font-semibold text-[#30499B] mb-4">其他联系方式</h3>
+                    <h3 className="text-lg font-semibold text-[#30499B] mb-4">{t('otherContact.title')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">客服邮箱</p>
-                            <p className="text-slate-600">feedback@youthloop.org</p>
+                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.email.title')}</p>
+                            <p className="text-slate-600">{t('otherContact.email.address')}</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">客服热线</p>
-                            <p className="text-slate-600">400-123-4567</p>
+                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.phone.title')}</p>
+                            <p className="text-slate-600">{t('otherContact.phone.number')}</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">服务时间</p>
-                            <p className="text-slate-600">工作日 9:00-18:00</p>
+                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.hours.title')}</p>
+                            <p className="text-slate-600">{t('otherContact.hours.schedule')}</p>
                         </div>
                     </div>
                 </div>

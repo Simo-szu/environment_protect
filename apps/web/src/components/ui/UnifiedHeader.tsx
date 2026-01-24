@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { Menu, Search } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 interface UnifiedHeaderProps {
     showSearch?: boolean;
@@ -18,17 +19,18 @@ export default function UnifiedHeader({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
     const params = useParams();
+    const { t } = useSafeTranslation('navigation');
 
     // 获取当前语言
     const locale = params?.locale as string || 'zh';
 
-    // 静态导航项目（暂时不使用翻译）
+    // 导航项目
     const navigationItems = [
-        { href: `/${locale}`, label: '首页', color: '#30499B' },
-        { href: `/${locale}/game`, label: '游戏', color: '#56B949' },
-        { href: `/${locale}/science`, label: '科普', color: '#F0A32F' },
-        { href: `/${locale}/activities`, label: '活动', color: '#30499B' },
-        { href: `/${locale}/points`, label: '积分', color: '#EE4035' }
+        { href: `/${locale}`, label: t('home', '首页'), color: '#30499B' },
+        { href: `/${locale}/game`, label: t('game', '游戏'), color: '#56B949' },
+        { href: `/${locale}/science`, label: t('science', '科普'), color: '#F0A32F' },
+        { href: `/${locale}/activities`, label: t('activities', '活动'), color: '#30499B' },
+        { href: `/${locale}/points`, label: t('points', '积分'), color: '#EE4035' }
     ];
 
     const isActivePage = (href: string) => {
@@ -59,7 +61,7 @@ export default function UnifiedHeader({
                 <button
                     onClick={toggleMobileMenu}
                     className="md:hidden p-2 text-[#30499B] dark:text-[#56B949] focus:outline-none ml-auto transition-colors duration-300"
-                    aria-label="切换菜单"
+                    aria-label={t('toggleMenu', '切换菜单')}
                 >
                     <Menu className="w-6 h-6" />
                 </button>
@@ -98,14 +100,14 @@ export default function UnifiedHeader({
                                 className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] text-left transition-colors duration-300"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                登录
+                                {t('login', '登录')}
                             </Link>
                             <Link
                                 href={`/${locale}/register`}
                                 className="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                注册
+                                {t('register', '注册')}
                             </Link>
                         </div>
                     )}
@@ -117,7 +119,7 @@ export default function UnifiedHeader({
                         <div className="hidden lg:flex items-center bg-white/60 dark:bg-slate-800/60 rounded-full px-4 py-2 border border-slate-200/60 dark:border-slate-700/60 focus-within:border-[#30499B]/30 dark:focus-within:border-[#56B949]/30 focus-within:bg-white dark:focus-within:bg-slate-800 transition-all w-48 xl:w-64">
                             <input
                                 type="text"
-                                placeholder="搜索..."
+                                placeholder={t('searchPlaceholder', '搜索...')}
                                 className="bg-transparent border-none outline-none text-xs w-full text-[#30499B] dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
                             />
                             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -133,13 +135,13 @@ export default function UnifiedHeader({
                                 href={`/${locale}/login`}
                                 className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] hover:text-[#56B949] dark:hover:text-[#30499B] transition-colors"
                             >
-                                登录
+                                {t('login', '登录')}
                             </Link>
                             <Link
                                 href={`/${locale}/register`}
                                 className="text-sm px-4 py-1.5 rounded-full bg-[#30499B] dark:bg-[#56B949] text-white font-medium shadow-md shadow-[#30499B]/20 dark:shadow-[#56B949]/20 hover:bg-[#253a7a] dark:hover:bg-[#4aa840] hover:scale-105 transition-all"
                             >
-                                注册
+                                {t('register', '注册')}
                             </Link>
                         </div>
                     )}

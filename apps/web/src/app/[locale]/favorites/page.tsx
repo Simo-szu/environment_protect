@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -12,15 +13,14 @@ import {
     Calendar,
     MapPin,
     Eye,
-    ArrowRight,
     TreePine,
     Recycle,
     Droplets
 } from 'lucide-react';
-import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
 
 export default function FavoritesPage() {
     const { user, isLoggedIn, loading } = useAuth();
+    const { t } = useSafeTranslation('favorites');
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
     const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +40,7 @@ export default function FavoritesPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -54,21 +54,21 @@ export default function FavoritesPage() {
     // 模拟数据 - 实际项目中这些数据会从API获取
     const mockArticles = Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
-        title: `环保文章 ${i + 1}`,
-        description: '这是一篇关于环保的文章，介绍了各种环保知识和技巧...',
+        title: `${t('content.articles.title', '环保文章')} ${i + 1}`,
+        description: t('content.articles.description', '这是一篇关于环保的文章，介绍了各种环保知识和技巧...'),
         type: i % 3 === 0 ? 'water' : i % 3 === 1 ? 'recycle' : 'tree',
-        date: `${Math.floor(Math.random() * 30) + 1}天前收藏`
+        date: `${Math.floor(Math.random() * 30) + 1}${t('content.articles.favoritedDaysAgo', '天前收藏')}`
     }));
 
     const mockActivities = Array.from({ length: 18 }, (_, i) => ({
         id: i + 1,
-        title: `环保活动 ${i + 1}`,
-        description: '这是一个很有意义的环保活动，欢迎大家参与...',
-        location: '市中心公园',
+        title: `${t('content.activities.title', '环保活动')} ${i + 1}`,
+        description: t('content.activities.description', '这是一个很有意义的环保活动，欢迎大家参与...'),
+        location: t('content.activities.location', '市中心公园'),
         views: Math.floor(Math.random() * 200) + 50,
         likes: Math.floor(Math.random() * 50) + 10,
         type: i % 2 === 0 ? 'tree' : 'recycle',
-        date: `${Math.floor(Math.random() * 30) + 1}天前收藏`
+        date: `${Math.floor(Math.random() * 30) + 1}${t('content.activities.favoritedDaysAgo', '天前收藏')}`
     }));
 
     const getCurrentData = () => {
@@ -98,10 +98,10 @@ export default function FavoritesPage() {
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#56B949]/10 text-[#56B949] text-xs font-semibold mb-4 border border-[#56B949]/20">
                             <Bookmark className="w-3 h-3" />
-                            我的收藏
+                            {t('badge', '我的收藏')}
                         </div>
-                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">我的收藏</h1>
-                        <p className="text-slate-600">这里保存了你收藏的所有内容</p>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '我的收藏')}</h1>
+                        <p className="text-slate-600">{t('description', '这里保存了你收藏的所有内容')}</p>
                     </div>
                 </div>
             </div>
@@ -117,7 +117,7 @@ export default function FavoritesPage() {
                             }`}
                     >
                         <Bookmark className="w-4 h-4" />
-                        科普文章 ({mockArticles.length})
+                        {t('tabs.articles', '科普文章')} ({mockArticles.length})
                     </button>
                     <button
                         onClick={() => handleTabChange('activities')}
@@ -127,7 +127,7 @@ export default function FavoritesPage() {
                             }`}
                     >
                         <Calendar className="w-4 h-4" />
-                        环保活动 ({mockActivities.length})
+                        {t('tabs.activities', '环保活动')} ({mockActivities.length})
                     </button>
                 </div>
 
@@ -148,7 +148,7 @@ export default function FavoritesPage() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1 text-[#56B949]">
                                                 <Bookmark className="w-4 h-4 fill-current" />
-                                                <span className="text-sm font-medium">已收藏</span>
+                                                <span className="text-sm font-medium">{t('content.favorited', '已收藏')}</span>
                                             </div>
                                             <span className="text-xs text-slate-400">{article.date}</span>
                                         </div>
@@ -178,7 +178,7 @@ export default function FavoritesPage() {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#56B949]/10 text-[#56B949] border border-[#56B949]/20">
-                                                        {activity.type === 'tree' ? '植树活动' : '环保DIY'}
+                                                        {activity.type === 'tree' ? t('content.activities.treeActivity', '植树活动') : t('content.activities.ecoActivity', '环保DIY')}
                                                     </span>
                                                     <span className="text-xs text-slate-400">{activity.date}</span>
                                                 </div>
@@ -195,7 +195,7 @@ export default function FavoritesPage() {
                                                     </div>
                                                     <div className="flex items-center gap-1 text-[#56B949]">
                                                         <Bookmark className="w-4 h-4 fill-current" />
-                                                        <span className="text-sm font-medium">已收藏</span>
+                                                        <span className="text-sm font-medium">{t('content.favorited', '已收藏')}</span>
                                                     </div>
                                                 </div>
                                             </div>

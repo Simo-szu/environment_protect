@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     Smartphone,
     Lock,
@@ -16,6 +17,7 @@ import {
 export default function RegisterPage() {
     const params = useParams();
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('auth');
 
     const [formData, setFormData] = useState({
         contact: '',
@@ -34,22 +36,22 @@ export default function RegisterPage() {
         setError('');
 
         if (!formData.contact || !formData.password || !formData.confirmPassword) {
-            setError('请填写完整的注册信息');
+            setError(t('errors.fillCompleteRegister', '请填写完整的注册信息'));
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setError('两次输入的密码不一致');
+            setError(t('errors.passwordMismatch', '两次输入的密码不一致'));
             return;
         }
 
         if (formData.password.length < 8) {
-            setError('密码长度至少8位');
+            setError(t('errors.passwordTooShort', '密码长度至少8位'));
             return;
         }
 
         if (!formData.terms) {
-            setError('请同意用户协议和隐私政策');
+            setError(t('errors.agreeToTerms', '请同意用户协议和隐私政策'));
             return;
         }
 
@@ -95,17 +97,21 @@ export default function RegisterPage() {
                             <span className="font-serif font-bold text-2xl text-white">YL</span>
                         </div>
                         <div className="text-[#30499B] font-bold text-xl tracking-wide">YouthLoop</div>
-                        <p className="text-slate-500 text-sm mt-2">加入我们，开启绿色生活新篇章</p>
+                        <p className="text-slate-500 text-sm mt-2">
+                            {t('register.subtitle', '加入我们，开启绿色生活新篇章')}
+                        </p>
                     </div>
 
                     {/* Register Form */}
                     <div className="space-y-6">
                         <div className="flex items-baseline justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-[#30499B]">注册</h2>
+                            <h2 className="text-2xl font-bold text-[#30499B]">
+                                {t('register.title', '注册')}
+                            </h2>
                             <div className="text-sm text-slate-500 font-medium">
-                                已有账号？{' '}
+                                {t('register.hasAccount', '已有账号？')}{' '}
                                 <Link href={`/${locale}/login`} className="text-[#30499B] hover:text-[#56B949] transition-colors underline decoration-dotted underline-offset-2">
-                                    马上登录
+                                    {t('register.loginNow', '马上登录')}
                                 </Link>
                             </div>
                         </div>

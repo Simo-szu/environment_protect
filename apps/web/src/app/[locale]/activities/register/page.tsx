@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     ArrowLeft,
     Calendar,
@@ -27,6 +28,8 @@ function RegisterActivityContent() {
     const params = useParams();
     const locale = params.locale as string;
     const activityId = searchParams.get('id');
+    const { t } = useSafeTranslation('activities');
+    const { t: tCommon } = useSafeTranslation('common');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -41,17 +44,17 @@ function RegisterActivityContent() {
     // 模拟活动数据
     const mockActivity = {
         id: activityId || 'activity-001',
-        title: '城市绿洲：周末社区花园种植计划',
-        description: '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。',
+        title: t('register.mockActivity.title', '城市绿洲：周末社区花园种植计划'),
+        description: t('register.mockActivity.description', '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。'),
         type: 'tree',
-        date: '2024年5月20日',
+        date: t('register.mockActivity.date', '2024年5月20日'),
         time: '09:00-17:00',
-        location: '市中心公园东门集合',
+        location: t('register.mockActivity.location', '市中心公园东门集合'),
         maxParticipants: 30,
         currentParticipants: 18,
-        organizer: '绿色生活协会',
-        requirements: '请穿着适合户外活动的服装，自备水杯和防晒用品',
-        contactInfo: '联系人：张老师 13800138000'
+        organizer: t('register.mockActivity.organizer', '绿色生活协会'),
+        requirements: t('register.mockActivity.requirements', '请穿着适合户外活动的服装，自备水杯和防晒用品'),
+        contactInfo: t('register.mockActivity.contactInfo', '联系人：张老师 13800138000')
     };
 
     useEffect(() => {
@@ -76,7 +79,7 @@ function RegisterActivityContent() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('register.loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -105,14 +108,14 @@ function RegisterActivityContent() {
 
     const handleSubmit = () => {
         if (!formData.agreement) {
-            alert('请先同意活动协议');
+            alert(t('register.form.agreementRequired', '请先同意活动协议'));
             return;
         }
 
         // 这里应该调用API提交报名
         console.log('提交报名:', formData);
         // 报名成功后跳转到成功页面或返回活动详情
-        alert('报名成功！');
+        alert(t('register.form.submitSuccess', '报名成功！'));
         router.push(`/${locale}/my-activities`);
     };
 
@@ -148,8 +151,8 @@ function RegisterActivityContent() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">活动报名</h1>
-                            <p className="text-slate-600">填写报名信息参与活动</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">{t('register.title', '活动报名')}</h1>
+                            <p className="text-slate-600">{t('register.subtitle', '填写报名信息参与活动')}</p>
                         </div>
                     </div>
                 </div>
@@ -171,7 +174,7 @@ function RegisterActivityContent() {
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg sticky top-8">
                             <div className="flex items-center gap-3 mb-4">
                                 {getTypeIcon(mockActivity.type)}
-                                <h3 className="font-semibold text-[#30499B]">活动信息</h3>
+                                <h3 className="font-semibold text-[#30499B]">{t('register.activityInfo.title', '活动信息')}</h3>
                             </div>
 
                             <div className="space-y-4">
@@ -191,12 +194,12 @@ function RegisterActivityContent() {
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <Users className="w-4 h-4" />
-                                        <span>{mockActivity.currentParticipants}/{mockActivity.maxParticipants} 人</span>
+                                        <span>{mockActivity.currentParticipants}/{mockActivity.maxParticipants} {t('register.activityInfo.participants', '人')}</span>
                                     </div>
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-200">
-                                    <p className="text-xs text-slate-500 mb-2">主办方</p>
+                                    <p className="text-xs text-slate-500 mb-2">{t('register.activityInfo.organizer', '主办方')}</p>
                                     <p className="text-sm font-medium text-slate-700">{mockActivity.organizer}</p>
                                 </div>
                             </div>
@@ -209,7 +212,7 @@ function RegisterActivityContent() {
                         className="lg:col-span-2"
                     >
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
-                            <h3 className="text-xl font-semibold text-[#30499B] mb-6">报名信息</h3>
+                            <h3 className="text-xl font-semibold text-[#30499B] mb-6">{t('register.form.title', '报名信息')}</h3>
 
                             <div className="space-y-6">
                                 {/* 基本信息 */}
@@ -217,7 +220,7 @@ function RegisterActivityContent() {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             <User className="w-4 h-4 inline mr-2" />
-                                            姓名 *
+                                            {t('register.form.name', '姓名')} *
                                         </label>
                                         <input
                                             type="text"
@@ -225,14 +228,14 @@ function RegisterActivityContent() {
                                             value={formData.name}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="请输入真实姓名"
+                                            placeholder={t('register.form.namePlaceholder', '请输入真实姓名')}
                                             required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             <Phone className="w-4 h-4 inline mr-2" />
-                                            联系电话 *
+                                            {t('register.form.phone', '联系电话')} *
                                         </label>
                                         <input
                                             type="tel"
@@ -240,7 +243,7 @@ function RegisterActivityContent() {
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="请输入手机号码"
+                                            placeholder={t('register.form.phonePlaceholder', '请输入手机号码')}
                                             required
                                         />
                                     </div>
@@ -249,7 +252,7 @@ function RegisterActivityContent() {
                                 {/* 邮箱 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        邮箱地址
+                                        {t('register.form.email', '邮箱地址')}
                                     </label>
                                     <input
                                         type="email"
@@ -257,7 +260,7 @@ function RegisterActivityContent() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                        placeholder="请输入邮箱地址"
+                                        placeholder={t('register.form.emailPlaceholder', '请输入邮箱地址')}
                                     />
                                 </div>
 
@@ -265,7 +268,7 @@ function RegisterActivityContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            紧急联系人
+                                            {t('register.form.emergencyContact', '紧急联系人')}
                                         </label>
                                         <input
                                             type="text"
@@ -273,12 +276,12 @@ function RegisterActivityContent() {
                                             value={formData.emergencyContact}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="紧急联系人姓名"
+                                            placeholder={t('register.form.emergencyContactPlaceholder', '紧急联系人姓名')}
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            紧急联系电话
+                                            {t('register.form.emergencyPhone', '紧急联系电话')}
                                         </label>
                                         <input
                                             type="tel"
@@ -286,7 +289,7 @@ function RegisterActivityContent() {
                                             value={formData.emergencyPhone}
                                             onChange={handleInputChange}
                                             className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder="紧急联系人电话"
+                                            placeholder={t('register.form.emergencyPhonePlaceholder', '紧急联系人电话')}
                                         />
                                     </div>
                                 </div>
@@ -294,7 +297,7 @@ function RegisterActivityContent() {
                                 {/* 特殊需求 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        特殊需求或备注
+                                        {t('register.form.specialRequirements', '特殊需求或备注')}
                                     </label>
                                     <textarea
                                         name="specialRequirements"
@@ -302,13 +305,13 @@ function RegisterActivityContent() {
                                         onChange={handleInputChange}
                                         rows={3}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                        placeholder="如有特殊需求或其他需要说明的情况，请在此填写..."
+                                        placeholder={t('register.form.specialRequirementsPlaceholder', '如有特殊需求或其他需要说明的情况，请在此填写...')}
                                     />
                                 </div>
 
                                 {/* 活动要求 */}
                                 <div className="bg-slate-50 rounded-lg p-4">
-                                    <h4 className="font-medium text-slate-800 mb-2">活动要求</h4>
+                                    <h4 className="font-medium text-slate-800 mb-2">{t('register.form.activityRequirements', '活动要求')}</h4>
                                     <p className="text-sm text-slate-600">{mockActivity.requirements}</p>
                                 </div>
 
@@ -324,10 +327,10 @@ function RegisterActivityContent() {
                                     />
                                     <div className="text-sm">
                                         <p className="text-slate-700">
-                                            我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。
+                                            {t('register.form.agreementText', '我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。')}
                                         </p>
                                         <p className="text-slate-500 mt-1">
-                                            参与活动期间请遵守组织方安排，注意人身安全。
+                                            {t('register.form.agreementNote', '参与活动期间请遵守组织方安排，注意人身安全。')}
                                         </p>
                                     </div>
                                 </div>
@@ -340,13 +343,13 @@ function RegisterActivityContent() {
                                         className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <CheckCircle className="w-4 h-4" />
-                                        确认报名
+                                        {t('register.form.submit', '确认报名')}
                                     </button>
                                     <button
                                         onClick={handleCancel}
                                         className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                                     >
-                                        取消
+                                        {tCommon('cancel', '取消')}
                                     </button>
                                 </div>
                             </div>
