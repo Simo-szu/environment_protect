@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
@@ -11,12 +10,8 @@ import { userApi } from '@/lib/api';
 import type { ReactionItem } from '@/lib/api/user';
 import {
     Bookmark,
-    Heart,
     Calendar,
-    MapPin,
-    Eye,
     TreePine,
-    Recycle,
     Droplets
 } from 'lucide-react';
 
@@ -84,7 +79,6 @@ export default function FavoritesPage() {
         return null;
     }
 
->>>>>>> 35fdbaca3cde8fb569383b48df92ca4683f91b94
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -61,8 +61,9 @@ export interface DeleteReactionRequest {
  */
 export async function createComment(
   data: CreateCommentRequest
-): Promise<CommentResponse> {
-  return apiPost<CommentResponse>('/api/v1/comments', data);
+): Promise<string> {
+  // 后端返回 UUID，不是完整的 CommentResponse
+  return apiPost<string>('/api/v1/comments', data);
 }
 
 // 注意：后端目前不支持删除评论接口
@@ -70,15 +71,17 @@ export async function createComment(
 
 /**
  * 创建 Reaction（点赞/收藏/踩）
+ * 注意：后端返回 void，操作是幂等的
  */
 export async function createReaction(
   data: CreateReactionRequest
-): Promise<ReactionResponse> {
-  return apiPost<ReactionResponse>('/api/v1/reactions', data, true);
+): Promise<void> {
+  return apiPost<void>('/api/v1/reactions', data, true);
 }
 
 /**
  * 删除 Reaction（取消点赞/收藏/踩）
+ * 注意：后端使用 DELETE /api/v1/reactions（带 body）
  */
 export async function deleteReaction(
   data: DeleteReactionRequest

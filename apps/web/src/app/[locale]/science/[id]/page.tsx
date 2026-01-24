@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import {
     ArrowLeft,
@@ -29,7 +30,7 @@ export default function ScienceArticleDetailPage() {
     const router = useRouter();
     const params = useParams();
     const articleId = params.id as string;
-    const locale = params.locale as string || 'zh';
+    const locale = (params.locale as string) || 'zh';
     const { t } = useSafeTranslation('article');
     const { user, isLoggedIn } = useAuth();
 
@@ -228,10 +229,6 @@ export default function ScienceArticleDetailPage() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                {getCategoryIcon(article.category)}
-                                <span className="text-sm text-[#30499B] font-medium">{getCategoryName(article.category)}</span>
-                            </div>
                             <h1 className="text-2xl md:text-3xl font-serif font-semibold text-[#30499B] leading-tight">
                                 {article.title}
                             </h1>
@@ -242,19 +239,18 @@ export default function ScienceArticleDetailPage() {
                     <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 mb-6">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold text-sm">
-                                {article.authorAvatar}
+                                {article.authorName?.charAt(0) || 'A'}
                             </div>
-                            <span>{article.author}</span>
+                            <span>{article.authorName || t('article.anonymous', '匿名作者')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            <span>{article.publishDate}</span>
+                            <span>{new Date(article.publishedAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <Eye className="w-4 h-4" />
-                            <span>{article.views} {locale === 'zh' ? '阅读' : 'views'}</span>
+                            <span>{article.viewCount} {locale === 'zh' ? '阅读' : 'views'}</span>
                         </div>
-                        <span>{article.readTime}</span>
                     </div>
 
                     {/* Action Buttons */}
@@ -267,7 +263,7 @@ export default function ScienceArticleDetailPage() {
                                 }`}
                         >
                             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                            <span>{article.likes}</span>
+                            <span>{article.likeCount}</span>
                         </button>
                         <button
                             onClick={handleFavorite}

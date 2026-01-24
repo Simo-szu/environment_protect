@@ -131,11 +131,9 @@ const generateMockActivities = (): Activity[] => {
 
 export default function MyActivitiesPage() {
     const params = useParams();
-    const locale = params.locale as string;
+    const locale = (params?.locale as string) || 'zh';
     const { user, isLoggedIn, loading } = useAuth();
     const { t } = useSafeTranslation('myActivities');
-    const params = useParams();
-    const locale = params?.locale as string || 'zh';
     const [activeTab, setActiveTab] = useState('all');
     const [myActivities, setMyActivities] = useState<MyActivityItem[]>([]);
     const [loadingActivities, setLoadingActivities] = useState(true);

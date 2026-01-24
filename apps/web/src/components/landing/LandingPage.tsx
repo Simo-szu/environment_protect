@@ -8,11 +8,10 @@ import Link from 'next/link'
 
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true) // 直接设置为 true，避免 setState in effect
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
-    setIsVisible(true)
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % 3)
     }, 5000)

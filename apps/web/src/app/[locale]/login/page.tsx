@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { authApi, userApi } from '@/lib/api';
 import {
@@ -37,7 +38,7 @@ export default function LoginPage() {
     const router = useRouter();
 
     // 倒计时效果
-    React.useEffect(() => {
+    useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
@@ -120,11 +121,18 @@ export default function LoginPage() {
                     password: formData.password
                 });
             } else {
-                await authApi.loginWithOtp({
-                    email: isEmail ? formData.username : undefined,
-                    phone: isPhone ? formData.username : undefined,
-                    otpCode: formData.otpCode
-                });
+                // 根据账号类型调用不同的 OTP 登录端点
+                if (isEmail) {
+                    await authApi.loginWithEmailOtp({
+                        email: formData.username,
+                        otpCode: formData.otpCode
+                    });
+                } else {
+                    await authApi.loginWithPhoneOtp({
+                        phone: formData.username,
+                        otpCode: formData.otpCode
+                    });
+                }
             }
 
             // 获取用户信息

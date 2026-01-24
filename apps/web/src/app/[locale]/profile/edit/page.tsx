@@ -21,18 +21,18 @@ export default function ProfileEditPage() {
     const params = useParams();
     const locale = params?.locale as string || 'zh';
 
-    const [formData, setFormData] = useState({
-        nickname: '',
-        gender: 'female',
-        hometown: '广东省',
-        bio: ''
-    });
+    // 使用 user 数据初始化 formData，避免在 effect 中 setState
+    const [formData, setFormData] = useState(() => ({
+        nickname: user?.nickname || '',
+        gender: user?.gender || 'female',
+        hometown: user?.location || '广东省',
+        bio: user?.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'
+    }));
 
-    useEffect(() => {
-        if (!loading && !isLoggedIn) {
-            router.replace(`/${locale}/login`);
-        }
-
+    // 当 user 变化时更新 formData（使用 render 阶段更新）
+    const [prevUser, setPrevUser] = useState(user);
+    if (user !== prevUser) {
+        setPrevUser(user);
         if (user) {
             setFormData({
                 nickname: user.nickname || '',
@@ -41,7 +41,13 @@ export default function ProfileEditPage() {
                 bio: user.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'
             });
         }
-    }, [loading, isLoggedIn, router, user]);
+    }
+
+    useEffect(() => {
+        if (!loading && !isLoggedIn) {
+            router.replace(`/${locale}/login`);
+        }
+    }, [loading, isLoggedIn, router, locale]);
 
     if (loading) {
         return (

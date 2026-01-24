@@ -10,11 +10,13 @@ export default function StageModals() {
   const gameStage = useSimulationStore((s) => s.gameStage)
   const actions = useSimulationStore((s) => s.actions)
   const [open, setOpen] = useState(true)
+  const [prevStage, setPrevStage] = useState(gameStage)
 
-  useEffect(() => {
-    // open modal on stage change
+  // 使用 prevStage 来检测 stage 变化，避免直接在 effect 中 setState
+  if (prevStage !== gameStage) {
+    setPrevStage(gameStage)
     setOpen(true)
-  }, [gameStage])
+  }
 
   const cfg = getModalCfg(gameStage)
   if (!cfg) return null

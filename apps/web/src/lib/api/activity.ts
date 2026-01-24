@@ -350,13 +350,14 @@ export async function signupActivity(
 
 /**
  * 修改报名信息
+ * 注意：后端返回 Void，不返回 SignupResponse
  */
 export async function updateSignup(
   activityId: string,
   signupId: string,
   data: Partial<SignupRequest>
-): Promise<SignupResponse> {
-  return apiPatch<SignupResponse>(
+): Promise<void> {
+  return apiPatch<void>(
     `/api/v1/activities/${activityId}/signups/${signupId}`,
     data,
     true

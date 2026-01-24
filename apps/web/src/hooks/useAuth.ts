@@ -27,7 +27,8 @@ export function useAuth() {
           setLoading(false);
         });
     } else {
-      setLoading(false);
+      // 使用 setTimeout 来避免在 effect 中直接 setState
+      setTimeout(() => setLoading(false), 0);
     }
   }, []);
 

@@ -93,12 +93,41 @@ export async function loginWithPassword(
 }
 
 /**
- * OTP 登录
+ * OTP 登录（邮箱）
  */
-export async function loginWithOtp(data: LoginRequest): Promise<AuthResponse> {
-  const result = await apiPost<AuthResponse>('/api/v1/auth/login/otp', data);
+export async function loginWithEmailOtp(data: LoginRequest): Promise<AuthResponse> {
+  const result = await apiPost<AuthResponse>('/api/v1/auth/login/otp/email', {
+    email: data.email,
+    otp: data.otpCode,
+  });
   authStore.setTokens(result);
   return result;
+}
+
+/**
+ * OTP 登录（手机）
+ */
+export async function loginWithPhoneOtp(data: LoginRequest): Promise<AuthResponse> {
+  const result = await apiPost<AuthResponse>('/api/v1/auth/login/otp/phone', {
+    phone: data.phone,
+    otp: data.otpCode,
+  });
+  authStore.setTokens(result);
+  return result;
+}
+
+/**
+ * OTP 登录（自动选择邮箱或手机）
+ * @deprecated 建议直接使用 loginWithEmailOtp 或 loginWithPhoneOtp
+ */
+export async function loginWithOtp(data: LoginRequest): Promise<AuthResponse> {
+  if (data.email) {
+    return loginWithEmailOtp(data);
+  } else if (data.phone) {
+    return loginWithPhoneOtp(data);
+  } else {
+    throw new Error('必须提供 email 或 phone');
+  }
 }
 
 /**

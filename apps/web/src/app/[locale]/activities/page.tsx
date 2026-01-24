@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
+import { useParams } from 'next/navigation';
 import {
     CalendarHeart,
     Flame,
@@ -16,6 +17,7 @@ import {
     Recycle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
@@ -26,7 +28,7 @@ function ActivitiesPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('activities');
     const params = useParams();
-    const locale = params?.locale as string || 'zh';
+    const locale = (params?.locale as string) || 'zh';
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4; // 每页显示4个活动
 

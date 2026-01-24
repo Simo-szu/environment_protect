@@ -6,12 +6,8 @@ import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
     const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-
-    // 避免hydration不匹配
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    // 使用函数初始化来避免 hydration 问题
+    const [mounted, setMounted] = useState(() => typeof window !== 'undefined');
 
     if (!mounted) {
         return (

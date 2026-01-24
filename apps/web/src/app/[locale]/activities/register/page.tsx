@@ -29,6 +29,8 @@ function RegisterActivityContent() {
     const searchParams = useSearchParams();
     const params = useParams();
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('activities');
+    const { t: tCommon } = useSafeTranslation('common');
     const activityId = searchParams.get('id');
 
     // 状态管理

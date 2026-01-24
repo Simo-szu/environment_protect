@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
@@ -32,6 +32,8 @@ export default function ProfilePage() {
     const { user, isLoggedIn, loading, logout } = useAuth();
     const { t } = useSafeTranslation('profile');
     const router = useRouter();
+    const params = useParams();
+    const locale = (params?.locale as string) || 'zh';
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
 

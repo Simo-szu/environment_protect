@@ -128,6 +128,9 @@ const generateMockMessages = (t: any, locale: string): Message[] => {
 
 export default function NotificationsPage() {
     const { isLoggedIn, loading } = useAuth();
+    const params = useParams();
+    const locale = (params?.locale as string) || 'zh';
+    const { t } = useSafeTranslation('notifications');
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [loadingNotifications, setLoadingNotifications] = useState(true);
     const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');

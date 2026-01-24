@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Leaf, BarChart3, Trash2, ArrowRight, Trees, Waves, PlayCircle, Coins, Footprints, Trash, Recycle } from 'lucide-react';
 import { useAuth, showLoginPrompt } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
@@ -23,9 +25,11 @@ interface CardData {
 
 export default function HomePage() {
     const { isLoggedIn } = useAuth();
+    const params = useParams();
+    const locale = (params?.locale as string) || 'zh';
     const [activeIndex, setActiveIndex] = useState(1);
     const mounted = useClientMounted();
-    const t = useTranslations('home');
+    const { t } = useSafeTranslation('home');
 
     // 状态管理
     const [contents, setContents] = useState<ContentItem[]>([]);

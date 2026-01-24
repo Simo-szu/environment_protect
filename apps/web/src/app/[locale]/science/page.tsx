@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Recycle,
@@ -13,12 +14,16 @@ import {
     BatteryCharging,
     Waves
 } from 'lucide-react';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, hoverLift } from '@/lib/animations';
 import { contentApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
 
 export default function SciencePage() {
+    const params = useParams();
+    const locale = (params?.locale as string) || 'zh';
+    const { t } = useSafeTranslation('science');
     // 状态管理
     const [contents, setContents] = useState<ContentItem[]>([]);
     const [loading, setLoading] = useState(true);

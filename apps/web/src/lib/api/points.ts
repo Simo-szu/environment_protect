@@ -79,12 +79,16 @@ export async function getPointsAccount(): Promise<PointsAccount> {
 
 /**
  * 获取积分记录
+ * 注意：后端暂未实现此端点，返回空数据
  */
 export async function getPointsLedger(params: {
   page?: number;
   size?: number;
 }): Promise<PageResponse<PointsLedger>> {
-  return apiGet<PageResponse<PointsLedger>>('/api/v1/points/ledger', {
+  // TODO: 等待后端实现 GET /api/v1/points/ledger
+  return Promise.resolve({
+    items: [],
+    total: 0,
     page: params.page || 1,
     size: params.size || 20,
   });
@@ -99,9 +103,12 @@ export async function signin(): Promise<SigninRecord> {
 
 /**
  * 获取今日签到状态
+ * 注意：后端暂未实现此端点，通过签到接口判断
  */
 export async function getTodaySignin(): Promise<SigninRecord | null> {
-  return apiGet<SigninRecord | null>('/api/v1/points/signins/today');
+  // TODO: 等待后端实现 GET /api/v1/points/signins/today
+  // 目前可以通过尝试签到来判断是否已签到（如果已签到会返回错误）
+  return Promise.resolve(null);
 }
 
 /**

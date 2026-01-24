@@ -2,27 +2,19 @@
 
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 // 安全的翻译hook，带有fallback
 export function useSafeTranslation(namespace: string = 'home') {
     const params = useParams();
     const locale = params?.locale as string || 'zh';
 
-    // 检查是否在正确的 next-intl 上下文中
-    let t: any = null;
-    let hasContext = false;
-
-    try {
-        t = useTranslations(namespace);
-        hasContext = true;
-    } catch (error) {
-        console.warn(`Translation namespace ${namespace} failed:`, error);
-        hasContext = false;
-    }
+    // 始终无条件调用 useTranslations
+    const t = useTranslations(namespace);
 
     // 创建一个安全的翻译函数，支持参数
-    const safeT = (key: string, fallback?: string, values?: Record<string, any>) => {
-        if (hasContext && t) {
+    const safeT = useMemo(() => {
+        return (key: string, fallback?: string, values?: Record<string, any>) => {
             try {
                 const translation = t(key, values);
 
@@ -33,19 +25,19 @@ export function useSafeTranslation(namespace: string = 'home') {
             } catch (error) {
                 console.warn(`Translation failed for key: ${key}`, error);
             }
-        }
 
-        // 如果没有上下文或翻译失败，使用fallback
-        if (fallback && values) {
-            // 手动替换fallback中的变量
-            let result = fallback;
-            Object.entries(values).forEach(([k, v]) => {
-                result = result.replace(`{${k}}`, String(v));
-            });
-            return result;
-        }
-        return fallback || key;
-    };
+            // 如果翻译失败，使用fallback
+            if (fallback && values) {
+                // 手动替换fallback中的变量
+                let result = fallback;
+                Object.entries(values).forEach(([k, v]) => {
+                    result = result.replace(`{${k}}`, String(v));
+                });
+                return result;
+            }
+            return fallback || key;
+        };
+    }, [t]);
 
     return { t: safeT, locale };
 }

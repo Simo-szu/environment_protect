@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import {
     Coins,
@@ -16,6 +16,7 @@ import {
     Leaf
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/lib/animations';
@@ -24,6 +25,7 @@ import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/ap
 
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
+    const { t } = useSafeTranslation('points');
     
     // 积分账户数据
     const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
@@ -358,6 +360,7 @@ function PointsPageContent() {
         if (refreshCount >= maxRefreshCount) return; // 达到最大刷新次数
 
         setRefreshCount(prev => prev + 1);
+        const quizSets = getQuizSets();
         // 使用确定性的方式选择新的题目集，避免随机数导致hydration mismatch
         const newQuizSet = (currentQuizSet + 1) % quizSets.length;
         setCurrentQuizSet(newQuizSet);
@@ -373,6 +376,7 @@ function PointsPageContent() {
 
     // 获取当前题目集
     const getCurrentQuiz = (quizId: number): any => {
+        const quizSets = getQuizSets();
         return quizSets[currentQuizSet][`quiz${quizId}` as keyof typeof quizSets[0]];
     };
 
