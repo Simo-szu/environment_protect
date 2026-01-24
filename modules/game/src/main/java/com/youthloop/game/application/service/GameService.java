@@ -3,6 +3,8 @@ package com.youthloop.game.application.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.youthloop.common.api.ErrorCode;
+import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
@@ -82,7 +84,7 @@ public class GameService {
         
         GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
         if (session == null) {
-            throw new IllegalStateException("没有活跃的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
         return toDTO(session);
@@ -98,11 +100,11 @@ public class GameService {
         // 获取会话
         GameSessionEntity session = gameSessionMapper.selectById(request.getSessionId());
         if (session == null || !session.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("无效的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_INVALID);
         }
         
         if (session.getStatus() != 1) {
-            throw new IllegalStateException("游戏会话未激活");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_ACTIVE);
         }
         
         // 根据操作类型计算积分和更新状态
@@ -150,7 +152,7 @@ public class GameService {
         
         GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
         if (session == null) {
-            throw new IllegalStateException("没有活跃的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
         session.setStatus(3); // ended
