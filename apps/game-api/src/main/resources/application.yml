@@ -14,6 +14,17 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
+  
+  # Flyway 配置
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: game
+    default-schema: game
+    table: flyway_schema_history_game
+    locations: classpath:db/migration/game
+    user: ${FLYWAY_USER:game_migrator}
+    password: ${FLYWAY_PASSWORD:postgres}
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml

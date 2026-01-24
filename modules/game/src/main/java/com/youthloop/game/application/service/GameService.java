@@ -144,48 +144,45 @@ public class GameService {
     }
     
     /**
-     * 结束游戏会话
-     * 返回结算结果
+     * 结束游戏会话并返回结算结果
+     * @param sessionId 会话 ID
+     * @return 结算结果
      */
     @Transactional
-    public GameActionResponse endSession() {
+    public GameActionResponse endSession(UUID sessionId) {
         UUID userId = SecurityUtil.getCurrentUserId();
         
-        GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
+        // 查询指定的会话
+        GameSessionEntity session = gameSessionMapper.selectById(sessionId);
         if (session == null) {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
-        // 计算游戏时长（分钟）
-        long durationMinutes = java.time.Duration.between(
-            session.getStartedAt(), 
-            LocalDateTime.now()
-        ).toMinutes();
+        // 权限检查：确保会话属于当前用户
+        if (!session.getUserId().equals(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "无权操作此游戏会话");
+        }
         
-        // 计算时长奖励（每分钟 10 分，最多 30 分钟）
-        int durationBonus = (int) Math.min(durationMinutes * 10, 300);
+        // 状态检查：只能结束活跃的会话
+        if (session.getStatus() != 1) {
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_ACTIVE);
+        }
         
-        // 最终得分 = 当前得分 + 时长奖励
-        long finalScore = session.getScore() + durationBonus;
-        int finalLevel = calculateLevel(finalScore);
-        
-        // 更新会话状态
-        session.setScore(finalScore);
-        session.setLevel(finalLevel);
+        // 更新会话状态为已结束
         session.setStatus(3); // ended
         session.setUpdatedAt(LocalDateTime.now());
         
         gameSessionMapper.update(session);
         
-        log.info("结束游戏会话: userId={}, sessionId={}, finalScore={}, durationMinutes={}, bonus={}", 
-            userId, session.getId(), finalScore, durationMinutes, durationBonus);
+        log.info("结束游戏会话: userId={}, sessionId={}, finalScore={}", 
+            userId, sessionId, session.getScore());
         
         // 返回结算结果
         return GameActionResponse.builder()
             .newPondState(session.getPondState())
-            .pointsEarned(durationBonus)
-            .totalScore(finalScore)
-            .newLevel(finalLevel)
+            .pointsEarned(0) // 结束时不额外获得积分
+            .totalScore(session.getScore())
+            .newLevel(session.getLevel())
             .build();
     }
     

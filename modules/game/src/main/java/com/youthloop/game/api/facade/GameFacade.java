@@ -4,6 +4,8 @@ import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
 import com.youthloop.game.api.dto.GameSessionDTO;
 
+import java.util.UUID;
+
 /**
  * 游戏门面接口
  */
@@ -25,8 +27,9 @@ public interface GameFacade {
     GameActionResponse performAction(GameActionRequest request);
     
     /**
-     * 结束游戏会话
-     * 返回结算结果
+     * 结束游戏会话并返回结算结果
+     * @param sessionId 会话 ID
+     * @return 结算结果
      */
-    GameActionResponse endSession();
+    GameActionResponse endSession(UUID sessionId);
 }

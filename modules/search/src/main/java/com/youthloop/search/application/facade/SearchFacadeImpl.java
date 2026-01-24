@@ -8,6 +8,8 @@ import com.youthloop.search.application.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 搜索门面实现
  */

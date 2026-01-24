@@ -47,6 +47,20 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Interaction Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-interaction</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Notification Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-notification</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Points Module -->
         <dependency>
             <groupId>com.youthloop</groupId>

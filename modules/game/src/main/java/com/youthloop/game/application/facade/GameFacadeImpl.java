@@ -8,6 +8,8 @@ import com.youthloop.game.application.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * 游戏门面实现
  */
@@ -33,7 +35,7 @@ public class GameFacadeImpl implements GameFacade {
     }
     
     @Override
-    public GameActionResponse endSession() {
-        return gameService.endSession();
+    public GameActionResponse endSession(UUID sessionId) {
+        return gameService.endSession(sessionId);
     }
 }

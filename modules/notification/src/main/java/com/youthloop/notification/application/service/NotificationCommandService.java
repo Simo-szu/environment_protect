@@ -1,5 +1,6 @@
 package com.youthloop.notification.application.service;
 
+import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.notification.persistence.entity.NotificationEntity;

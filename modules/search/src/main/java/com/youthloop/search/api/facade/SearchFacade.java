@@ -4,6 +4,8 @@ import com.youthloop.common.api.PageResponse;
 import com.youthloop.search.api.dto.SearchRequest;
 import com.youthloop.search.api.dto.SearchResultDTO;
 
+import java.util.List;
+
 /**
  * 搜索门面接口
  */

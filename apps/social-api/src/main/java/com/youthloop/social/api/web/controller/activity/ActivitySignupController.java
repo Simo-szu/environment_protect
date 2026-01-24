@@ -7,6 +7,7 @@ import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.UnifiedRequest;
 import com.youthloop.common.security.AllowGuest;
 import com.youthloop.social.api.web.dto.CancelSignupRequest;
+import com.youthloop.social.api.web.dto.UpdateSignupRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,11 +48,11 @@ public class ActivitySignupController {
     public BaseResponse<Void> updateSignup(
         @Parameter(description = "活动 ID") @PathVariable("id") UUID activityId,
         @Parameter(description = "报名 ID") @PathVariable UUID signupId,
-        @Parameter(description = "新场次 ID（可选）") @RequestParam(required = false) UUID newSessionId,
-        @Parameter(description = "游客邮箱（游客必填）") @RequestParam(required = false) String guestEmail
+        @Valid @RequestBody UnifiedRequest<UpdateSignupRequest> request
     ) {
-        if (newSessionId != null) {
-            activityFacade.changeSession(signupId, newSessionId, guestEmail);
+        UpdateSignupRequest data = request.getData();
+        if (data.getNewSessionId() != null) {
+            activityFacade.changeSession(signupId, data.getNewSessionId(), data.getGuestEmail());
         }
         // TODO: 支持修改其他报名信息（昵称/手机号/真实姓名等）
         return BaseResponse.success(null);
@@ -71,4 +72,3 @@ public class ActivitySignupController {
         return BaseResponse.success(null);
     }
 }
-

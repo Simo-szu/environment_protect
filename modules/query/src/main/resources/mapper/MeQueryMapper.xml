@@ -114,7 +114,7 @@
       a.location,
       a.poster_urls,
       a.status AS activity_status,
-      COALESCE(s.signup_count, 0) AS signup_count,
+      COALESCE((SELECT COUNT(*) FROM social.activity_signup sig2 WHERE sig2.activity_id = a.id AND sig2.status = 2), 0) AS signup_count,
       COALESCE(s.like_count, 0) AS like_count
     FROM social.activity_signup sig
     INNER JOIN social.activity a ON sig.activity_id = a.id

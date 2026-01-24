@@ -1,9 +1,6 @@
 package com.youthloop.social.api.web.controller.host;
 
-import com.youthloop.activity.api.dto.ActivitySignupListItemDTO;
-import com.youthloop.activity.api.dto.CreateActivitySessionRequest;
-import com.youthloop.activity.api.dto.CreateHostActivityRequest;
-import com.youthloop.activity.api.dto.UpdateHostActivityRequest;
+import com.youthloop.activity.api.dto.*;
 import com.youthloop.activity.api.facade.ActivityFacade;
 import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.PageResponse;
@@ -113,8 +110,9 @@ public class HostController {
     public BaseResponse<Void> approveSignup(
         @Parameter(description = "活动 ID") @PathVariable UUID id,
         @Parameter(description = "报名 ID") @PathVariable UUID signupId,
-        @Parameter(description = "审核备注") @RequestParam(required = false) String auditNote
+        @Valid @RequestBody(required = false) UnifiedRequest<ApproveSignupRequest> request
     ) {
+        String auditNote = request != null && request.getData() != null ? request.getData().getAuditNote() : null;
         activityFacade.auditSignup(signupId, 2, auditNote);
         return BaseResponse.success(null);
     }
@@ -125,8 +123,9 @@ public class HostController {
     public BaseResponse<Void> rejectSignup(
         @Parameter(description = "活动 ID") @PathVariable UUID id,
         @Parameter(description = "报名 ID") @PathVariable UUID signupId,
-        @Parameter(description = "拒绝原因") @RequestParam(required = false) String auditNote
+        @Valid @RequestBody(required = false) UnifiedRequest<RejectSignupRequest> request
     ) {
+        String auditNote = request != null && request.getData() != null ? request.getData().getAuditNote() : null;
         activityFacade.auditSignup(signupId, 3, auditNote);
         return BaseResponse.success(null);
     }

@@ -1,4 +1,4 @@
-# Project-Structure（Monorepo 项目总指南）v0.4
+# Project-Structure（Monorepo 项目总指南）v0.4.1（2026-01-24）
 
 目标：用两份文档稳定推进开发：
 - 数据库设计：`Schema-V0.1.dsl.md.md`（当前仅覆盖 Social 模块，不包含 Game 业务表）
@@ -16,6 +16,12 @@
 - 两个服务共用 1 个 PostgreSQL 实例，但通过 **多 schema + 最小权限 + 独立迁移历史** 隔离
 
 前后端分离：Web 只负责 UI 与调用 API，不承载业务写入规则。
+
+---
+
+## Changelog
+
+- v0.4.1（2026-01-24）：补充“已实现但 v0.4 未列出”的 API 端点（见第 6 章），以确保文档与代码一致、对外契约无歧义。
 
 ---
 
@@ -325,6 +331,10 @@ modules/<domain>/
 | GET | /api/v1/me/reactions | Yes | 我的点赞/收藏列表（reaction join content/activity） |
 | GET | /api/v1/me/notifications | Yes | 回复我的：列表 + 未读 |
 | POST | /api/v1/me/notifications/read | Yes | 标记已读（支持批量） |
+| GET | /api/v1/me/activities | Yes | 我报名的活动列表 |
+| GET | /api/v1/users/{userId}/profile | No | 公开查询指定用户档案（仅查询，不提供更新） |
+| PUT | /api/v1/notifications/{id}/read | Yes | 标记单个通知为已读（备用接口；推荐使用 /api/v1/me/notifications/read） |
+| PUT | /api/v1/notifications/read-all | Yes | 标记全部通知为已读（备用接口；推荐使用 /api/v1/me/notifications/read） |
 
 ### 6.8 Social：Points（积分系统）
 
@@ -335,6 +345,7 @@ modules/<domain>/
 | POST | /api/v1/points/tasks/{taskId}/claim | Yes | 领取任务积分 |
 | GET | /api/v1/points/quiz/today | Yes | 今日问答 |
 | POST | /api/v1/points/quiz/submissions | Yes | 提交问答（一天一次） |
+| GET | /api/v1/points/account | Yes | 获取积分余额（备用接口；与 /api/v1/me/points 等价） |
 
 ### 6.9 Social：Recommendation（推荐）
 
@@ -365,6 +376,7 @@ modules/<domain>/
 | GET | /health | No | 健康检查（不加 /api 前缀） |
 | GET | /api/v1/admin/home/banners | Admin | 运营位管理：列表 |
 | POST | /api/v1/admin/home/banners | Admin | 运营位管理：创建/启用/排序 |
+| GET | /api/v1/admin/home/banners/{id} | Admin | 运营位管理：详情 |
 | PATCH | /api/v1/admin/home/banners/{id} | Admin | 运营位管理：修改/上下线 |
 | DELETE | /api/v1/admin/home/banners/{id} | Admin | 运营位管理：删除 |
 | GET | /api/v1/admin/host/verifications | Admin | 主办方认证审核：列表 |
@@ -533,7 +545,7 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 关键点：**每个服务只迁移自己负责的 schema**，并且 Flyway history 表要隔离。
 
 推荐：
-- Social Service（apps/social-api + apps/social-worker）：
+- Social Service（apps/social-api）：
   - 负责：`shared` + `social`
   - `flyway.schemas=shared,social`
   - `flyway.defaultSchema=social`
@@ -541,6 +553,9 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
   - migrations：
     - `db/migration/shared/V001__init_shared.sql`
     - `db/migration/social/V001__init_social.sql`
+- Social Worker（apps/social-worker）：
+  - 默认不跑 Flyway（避免多进程并发迁移带来的锁/启动顺序问题）
+  - 约定：先启动 `social-api` 完成迁移，再启动 `social-worker`
 - Game Service（apps/game-api）：
   - 负责：`game`（只迁移自己的 schema）
   - 只读共享：运行时把 `shared` 加到 search_path（只读不迁移）

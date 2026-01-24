@@ -64,7 +64,6 @@ public class SearchService {
         
         return PageResponse.of(results, total, page, pageSize);
     }
-}
     
     /**
      * 获取搜索建议
@@ -103,3 +102,4 @@ public class SearchService {
             .limit(5)
             .collect(java.util.stream.Collectors.toList());
     }
+}

@@ -15,6 +15,17 @@ spring:
       minimum-idle: 5
       connection-timeout: 30000
   
+  # Flyway 配置
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    schemas: shared,social
+    default-schema: social
+    table: flyway_schema_history_social
+    locations: classpath:db/migration/shared,classpath:db/migration/social
+    user: ${FLYWAY_USER:social_migrator}
+    password: ${FLYWAY_PASSWORD:postgres}
+  
   data:
     redis:
       host: ${REDIS_HOST:localhost}
