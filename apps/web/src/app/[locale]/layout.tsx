@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import "../globals.css";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 
-export const metadata: Metadata = {
-    title: "YouthLoop - 让绿色循环，用行动改变未来",
-    description: "YouthLoop是一个以环保为主题的青年互动网站，通过游戏化的方式提高年轻人的环保意识，提供环保知识学习、活动参与和社区互动的综合平台。",
-};
+// 支持的语言列表
+const locales = ['zh', 'en'];
 
 interface LocaleLayoutProps {
     children: React.ReactNode;
@@ -19,21 +17,17 @@ export default async function LocaleLayout({
     // 解包 params Promise
     const { locale } = await params;
 
+    // 验证语言是否支持
+    if (!locales.includes(locale)) {
+        notFound();
+    }
+
+    // 获取翻译消息
+    const messages = await getMessages();
+
     return (
-        <html lang={locale} suppressHydrationWarning>
-            <body
-                className="antialiased font-sans"
-                suppressHydrationWarning={true}
-            >
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange={false}
-                >
-                    {children}
-                </ThemeProvider>
-            </body>
-        </html>
+        <NextIntlClientProvider messages={messages} locale={locale}>
+            {children}
+        </NextIntlClientProvider>
     );
 }

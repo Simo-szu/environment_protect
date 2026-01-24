@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Leaf, BarChart3, Trash2, ArrowRight, Trees, Waves, PlayCircle, Coins, Footprints, Trash, Recycle } from 'lucide-react';
 import { useAuth, showLoginPrompt } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
@@ -18,45 +19,46 @@ interface CardData {
     link: string;
 }
 
-const cardsData: CardData[] = [
-    {
-        id: 'points',
-        title: '积分·兑换',
-        sub: '累积环保值',
-        color: '#F0A32F',
-        icon: Coins,
-        link: '/zh/points'
-    },
-    {
-        id: 'game',
-        title: '绿色游戏',
-        sub: '虚拟种植',
-        color: '#56B949',
-        icon: PlayCircle,
-        link: '/zh/game'
-    },
-    {
-        id: 'science',
-        title: '权威科普',
-        sub: '科学数据',
-        color: '#30499B',
-        icon: Leaf,
-        link: '/zh/science'
-    },
-    {
-        id: 'activity',
-        title: '环保活动',
-        sub: '参与行动',
-        color: '#EE4035',
-        icon: Trees,
-        link: '/zh/activities'
-    }
-];
-
 export default function HomePage() {
     const { isLoggedIn } = useAuth();
     const [activeIndex, setActiveIndex] = useState(1);
     const mounted = useClientMounted();
+    const t = useTranslations('home');
+
+    const cardsData: CardData[] = [
+        {
+            id: 'points',
+            title: t('cards.points.title'),
+            sub: t('cards.points.subtitle'),
+            color: '#F0A32F',
+            icon: Coins,
+            link: '/zh/points'
+        },
+        {
+            id: 'game',
+            title: t('cards.game.title'),
+            sub: t('cards.game.subtitle'),
+            color: '#56B949',
+            icon: PlayCircle,
+            link: '/zh/game'
+        },
+        {
+            id: 'science',
+            title: t('cards.science.title'),
+            sub: t('cards.science.subtitle'),
+            color: '#30499B',
+            icon: Leaf,
+            link: '/zh/science'
+        },
+        {
+            id: 'activity',
+            title: t('cards.activity.title'),
+            sub: t('cards.activity.subtitle'),
+            color: '#EE4035',
+            icon: Trees,
+            link: '/zh/activities'
+        }
+    ];
 
     const handleCardClick = (index: number, data: CardData) => {
         if (index !== activeIndex) {
@@ -126,17 +128,16 @@ export default function HomePage() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
                     </span>
-                    全民环保行动季
+                    {t('slogan')}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
-                    YOUTH<span className="text-[#56B949] dark:text-[#F0A32F]">LOOP</span>
+                    {t('title')}
                 </h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
                     <div className="flex items-center gap-2">
                         <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
-                        <span>让<span className="text-[#56B949] dark:text-[#56B949] font-medium border-b-2 border-[#56B949]/30">绿色</span>循环，</span>
+                        <span>{t('subtitle')}</span>
                     </div>
-                    <span>用<span className="text-[#F0A32F] dark:text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">行动</span>改变未来</span>
                 </div>
             </AnimatedSection>
 

@@ -2,7 +2,8 @@
 
 import Layout from '@/components/Layout';
 import Link from 'next/link';
-import { ArrowLeft, HelpCircle, Search, MessageCircle, Phone, Mail, Clock } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
+import { HelpCircle, Search, MessageCircle, Phone, Mail, Clock } from 'lucide-react';
 
 export default function HelpPage() {
     const faqData = [
@@ -64,13 +65,7 @@ export default function HelpPage() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* 返回按钮 */}
                 <div className="mb-6">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-slate-600 hover:text-[#30499B] transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        返回首页
-                    </Link>
+                    <BackButton fallbackUrl="/" />
                 </div>
 
                 {/* 页面标题 */}

@@ -1,8 +1,8 @@
 'use client';
 
 import Layout from '@/components/Layout';
-import Link from 'next/link';
-import { ArrowLeft, FileText } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
+import { FileText } from 'lucide-react';
 
 export default function TermsPage() {
     return (
@@ -10,13 +10,7 @@ export default function TermsPage() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* 返回按钮 */}
                 <div className="mb-6">
-                    <Link
-                        href="/login"
-                        className="inline-flex items-center gap-2 text-slate-600 hover:text-[#30499B] transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        返回登录
-                    </Link>
+                    <BackButton fallbackUrl="/" />
                 </div>
 
                 {/* 页面标题 */}
