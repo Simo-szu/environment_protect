@@ -54,6 +54,12 @@ public enum ErrorCode {
     ALREADY_SIGNED_IN(3501, "今日已签到"),
     TASK_NOT_COMPLETED(3502, "任务未完成"),
     
+    // Game 模块 (3600-3699)
+    GAME_SESSION_NOT_FOUND(3600, "游戏会话不存在"),
+    GAME_SESSION_ALREADY_EXISTS(3601, "已有活跃的游戏会话"),
+    GAME_SESSION_NOT_ACTIVE(3602, "游戏会话未激活"),
+    GAME_SESSION_INVALID(3603, "无效的游戏会话"),
+    
     ;
     
     private final Integer code;

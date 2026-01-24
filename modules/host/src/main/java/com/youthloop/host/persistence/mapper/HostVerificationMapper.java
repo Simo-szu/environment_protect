@@ -4,6 +4,7 @@ import com.youthloop.host.persistence.entity.HostVerificationEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -21,6 +22,11 @@ public interface HostVerificationMapper {
      * 根据用户 ID 查询认证记录
      */
     HostVerificationEntity selectByUserId(@Param("userId") UUID userId);
+    
+    /**
+     * 查询所有认证申请（管理端）
+     */
+    List<HostVerificationEntity> selectAll(@Param("status") Integer status);
     
     /**
      * 更新审核状态

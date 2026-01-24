@@ -136,21 +136,46 @@ postgresql://game_app:postgres@localhost:5432/youthloop
 postgresql://social_migrator:postgres@localhost:5432/youthloop
 ```
 
-## Flyway Integration (Future)
+## Flyway (Current)
 
-When integrating with Flyway:
+Flyway is now integrated into the Spring Boot apps and is the default way to run schema migrations.
+This follows `Project-Structure.md` requirements:
+- 1 Postgres instance, 3 schemas: `shared`, `social`, `game`
+- Separate Flyway history tables per service (no cross-service conflicts)
+- Use migrator roles for DDL (apps still connect with app roles)
 
 **Social Service:**
 - schemas: `shared,social`
 - defaultSchema: `social`
 - table: `flyway_schema_history_social`
-- user: `social_migrator`
+- user: `social_migrator` (DDL via Flyway)
+- locations (classpath):
+  - `apps/social-api/src/main/resources/db/migration/shared`
+  - `apps/social-api/src/main/resources/db/migration/social`
 
 **Game Service:**
 - schemas: `game`
 - defaultSchema: `game`
 - table: `flyway_schema_history_game`
-- user: `game_migrator`
+- user: `game_migrator` (DDL via Flyway)
+- locations (classpath):
+  - `apps/game-api/src/main/resources/db/migration/game`
+
+### How to run migrations (recommended)
+
+Start each service once; Flyway runs automatically on startup using the configured migrator credentials:
+
+```powershell
+# Social API (runs shared + social migrations)
+mvn -pl apps/social-api spring-boot:run
+
+# Game API (runs game migrations)
+mvn -pl apps/game-api spring-boot:run
+```
+
+Notes:
+- Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` for each service (defaults are `social_migrator` / `game_migrator`).
+- Apps still use `DB_USER` / `DB_PASSWORD` for normal runtime DML.
 
 ## Troubleshooting
 
@@ -175,5 +200,4 @@ Get-Service postgresql*
 
 After database setup:
 1. Update `.env.local` with connection strings
-2. Proceed to backend development (Spring Boot)
-3. Configure Flyway in `apps/social-api` and `apps/game-api`
+2. Start services once to apply Flyway migrations

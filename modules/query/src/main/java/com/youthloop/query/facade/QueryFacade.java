@@ -3,6 +3,7 @@ package com.youthloop.query.facade;
 import com.youthloop.common.api.PageResponse;
 import com.youthloop.query.dto.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -40,6 +41,11 @@ public interface QueryFacade {
      * 查询活动详情（含统计和用户状态）
      */
     ActivityDetailDTO getActivityDetail(UUID activityId);
+    
+    /**
+     * 查询活动场次列表
+     */
+    List<ActivitySessionDTO> getActivitySessions(UUID activityId);
     
     /**
      * 查询我的收藏/点赞列表

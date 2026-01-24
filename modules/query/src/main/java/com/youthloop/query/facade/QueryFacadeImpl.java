@@ -10,6 +10,7 @@ import com.youthloop.query.service.MeQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,6 +54,11 @@ public class QueryFacadeImpl implements QueryFacade {
     @Override
     public ActivityDetailDTO getActivityDetail(UUID activityId) {
         return activityQueryService.getActivityDetail(activityId);
+    }
+    
+    @Override
+    public List<ActivitySessionDTO> getActivitySessions(UUID activityId) {
+        return activityQueryService.getActivitySessions(activityId);
     }
     
     @Override

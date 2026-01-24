@@ -1,5 +1,6 @@
 package com.youthloop.notification.application.service;
 
+import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.notification.persistence.entity.NotificationEntity;
@@ -66,7 +67,15 @@ public class NotificationCommandService {
     public void markAsRead(UUID notificationId) {
         UUID currentUserId = SecurityUtil.getCurrentUserId();
         
-        // TODO: 权限检查 - 确保通知属于当前用户
+        // 权限检查：查询通知并确保属于当前用户
+        NotificationEntity notification = notificationMapper.selectById(notificationId);
+        if (notification == null) {
+            throw new BizException(60041, "通知不存在");
+        }
+        
+        if (!notification.getUserId().equals(currentUserId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "无权操作此通知");
+        }
         
         int rows = notificationMapper.markAsRead(notificationId);
         if (rows == 0) {

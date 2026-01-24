@@ -3,6 +3,8 @@ package com.youthloop.game.application.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.youthloop.common.api.ErrorCode;
+import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
@@ -82,7 +84,7 @@ public class GameService {
         
         GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
         if (session == null) {
-            throw new IllegalStateException("没有活跃的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
         return toDTO(session);
@@ -98,11 +100,11 @@ public class GameService {
         // 获取会话
         GameSessionEntity session = gameSessionMapper.selectById(request.getSessionId());
         if (session == null || !session.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("无效的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_INVALID);
         }
         
         if (session.getStatus() != 1) {
-            throw new IllegalStateException("游戏会话未激活");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_ACTIVE);
         }
         
         // 根据操作类型计算积分和更新状态
@@ -142,24 +144,46 @@ public class GameService {
     }
     
     /**
-     * 结束游戏会话
+     * 结束游戏会话并返回结算结果
+     * @param sessionId 会话 ID
+     * @return 结算结果
      */
     @Transactional
-    public void endSession() {
+    public GameActionResponse endSession(UUID sessionId) {
         UUID userId = SecurityUtil.getCurrentUserId();
         
-        GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
+        // 查询指定的会话
+        GameSessionEntity session = gameSessionMapper.selectById(sessionId);
         if (session == null) {
-            throw new IllegalStateException("没有活跃的游戏会话");
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
+        // 权限检查：确保会话属于当前用户
+        if (!session.getUserId().equals(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "无权操作此游戏会话");
+        }
+        
+        // 状态检查：只能结束活跃的会话
+        if (session.getStatus() != 1) {
+            throw new BizException(ErrorCode.GAME_SESSION_NOT_ACTIVE);
+        }
+        
+        // 更新会话状态为已结束
         session.setStatus(3); // ended
         session.setUpdatedAt(LocalDateTime.now());
         
         gameSessionMapper.update(session);
         
         log.info("结束游戏会话: userId={}, sessionId={}, finalScore={}", 
-            userId, session.getId(), session.getScore());
+            userId, sessionId, session.getScore());
+        
+        // 返回结算结果
+        return GameActionResponse.builder()
+            .newPondState(session.getPondState())
+            .pointsEarned(0) // 结束时不额外获得积分
+            .totalScore(session.getScore())
+            .newLevel(session.getLevel())
+            .build();
     }
     
     // === 私有方法 ===

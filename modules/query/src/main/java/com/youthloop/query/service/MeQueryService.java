@@ -1,5 +1,7 @@
 package com.youthloop.query.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 public class MeQueryService {
     
     private final MeQueryMapper meQueryMapper;
+    private final ObjectMapper objectMapper;
     
     /**
      * 查询我的收藏/点赞列表
@@ -211,16 +214,20 @@ public class MeQueryService {
         dto.setEndTime(row.get("end_time") != null ? (LocalDateTime) row.get("end_time") : null);
         dto.setLocation((String) row.get("location"));
         
-        // 解析 poster_urls (JSONB)
+        // 解析 poster_urls (JSONB) - 正确解析
         if (row.get("poster_urls") != null) {
-            String posterUrlsJson = row.get("poster_urls").toString();
             try {
-                @SuppressWarnings("unchecked")
-                List<String> posterUrls = (List<String>) row.get("poster_urls");
+                List<String> posterUrls = objectMapper.readValue(
+                    row.get("poster_urls").toString(), 
+                    new TypeReference<List<String>>() {}
+                );
                 dto.setPosterUrls(posterUrls);
             } catch (Exception e) {
-                log.warn("解析 poster_urls 失败: {}", posterUrlsJson);
+                log.warn("解析poster_urls失败: activityId={}, error={}", dto.getActivityId(), e.getMessage());
+                dto.setPosterUrls(Collections.emptyList());
             }
+        } else {
+            dto.setPosterUrls(Collections.emptyList());
         }
         
         dto.setActivityStatus((Integer) row.get("activity_status"));

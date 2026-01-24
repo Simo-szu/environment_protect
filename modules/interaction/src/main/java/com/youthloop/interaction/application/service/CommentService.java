@@ -2,6 +2,7 @@ package com.youthloop.interaction.application.service;
 
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
+import com.youthloop.event.application.service.OutboxEventService;
 import com.youthloop.interaction.api.dto.CreateCommentRequest;
 import com.youthloop.interaction.persistence.entity.CommentEntity;
 import com.youthloop.interaction.persistence.mapper.CommentMapper;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,6 +25,7 @@ import java.util.UUID;
 public class CommentService {
     
     private final CommentMapper commentMapper;
+    private final OutboxEventService outboxEventService;
     
     private static final int MAX_DEPTH = 3; // 最大评论深度
     
@@ -73,7 +77,17 @@ public class CommentService {
         log.info("评论创建成功: commentId={}, targetType={}, targetId={}, userId={}", 
             entity.getId(), request.getTargetType(), request.getTargetId(), currentUserId);
         
-        // TODO: 发送 outbox 事件（COMMENT_CREATED），用于更新统计和发送通知
+        // 发布 outbox 事件（COMMENT_CREATED），用于更新统计和发送通知
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("commentId", entity.getId().toString());
+        eventPayload.put("targetType", request.getTargetType());
+        eventPayload.put("targetId", request.getTargetId().toString());
+        eventPayload.put("userId", currentUserId.toString());
+        eventPayload.put("parentId", request.getParentId() != null ? request.getParentId().toString() : null);
+        eventPayload.put("rootId", entity.getRootId() != null ? entity.getRootId().toString() : null);
+        eventPayload.put("depth", entity.getDepth());
+        
+        outboxEventService.publishEvent("COMMENT_CREATED", eventPayload);
         
         return entity.getId();
     }
@@ -103,6 +117,13 @@ public class CommentService {
         
         log.info("评论删除成功: commentId={}, userId={}", commentId, currentUserId);
         
-        // TODO: 发送 outbox 事件（COMMENT_DELETED），用于更新统计
+        // 发布 outbox 事件（COMMENT_DELETED），用于更新统计
+        Map<String, Object> eventPayload = new HashMap<>();
+        eventPayload.put("commentId", commentId.toString());
+        eventPayload.put("targetType", comment.getTargetType());
+        eventPayload.put("targetId", comment.getTargetId().toString());
+        eventPayload.put("userId", currentUserId.toString());
+        
+        outboxEventService.publishEvent("COMMENT_DELETED", eventPayload);
     }
 }

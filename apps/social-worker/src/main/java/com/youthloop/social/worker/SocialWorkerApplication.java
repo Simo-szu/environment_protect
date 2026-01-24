@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "com.youthloop.auth.persistence.mapper",
     "com.youthloop.user.persistence.mapper",
     "com.youthloop.content.persistence.mapper",
+    "com.youthloop.activity.persistence.mapper",
     "com.youthloop.interaction.persistence.mapper",
     "com.youthloop.notification.persistence.mapper",
     "com.youthloop.event.persistence.mapper",

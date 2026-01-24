@@ -1,5 +1,7 @@
 package com.youthloop.query.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class ActivityQueryService {
     
     private final ActivityQueryMapper activityQueryMapper;
+    private final ObjectMapper objectMapper;
     
     /**
      * 查询活动列表（分页 + 筛选 + 排序）
@@ -121,6 +124,17 @@ public class ActivityQueryService {
         return dto;
     }
     
+    /**
+     * 查询活动场次列表
+     */
+    @Transactional(readOnly = true)
+    public List<ActivitySessionDTO> getActivitySessions(UUID activityId) {
+        List<Map<String, Object>> sessionRows = activityQueryMapper.selectActivitySessions(activityId);
+        return sessionRows.stream()
+            .map(this::mapToActivitySession)
+            .collect(Collectors.toList());
+    }
+    
     // === 私有映射方法 ===
     
     private ActivityListItemDTO mapToActivityListItem(Map<String, Object> row, Map<UUID, UserState> userStateMap) {
@@ -136,12 +150,16 @@ public class ActivityQueryService {
         dto.setStatus((Integer) row.get("status"));
         dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
         
-        // 海报（取第一张）
+        // 海报（取第一张）- 正确解析JSONB
         Object posterUrls = row.get("poster_urls");
-        if (posterUrls != null && posterUrls instanceof String) {
-            String[] urls = ((String) posterUrls).replaceAll("[{}]", "").split(",");
-            if (urls.length > 0) {
-                dto.setPosterUrl(urls[0].trim());
+        if (posterUrls != null) {
+            try {
+                List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
+                if (!urls.isEmpty()) {
+                    dto.setPosterUrl(urls.get(0));
+                }
+            } catch (Exception e) {
+                log.warn("解析poster_urls失败: activityId={}, error={}", dto.getId(), e.getMessage());
             }
         }
         
@@ -178,11 +196,18 @@ public class ActivityQueryService {
         dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
         dto.setUpdatedAt((java.time.LocalDateTime) row.get("updated_at"));
         
-        // 海报列表
+        // 海报列表 - 正确解析JSONB
         Object posterUrls = row.get("poster_urls");
-        if (posterUrls != null && posterUrls instanceof String) {
-            String[] urls = ((String) posterUrls).replaceAll("[{}]", "").split(",");
-            dto.setPosterUrls(Arrays.stream(urls).map(String::trim).collect(Collectors.toList()));
+        if (posterUrls != null) {
+            try {
+                List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
+                dto.setPosterUrls(urls);
+            } catch (Exception e) {
+                log.warn("解析poster_urls失败: activityId={}, error={}", dto.getId(), e.getMessage());
+                dto.setPosterUrls(Collections.emptyList());
+            }
+        } else {
+            dto.setPosterUrls(Collections.emptyList());
         }
         
         // 统计信息

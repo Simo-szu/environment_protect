@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.activity.persistence.mapper.ActivitySessionMapper">
+
+    <insert id="insert">
+        INSERT INTO social.activity_session (
+            id, activity_id, title, start_time, end_time, capacity, status, created_at, updated_at
+        ) VALUES (
+            #{id}, #{activityId}, #{title}, #{startTime}, #{endTime}, #{capacity}, #{status}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE social.activity_session
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="status != null">status = #{status},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.youthloop.activity.persistence.entity.ActivitySessionEntity">
+        SELECT
+            id, activity_id as activityId, title, start_time as startTime, end_time as endTime,
+            capacity, status, created_at as createdAt, updated_at as updatedAt
+        FROM social.activity_session
+        WHERE id = #{id}
+    </select>
+
+</mapper>

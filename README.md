@@ -145,7 +145,25 @@ youthloop/
 
 ### 迁移管理
 
-使用 Flyway 进行数据库版本管理，迁移脚本位于 `infra/db/migrations/`。
+使用 Flyway 进行数据库版本管理。
+
+**Social Service（apps/social-api）：**
+- 管理 schemas：`shared`, `social`
+- 迁移脚本位置：`apps/social-api/src/main/resources/db/migration/`
+- History 表：`flyway_schema_history_social`
+- Migrator 账号：`social_migrator`
+
+**Game Service（apps/game-api）：**
+- 管理 schemas：`game`
+- 迁移脚本位置：`apps/game-api/src/main/resources/db/migration/`
+- History 表：`flyway_schema_history_game`
+- Migrator 账号：`game_migrator`
+
+首次启动应用时，Flyway 会自动执行迁移。也可以通过环境变量配置：
+```bash
+FLYWAY_USER=social_migrator
+FLYWAY_PASSWORD=postgres
+```
 
 ## 贡献指南
 

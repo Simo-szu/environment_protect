@@ -56,9 +56,8 @@ public class ActivityController {
     public BaseResponse<List<ActivitySessionDTO>> getActivitySessions(
         @Parameter(description = "活动 ID") @PathVariable UUID id
     ) {
-        // TODO: 实现 QueryFacade.getActivitySessions 方法
-        // List<ActivitySessionDTO> sessions = queryFacade.getActivitySessions(id);
-        return BaseResponse.success(List.of());
+        List<ActivitySessionDTO> sessions = queryFacade.getActivitySessions(id);
+        return BaseResponse.success(sessions);
     }
     
     @Operation(summary = "获取活动评论", description = "查询活动的评论树（根评论分页 + 回复）")

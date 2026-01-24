@@ -33,8 +33,8 @@ public class AdminHostController {
     public BaseResponse<List<HostVerificationResponse>> getVerifications(
         @Parameter(description = "状态：1=待审核 2=已通过 3=已拒绝") @RequestParam(required = false) Integer status
     ) {
-        // TODO: 实现查询所有认证申请的方法
-        return BaseResponse.success(List.of());
+        List<HostVerificationResponse> verifications = hostFacade.getAllVerifications(status);
+        return BaseResponse.success(verifications);
     }
     
     @Operation(summary = "审核认证申请", description = "管理员审核主办方认证申请（通过或拒绝）")

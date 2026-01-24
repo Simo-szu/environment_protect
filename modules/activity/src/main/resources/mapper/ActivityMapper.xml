@@ -1,14 +1,71 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.youthloop.activity.persistence.mapper.ActivityMapper">
 
-  <!-- 查询活动的报名策略 -->
-  <select id="selectSignupPolicy" resultType="java.lang.Integer">
-    SELECT signup_policy
-    FROM social.activity
-    WHERE id = #{activityId}::uuid
-  </select>
+    <insert id="insert">
+        INSERT INTO social.activity (
+            id, source_type, title, category, topic, signup_policy,
+            start_time, end_time, location, description, poster_urls,
+            source_url, host_user_id, status, created_at, updated_at
+        ) VALUES (
+            #{id}, #{sourceType}, #{title}, #{category}, #{topic}, #{signupPolicy},
+            #{startTime}, #{endTime}, #{location}, #{description}, #{posterUrls}::jsonb,
+            #{sourceUrl}, #{hostUserId}, #{status}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE social.activity
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="topic != null">topic = #{topic},</if>
+            <if test="signupPolicy != null">signup_policy = #{signupPolicy},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="posterUrls != null">poster_urls = #{posterUrls}::jsonb,</if>
+            <if test="status != null">status = #{status},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.youthloop.activity.persistence.entity.ActivityEntity">
+        SELECT
+            id, source_type as sourceType, title, category, topic, signup_policy as signupPolicy,
+            start_time as startTime, end_time as endTime, location, description,
+            poster_urls::text as posterUrls, source_url as sourceUrl,
+            host_user_id as hostUserId, status, created_at as createdAt, updated_at as updatedAt
+        FROM social.activity
+        WHERE id = #{activityId}
+    </select>
+
+    <select id="selectSignupPolicy" resultType="java.lang.Integer">
+        SELECT signup_policy
+        FROM social.activity
+        WHERE id = #{activityId}
+    </select>
+
+    <select id="selectHostActivities" resultType="java.util.HashMap">
+        SELECT
+            a.id, a.title, a.category, a.start_time as startTime, a.end_time as endTime,
+            a.location, a.status, a.created_at as createdAt,
+            COALESCE(COUNT(DISTINCT s.id), 0) as signupCount
+        FROM social.activity a
+        LEFT JOIN social.activity_signup s ON a.id = s.activity_id AND s.status != 4
+        WHERE a.host_user_id = #{hostUserId}
+        GROUP BY a.id, a.title, a.category, a.start_time, a.end_time, a.location, a.status, a.created_at
+        ORDER BY a.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countHostActivities" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM social.activity
+        WHERE host_user_id = #{hostUserId}
+    </select>
 
 </mapper>

@@ -8,6 +8,8 @@ import com.youthloop.search.application.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 搜索门面实现
  */
@@ -20,5 +22,10 @@ public class SearchFacadeImpl implements SearchFacade {
     @Override
     public PageResponse<SearchResultDTO> search(SearchRequest request) {
         return searchService.search(request);
+    }
+    
+    @Override
+    public List<String> getSuggestions(String prefix) {
+        return searchService.getSuggestions(prefix);
     }
 }

@@ -20,6 +20,6 @@ public class PresignRequest {
     private String contentType;
     
     @NotBlank(message = "用途不能为空")
-    @Schema(description = "用途：avatar=头像 activityPoster=活动海报", required = true, example = "avatar")
-    private String purpose;
+    @Schema(description = "用途：avatar=头像 poster=活动海报 doc=文档", required = true, example = "avatar")
+    private String fileType;
 }

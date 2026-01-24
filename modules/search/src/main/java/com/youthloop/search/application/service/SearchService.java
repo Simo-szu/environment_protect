@@ -64,4 +64,42 @@ public class SearchService {
         
         return PageResponse.of(results, total, page, pageSize);
     }
+    
+    /**
+     * 获取搜索建议
+     * v0.1 实现：返回预定义的热门搜索词
+     * 未来可以：
+     * 1. 从 Redis 缓存中获取实时热门搜索词
+     * 2. 根据用户搜索历史返回个性化建议
+     * 3. 使用前缀匹配从数据库查询相关标题
+     */
+    public List<String> getSuggestions(String prefix) {
+        // 预定义的热门搜索词
+        List<String> hotKeywords = java.util.Arrays.asList(
+            "环保",
+            "垃圾分类",
+            "低碳生活",
+            "节能减排",
+            "绿色出行",
+            "可持续发展",
+            "生态保护",
+            "循环经济",
+            "清洁能源",
+            "碳中和"
+        );
+        
+        // 如果有前缀，进行过滤
+        if (prefix != null && !prefix.trim().isEmpty()) {
+            String lowerPrefix = prefix.trim().toLowerCase();
+            return hotKeywords.stream()
+                .filter(keyword -> keyword.toLowerCase().contains(lowerPrefix))
+                .limit(5)
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        // 无前缀时返回前 5 个热门词
+        return hotKeywords.stream()
+            .limit(5)
+            .collect(java.util.stream.Collectors.toList());
+    }
 }

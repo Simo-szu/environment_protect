@@ -38,4 +38,13 @@ public class SearchController {
         PageResponse<SearchResultDTO> response = searchFacade.search(request);
         return BaseResponse.success(response);
     }
+    
+    @Operation(summary = "搜索建议", description = "获取搜索建议词（热门搜索/搜索历史）")
+    @GetMapping("/suggest")
+    public BaseResponse<java.util.List<String>> suggest(
+        @RequestParam(required = false) String prefix
+    ) {
+        java.util.List<String> suggestions = searchFacade.getSuggestions(prefix);
+        return BaseResponse.success(suggestions);
+    }
 }
