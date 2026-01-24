@@ -7,22 +7,14 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 分页响应
+ * 分页响应（严格按照文档定义）
+ * 
+ * 只包含 4 个字段：page, size, total, items
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageResponse<T> {
-    
-    /**
-     * 数据列表
-     */
-    private List<T> items;
-    
-    /**
-     * 总记录数
-     */
-    private Long total;
     
     /**
      * 当前页码（从 1 开始）
@@ -32,38 +24,22 @@ public class PageResponse<T> {
     /**
      * 每页大小
      */
-    private Integer pageSize;
+    private Integer size;
     
     /**
-     * 总页数
+     * 总记录数
      */
-    private Integer totalPages;
+    private Long total;
     
     /**
-     * 是否有下一页
+     * 数据列表
      */
-    private Boolean hasNext;
-    
-    /**
-     * 是否有上一页
-     */
-    private Boolean hasPrev;
+    private List<T> items;
     
     /**
      * 构建分页响应
      */
-    public static <T> PageResponse<T> of(List<T> items, Long total, Integer page, Integer pageSize) {
-        PageResponse<T> response = new PageResponse<>();
-        response.setItems(items);
-        response.setTotal(total);
-        response.setPage(page);
-        response.setPageSize(pageSize);
-        
-        int totalPages = (int) Math.ceil((double) total / pageSize);
-        response.setTotalPages(totalPages);
-        response.setHasNext(page < totalPages);
-        response.setHasPrev(page > 1);
-        
-        return response;
+    public static <T> PageResponse<T> of(List<T> items, Long total, Integer page, Integer size) {
+        return new PageResponse<>(page, size, total, items);
     }
 }

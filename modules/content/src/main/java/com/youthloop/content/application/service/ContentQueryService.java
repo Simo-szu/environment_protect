@@ -3,9 +3,9 @@ package com.youthloop.content.application.service;
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.exception.BizException;
-import com.youthloop.content.application.dto.ContentDTO;
-import com.youthloop.content.application.dto.ContentListDTO;
-import com.youthloop.content.application.dto.ContentQueryRequest;
+import com.youthloop.content.api.dto.ContentDTO;
+import com.youthloop.content.api.dto.ContentListDTO;
+import com.youthloop.content.api.dto.ContentQueryRequest;
 import com.youthloop.content.persistence.entity.ContentEntity;
 import com.youthloop.content.persistence.entity.ContentStatsEntity;
 import com.youthloop.content.persistence.mapper.ContentMapper;
@@ -37,8 +37,8 @@ public class ContentQueryService {
         
         // 计算分页参数
         int page = Math.max(1, request.getPage());
-        int pageSize = Math.min(100, Math.max(1, request.getPageSize()));
-        int offset = (page - 1) * pageSize;
+        int size = Math.min(100, Math.max(1, request.getSize()));
+        int offset = (page - 1) * size;
         
         // 查询总数
         Long total = contentMapper.countList(request.getType(), status);
@@ -48,12 +48,12 @@ public class ContentQueryService {
             request.getType(),
             status,
             offset,
-            pageSize
+            size
         );
         
         // 如果没有数据，直接返回空列表
         if (entities.isEmpty()) {
-            return PageResponse.of(Collections.emptyList(), total, page, pageSize);
+            return PageResponse.of(Collections.emptyList(), total, page, size);
         }
         
         // 批量查询统计信息
@@ -91,7 +91,7 @@ public class ContentQueryService {
             })
             .collect(Collectors.toList());
         
-        return PageResponse.of(dtoList, total, page, pageSize);
+        return PageResponse.of(dtoList, total, page, size);
     }
     
     /**

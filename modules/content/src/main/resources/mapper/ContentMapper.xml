@@ -98,4 +98,12 @@
     WHERE id = #{id}::uuid
   </delete>
 
+  <!-- 根据来源 URL 查询 -->
+  <select id="selectBySourceUrl" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.content
+    WHERE source_url = #{sourceUrl}
+    LIMIT 1
+  </select>
+
 </mapper>

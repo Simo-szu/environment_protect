@@ -20,5 +20,5 @@ public class ContentQueryRequest {
     private Integer page = 1;
     
     @Schema(description = "每页数量", example = "20")
-    private Integer pageSize = 20;
+    private Integer size = 20;
 }

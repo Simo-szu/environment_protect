@@ -42,7 +42,7 @@ public class SecurityConfig {
             // 配置授权规则
             .authorizeHttpRequests(auth -> auth
                 // 放行：健康检查
-                .requestMatchers("/api/v1/health").permitAll()
+                .requestMatchers("/health").permitAll()
                 
                 // 放行：认证接口（仅公开接口）
                 .requestMatchers("/api/v1/auth/register").permitAll()

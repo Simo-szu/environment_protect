@@ -1,8 +1,7 @@
 package com.youthloop.auth.application.service;
 
-import com.youthloop.auth.application.dto.AuthResponse;
-import com.youthloop.auth.application.dto.LoginRequest;
-import com.youthloop.auth.application.dto.RegisterRequest;
+import com.youthloop.auth.api.dto.*;
+import com.youthloop.auth.infrastructure.notification.OtpNotificationService;
 import com.youthloop.auth.infrastructure.security.JwtTokenProvider;
 import com.youthloop.auth.infrastructure.security.PasswordEncoder;
 import com.youthloop.auth.persistence.entity.RefreshTokenEntity;
@@ -13,10 +12,10 @@ import com.youthloop.auth.persistence.mapper.UserIdentityMapper;
 import com.youthloop.auth.persistence.mapper.UserPasswordMapper;
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
-import com.youthloop.user.persistence.entity.UserEntity;
-import com.youthloop.user.persistence.entity.UserProfileEntity;
-import com.youthloop.user.persistence.mapper.UserMapper;
-import com.youthloop.user.persistence.mapper.UserProfileMapper;
+import com.youthloop.user.api.dto.CreateUserRequest;
+import com.youthloop.user.api.dto.UserBasicInfo;
+import com.youthloop.user.api.facade.UserQueryFacade;
+import com.youthloop.user.api.facade.UserRegistrationFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,13 +36,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
     
-    private final UserMapper userMapper;
-    private final UserProfileMapper userProfileMapper;
+    private final UserRegistrationFacade userRegistrationFacade;
+    private final UserQueryFacade userQueryFacade;
     private final UserIdentityMapper userIdentityMapper;
     private final UserPasswordMapper userPasswordMapper;
     private final RefreshTokenMapper refreshTokenMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OtpService otpService;
+    private final OtpNotificationService otpNotificationService;
     
     @Value("${jwt.access-token-validity:3600}")
     private Long accessTokenValidity;
@@ -64,27 +65,19 @@ public class AuthService {
             throw new BizException(ErrorCode.USER_ALREADY_EXISTS, "该邮箱已被注册");
         }
         
-        // 创建用户
-        UserEntity user = new UserEntity();
-        user.setId(UUID.randomUUID());
-        user.setRole(1); // 普通用户
-        user.setStatus(1); // 正常状态
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-        userMapper.insert(user);
+        // 通过 User 模块 Facade 创建用户
+        UUID userId = UUID.randomUUID();
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setUserId(userId);
+        createUserRequest.setNickname(request.getNickname());
+        createUserRequest.setRole(1); // 普通用户
         
-        // 创建用户档案
-        UserProfileEntity profile = new UserProfileEntity();
-        profile.setUserId(user.getId());
-        profile.setNickname(request.getNickname());
-        profile.setCreatedAt(LocalDateTime.now());
-        profile.setUpdatedAt(LocalDateTime.now());
-        userProfileMapper.insert(profile);
+        UserBasicInfo userInfo = userRegistrationFacade.createUser(createUserRequest);
         
         // 创建邮箱身份
         UserIdentityEntity identity = new UserIdentityEntity();
         identity.setId(UUID.randomUUID());
-        identity.setUserId(user.getId());
+        identity.setUserId(userInfo.getUserId());
         identity.setIdentityType(1); // EMAIL
         identity.setIdentityIdentifier(email);
         identity.setVerifiedAt(LocalDateTime.now()); // 注册时自动验证
@@ -95,16 +88,16 @@ public class AuthService {
         
         // 创建密码
         UserPasswordEntity password = new UserPasswordEntity();
-        password.setUserId(user.getId());
+        password.setUserId(userInfo.getUserId());
         password.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         password.setSetAt(LocalDateTime.now());
         password.setUpdatedAt(LocalDateTime.now());
         userPasswordMapper.insert(password);
         
-        log.info("用户注册成功: userId={}, email={}", user.getId(), email);
+        log.info("用户注册成功: userId={}, email={}", userInfo.getUserId(), email);
         
         // 生成令牌
-        return generateAuthResponse(user.getId(), null);
+        return generateAuthResponse(userInfo.getUserId(), null);
     }
     
     /**
@@ -120,30 +113,26 @@ public class AuthService {
             throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
         }
         
-        // 查询用户
-        UserEntity user = userMapper.selectById(identity.getUserId());
-        if (user == null) {
-            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
-        }
+        UUID userId = identity.getUserId();
         
-        // 检查用户状态
-        if (user.getStatus() != 1) {
-            throw new BizException(ErrorCode.FORBIDDEN, "账号已被封禁");
+        // 通过 User 模块 Facade 检查用户状态
+        if (!userQueryFacade.isUserActive(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
         }
         
         // 验证密码
-        UserPasswordEntity password = userPasswordMapper.selectByUserId(user.getId());
+        UserPasswordEntity password = userPasswordMapper.selectByUserId(userId);
         if (password == null || !passwordEncoder.matches(request.getPassword(), password.getPasswordHash())) {
             throw new BizException(ErrorCode.PASSWORD_INCORRECT, "密码错误");
         }
         
         // 更新最后登录时间
-        userMapper.updateLastLoginAt(user.getId());
+        userRegistrationFacade.updateLastLoginTime(userId);
         
-        log.info("用户登录成功: userId={}, email={}", user.getId(), email);
+        log.info("用户登录成功: userId={}, email={}", userId, email);
         
         // 生成令牌
-        return generateAuthResponse(user.getId(), request.getDeviceId());
+        return generateAuthResponse(userId, request.getDeviceId());
     }
     
     /**
@@ -248,5 +237,316 @@ public class AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Token 哈希失败", e);
         }
+    }
+
+    // ==================== 新增方法（按文档要求） ====================
+    
+    /**
+     * 发送邮箱验证码
+     */
+    public void sendEmailOtp(SendOtpRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
+        
+        // 映射 purpose 字符串到数字
+        Integer purposeCode = mapPurpose(request.getPurpose());
+        
+        // 生成并存储验证码
+        String code = otpService.generateAndStore(email, 1, purposeCode);
+        
+        // 发送验证码（开发环境使用日志模拟）
+        otpNotificationService.sendEmailOtp(email, code, request.getPurpose());
+        
+        log.info("邮箱验证码已发送: email={}, purpose={}", email, request.getPurpose());
+    }
+    
+    /**
+     * 发送短信验证码
+     */
+    public void sendPhoneOtp(SendOtpRequest request) {
+        String phone = request.getPhone().trim();
+        
+        // 映射 purpose 字符串到数字
+        Integer purposeCode = mapPurpose(request.getPurpose());
+        
+        // 生成并存储验证码
+        String code = otpService.generateAndStore(phone, 2, purposeCode);
+        
+        // 发送验证码（开发环境使用日志模拟）
+        otpNotificationService.sendPhoneOtp(phone, code, request.getPurpose());
+        
+        log.info("短信验证码已发送: phone={}, purpose={}", phone, request.getPurpose());
+    }
+    
+    /**
+     * 邮箱注册
+     */
+    @Transactional
+    public AuthResponse registerByEmail(EmailRegisterRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
+        
+        // 检查是否同意条款
+        if (!Boolean.TRUE.equals(request.getTermsAccepted())) {
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "必须同意服务条款");
+        }
+        
+        // 验证 OTP
+        otpService.verifyAndConsume(email, request.getOtp(), 1); // purpose=1 (register)
+        
+        // 检查邮箱是否已存在
+        UserIdentityEntity existingIdentity = userIdentityMapper.selectByTypeAndIdentifier(1, email);
+        if (existingIdentity != null) {
+            throw new BizException(ErrorCode.USER_ALREADY_EXISTS, "该邮箱已被注册");
+        }
+        
+        // 创建用户
+        UUID userId = UUID.randomUUID();
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setUserId(userId);
+        createUserRequest.setNickname(email.split("@")[0]); // 默认昵称为邮箱前缀
+        createUserRequest.setRole(1);
+        
+        UserBasicInfo userInfo = userRegistrationFacade.createUser(createUserRequest);
+        
+        // 创建邮箱身份
+        UserIdentityEntity identity = new UserIdentityEntity();
+        identity.setId(UUID.randomUUID());
+        identity.setUserId(userInfo.getUserId());
+        identity.setIdentityType(1); // EMAIL
+        identity.setIdentityIdentifier(email);
+        identity.setVerifiedAt(LocalDateTime.now());
+        identity.setIsPrimary(true);
+        identity.setCreatedAt(LocalDateTime.now());
+        identity.setUpdatedAt(LocalDateTime.now());
+        userIdentityMapper.insert(identity);
+        
+        // 创建密码
+        UserPasswordEntity password = new UserPasswordEntity();
+        password.setUserId(userInfo.getUserId());
+        password.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        password.setSetAt(LocalDateTime.now());
+        password.setUpdatedAt(LocalDateTime.now());
+        userPasswordMapper.insert(password);
+        
+        log.info("邮箱注册成功: userId={}, email={}", userInfo.getUserId(), email);
+        
+        return generateAuthResponse(userInfo.getUserId(), null);
+    }
+    
+    /**
+     * 手机注册
+     */
+    @Transactional
+    public AuthResponse registerByPhone(PhoneRegisterRequest request) {
+        String phone = request.getPhone().trim();
+        
+        // 检查是否同意条款
+        if (!Boolean.TRUE.equals(request.getTermsAccepted())) {
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "必须同意服务条款");
+        }
+        
+        // 验证 OTP
+        otpService.verifyAndConsume(phone, request.getOtp(), 1); // purpose=1 (register)
+        
+        // 检查手机号是否已存在
+        UserIdentityEntity existingIdentity = userIdentityMapper.selectByTypeAndIdentifier(2, phone);
+        if (existingIdentity != null) {
+            throw new BizException(ErrorCode.USER_ALREADY_EXISTS, "该手机号已被注册");
+        }
+        
+        // 创建用户
+        UUID userId = UUID.randomUUID();
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setUserId(userId);
+        createUserRequest.setNickname("用户" + phone.substring(phone.length() - 4)); // 默认昵称
+        createUserRequest.setRole(1);
+        
+        UserBasicInfo userInfo = userRegistrationFacade.createUser(createUserRequest);
+        
+        // 创建手机身份
+        UserIdentityEntity identity = new UserIdentityEntity();
+        identity.setId(UUID.randomUUID());
+        identity.setUserId(userInfo.getUserId());
+        identity.setIdentityType(2); // PHONE
+        identity.setIdentityIdentifier(phone);
+        identity.setVerifiedAt(LocalDateTime.now());
+        identity.setIsPrimary(true);
+        identity.setCreatedAt(LocalDateTime.now());
+        identity.setUpdatedAt(LocalDateTime.now());
+        userIdentityMapper.insert(identity);
+        
+        // 创建密码
+        UserPasswordEntity password = new UserPasswordEntity();
+        password.setUserId(userInfo.getUserId());
+        password.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        password.setSetAt(LocalDateTime.now());
+        password.setUpdatedAt(LocalDateTime.now());
+        userPasswordMapper.insert(password);
+        
+        log.info("手机注册成功: userId={}, phone={}", userInfo.getUserId(), phone);
+        
+        return generateAuthResponse(userInfo.getUserId(), null);
+    }
+    
+    /**
+     * 邮箱验证码登录
+     */
+    @Transactional
+    public AuthResponse loginByEmailOtp(OtpLoginRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
+        
+        // 验证 OTP
+        otpService.verifyAndConsume(email, request.getOtp(), 2); // purpose=2 (login)
+        
+        // 查找用户身份
+        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(1, email);
+        if (identity == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+        
+        UUID userId = identity.getUserId();
+        
+        // 检查用户状态
+        if (!userQueryFacade.isUserActive(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
+        }
+        
+        // 更新最后登录时间
+        userRegistrationFacade.updateLastLoginTime(userId);
+        
+        log.info("邮箱验证码登录成功: userId={}, email={}", userId, email);
+        
+        return generateAuthResponse(userId, null);
+    }
+    
+    /**
+     * 手机验证码登录
+     */
+    @Transactional
+    public AuthResponse loginByPhoneOtp(OtpLoginRequest request) {
+        String phone = request.getPhone().trim();
+        
+        // 验证 OTP
+        otpService.verifyAndConsume(phone, request.getOtp(), 2); // purpose=2 (login)
+        
+        // 查找用户身份
+        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(2, phone);
+        if (identity == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+        
+        UUID userId = identity.getUserId();
+        
+        // 检查用户状态
+        if (!userQueryFacade.isUserActive(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
+        }
+        
+        // 更新最后登录时间
+        userRegistrationFacade.updateLastLoginTime(userId);
+        
+        log.info("手机验证码登录成功: userId={}, phone={}", userId, phone);
+        
+        return generateAuthResponse(userId, null);
+    }
+    
+    /**
+     * 账号密码登录
+     */
+    @Transactional
+    public AuthResponse loginByPassword(PasswordLoginRequest request) {
+        String account = request.getAccount().toLowerCase().trim();
+        
+        // 判断是邮箱还是手机号
+        UserIdentityEntity identity;
+        if (account.contains("@")) {
+            // 邮箱登录
+            identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
+        } else {
+            // 手机登录
+            identity = userIdentityMapper.selectByTypeAndIdentifier(2, account);
+        }
+        
+        if (identity == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+        
+        UUID userId = identity.getUserId();
+        
+        // 检查用户状态
+        if (!userQueryFacade.isUserActive(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
+        }
+        
+        // 验证密码
+        UserPasswordEntity password = userPasswordMapper.selectByUserId(userId);
+        if (password == null || !passwordEncoder.matches(request.getPassword(), password.getPasswordHash())) {
+            throw new BizException(ErrorCode.PASSWORD_INCORRECT, "密码错误");
+        }
+        
+        // 更新最后登录时间
+        userRegistrationFacade.updateLastLoginTime(userId);
+        
+        log.info("账号密码登录成功: userId={}, account={}", userId, account);
+        
+        return generateAuthResponse(userId, null);
+    }
+    
+    /**
+     * 重置密码
+     */
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        String account = request.getAccount().toLowerCase().trim();
+        
+        // 验证 OTP
+        otpService.verifyAndConsume(account, request.getOtp(), 3); // purpose=3 (reset_pwd)
+        
+        // 查找用户身份
+        UserIdentityEntity identity;
+        if (account.contains("@")) {
+            identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
+        } else {
+            identity = userIdentityMapper.selectByTypeAndIdentifier(2, account);
+        }
+        
+        if (identity == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+        
+        UUID userId = identity.getUserId();
+        
+        // 更新密码
+        UserPasswordEntity password = userPasswordMapper.selectByUserId(userId);
+        if (password == null) {
+            // 创建新密码记录
+            password = new UserPasswordEntity();
+            password.setUserId(userId);
+            password.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+            password.setSetAt(LocalDateTime.now());
+            password.setUpdatedAt(LocalDateTime.now());
+            userPasswordMapper.insert(password);
+        } else {
+            // 更新现有密码
+            password.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+            password.setUpdatedAt(LocalDateTime.now());
+            userPasswordMapper.updatePassword(userId, password.getPasswordHash(), LocalDateTime.now());
+        }
+        
+        // 撤销该用户的所有 refresh token（强制重新登录）
+        refreshTokenMapper.revokeAllByUserId(userId);
+        
+        log.info("密码重置成功: userId={}, account={}", userId, account);
+    }
+    
+    /**
+     * 映射 purpose 字符串到数字代码
+     */
+    private Integer mapPurpose(String purpose) {
+        return switch (purpose.toLowerCase()) {
+            case "register" -> 1;
+            case "login" -> 2;
+            case "reset_password" -> 3;
+            default -> throw new BizException(ErrorCode.INVALID_PARAMETER, "无效的验证码用途");
+        };
     }
 }

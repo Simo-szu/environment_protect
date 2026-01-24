@@ -1,224 +1,163 @@
-# My Digital Biome (Monorepo)
+# YouthLoop - 青年环保社交平台
 
-本项目采用 **Monorepo** 架构，包含前端 Web 应用与后端微服务（Social Service + Game Service）。旨在打造一个集生态模拟游戏、科普教育与社交互动于一体的综合平台。
+YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普内容、活动组织、互动社区和游戏化激励，帮助青年人了解环保知识、参与环保活动、养成环保习惯。
 
----
+## 项目概述
 
-## 🏗️ 系统架构
+### 核心功能模块
 
-目标采用 **分布式架构**，前后端分离：
+- **科普内容**：环保新闻、动态、政策、百科等内容的发布与浏览
+- **活动管理**：环保活动的发布、报名、签到与管理
+- **社交互动**：评论、点赞、收藏、分享等社交功能
+- **积分系统**：签到、任务、问答等多种积分获取方式
+- **游戏化**：通过游戏化机制（如虚拟池塘）激励用户参与
+- **通知系统**：实时通知用户关注的内容和活动动态
 
-*   **Web Frontend**: 负责 UI 展示与 API 调用（Next.js）。
-*   **Social Service**: 处理社媒、内容、活动、互动、积分等核心业务（Spring Boot 模块化单体）。
-*   **Game Service**: 独立的游戏服务，处理游戏会话与逻辑（Spring Boot）。
+### 技术架构
 
-两个服务共用一个 PostgreSQL 实例，通过 **多 Schema (shared/social/game)** 实现隔离。
+- **前端**：Next.js + React + TypeScript
+- **后端**：Spring Boot + Java 17（模块化单体架构）
+- **数据库**：PostgreSQL（多 schema 隔离）
+- **对象存储**：MinIO
+- **消息队列**：Outbox 模式（基于数据库轮询）
 
----
+## 快速开始
 
-## 📁 目录结构
+### 前置要求
 
-```text
-repo-root/
-├─ apps/                   # 可独立部署的应用
-│  ├─ web/                 # Next.js 前端应用
-│  ├─ social-api/          # Social Service - API 接入层 (Spring Boot)
-│  ├─ social-worker/       # Social Service - 异步任务 Worker (Spring Boot)
-│  └─ game-api/            # Game Service - 独立游戏服务 (Spring Boot)
-├─ modules/                # Social Service 业务模块 (模块化单体核心)
-│  ├─ common/              # 通用工具和基础设施
-│  ├─ auth/                # 认证与授权
-│  ├─ user/                # 用户档案
-│  ├─ content/             # 科普内容 (News/Wiki/Policy/Dynamic)
-│  ├─ activity/            # 活动与报名
-│  ├─ interaction/         # 评论/点赞/收藏/踩
-│  ├─ notification/        # 通知系统
-│  ├─ points/              # 积分系统 (签到/任务/问答/勋章)
-│  ├─ search/              # 站内搜索
-│  ├─ recommendation/      # 推荐系统
-│  ├─ event/               # 事件处理 (Outbox)
-│  ├─ ingestion/           # 数据抓取与清洗
-│  ├─ query/               # 聚合查询层 (BFF)
-│  ├─ host/                # 主办方管理
-│  └─ ops/                 # 运营配置
-├─ packages/               # 跨服务共享
-│  ├─ api-contracts/       # API 契约 (OpenAPI/错误码/DTO)
-│  └─ tooling/             # 代码生成/Lint/CI 脚本
-├─ infra/                  # 基础设施配置
-│  ├─ db/                  # 数据库相关
-│  │  ├─ init/             # 初始化脚本 (角色/Schema)
-│  │  ├─ migrations/       # Flyway 迁移脚本
-│  │  │  ├─ shared/        # shared schema
-│  │  │  ├─ social/        # social schema
-│  │  │  └─ game/          # game schema
-│  │  └─ scripts/          # 数据库操作脚本
-│  └─ docker/              # Docker Compose (DB/Redis/RabbitMQ/MinIO)
-├─ scripts/                # 开发和运维脚本
-└─ docs/                   # 补充文档
+- Java 17+
+- Node.js 18+
+- PostgreSQL 14+
+- Docker & Docker Compose（可选，用于本地开发环境）
+
+### 本地开发
+
+1. **启动基础设施**（数据库、MinIO 等）
+   ```bash
+   cd infra/docker
+   docker-compose up -d
+   ```
+
+2. **初始化数据库**
+   ```powershell
+   cd infra/db
+   .\setup_all.ps1
+   ```
+
+3. **启动后端服务**
+   ```bash
+   # Social API
+   cd apps/social-api
+   mvn spring-boot:run
+   
+   # Social Worker
+   cd apps/social-worker
+   mvn spring-boot:run
+   
+   # Game API
+   cd apps/game-api
+   mvn spring-boot:run
+   ```
+
+4. **启动前端**
+   ```bash
+   cd apps/web
+   pnpm install
+   pnpm dev
+   ```
+
+### 访问地址
+
+- 前端：http://localhost:8000
+- Social API：http://localhost:8080
+- Social API Swagger：http://localhost:8080/swagger-ui.html
+- Game API：http://localhost:8082
+- Game API Swagger：http://localhost:8082/swagger-ui.html
+
+## 项目结构
+
+```
+youthloop/
+├── apps/                    # 应用层（API 进程 + 前端）
+│   ├── social-api/          # Social Service API
+│   ├── social-worker/       # Social Service Worker（后台任务）
+│   ├── game-api/            # Game Service API
+│   └── web/                 # Web 前端（Next.js）
+├── modules/                 # 业务模块（模块化单体）
+│   ├── auth/                # 认证与授权
+│   ├── user/                # 用户管理
+│   ├── content/             # 科普内容
+│   ├── activity/            # 活动管理
+│   ├── interaction/         # 社交互动
+│   ├── notification/        # 通知系统
+│   ├── points/              # 积分系统
+│   ├── event/               # 事件处理（Outbox）
+│   └── common/              # 通用工具
+├── packages/                # 跨服务共享
+│   └── api-contracts/       # API 契约（错误码、OpenAPI 规范）
+└── infra/                   # 基础设施
+    ├── db/                  # 数据库迁移脚本
+    ├── docker/              # Docker Compose 配置
+    └── minio/               # 对象存储配置
 ```
 
----
+## 开发规范
 
-## 🛠️ 技术栈
+### 核心文档
 
-### Frontend (Web)
-*   **Framework**: [Next.js 16.0.1](https://nextjs.org/) (App Router)
-*   **Language**: [TypeScript](https://www.typescriptlang.org/)
-*   **Styling**: [Tailwind CSS 4.x](https://tailwindcss.com/)
-*   **State**: [Zustand](https://github.com/pmndrs/zustand)
-*   **Visuals**: GSAP, Recharts, Radix UI
+- **[Project-Structure.md](./Project-Structure.md)** - 项目架构与开发规范（必读）
+- **[Schema-V0.1.dsl.md.md](./Schema-V0.1.dsl.md.md)** - 数据库模型定义
+- **[packages/api-contracts/ERROR_CODES.md](./packages/api-contracts/ERROR_CODES.md)** - 错误码规范
 
-### Backend (Services)
-*   **Language**: Java 21 (Temurin LTS)
-*   **Framework**: Spring Boot 3.4.x
-*   **ORM**: MyBatis
-*   **API Docs**: SpringDoc OpenAPI (Swagger)
+### 模块开发规范
 
-### Infrastructure & Data
-*   **Database**: PostgreSQL (Schemes: `shared`, `social`, `game`)
-*   **Migration**: Flyway
-*   **Cache**: Redis
-*   **Message Queue**: RabbitMQ
-*   **Search**: PG Full Text Search (v0.1) -> Elasticsearch (Future)
+每个业务模块遵循统一的分层结构：
 
----
-
-## 🧩 核心业务模块
-
-### Social Service
-采用“模块化单体”架构，所有业务逻辑收敛于 `modules/`：
-*   **Auth**: 统一认证（OTP/Password），支持多端登录。
-*   **Home/Query**: 聚合查询层（BFF），负责组装多种数据源。
-*   **Content**: 科普文章、动态、政策发布。
-*   **Activity**: 环保活动发布、场次管理、报名系统。
-*   **Interaction**: 全局互动系统（评论树、点赞、收藏）。
-*   **Points**: 积分任务、签到、答题、兑换。
-*   **User**: 用户画像与个人中心。
-
-### Game Service
-*   **Game Session**: 游戏会话管理。
-*   **Events**: 游戏内事件上报与结算。
-
----
-
-## 🚀 快速开始
-
-### 环境变量配置
-
-所有服务使用统一的环境变量命名规范：
-
-#### 数据库配置
-- `DB_HOST`: 数据库主机地址（默认：localhost）
-- `DB_PORT`: 数据库端口（默认：5432）
-- `DB_NAME`: 数据库名称（默认：youthloop）
-- `DB_USER`: 数据库用户名（social-api: social_app, game-api: game_app）
-- `DB_PASSWORD`: 数据库密码（默认：postgres）
-
-#### Redis 配置
-- `REDIS_HOST`: Redis 主机地址（默认：localhost）
-- `REDIS_PORT`: Redis 端口（默认：6379）
-- `REDIS_PASSWORD`: Redis 密码（默认：空）
-
-#### RabbitMQ 配置（仅 social-worker）
-- `RABBITMQ_HOST`: RabbitMQ 主机地址（默认：localhost）
-- `RABBITMQ_PORT`: RabbitMQ 端口（默认：5672）
-- `RABBITMQ_USER`: RabbitMQ 用户名（默认：guest）
-- `RABBITMQ_PASSWORD`: RabbitMQ 密码（默认：guest）
-
-#### 服务端口
-- **social-api**: 8080
-- **social-worker**: 8081（管理端口）
-- **game-api**: 8082
-
-### 1. 基础设施启动
-确保本地安装 Docker，运行基础设施容器：
-```bash
-cd infra/docker
-docker compose up -d
-# 启动 Postgres, Redis, RabbitMQ, MinIO
+```
+<module>/
+├── api/              # 对外契约（DTO + Facade）
+├── application/      # 用例层（Service）
+├── domain/           # 领域层（可选）
+├── infrastructure/   # 适配层（可选）
+└── persistence/      # 持久化层（Entity + Mapper）
 ```
 
-### 1.1 构建 Web 镜像（可选）
-从仓库根目录构建（build context 必须是 repo root）：
-```bash
-docker build -f apps/web/Dockerfile -t youthloop-web:dev .
-```
+**关键原则：**
+- 模块间只能通过 `api/facade` 交互，禁止直接依赖其他模块的 `persistence` 或 `application`
+- Controller 只依赖 Facade，不直接依赖 Service
+- 所有写入接口使用 `UnifiedRequest<T>` 包装请求体
+- 所有响应使用 `BaseResponse<T>` 统一格式
 
-### 2. 数据库迁移
-执行 Flyway 脚本初始化数据库结构：
-*   **Shared Schema**: `infra/db/migrations/shared`
-*   **Social Schema**: `infra/db/migrations/social`
-*   **Game Schema**: `infra/db/migrations/game`
+### API 规范
 
-### 3. 后端服务启动
+- 统一请求格式：`{ requestId, data }`
+- 统一响应格式：`{ code, message, data, traceId }`
+- 分页响应格式：`{ page, size, total, items }`
+- 错误码遵循 5 位数字格式：模块代码 + 错误类型 + 序号
 
-#### 编译项目
-```bash
-# 在项目根目录执行
-mvn clean install -DskipTests
-```
+## 数据库
 
-#### 启动服务
-*   **Social API**: 
-    ```bash
-    cd apps/social-api
-    mvn spring-boot:run
-    # 访问 http://localhost:8080/actuator/health
-    # Swagger UI: http://localhost:8080/swagger-ui.html
-    ```
-*   **Social Worker**: 
-    ```bash
-    cd apps/social-worker
-    mvn spring-boot:run
-    # 访问 http://localhost:8081/actuator/health
-    ```
-*   **Game API**: 
-    ```bash
-    cd apps/game-api
-    mvn spring-boot:run
-    # 访问 http://localhost:8082/actuator/health
-    # Swagger UI: http://localhost:8082/swagger-ui.html
-    ```
+### Schema 组织
 
-### 4. 前端启动 (Web)
-```bash
-# 假设位于 apps/web (或当前根目录)
-pnpm install
-pnpm dev
-# 访问 http://localhost:8000
-```
+- **shared**：跨服务共享的最小数据集（用户、身份、认证）
+- **social**：Social Service 业务数据
+- **game**：Game Service 业务数据
 
----
+### 迁移管理
 
-## 📏 API 规范
+使用 Flyway 进行数据库版本管理，迁移脚本位于 `infra/db/migrations/`。
 
-### 统一响应格式
-所有 API 响应遵循统一格式：
-```json
-{
-  "code": 0,
-  "message": "操作成功",
-  "data": {},
-  "traceId": "a1b2c3d4e5f6g7h8"
-}
-```
+## 贡献指南
 
-### 接口规范
-*   **前缀**: `/api/v1`
-*   **风格**: RESTful
-*   **格式**: JSON
-*   **TraceId**: 所有请求/响应携带 `X-Trace-Id` 头用于日志追踪
+1. 所有开发必须遵循 [Project-Structure.md](./Project-Structure.md) 中的规范
+2. 新增 API 端点必须先在文档中定义
+3. 新增错误码必须先在 [ERROR_CODES.md](./packages/api-contracts/ERROR_CODES.md) 中定义
+4. 提交前确保代码通过编译和测试
 
-详细接口文档：
-- **Social API**: http://localhost:8080/swagger-ui.html
-- **Game API**: http://localhost:8082/swagger-ui.html
-- **错误码表**: [packages/api-contracts/ERROR_CODES.md](packages/api-contracts/ERROR_CODES.md)
+## 许可证
 
----
+[待定]
 
-## 📚 相关文档
+## 联系方式
 
-- [项目结构详解](Project-Structure.md)
-- [数据库 Schema](Schema-V0.1.dsl.md.md)
-- [API 契约](packages/api-contracts/README.md)
-- [数据库迁移说明](infra/db/README.md)
+[待定]

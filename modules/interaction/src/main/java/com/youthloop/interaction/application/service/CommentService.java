@@ -4,7 +4,7 @@ import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.event.application.service.OutboxEventService;
-import com.youthloop.interaction.application.dto.CreateCommentRequest;
+import com.youthloop.interaction.api.dto.CreateCommentRequest;
 import com.youthloop.interaction.persistence.entity.CommentEntity;
 import com.youthloop.interaction.persistence.entity.CommentStatsEntity;
 import com.youthloop.interaction.persistence.mapper.CommentMapper;

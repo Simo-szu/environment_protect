@@ -103,13 +103,13 @@ public void updateUserProfile(UUID userId, UserProfileDTO dto) {
 ## 分页规范
 
 ### 请求参数
-- 继承 `PageRequest`（page、pageSize）
+- 继承 `PageRequest`（page、size）
 - page 从 1 开始
-- pageSize 默认 20，最大 100
+- size 默认 20，最大 100
 
 ### 响应格式
 - 使用 `PageResponse<T>`
-- 包含：items、total、page、pageSize、totalPages、hasNext、hasPrev
+- 包含：items、total、page、size、totalPages、hasNext、hasPrev
 
 ### SQL 实现
 ```xml

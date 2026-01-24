@@ -73,6 +73,13 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- Resend (Email Service) -->
+    <dependency>
+      <groupId>com.resend</groupId>
+      <artifactId>resend-java</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
