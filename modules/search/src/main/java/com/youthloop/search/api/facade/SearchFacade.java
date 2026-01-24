@@ -13,4 +13,9 @@ public interface SearchFacade {
      * 搜索内容和活动
      */
     PageResponse<SearchResultDTO> search(SearchRequest request);
+    
+    /**
+     * 获取搜索建议
+     */
+    List<String> getSuggestions(String prefix);
 }

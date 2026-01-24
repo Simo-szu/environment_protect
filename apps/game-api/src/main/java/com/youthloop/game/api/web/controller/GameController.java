@@ -58,9 +58,8 @@ public class GameController {
     @PostMapping("/sessions/{id}/finish")
     @PreAuthorize("isAuthenticated()")
     public BaseResponse<GameActionResponse> finishSession(@PathVariable("id") String sessionId) {
-        // 结束会话并返回最终结算
-        gameFacade.endSession();
-        // TODO: 返回结算结果（当前简化为空响应）
-        return BaseResponse.success(GameActionResponse.builder().build());
+        // 结束会话并返回结算结果
+        GameActionResponse settlement = gameFacade.endSession();
+        return BaseResponse.success(settlement);
     }
 }

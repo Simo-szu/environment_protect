@@ -21,4 +21,9 @@ public class SearchFacadeImpl implements SearchFacade {
     public PageResponse<SearchResultDTO> search(SearchRequest request) {
         return searchService.search(request);
     }
+    
+    @Override
+    public List<String> getSuggestions(String prefix) {
+        return searchService.getSuggestions(prefix);
+    }
 }

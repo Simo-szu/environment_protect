@@ -145,9 +145,10 @@ public class GameService {
     
     /**
      * 结束游戏会话
+     * 返回结算结果
      */
     @Transactional
-    public void endSession() {
+    public GameActionResponse endSession() {
         UUID userId = SecurityUtil.getCurrentUserId();
         
         GameSessionEntity session = gameSessionMapper.selectActiveByUserId(userId);
@@ -155,13 +156,37 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         
+        // 计算游戏时长（分钟）
+        long durationMinutes = java.time.Duration.between(
+            session.getStartedAt(), 
+            LocalDateTime.now()
+        ).toMinutes();
+        
+        // 计算时长奖励（每分钟 10 分，最多 30 分钟）
+        int durationBonus = (int) Math.min(durationMinutes * 10, 300);
+        
+        // 最终得分 = 当前得分 + 时长奖励
+        long finalScore = session.getScore() + durationBonus;
+        int finalLevel = calculateLevel(finalScore);
+        
+        // 更新会话状态
+        session.setScore(finalScore);
+        session.setLevel(finalLevel);
         session.setStatus(3); // ended
         session.setUpdatedAt(LocalDateTime.now());
         
         gameSessionMapper.update(session);
         
-        log.info("结束游戏会话: userId={}, sessionId={}, finalScore={}", 
-            userId, session.getId(), session.getScore());
+        log.info("结束游戏会话: userId={}, sessionId={}, finalScore={}, durationMinutes={}, bonus={}", 
+            userId, session.getId(), finalScore, durationMinutes, durationBonus);
+        
+        // 返回结算结果
+        return GameActionResponse.builder()
+            .newPondState(session.getPondState())
+            .pointsEarned(durationBonus)
+            .totalScore(finalScore)
+            .newLevel(finalLevel)
+            .build();
     }
     
     // === 私有方法 ===

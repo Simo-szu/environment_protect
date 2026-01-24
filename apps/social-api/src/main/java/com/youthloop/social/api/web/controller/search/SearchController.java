@@ -45,8 +45,6 @@ public class SearchController {
     public BaseResponse<java.util.List<String>> suggest(
         @RequestParam(required = false) String prefix
     ) {
-        // TODO: 实现搜索建议逻辑（v0.1 返回空列表）
-        // 未来可以从 Redis 缓存的热门搜索词中获取
-        // 或者从用户搜索历史中获取
-        return BaseResponse.success(java.util.Collections.emptyList());
+        java.util.List<String> suggestions = searchFacade.getSuggestions(prefix);
+        return BaseResponse.success(suggestions);
     }

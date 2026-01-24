@@ -26,6 +26,7 @@ public interface GameFacade {
     
     /**
      * 结束游戏会话
+     * 返回结算结果
      */
-    void endSession();
+    GameActionResponse endSession();
 }

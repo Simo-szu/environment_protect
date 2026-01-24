@@ -33,7 +33,7 @@ public class GameFacadeImpl implements GameFacade {
     }
     
     @Override
-    public void endSession() {
-        gameService.endSession();
+    public GameActionResponse endSession() {
+        return gameService.endSession();
     }
 }
