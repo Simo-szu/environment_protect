@@ -454,7 +454,82 @@
             "correctAnswer": "✓ Correct!",
             "wrongAnswer": "✗ Wrong answer",
             "wrongAnswerWithCorrect": "✗ Wrong answer, correct answer is",
-            "enterNumber": "Enter number"
+            "enterNumber": "Enter number",
+            "set1": {
+                "q1": {
+                    "question": "Which type of waste belongs to recyclable waste?",
+                    "optionA": "A. Waste paper",
+                    "optionB": "B. Battery"
+                },
+                "q2": {
+                    "question": "How many years does it take for a plastic bottle to completely decompose?"
+                },
+                "q3": {
+                    "question": "Which of the following is NOT an energy-saving method?",
+                    "optionA": "A. Using LED bulbs",
+                    "optionB": "B. Running air conditioning for long periods"
+                }
+            },
+            "set2": {
+                "q1": {
+                    "question": "Where does microplastic pollution mainly come from?",
+                    "optionA": "A. Tire wear particles",
+                    "optionB": "B. Natural rubber"
+                },
+                "q2": {
+                    "question": "How many categories can household waste be divided into?"
+                },
+                "q3": {
+                    "question": "Which energy source is renewable?",
+                    "optionA": "A. Coal",
+                    "optionB": "B. Solar energy"
+                }
+            },
+            "set3": {
+                "q1": {
+                    "question": "Which of the following is the main gas causing the greenhouse effect?",
+                    "optionA": "A. Carbon dioxide",
+                    "optionB": "B. Oxygen"
+                },
+                "q2": {
+                    "question": "How many kilograms of carbon dioxide can an adult tree absorb per year? (approximate)"
+                },
+                "q3": {
+                    "question": "What is the most important measure for biodiversity conservation?",
+                    "optionA": "A. Building more cities",
+                    "optionB": "B. Protecting natural habitats"
+                }
+            },
+            "set4": {
+                "q1": {
+                    "question": "What is the main harm of ocean plastic waste?",
+                    "optionA": "A. Affecting marine life survival",
+                    "optionB": "B. Increasing seawater salinity"
+                },
+                "q2": {
+                    "question": "How many liters of water can be saved by turning off the tap while brushing teeth?"
+                },
+                "q3": {
+                    "question": "Which mode of transportation is most environmentally friendly?",
+                    "optionA": "A. Private car",
+                    "optionB": "B. Bicycle"
+                }
+            },
+            "set5": {
+                "q1": {
+                    "question": "What is the main environmental impact of deforestation?",
+                    "optionA": "A. Accelerating climate change",
+                    "optionB": "B. Increasing rainfall"
+                },
+                "q2": {
+                    "question": "How many hundred million tons of plastic waste are produced globally each year? (approximate)"
+                },
+                "q3": {
+                    "question": "Which practice helps reduce carbon footprint?",
+                    "optionA": "A. Increasing meat consumption",
+                    "optionB": "B. Choosing local ingredients"
+                }
+            }
         }
     },
     "profile": {
