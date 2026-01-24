@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
+import BackButton from '@/components/ui/BackButton';
 import { useParams } from 'next/navigation';
 import {
     ArrowLeft,
@@ -94,13 +95,7 @@ export default function ContactPage() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* 返回按钮 */}
                 <div className="mb-6">
-                    <Link
-                        href={`/${locale}`}
-                        className="inline-flex items-center gap-2 text-slate-600 hover:text-[#30499B] transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        返回首页
-                    </Link>
+                    <BackButton fallbackUrl={`/${locale}`} />
                 </div>
 
                 {/* 页面标题 */}
