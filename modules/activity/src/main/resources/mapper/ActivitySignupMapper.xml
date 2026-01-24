@@ -67,6 +67,18 @@
     WHERE id = #{id}::uuid
   </update>
 
+  <!-- 更新报名信息 -->
+  <update id="updateInfo">
+    UPDATE social.activity_signup
+    <set>
+      <if test="nickname != null">nickname = #{nickname},</if>
+      <if test="realName != null">real_name = #{realName},</if>
+      <if test="phone != null">phone = #{phone},</if>
+      updated_at = now()
+    </set>
+    WHERE id = #{id}::uuid
+  </update>
+
   <!-- 查询活动的报名列表（主办方查看） -->
   <select id="selectSignupList" resultType="java.util.HashMap">
     SELECT 

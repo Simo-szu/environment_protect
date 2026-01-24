@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
+import { userApi } from '@/lib/api';
+import type { MyActivityItem } from '@/lib/api/user';
 import {
     CalendarCheck,
     CalendarHeart,
@@ -18,7 +21,8 @@ import {
     CalendarPlus,
     CheckCircle,
     Trees,
-    Wind
+    Wind,
+    TreePine
 } from 'lucide-react';
 
 interface Activity {
@@ -125,11 +129,40 @@ const generateMockActivities = (): Activity[] => {
 };
 
 export default function MyActivitiesPage() {
+    const params = useParams();
+    const locale = params.locale as string;
     const { user, isLoggedIn, loading } = useAuth();
     const [activeTab, setActiveTab] = useState('all');
-    const [allActivities] = useState<Activity[]>(generateMockActivities());
+    const [myActivities, setMyActivities] = useState<MyActivityItem[]>([]);
+    const [loadingActivities, setLoadingActivities] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [activitiesPerPage] = useState(4); // 每页显示4个活动
+    const [totalPages, setTotalPages] = useState(1);
+    const [activitiesPerPage] = useState(4);
+
+    // 加载我的活动
+    useEffect(() => {
+        const loadMyActivities = async () => {
+            if (!isLoggedIn) return;
+
+            try {
+                setLoadingActivities(true);
+                const result = await userApi.getMyActivities({
+                    page: currentPage,
+                    size: activitiesPerPage
+                });
+                setMyActivities(result.items);
+                setTotalPages(Math.ceil(result.total / activitiesPerPage));
+            } catch (error) {
+                console.error('Failed to load my activities:', error);
+            } finally {
+                setLoadingActivities(false);
+            }
+        };
+
+        if (!loading && isLoggedIn) {
+            loadMyActivities();
+        }
+    }, [isLoggedIn, loading, currentPage, activitiesPerPage]);
 
     useEffect(() => {
         if (!loading && (!user || !isLoggedIn)) {
@@ -140,32 +173,29 @@ export default function MyActivitiesPage() {
 
     const switchTab = (tabName: string) => {
         setActiveTab(tabName);
-        setCurrentPage(1); // 重置到第一页
+        setCurrentPage(1);
     };
 
     // 过滤活动
-    const filteredActivities = allActivities.filter(activity => {
+    const filteredActivities = myActivities.filter(activity => {
         if (activeTab === 'all') return true;
-        return activity.status === activeTab;
+        // 根据状态筛选
+        if (activeTab === 'registered') return activity.status === 'PENDING' || activity.status === 'APPROVED';
+        if (activeTab === 'ongoing') return activity.status === 'APPROVED';
+        if (activeTab === 'completed') return activity.status === 'APPROVED'; // 这里需要根据时间判断
+        return true;
     });
-
-    // 分页逻辑
-    const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage);
-    const startIndex = (currentPage - 1) * activitiesPerPage;
-    const endIndex = startIndex + activitiesPerPage;
-    const currentActivities = filteredActivities.slice(startIndex, endIndex);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // 滚动到内容区域
         document.querySelector('.tab-content')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     // 统计数据
-    const registeredCount = allActivities.filter(a => a.status === 'registered').length;
-    const ongoingCount = allActivities.filter(a => a.status === 'ongoing').length;
-    const completedCount = allActivities.filter(a => a.status === 'completed').length;
-    const totalPoints = allActivities.filter(a => a.status === 'completed').reduce((sum, a) => sum + (a.points || 0), 0);
+    const registeredCount = myActivities.filter(a => a.status === 'PENDING' || a.status === 'APPROVED').length;
+    const ongoingCount = myActivities.filter(a => a.status === 'APPROVED').length;
+    const completedCount = 0; // 需要根据时间判断
+    const totalPoints = 0; // 从积分系统获取
 
     const viewActivityDetails = () => {
         console.log('查看活动详情');
@@ -182,7 +212,7 @@ export default function MyActivitiesPage() {
         alert('评价功能开发中...');
     };
 
-    if (loading) {
+    if (loading || loadingActivities) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -316,79 +346,74 @@ export default function MyActivitiesPage() {
                     {/* Tab Content */}
                     <div className="p-6 tab-content">
                         <div className="space-y-6">
-                            {currentActivities.map((activity) => {
-                                const IconComponent = activity.icon;
-                                return (
-                                    <div key={activity.id} className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                                        <div className="flex flex-col md:flex-row gap-6">
-                                            {/* Activity Image */}
-                                            <div className="w-full md:w-48 h-32 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0">
-                                                <IconComponent className="w-12 h-12 text-[#56B949]/40" />
-                                            </div>
-                                            {/* Activity Info */}
-                                            <div className="flex-1">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div>
-                                                        <h3 className="text-lg font-serif font-semibold text-[#30499B] dark:text-[#56B949] mb-2">{activity.title}</h3>
-                                                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-2 flex-wrap">
+                            {filteredActivities.map((activity) => (
+                                <div key={activity.signupId} className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        {/* Activity Image */}
+                                        <div className="w-full md:w-48 h-32 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {activity.activityCoverUrl ? (
+                                                <img src={activity.activityCoverUrl} alt={activity.activityTitle} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <TreePine className="w-12 h-12 text-[#56B949]/40" />
+                                            )}
+                                        </div>
+                                        {/* Activity Info */}
+                                        <div className="flex-1">
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div>
+                                                    <h3 className="text-lg font-serif font-semibold text-[#30499B] dark:text-[#56B949] mb-2">{activity.activityTitle}</h3>
+                                                    <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-2 flex-wrap">
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="w-4 h-4" />
+                                                            {new Date(activity.startTime).toLocaleString('zh-CN')}
+                                                        </span>
+                                                        {activity.sessionName && (
                                                             <span className="flex items-center gap-1">
-                                                                <Calendar className="w-4 h-4" />
-                                                                {activity.date} {activity.time}
+                                                                <Clock className="w-4 h-4" />
+                                                                {activity.sessionName}
                                                             </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <MapPin className="w-4 h-4" />
-                                                                {activity.location}
-                                                            </span>
-                                                        </div>
+                                                        )}
                                                     </div>
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${activity.status === 'registered' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
-                                                        activity.status === 'ongoing' ? 'bg-gradient-to-r from-[#F0A32F] to-[#e67e22] text-white' :
-                                                            'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
-                                                        }`}>
-                                                        {activity.status === 'registered' ? '已报名' :
-                                                            activity.status === 'ongoing' ? '进行中' : '已完成'}
-                                                    </span>
                                                 </div>
-                                                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{activity.description}</p>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                                        {activity.registrationDate && <span>报名时间: {activity.registrationDate}</span>}
-                                                        {activity.completionDate && <span>完成时间: {activity.completionDate}</span>}
-                                                        {activity.points && <span className="text-[#F0A32F]">获得积分: +{activity.points}</span>}
-                                                    </div>
-                                                    <div className="flex gap-2">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                    activity.status === 'PENDING' ? 'bg-gradient-to-r from-[#F0A32F] to-[#e67e22] text-white' :
+                                                    activity.status === 'APPROVED' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
+                                                    activity.status === 'REJECTED' ? 'bg-gradient-to-r from-[#EE4035] to-[#d63031] text-white' :
+                                                    'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
+                                                }`}>
+                                                    {activity.status === 'PENDING' ? '待审核' :
+                                                     activity.status === 'APPROVED' ? '已通过' :
+                                                     activity.status === 'REJECTED' ? '已拒绝' : '已取消'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                    <span>报名时间: {new Date(activity.signedUpAt).toLocaleDateString('zh-CN')}</span>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => window.location.href = `/${locale}/activities/${activity.activityId}`}
+                                                        className="px-4 py-2 text-[#30499B] dark:text-[#56B949] border border-[#30499B] dark:border-[#56B949] rounded-lg hover:bg-[#30499B] dark:hover:bg-[#56B949] hover:text-white transition-colors text-sm"
+                                                    >
+                                                        查看详情
+                                                    </button>
+                                                    {activity.status === 'PENDING' && (
                                                         <button
-                                                            onClick={() => viewActivityDetails()}
-                                                            className="px-4 py-2 text-[#30499B] dark:text-[#56B949] border border-[#30499B] dark:border-[#56B949] rounded-lg hover:bg-[#30499B] dark:hover:bg-[#56B949] hover:text-white transition-colors text-sm"
+                                                            onClick={() => alert('取消报名功能开发中')}
+                                                            className="px-4 py-2 text-[#EE4035] border border-[#EE4035] rounded-lg hover:bg-[#EE4035] hover:text-white transition-colors text-sm"
                                                         >
-                                                            查看详情
+                                                            取消报名
                                                         </button>
-                                                        {activity.status === 'registered' && (
-                                                            <button
-                                                                onClick={() => cancelRegistration()}
-                                                                className="px-4 py-2 text-[#EE4035] border border-[#EE4035] rounded-lg hover:bg-[#EE4035] hover:text-white transition-colors text-sm"
-                                                            >
-                                                                取消报名
-                                                            </button>
-                                                        )}
-                                                        {activity.status === 'completed' && (
-                                                            <button
-                                                                onClick={() => rateActivity()}
-                                                                className="px-4 py-2 bg-[#F0A32F] text-white rounded-lg hover:bg-[#e67e22] transition-colors text-sm"
-                                                            >
-                                                                评价活动
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
 
                             {/* Empty State */}
-                            {currentActivities.length === 0 && (
+                            {filteredActivities.length === 0 && (
                                 <div className="text-center py-12">
                                     <CalendarPlus className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
@@ -405,7 +430,7 @@ export default function MyActivitiesPage() {
                             )}
 
                             {/* Pagination */}
-                            {currentActivities.length > 0 && (
+                            {filteredActivities.length > 0 && (
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}

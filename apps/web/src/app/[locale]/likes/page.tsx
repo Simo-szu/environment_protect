@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
+import { userApi } from '@/lib/api';
+import type { ReactionItem } from '@/lib/api/user';
 import {
     Heart,
     ThumbsUp,
@@ -23,8 +25,39 @@ export default function LikesPage() {
     const { user, isLoggedIn, loading } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
+    const [likes, setLikes] = useState<ReactionItem[]>([]);
+    const [loadingLikes, setLoadingLikes] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6; // 每页显示6个项目
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 6;
+
+    // 加载点赞
+    useEffect(() => {
+        const loadLikes = async () => {
+            if (!isLoggedIn) return;
+
+            try {
+                setLoadingLikes(true);
+                const targetType = activeTab === 'articles' ? 'CONTENT' : activeTab === 'activities' ? 'ACTIVITY' : 'COMMENT';
+                const result = await userApi.getMyReactions({
+                    reactionType: 'LIKE',
+                    targetType: targetType as 'CONTENT' | 'ACTIVITY',
+                    page: currentPage,
+                    size: itemsPerPage
+                });
+                setLikes(result.items);
+                setTotalPages(Math.ceil(result.total / itemsPerPage));
+            } catch (error) {
+                console.error('Failed to load likes:', error);
+            } finally {
+                setLoadingLikes(false);
+            }
+        };
+
+        if (!loading && isLoggedIn) {
+            loadLikes();
+        }
+    }, [isLoggedIn, loading, activeTab, currentPage, itemsPerPage]);
 
     useEffect(() => {
         if (!loading && !isLoggedIn) {
@@ -32,7 +65,7 @@ export default function LikesPage() {
         }
     }, [loading, isLoggedIn, router]);
 
-    if (loading) {
+    if (loading || loadingLikes) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -51,48 +84,6 @@ export default function LikesPage() {
         return null;
     }
 
-    // 模拟数据 - 实际项目中这些数据会从API获取
-    const mockArticles = Array.from({ length: 32 }, (_, i) => ({
-        id: i + 1,
-        title: `点赞文章 ${i + 1}`,
-        description: '这是一篇很棒的环保文章，获得了很多点赞...',
-        type: i % 3 === 0 ? 'water' : i % 3 === 1 ? 'recycle' : 'tree',
-        likes: Math.floor(Math.random() * 20) + 5,
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
-    }));
-
-    const mockActivities = Array.from({ length: 24 }, (_, i) => ({
-        id: i + 1,
-        title: `点赞活动 ${i + 1}`,
-        description: '这是一个很受欢迎的环保活动，获得了很多支持...',
-        location: '市中心公园',
-        views: Math.floor(Math.random() * 200) + 50,
-        likes: Math.floor(Math.random() * 50) + 10,
-        type: i % 2 === 0 ? 'tree' : 'recycle',
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
-    }));
-
-    const mockComments = Array.from({ length: 15 }, (_, i) => ({
-        id: i + 1,
-        author: `用户${i + 1}`,
-        content: '这是一条很有见地的评论，值得点赞支持...',
-        date: `${Math.floor(Math.random() * 30) + 1}天前点赞`
-    }));
-
-    const getCurrentData = () => {
-        switch (activeTab) {
-            case 'articles': return mockArticles;
-            case 'activities': return mockActivities;
-            case 'comments': return mockComments;
-            default: return mockArticles;
-        }
-    };
-
-    const currentData = getCurrentData();
-    const totalPages = Math.ceil(currentData.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentItems = currentData.slice(startIndex, startIndex + itemsPerPage);
-
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -100,8 +91,12 @@ export default function LikesPage() {
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
-        setCurrentPage(1); // 切换标签时重置到第一页
+        setCurrentPage(1);
     };
+
+    const articlesCount = likes.filter(l => l.targetType === 'CONTENT').length;
+    const activitiesCount = likes.filter(l => l.targetType === 'ACTIVITY').length;
+    const commentsCount = 0; // 评论点赞暂不支持
 
     return (
         <Layout>
@@ -141,7 +136,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <Heart className="w-4 h-4" />
-                        科普文章 ({mockArticles.length})
+                        科普文章 ({articlesCount})
                     </button>
                     <button
                         onClick={() => handleTabChange('activities')}
@@ -151,17 +146,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <ThumbsUp className="w-4 h-4" />
-                        环保活动 ({mockActivities.length})
-                    </button>
-                    <button
-                        onClick={() => handleTabChange('comments')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'comments'
-                            ? 'bg-[#EE4035] text-white'
-                            : 'text-slate-600 hover:text-[#EE4035]'
-                            }`}
-                    >
-                        <MessageCircle className="w-4 h-4" />
-                        评论互动 ({mockComments.length})
+                        环保活动 ({activitiesCount})
                     </button>
                 </div>
 
@@ -170,66 +155,66 @@ export default function LikesPage() {
                     {activeTab === 'articles' && (
                         <div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {(currentItems as any[]).map((article) => (
-                                    <div key={article.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                                        <div className="aspect-video bg-gradient-to-br from-[#56B949]/10 to-[#30499B]/10 rounded-lg mb-4 flex items-center justify-center">
-                                            {article.type === 'water' && <Droplets className="w-12 h-12 text-[#56B949]" />}
-                                            {article.type === 'recycle' && <Recycle className="w-12 h-12 text-[#F0A32F]" />}
-                                            {article.type === 'tree' && <TreePine className="w-12 h-12 text-[#30499B]" />}
+                                {likes.filter(l => l.targetType === 'CONTENT').map((item) => (
+                                    <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                        <div className="aspect-video bg-gradient-to-br from-[#56B949]/10 to-[#30499B]/10 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                                            {item.targetCoverUrl ? (
+                                                <img src={item.targetCoverUrl} alt={item.targetTitle} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Droplets className="w-12 h-12 text-[#56B949]" />
+                                            )}
                                         </div>
-                                        <h3 className="font-semibold text-slate-800 mb-2">{article.title}</h3>
-                                        <p className="text-sm text-slate-500 mb-3">{article.description}</p>
+                                        <h3 className="font-semibold text-slate-800 mb-2">{item.targetTitle || '科普文章'}</h3>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1 text-[#EE4035]">
                                                 <Heart className="w-4 h-4 fill-current" />
-                                                <span className="text-sm font-medium">{article.likes}</span>
+                                                <span className="text-sm font-medium">已点赞</span>
                                             </div>
-                                            <span className="text-xs text-slate-400">{article.date}</span>
+                                            <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* 分页组件 */}
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={handlePageChange}
-                            />
+                            {likes.filter(l => l.targetType === 'CONTENT').length === 0 && (
+                                <div className="text-center py-12">
+                                    <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-500">暂无点赞的文章</p>
+                                </div>
+                            )}
+
+                            {likes.filter(l => l.targetType === 'CONTENT').length > 0 && (
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            )}
                         </div>
                     )}
 
                     {activeTab === 'activities' && (
                         <div>
                             <div className="space-y-4">
-                                {(currentItems as any[]).map((activity) => (
-                                    <div key={activity.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                {likes.filter(l => l.targetType === 'ACTIVITY').map((item) => (
+                                    <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                         <div className="flex items-start gap-4">
-                                            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0">
-                                                {activity.type === 'tree' && <TreePine className="w-8 h-8 text-[#56B949]" />}
-                                                {activity.type === 'recycle' && <Recycle className="w-8 h-8 text-[#F0A32F]" />}
+                                            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                                {item.targetCoverUrl ? (
+                                                    <img src={item.targetCoverUrl} alt={item.targetTitle} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <TreePine className="w-8 h-8 text-[#56B949]" />
+                                                )}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#56B949]/10 text-[#56B949] border border-[#56B949]/20">
-                                                        {activity.type === 'tree' ? '植树活动' : '环保DIY'}
-                                                    </span>
-                                                    <span className="text-xs text-slate-400">{activity.date}</span>
+                                                    <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
                                                 </div>
-                                                <h3 className="font-semibold text-slate-800 mb-2">{activity.title}</h3>
-                                                <p className="text-sm text-slate-500 mb-3">{activity.description}</p>
+                                                <h3 className="font-semibold text-slate-800 mb-2">{item.targetTitle || '环保活动'}</h3>
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                                        <span className="flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3" /> {activity.location}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Eye className="w-3 h-3" /> {activity.views}
-                                                        </span>
-                                                    </div>
                                                     <div className="flex items-center gap-1 text-[#EE4035]">
                                                         <ThumbsUp className="w-4 h-4 fill-current" />
-                                                        <span className="text-sm font-medium">{activity.likes}</span>
+                                                        <span className="text-sm font-medium">已点赞</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -238,47 +223,20 @@ export default function LikesPage() {
                                 ))}
                             </div>
 
-                            {/* 分页组件 */}
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    )}
+                            {likes.filter(l => l.targetType === 'ACTIVITY').length === 0 && (
+                                <div className="text-center py-12">
+                                    <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-500">暂无点赞的活动</p>
+                                </div>
+                            )}
 
-                    {activeTab === 'comments' && (
-                        <div>
-                            <div className="space-y-4">
-                                {(currentItems as any[]).map((comment) => (
-                                    <div key={comment.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold text-sm">
-                                                {comment.author.charAt(comment.author.length - 1)}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="font-medium text-slate-800">{comment.author}</span>
-                                                    <span className="text-xs text-slate-400">•</span>
-                                                    <span className="text-xs text-slate-400">{comment.date}</span>
-                                                </div>
-                                                <p className="text-sm text-slate-600 mb-2">{comment.content}</p>
-                                                <div className="flex items-center gap-1 text-[#EE4035]">
-                                                    <Heart className="w-4 h-4 fill-current" />
-                                                    <span className="text-sm font-medium">你点赞了这条评论</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* 分页组件 */}
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={handlePageChange}
-                            />
+                            {likes.filter(l => l.targetType === 'ACTIVITY').length > 0 && (
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            )}
                         </div>
                     )}
                 </div>

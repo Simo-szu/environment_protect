@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     CalendarHeart,
@@ -19,34 +19,41 @@ import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
+import { activityApi } from '@/lib/api';
+import type { ActivityItem } from '@/lib/api/activity';
 
 export default function ActivitiesPage() {
     const { user, isLoggedIn } = useAuth();
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4; // 每页显示4个活动
 
-    // 模拟活动数据
-    const mockActivities = Array.from({ length: 28 }, (_, i) => ({
-        id: `activity-${String(i + 1).padStart(3, '0')}`,
-        title: i === 0 ? '城市绿洲：周末社区花园种植计划' :
-            i === 1 ? '旧物新生：创意环保DIY工作坊' :
-                `环保活动 ${i + 1}`,
-        description: i === 0 ? '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间...' :
-            i === 1 ? '不要扔掉你的旧T恤和玻璃瓶！在这个工作坊中，艺术家将教你如何将废弃物品变废为宝...' :
-                `这是第${i + 1}个环保活动的详细描述，包含了丰富的活动内容和参与方式...`,
-        date: i === 0 ? '5月20日' : i === 1 ? '5月22日' : `${Math.floor(Math.random() * 30) + 1}月${Math.floor(Math.random() * 28) + 1}日`,
-        status: i < 10 ? '正在报名' : i < 20 ? '即将开始' : '报名结束',
-        type: i % 4 === 0 ? 'tree' : i % 4 === 1 ? 'recycle' : i % 4 === 2 ? 'water' : 'sun',
-        stars: Math.floor(Math.random() * 50) + 10,
-        likes: Math.floor(Math.random() * 200) + 50,
-        buttonText: i < 15 ? '一键报名' : '了解详情',
-        buttonStyle: i < 15 ? 'primary' : 'secondary'
-    }));
+    // 状态管理
+    const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [totalPages, setTotalPages] = useState(1);
 
-    // 计算分页
-    const totalPages = Math.ceil(mockActivities.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentActivities = mockActivities.slice(startIndex, startIndex + itemsPerPage);
+    // 加载活动数据
+    useEffect(() => {
+        const loadActivities = async () => {
+            try {
+                setLoading(true);
+                const result = await activityApi.getActivities({
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sort: 'hot'
+                });
+                setActivities(result.items);
+                setTotalPages(Math.ceil(result.total / itemsPerPage));
+            } catch (error) {
+                console.error('Failed to load activities:', error);
+                // 失败时使用空数组
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadActivities();
+    }, [currentPage]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -218,94 +225,110 @@ export default function ActivitiesPage() {
 
                         {/* Activity List Container */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 min-h-[600px] flex flex-col gap-6">
-                            {currentActivities.map((activity) => {
-                                const getIcon = () => {
-                                    switch (activity.type) {
-                                        case 'tree': return <Trees className="w-8 h-8" />;
-                                        case 'recycle': return <Recycle className="w-8 h-8" />;
-                                        case 'water': return <Waves className="w-8 h-8" />;
-                                        case 'sun': return <Sun className="w-8 h-8" />;
-                                        default: return <Trees className="w-8 h-8" />;
-                                    }
-                                };
-
-                                const getGradient = () => {
-                                    switch (activity.type) {
-                                        case 'tree': return 'from-[#56B949]/20 to-[#30499B]/20';
-                                        case 'recycle': return 'from-[#F0A32F]/20 to-[#EE4035]/20';
-                                        case 'water': return 'from-[#30499B]/20 to-[#56B949]/20';
-                                        case 'sun': return 'from-[#F0A32F]/20 to-[#56B949]/20';
-                                        default: return 'from-[#56B949]/20 to-[#30499B]/20';
-                                    }
-                                };
-
-                                const getStatusColor = () => {
-                                    switch (activity.status) {
-                                        case '正在报名': return 'text-[#30499B] bg-[#30499B]/10';
-                                        case '即将开始': return 'text-[#F0A32F] bg-[#F0A32F]/10';
-                                        case '报名结束': return 'text-slate-500 bg-slate-100';
-                                        default: return 'text-[#30499B] bg-[#30499B]/10';
-                                    }
-                                };
-
-                                const getHoverColor = () => {
-                                    switch (activity.type) {
-                                        case 'tree': return 'group-hover:text-[#56B949] hover:shadow-[#56B949]/5 hover:border-[#56B949]/20';
-                                        case 'recycle': return 'group-hover:text-[#F0A32F] hover:shadow-[#F0A32F]/5 hover:border-[#F0A32F]/20';
-                                        case 'water': return 'group-hover:text-[#30499B] hover:shadow-[#30499B]/5 hover:border-[#30499B]/20';
-                                        case 'sun': return 'group-hover:text-[#F0A32F] hover:shadow-[#F0A32F]/5 hover:border-[#F0A32F]/20';
-                                        default: return 'group-hover:text-[#56B949] hover:shadow-[#56B949]/5 hover:border-[#56B949]/20';
-                                    }
-                                };
-
-                                return (
-                                    <div key={activity.id} className={`group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg border border-transparent ${getHoverColor()}`}>
-                                        <div className={`w-full sm:w-48 h-32 rounded-lg bg-gradient-to-br ${getGradient()} overflow-hidden relative flex-shrink-0`}>
-                                            <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${getStatusColor()}`}>
-                                                {activity.status}
-                                            </div>
-                                            <div className="w-full h-full flex items-center justify-center text-current opacity-40">
-                                                {getIcon()}
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 flex flex-col justify-between">
-                                            <div>
-                                                <h3
-                                                    onClick={() => viewActivityDetails(activity.id)}
-                                                    className="text-lg font-serif font-semibold text-[#30499B] transition-colors tracking-tight mb-2 cursor-pointer hover:underline"
-                                                >
-                                                    {activity.title}
-                                                </h3>
-                                                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{activity.description}</p>
-                                            </div>
-                                            <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
-                                                <div className="flex items-center gap-4 text-xs text-slate-400">
-                                                    <span className="flex items-center gap-1">
-                                                        <Calendar className="w-3 h-3" /> {activity.date}
-                                                    </span>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
-                                                            <Star className="w-3 h-3" /> {activity.stars}
-                                                        </span>
-                                                        <span className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
-                                                            <ThumbsUp className="w-3 h-3" /> {activity.likes}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => activity.buttonStyle === 'primary' ? registerActivity(activity.id) : viewActivityDetails(activity.id)}
-                                                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${activity.buttonStyle === 'primary'
-                                                        ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-0.5'
-                                                        : 'bg-white border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
-                                                        }`}
-                                                >
-                                                    {activity.buttonText}
-                                                </button>
-                                            </div>
+                            {loading ? (
+                                // 加载骨架屏
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="flex flex-col sm:flex-row gap-6 p-4 rounded-xl animate-pulse">
+                                        <div className="w-full sm:w-48 h-32 rounded-lg bg-slate-200"></div>
+                                        <div className="flex-1 space-y-3">
+                                            <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                                            <div className="h-4 bg-slate-200 rounded"></div>
+                                            <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                                            <div className="h-8 bg-slate-200 rounded w-24 mt-4"></div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                ))
+                            ) : activities.length > 0 ? (
+                                // 真实数据
+                                activities.map((activity) => {
+                                    // 根据活动类型确定图标和颜色
+                                    const getIcon = () => <Trees className="w-8 h-8" />;
+                                    const getGradient = () => 'from-[#56B949]/20 to-[#30499B]/20';
+                                    
+                                    // 根据报名策略确定状态
+                                    const getStatusText = () => {
+                                        if (activity.signupPolicy === 'CLOSED') return '报名结束';
+                                        if (activity.signupPolicy === 'APPROVAL_REQUIRED') return '需审核';
+                                        if (activity.status === 'COMPLETED') return '已结束';
+                                        if (activity.status === 'ONGOING') return '进行中';
+                                        return '正在报名';
+                                    };
+
+                                    const getStatusColor = () => {
+                                        if (activity.signupPolicy === 'CLOSED' || activity.status === 'COMPLETED') {
+                                            return 'text-slate-500 bg-slate-100';
+                                        }
+                                        if (activity.status === 'ONGOING') return 'text-[#56B949] bg-[#56B949]/10';
+                                        return 'text-[#30499B] bg-[#30499B]/10';
+                                    };
+
+                                    const canSignup = activity.signupPolicy !== 'CLOSED' && activity.status !== 'COMPLETED';
+
+                                    return (
+                                        <div key={activity.id} className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg border border-transparent hover:shadow-[#56B949]/5 hover:border-[#56B949]/20">
+                                            <div className={`w-full sm:w-48 h-32 rounded-lg bg-gradient-to-br ${getGradient()} overflow-hidden relative flex-shrink-0`}>
+                                                {activity.coverImageUrl ? (
+                                                    <img src={activity.coverImageUrl} alt={activity.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <>
+                                                        <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${getStatusColor()}`}>
+                                                            {getStatusText()}
+                                                        </div>
+                                                        <div className="w-full h-full flex items-center justify-center text-current opacity-40">
+                                                            {getIcon()}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <h3
+                                                        onClick={() => viewActivityDetails(activity.id)}
+                                                        className="text-lg font-serif font-semibold text-[#30499B] transition-colors tracking-tight mb-2 cursor-pointer hover:underline"
+                                                    >
+                                                        {activity.title}
+                                                    </h3>
+                                                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                        {activity.summary || '点击查看详情...'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
+                                                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="w-3 h-3" /> {new Date(activity.startTime).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
+                                                        </span>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                                <Star className="w-3 h-3" /> {activity.viewCount}
+                                                            </span>
+                                                            <span className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                                <ThumbsUp className="w-3 h-3" /> {activity.likeCount}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => canSignup ? registerActivity(activity.id) : viewActivityDetails(activity.id)}
+                                                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                                            canSignup
+                                                                ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-0.5'
+                                                                : 'bg-white border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
+                                                        }`}
+                                                    >
+                                                        {canSignup ? '一键报名' : '了解详情'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                // 空状态
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <CalendarHeart className="w-16 h-16 text-slate-300 mb-4" />
+                                    <p className="text-slate-500 mb-2">暂无活动</p>
+                                    <p className="text-xs text-slate-400">请稍后再来查看</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* 分页组件 */}

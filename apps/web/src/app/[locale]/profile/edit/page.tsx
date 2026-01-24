@@ -33,9 +33,9 @@ export default function ProfileEditPage() {
 
         if (user) {
             setFormData({
-                nickname: user.nickname || user.username || '',
+                nickname: user.nickname || '',
                 gender: user.gender || 'female',
-                hometown: user.hometown || '广东省',
+                hometown: user.location || '广东省',
                 bio: user.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'
             });
         }

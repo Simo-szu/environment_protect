@@ -44,7 +44,7 @@ public class InteractionController {
     }
     
     @Operation(summary = "取消反应", description = "取消点赞/收藏/踩（幂等删除）")
-    @DeleteMapping("/reactions")
+    @PostMapping("/reactions/delete")
     public BaseResponse<Void> removeReaction(@Valid @RequestBody UnifiedRequest<ToggleReactionRequest> request) {
         reactionFacade.deleteReaction(request.getData());
         return BaseResponse.success();

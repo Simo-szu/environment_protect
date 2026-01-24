@@ -43,4 +43,9 @@ public class SignupEventPayload {
      * 操作类型：CREATED, APPROVED, REJECTED, CANCELED
      */
     private String action;
+    
+    /**
+     * 活动主办方 ID（用于通知）
+     */
+    private UUID hostUserId;
 }

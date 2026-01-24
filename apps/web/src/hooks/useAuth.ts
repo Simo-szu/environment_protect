@@ -1,59 +1,56 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  username: string;
-  nickname?: string;
-  email?: string;
-  phone?: string;
-  avatar?: string;
-  points?: number;
-  level?: number;
-  contact?: string;
-  gender?: string;
-  bio?: string;
-  hometown?: string;
-}
+import { authStore } from '@/lib/auth-store';
+import { userApi } from '@/lib/api';
+import type { UserProfile } from '@/lib/api/user';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 检查本地存储中的用户信息
-    const userData = localStorage.getItem('currentUser');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        localStorage.removeItem('currentUser');
-      }
+    // 检查是否已登录
+    if (authStore.isAuthenticated()) {
+      // 获取用户资料
+      userApi
+        .getMyProfile()
+        .then((profile) => {
+          setUser(profile);
+        })
+        .catch((error) => {
+          console.error('Failed to load user profile:', error);
+          // 如果获取失败，清除认证状态
+          authStore.clear();
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('currentUser', JSON.stringify(userData));
+  const login = (profile: UserProfile) => {
+    setUser(profile);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
-  };
-
-  const updateUser = (updatedData: Partial<User>) => {
-    if (user) {
-      const newUser = { ...user, ...updatedData };
-      setUser(newUser);
-      localStorage.setItem('currentUser', JSON.stringify(newUser));
+    authStore.clear();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
     }
   };
 
-  const isLoggedIn = !!user;
+  const updateUser = (updatedData: Partial<UserProfile>) => {
+    if (user) {
+      const newUser = { ...user, ...updatedData };
+      setUser(newUser);
+    }
+  };
+
+  const isLoggedIn = !!user && authStore.isAuthenticated();
 
   return {
     user,
@@ -69,8 +66,7 @@ export function useAuth() {
 export function checkLoginAndRedirect(redirectTo: string = '/login') {
   if (typeof window === 'undefined') return false;
 
-  const userData = localStorage.getItem('currentUser');
-  if (!userData) {
+  if (!authStore.isAuthenticated()) {
     window.location.href = redirectTo;
     return false;
   }

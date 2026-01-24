@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
 import QuickActionCard from '@/components/ui/QuickActionCard';
+import { userApi } from '@/lib/api';
+import type { UserProfile } from '@/lib/api/user';
 import {
     User,
     Edit,
@@ -28,6 +30,29 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift 
 export default function ProfilePage() {
     const { user, isLoggedIn, loading, logout } = useAuth();
     const router = useRouter();
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [loadingProfile, setLoadingProfile] = useState(true);
+
+    // 加载用户资料
+    useEffect(() => {
+        const loadProfile = async () => {
+            if (!isLoggedIn) return;
+            
+            try {
+                setLoadingProfile(true);
+                const profileData = await userApi.getMyProfile();
+                setProfile(profileData);
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            } finally {
+                setLoadingProfile(false);
+            }
+        };
+
+        if (!loading && isLoggedIn) {
+            loadProfile();
+        }
+    }, [isLoggedIn, loading]);
 
     // ✅ 只在 loading 完成后再重定向
     useEffect(() => {
@@ -42,7 +67,7 @@ export default function ProfilePage() {
     };
 
     // ✅ loading 阶段只显示 loading
-    if (loading) {
+    if (loading || loadingProfile) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -99,8 +124,12 @@ export default function ProfilePage() {
                     <div className="flex flex-col md:flex-row items-start gap-6">
                         {/* Avatar */}
                         <div className="relative">
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-3xl shadow-2xl">
-                                {user?.nickname ? user.nickname.charAt(0).toUpperCase() : user?.username?.charAt(0).toUpperCase()}
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-3xl shadow-2xl overflow-hidden">
+                                {profile?.avatarUrl ? (
+                                    <img src={profile.avatarUrl} alt={profile.nickname} className="w-full h-full object-cover" />
+                                ) : (
+                                    profile?.nickname?.charAt(0).toUpperCase() || user?.nickname?.charAt(0).toUpperCase() || 'U'
+                                )}
                             </div>
                         </div>
 
@@ -109,17 +138,23 @@ export default function ProfilePage() {
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                                 <div>
                                     <h2 className="text-2xl font-semibold text-[#30499B] mb-2">
-                                        {user?.nickname || user?.username}
+                                        {profile?.nickname || user?.nickname || '用户'}
                                     </h2>
                                     <div className="flex items-center gap-4 text-slate-600">
-                                        <div className="flex items-center gap-1">
-                                            <User className="w-4 h-4" />
-                                            <span>{user?.gender === 'male' ? '男' : user?.gender === 'female' ? '女' : user?.gender === 'other' ? '其他' : '女'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            <span>{user?.hometown || '广东省'}</span>
-                                        </div>
+                                        {profile?.gender && (
+                                            <div className="flex items-center gap-1">
+                                                <User className="w-4 h-4" />
+                                                <span>
+                                                    {profile.gender === 'MALE' ? '男' : profile.gender === 'FEMALE' ? '女' : '其他'}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {profile?.location && (
+                                            <div className="flex items-center gap-1">
+                                                <MapPin className="w-4 h-4" />
+                                                <span>{profile.location}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -136,26 +171,32 @@ export default function ProfilePage() {
                             {/* User Info Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* 性别 */}
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                    <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center">
-                                        <User className="w-4 h-4" />
+                                {profile?.gender && (
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                        <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center">
+                                            <User className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">性别</p>
+                                            <p className="font-medium text-slate-800">
+                                                {profile.gender === 'MALE' ? '男' : profile.gender === 'FEMALE' ? '女' : '其他'}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500">性别</p>
-                                        <p className="font-medium text-slate-800">女</p>
-                                    </div>
-                                </div>
+                                )}
 
-                                {/* 家乡 */}
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                    <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-                                        <MapPin className="w-4 h-4" />
+                                {/* 位置 */}
+                                {profile?.location && (
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                        <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">位置</p>
+                                            <p className="font-medium text-slate-800">{profile.location}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500">家乡</p>
-                                        <p className="font-medium text-slate-800">广东省</p>
-                                    </div>
-                                </div>
+                                )}
 
                                 {/* 积分 */}
                                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
@@ -164,7 +205,7 @@ export default function ProfilePage() {
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500">环保积分</p>
-                                        <p className="font-medium text-slate-800">{user?.points || 0} 分</p>
+                                        <p className="font-medium text-slate-800">0 分</p>
                                     </div>
                                 </div>
 
@@ -176,22 +217,24 @@ export default function ProfilePage() {
                                     <div>
                                         <p className="text-xs text-slate-500">环保等级</p>
                                         <p className="font-medium text-slate-800">
-                                            {user?.level ? `Lv.${user.level}` : 'Lv.1'} 环保达人
+                                            Lv.1 环保达人
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* 个人简介 */}
-                            <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <FileText className="w-4 h-4 text-[#56B949]" />
-                                    <span className="text-sm font-medium text-[#30499B]">个人简介</span>
+                            {profile?.bio && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-4 h-4 text-[#56B949]" />
+                                        <span className="text-sm font-medium text-[#30499B]">个人简介</span>
+                                    </div>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {profile.bio}
+                                    </p>
                                 </div>
-                                <p className="text-sm text-slate-600 leading-relaxed">
-                                    {user?.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'}
-                                </p>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>

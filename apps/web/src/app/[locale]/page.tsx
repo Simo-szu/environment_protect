@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Leaf, BarChart3, Trash2, ArrowRight, Trees, Waves, PlayCircle, Coins, Footprints, Trash, Recycle } from 'lucide-react';
@@ -9,6 +9,9 @@ import { useTranslations } from 'next-intl';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
+import { homeApi, contentApi, activityApi } from '@/lib/api';
+import type { ContentItem } from '@/lib/api/content';
+import type { ActivityItem } from '@/lib/api/activity';
 
 interface CardData {
     id: string;
@@ -24,6 +27,36 @@ export default function HomePage() {
     const [activeIndex, setActiveIndex] = useState(1);
     const mounted = useClientMounted();
     const t = useTranslations('home');
+
+    // 状态管理
+    const [contents, setContents] = useState<ContentItem[]>([]);
+    const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // 加载首页数据
+    useEffect(() => {
+        const loadHomeData = async () => {
+            try {
+                setLoading(true);
+                
+                // 并行加载科普内容和活动
+                const [contentsRes, activitiesRes] = await Promise.all([
+                    contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
+                    activityApi.getActivities({ page: 1, size: 3, sort: 'hot' })
+                ]);
+
+                setContents(contentsRes.items);
+                setActivities(activitiesRes.items);
+            } catch (error) {
+                console.error('Failed to load home data:', error);
+                // 失败时使用空数组，页面仍可正常显示
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadHomeData();
+    }, []);
 
     const cardsData: CardData[] = [
         {
@@ -232,71 +265,120 @@ export default function HomePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Item 1 */}
-                        <AnimatedSection delay={0.2}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
-                                                <Leaf className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">GUIDE</span>
-                                        </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">2024 可持续生活指南</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。</p>
-                                        <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
-                                        <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            阅读报告 <ArrowRight className="w-3 h-3" />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </Link>
-                        </AnimatedSection>
+                        {loading ? (
+                            // 加载骨架屏
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 animate-pulse">
+                                    <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-lg mb-4"></div>
+                                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
+                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
+                                </div>
+                            ))
+                        ) : contents.length > 0 ? (
+                            // 真实数据
+                            contents.map((content, index) => (
+                                <AnimatedSection key={content.id} delay={0.2 + index * 0.1}>
+                                    <Link href={`/zh/science/${content.id}`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                        <Leaf className="w-5 h-5" />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">
+                                                        {content.type}
+                                                    </span>
+                                                </div>
+                                                <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2 line-clamp-2">
+                                                    {content.title}
+                                                </h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
+                                                    {content.summary || '点击查看详情'}
+                                                </p>
+                                                <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
+                                                        阅读详情 <ArrowRight className="w-3 h-3" />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                        <span>{content.viewCount} 阅读</span>
+                                                        <span>·</span>
+                                                        <span>{content.likeCount} 点赞</span>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </Link>
+                                </AnimatedSection>
+                            ))
+                        ) : (
+                            // 降级显示静态内容
+                            <>
+                                <AnimatedSection delay={0.2}>
+                                    <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                        <Leaf className="w-5 h-5" />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">GUIDE</span>
+                                                </div>
+                                                <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">2024 可持续生活指南</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。</p>
+                                                <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
+                                                    阅读报告 <ArrowRight className="w-3 h-3" />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </Link>
+                                </AnimatedSection>
 
-                        {/* Item 2 */}
-                        <AnimatedSection delay={0.3}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
-                                                <BarChart3 className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">DATA</span>
-                                        </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">全球碳排放最新数据</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">实时更新的全球环境监测数据，可视化图表分析。</p>
-                                        <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
-                                        <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            查看详情 <ArrowRight className="w-3 h-3" />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </Link>
-                        </AnimatedSection>
+                                <AnimatedSection delay={0.3}>
+                                    <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                        <BarChart3 className="w-5 h-5" />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">DATA</span>
+                                                </div>
+                                                <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">全球碳排放最新数据</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">实时更新的全球环境监测数据，可视化图表分析。</p>
+                                                <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
+                                                    查看详情 <ArrowRight className="w-3 h-3" />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </Link>
+                                </AnimatedSection>
 
-                        {/* Item 3 */}
-                        <AnimatedSection delay={0.4}>
-                            <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
-                                                <Trash2 className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">TIPS</span>
-                                        </div>
-                                        <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">高效废弃物回收术</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">如何正确分类？哪些可以变废为宝？专家视频讲解。</p>
-                                        <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
-                                        <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
-                                            立即学习 <ArrowRight className="w-3 h-3" />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </Link>
-                        </AnimatedSection>
+                                <AnimatedSection delay={0.4}>
+                                    <Link href="/zh/science" className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">TIPS</span>
+                                                </div>
+                                                <h3 className="text-lg text-[#30499B] dark:text-[#56B949] font-medium leading-snug mb-2">高效废弃物回收术</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">如何正确分类？哪些可以变废为宝？专家视频讲解。</p>
+                                                <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
+                                                    立即学习 <ArrowRight className="w-3 h-3" />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </Link>
+                                </AnimatedSection>
+                            </>
+                        )}
                     </div>
                 </AnimatedSection>
 
@@ -316,67 +398,121 @@ export default function HomePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Activity 1 */}
-                        <AnimatedSection delay={0.6}>
-                            <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="absolute top-3 left-3 z-10 bg-[#EE4035] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">HOT</div>
-                                        <div className="h-32 bg-[#F0A32F]/10 dark:bg-[#F0A32F]/20 flex items-center justify-center relative overflow-hidden">
-                                            <div className="absolute -right-4 -top-4 w-20 h-20 bg-[#EE4035]/10 rounded-full"></div>
-                                            <Trees className="w-12 h-12 text-[#F0A32F]/60 transform group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                        <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">城市植树节</h3>
-                                            <p className="text-xs text-slate-400 mb-4">2024.05.12 · 城市公园</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#EE4035] text-[#EE4035] text-sm font-medium hover:bg-[#EE4035] hover:text-white transition-all active:scale-95">立即报名</button>
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </div>
-                        </AnimatedSection>
+                        {loading ? (
+                            // 加载骨架屏
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="rounded-xl overflow-hidden shadow-md animate-pulse">
+                                    <div className="h-32 bg-slate-200 dark:bg-slate-700"></div>
+                                    <div className="bg-white dark:bg-slate-800 p-5">
+                                        <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-4 w-32"></div>
+                                        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : activities.length > 0 ? (
+                            // 真实数据
+                            activities.map((activity, index) => (
+                                <AnimatedSection key={activity.id} delay={0.6 + index * 0.1}>
+                                    <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                {index === 0 && (
+                                                    <div className="absolute top-3 left-3 z-10 bg-[#EE4035] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">HOT</div>
+                                                )}
+                                                <div className="h-32 bg-[#F0A32F]/10 dark:bg-[#F0A32F]/20 flex items-center justify-center relative overflow-hidden">
+                                                    {activity.coverImageUrl ? (
+                                                        <img src={activity.coverImageUrl} alt={activity.title} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <>
+                                                            <div className="absolute -right-4 -top-4 w-20 h-20 bg-[#EE4035]/10 rounded-full"></div>
+                                                            <Trees className="w-12 h-12 text-[#F0A32F]/60 transform group-hover:scale-110 transition-transform duration-500" />
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
+                                                    <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1 line-clamp-1">{activity.title}</h3>
+                                                    <p className="text-xs text-slate-400 mb-4">
+                                                        {new Date(activity.startTime).toLocaleDateString('zh-CN')} · {activity.location || '待定'}
+                                                    </p>
+                                                    <Link href={`/zh/activities/${activity.id}`}>
+                                                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${
+                                                            activity.signupPolicy === 'OPEN'
+                                                                ? 'bg-[#EE4035] text-white hover:bg-[#d63730] shadow-lg shadow-[#EE4035]/20'
+                                                                : 'bg-white dark:bg-slate-700 border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
+                                                        }`}>
+                                                            {activity.signupPolicy === 'OPEN' ? '立即报名' : '查看详情'}
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </AnimatedSection>
+                            ))
+                        ) : (
+                            // 降级显示静态内容
+                            <>
+                                <AnimatedSection delay={0.6}>
+                                    <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="absolute top-3 left-3 z-10 bg-[#EE4035] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">HOT</div>
+                                                <div className="h-32 bg-[#F0A32F]/10 dark:bg-[#F0A32F]/20 flex items-center justify-center relative overflow-hidden">
+                                                    <div className="absolute -right-4 -top-4 w-20 h-20 bg-[#EE4035]/10 rounded-full"></div>
+                                                    <Trees className="w-12 h-12 text-[#F0A32F]/60 transform group-hover:scale-110 transition-transform duration-500" />
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
+                                                    <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">城市植树节</h3>
+                                                    <p className="text-xs text-slate-400 mb-4">2024.05.12 · 城市公园</p>
+                                                    <Link href="/zh/activities">
+                                                        <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#EE4035] text-[#EE4035] text-sm font-medium hover:bg-[#EE4035] hover:text-white transition-all active:scale-95">立即报名</button>
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </AnimatedSection>
 
-                        {/* Activity 2 */}
-                        <AnimatedSection delay={0.7}>
-                            <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="h-32 bg-[#30499B]/10 dark:bg-[#30499B]/20 flex items-center justify-center relative overflow-hidden">
-                                            <Waves className="w-12 h-12 text-[#30499B]/60 transform group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                        <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">海滩净滩行动</h3>
-                                            <p className="text-xs text-slate-400 mb-4">2024.06.05 · 阳光海滩</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-[#30499B] text-white text-sm font-medium hover:bg-[#253a7a] transition-all shadow-lg shadow-[#30499B]/20 active:scale-95">一键参加</button>
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </div>
-                        </AnimatedSection>
+                                <AnimatedSection delay={0.7}>
+                                    <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="h-32 bg-[#30499B]/10 dark:bg-[#30499B]/20 flex items-center justify-center relative overflow-hidden">
+                                                    <Waves className="w-12 h-12 text-[#30499B]/60 transform group-hover:scale-110 transition-transform duration-500" />
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
+                                                    <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">海滩净滩行动</h3>
+                                                    <p className="text-xs text-slate-400 mb-4">2024.06.05 · 阳光海滩</p>
+                                                    <Link href="/zh/activities">
+                                                        <button className="w-full py-2 rounded-lg bg-[#30499B] text-white text-sm font-medium hover:bg-[#253a7a] transition-all shadow-lg shadow-[#30499B]/20 active:scale-95">一键参加</button>
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </AnimatedSection>
 
-                        {/* Activity 3 */}
-                        <AnimatedSection delay={0.8}>
-                            <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
-                                {mounted && (
-                                    <motion.div whileHover={{ y: -4 }}>
-                                        <div className="h-32 bg-[#56B949]/10 dark:bg-[#56B949]/20 flex items-center justify-center relative overflow-hidden">
-                                            <Recycle className="w-12 h-12 text-[#56B949]/60 transform group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                        <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
-                                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">社区旧物交换</h3>
-                                            <p className="text-xs text-slate-400 mb-4">每周六 · 社区中心</p>
-                                            <Link href="/zh/activities">
-                                                <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#56B949] text-[#56B949] text-sm font-medium hover:bg-[#56B949] hover:text-white transition-all active:scale-95">查看详情</button>
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </div>
-                        </AnimatedSection>
+                                <AnimatedSection delay={0.8}>
+                                    <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
+                                        {mounted && (
+                                            <motion.div whileHover={{ y: -4 }}>
+                                                <div className="h-32 bg-[#56B949]/10 dark:bg-[#56B949]/20 flex items-center justify-center relative overflow-hidden">
+                                                    <Recycle className="w-12 h-12 text-[#56B949]/60 transform group-hover:scale-110 transition-transform duration-500" />
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800 p-5 border-x border-b border-slate-100 dark:border-slate-700 rounded-b-xl">
+                                                    <h3 className="text-lg font-semibold text-[#30499B] dark:text-[#56B949] mb-1">社区旧物交换</h3>
+                                                    <p className="text-xs text-slate-400 mb-4">每周六 · 社区中心</p>
+                                                    <Link href="/zh/activities">
+                                                        <button className="w-full py-2 rounded-lg bg-white dark:bg-slate-700 border border-[#56B949] text-[#56B949] text-sm font-medium hover:bg-[#56B949] hover:text-white transition-all active:scale-95">查看详情</button>
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </AnimatedSection>
+                            </>
+                        )}
                     </div>
                 </AnimatedSection>
 

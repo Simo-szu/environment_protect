@@ -68,11 +68,28 @@ psql -U social_migrator -h localhost -p 5432 -d youthloop -f infra/db/migrations
 psql -U postgres -d youthloop -f infra/db/scripts/verify_permissions.sql
 ```
 
-Expected output:
-- ✅ social_migrator can create/drop tables
-- ✅ social_app cannot create tables (DDL blocked)
-- ✅ social_app can write shared (rolled back)
-- ✅ game_app has read-only access to shared
+Note: this repo does not currently include `infra/db/scripts/verify_permissions.sql`.
+Use the quick checks below instead.
+
+**Check pgcrypto is enabled (required for `gen_random_uuid()`):**
+```sql
+SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto';
+```
+
+**Check roles and schemas exist:**
+```sql
+SELECT rolname FROM pg_roles
+WHERE rolname IN ('social_migrator','social_app','game_migrator','game_app');
+
+SELECT nspname FROM pg_namespace
+WHERE nspname IN ('shared','social','game');
+```
+
+**Permission expectations:**
+- ✅ `social_migrator` can create/drop tables in `shared` + `social`
+- ✅ `social_app` cannot create tables (DDL blocked)
+- ✅ `social_app` can read/write `shared` + `social` (DML only)
+- ✅ `game_app` has read-only access to `shared` (SELECT only)
 
 ## Schema Organization
 

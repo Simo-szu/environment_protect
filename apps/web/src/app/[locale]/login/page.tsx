@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
+import { authApi, userApi } from '@/lib/api';
 import {
     User,
     Lock,
@@ -18,41 +19,124 @@ export default function LoginPage() {
     const params = useParams();
     const locale = params.locale as string;
 
+    const [loginMode, setLoginMode] = useState<'password' | 'otp'>('password');
     const [formData, setFormData] = useState({
         username: '',
         password: '',
+        otpCode: '',
         remember: false
     });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [countdown, setCountdown] = useState(0);
     const { login } = useAuth();
     const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+    // 倒计时效果
+    React.useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
 
-        if (!formData.username || !formData.password) {
-            setError('请填写完整的登录信息');
+    // 发送验证码
+    const handleSendOtp = async () => {
+        if (!formData.username.trim()) {
+            setError('请输入手机号或邮箱');
             return;
         }
 
-        // 模拟登录验证
-        if (formData.username === 'demo' && formData.password === '123456') {
-            const userData = {
-                id: '1',
-                username: formData.username,
-                nickname: '环保达人',
-                contact: formData.username,
-                points: Math.floor(Math.random() * 1000) + 100,
-                level: Math.floor(Math.random() * 5) + 1,
-                avatar: undefined
-            };
+        try {
+            setSendingOtp(true);
+            setError('');
 
-            login(userData);
+            // 判断是手机号还是邮箱
+            const isPhone = /^1[3-9]\d{9}$/.test(formData.username);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username);
+
+            if (!isPhone && !isEmail) {
+                setError('请输入正确的手机号或邮箱');
+                return;
+            }
+
+            if (isPhone) {
+                await authApi.sendPhoneOtp(formData.username);
+            } else {
+                await authApi.sendEmailOtp(formData.username);
+            }
+
+            setOtpSent(true);
+            setCountdown(60);
+            alert('验证码已发送');
+        } catch (error: any) {
+            console.error('Failed to send OTP:', error);
+            setError(error.message || '发送验证码失败');
+        } finally {
+            setSendingOtp(false);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        if (!formData.username.trim()) {
+            setError('请输入手机号或邮箱');
+            return;
+        }
+
+        if (loginMode === 'password' && !formData.password.trim()) {
+            setError('请输入密码');
+            return;
+        }
+
+        if (loginMode === 'otp' && !formData.otpCode.trim()) {
+            setError('请输入验证码');
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+
+            // 判断是手机号还是邮箱
+            const isPhone = /^1[3-9]\d{9}$/.test(formData.username);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username);
+
+            if (!isPhone && !isEmail) {
+                setError('请输入正确的手机号或邮箱');
+                return;
+            }
+
+            // 调用登录 API
+            if (loginMode === 'password') {
+                await authApi.loginWithPassword({
+                    email: isEmail ? formData.username : undefined,
+                    phone: isPhone ? formData.username : undefined,
+                    password: formData.password
+                });
+            } else {
+                await authApi.loginWithOtp({
+                    email: isEmail ? formData.username : undefined,
+                    phone: isPhone ? formData.username : undefined,
+                    otpCode: formData.otpCode
+                });
+            }
+
+            // 获取用户信息
+            const userProfile = await userApi.getMyProfile();
+            login(userProfile);
+
+            // 跳转到首页
             router.push(`/${locale}`);
-        } else {
-            setError('用户名或密码错误');
+        } catch (error: any) {
+            console.error('Login failed:', error);
+            setError(error.message || '登录失败，请检查账号密码');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -114,52 +198,76 @@ export default function LoginPage() {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="账号/手机号"
+                                    placeholder="手机号/邮箱"
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                    disabled={submitting}
                                 />
                             </div>
 
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                    <Lock className="w-4 h-4" />
+                            {loginMode === 'password' ? (
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                        <Lock className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="请输入密码"
+                                        className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                        disabled={submitting}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
                                 </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="请输入密码"
-                                    className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </div>
+                            ) : (
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                        <Lock className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="otpCode"
+                                        value={formData.otpCode}
+                                        onChange={handleChange}
+                                        placeholder="请输入验证码"
+                                        className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                        disabled={submitting}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleSendOtp}
+                                        disabled={sendingOtp || countdown > 0 || submitting}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
+                                    >
+                                        {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="flex items-center justify-between pt-1">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="remember"
-                                        name="remember"
-                                        checked={formData.remember}
-                                        onChange={handleChange}
-                                        className="w-4 h-4 rounded border-slate-300 text-[#30499B] focus:ring-[#30499B]/20 cursor-pointer"
-                                    />
-                                    <label htmlFor="remember" className="text-sm text-slate-500 select-none cursor-pointer">记住我</label>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setLoginMode(loginMode === 'password' ? 'otp' : 'password')}
+                                    className="text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
+                                >
+                                    {loginMode === 'password' ? '验证码登录' : '密码登录'}
+                                </button>
                                 <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">忘记密码?</a>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide"
+                                disabled={submitting}
+                                className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                立即登录
+                                {submitting ? '登录中...' : '立即登录'}
                             </button>
 
                             {/* 用户协议提示 */}
@@ -191,31 +299,7 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        {/* Social Login */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                                <Smartphone className="w-4 h-4" />
-                                手机验证码
-                            </button>
-                            <button
-                                onClick={() => alert('扫码登录功能开发中')}
-                                className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-                            >
-                                <ScanLine className="w-4 h-4" />
-                                扫码登录
-                            </button>
-                        </div>
 
-                        {/* Demo Account Info */}
-                        <div className="mt-8 pt-6 border-t border-gray-200">
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="text-sm font-medium text-blue-800 mb-2">演示账户</h3>
-                                <p className="text-xs text-blue-600">
-                                    用户名: demo<br />
-                                    密码: 123456
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

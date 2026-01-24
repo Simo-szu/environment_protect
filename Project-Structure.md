@@ -170,8 +170,11 @@ modules/<domain>/
 - 模块内部：`application` 可以依赖 `domain`、`persistence`（通过 repository 接口）、`infrastructure`
 - 模块之间：只允许依赖“对方的 api 或 application 门面”，禁止引用对方的 persistence/entity/mapper
 
-建议包名（统一，不要各写各的）：
-- Social：`com.youthloop.social.<domain>.(api|application|domain|infrastructure|persistence)`
+建议包名（以当前实现为准，统一即可）：
+- Social Modules（`modules/*`）：`com.youthloop.<domain>.(api|application|domain|infrastructure|persistence)`
+- Social Apps：
+  - `apps/social-api`：`com.youthloop.social.api.*`
+  - `apps/social-worker`：`com.youthloop.social.worker.*`
 - Game：`com.youthloop.game.<domain>.(api|application|domain|infrastructure|persistence)`（game 结构可不同，但包名前缀建议统一）
 
 ---
@@ -520,6 +523,16 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 ---
 
 ## 12. 数据库：1 个 Postgres 实例 + 3 个 schema + Flyway（必须定稿）
+
+### 12.0 前置条件：pgcrypto（必须）
+本项目的迁移脚本中使用了 `gen_random_uuid()` 作为主键默认值（例如 shared/social/game 的 V001 初始化）。
+该函数来自 PostgreSQL 扩展 `pgcrypto`。如果目标数据库未启用该扩展，Flyway 在建表阶段会直接失败（函数不存在）。
+
+**约定（方案 A，推荐）：**
+- `pgcrypto` 的启用属于“数据库初始化阶段”职责，由具备足够权限的账号（通常是 `postgres` 超级用户）执行一次：
+  - `CREATE EXTENSION IF NOT EXISTS pgcrypto;`
+- Flyway 的 migrator 账号（`social_migrator` / `game_migrator`）只负责 schema 内的 DDL（建表/改表），不要求也不建议具备创建扩展的权限。
+- Docker 场景：由 `infra/db/init/db_init_roles_schemas.sql` 在容器首次初始化时自动完成（见 `infra/docker/compose.yml` 的 init 挂载）。
 
 ### 12.1 schema 划分（建议）
 一个实例内使用 3 个 schema 隔离：
