@@ -1,5 +1,3 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
 // 支持的语言列表
@@ -22,12 +20,6 @@ export default async function LocaleLayout({
         notFound();
     }
 
-    // 获取翻译消息
-    const messages = await getMessages();
-
-    return (
-        <NextIntlClientProvider messages={messages} locale={locale}>
-            {children}
-        </NextIntlClientProvider>
-    );
+    // 暂时不使用翻译，直接返回children
+    return <>{children}</>;
 }
