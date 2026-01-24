@@ -12,4 +12,7 @@ public class CancelSignupRequest {
     
     @Schema(description = "取消原因")
     private String cancelNote;
+    
+    @Schema(description = "游客邮箱（游客取消报名时必填）")
+    private String guestEmail;
 }

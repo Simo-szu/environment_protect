@@ -5,13 +5,12 @@ import com.youthloop.activity.api.dto.SignupResponse;
 import com.youthloop.activity.api.facade.ActivityFacade;
 import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.UnifiedRequest;
-import com.youthloop.common.security.OptionalAuth;
+import com.youthloop.common.security.AllowGuest;
 import com.youthloop.social.api.web.dto.CancelSignupRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -30,7 +29,7 @@ public class ActivitySignupController {
     
     @Operation(summary = "报名活动", description = "支持登录用户和游客报名，游客需提供邮箱")
     @PostMapping("/{id}/signups")
-    @OptionalAuth
+    @AllowGuest
     public BaseResponse<SignupResponse> signup(
         @Parameter(description = "活动 ID") @PathVariable("id") UUID activityId,
         @Valid @RequestBody UnifiedRequest<SignupRequest> request
@@ -42,31 +41,33 @@ public class ActivitySignupController {
         return BaseResponse.success(response);
     }
     
-    @Operation(summary = "修改报名信息/改场次", description = "用户修改报名信息或改场次")
+    @Operation(summary = "修改报名信息/改场次", description = "用户修改报名信息或改场次（游客需提供邮箱验证）")
     @PatchMapping("/{id}/signups/{signupId}")
-    @PreAuthorize("isAuthenticated()")
+    @AllowGuest
     public BaseResponse<Void> updateSignup(
         @Parameter(description = "活动 ID") @PathVariable("id") UUID activityId,
         @Parameter(description = "报名 ID") @PathVariable UUID signupId,
-        @Parameter(description = "新场次 ID（可选）") @RequestParam(required = false) UUID newSessionId
+        @Parameter(description = "新场次 ID（可选）") @RequestParam(required = false) UUID newSessionId,
+        @Parameter(description = "游客邮箱（游客必填）") @RequestParam(required = false) String guestEmail
     ) {
         if (newSessionId != null) {
-            activityFacade.changeSession(signupId, newSessionId);
+            activityFacade.changeSession(signupId, newSessionId, guestEmail);
         }
-        // TODO: 支持修改其他报名信息
+        // TODO: 支持修改其他报名信息（昵称/手机号/真实姓名等）
         return BaseResponse.success(null);
     }
     
-    @Operation(summary = "取消报名", description = "用户取消自己的报名")
+    @Operation(summary = "取消报名", description = "用户取消自己的报名（游客需提供邮箱验证）")
     @DeleteMapping("/{id}/signups/{signupId}")
-    @PreAuthorize("isAuthenticated()")
+    @AllowGuest
     public BaseResponse<Void> cancelSignup(
         @Parameter(description = "活动 ID") @PathVariable("id") UUID activityId,
         @Parameter(description = "报名 ID") @PathVariable UUID signupId,
         @Valid @RequestBody(required = false) UnifiedRequest<CancelSignupRequest> request
     ) {
         String cancelNote = request != null && request.getData() != null ? request.getData().getCancelNote() : null;
-        activityFacade.cancelSignup(signupId, cancelNote);
+        String guestEmail = request != null && request.getData() != null ? request.getData().getGuestEmail() : null;
+        activityFacade.cancelSignup(signupId, cancelNote, guestEmail);
         return BaseResponse.success(null);
     }
 }

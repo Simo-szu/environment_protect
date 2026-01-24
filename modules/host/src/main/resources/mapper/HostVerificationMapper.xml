@@ -33,6 +33,21 @@
     WHERE user_id = #{userId}::uuid
   </select>
 
+  <!-- 查询所有认证申请（管理端） -->
+  <select id="selectAll" resultType="com.youthloop.host.persistence.entity.HostVerificationEntity">
+    SELECT 
+      user_id, org_name, contact_name, contact_phone, doc_urls,
+      status, submitted_at, reviewed_by, reviewed_at, review_note,
+      created_at, updated_at
+    FROM social.host_verification
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY submitted_at DESC
+  </select>
+
   <!-- 更新审核状态 -->
   <update id="updateReviewStatus">
     UPDATE social.host_verification

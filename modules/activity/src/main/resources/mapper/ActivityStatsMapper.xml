@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.activity.persistence.mapper.ActivityStatsMapper">
+
+    <insert id="insert">
+        INSERT INTO social.activity_stats (
+            activity_id, like_count, fav_count, down_count, comment_count, hot_score, hot_rule_id, updated_at
+        ) VALUES (
+            #{activityId}, #{likeCount}, #{favCount}, #{downCount}, #{commentCount}, #{hotScore}, #{hotRuleId}, #{updatedAt}
+        )
+    </insert>
+
+    <select id="selectByActivityId" resultType="com.youthloop.activity.persistence.entity.ActivityStatsEntity">
+        SELECT
+            activity_id as activityId, like_count as likeCount, fav_count as favCount,
+            down_count as downCount, comment_count as commentCount, hot_score as hotScore,
+            hot_rule_id as hotRuleId, updated_at as updatedAt
+        FROM social.activity_stats
+        WHERE activity_id = #{activityId}
+    </select>
+
+</mapper>

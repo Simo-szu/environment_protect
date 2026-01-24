@@ -4,6 +4,8 @@ import com.youthloop.activity.persistence.entity.ActivitySignupEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -54,5 +56,23 @@ public interface ActivitySignupMapper {
     int updateSession(
         @Param("id") UUID id,
         @Param("sessionId") UUID sessionId
+    );
+    
+    /**
+     * 查询活动的报名列表（主办方查看）
+     */
+    List<Map<String, Object>> selectSignupList(
+        @Param("activityId") UUID activityId,
+        @Param("status") Integer status,
+        @Param("offset") Integer offset,
+        @Param("limit") Integer limit
+    );
+    
+    /**
+     * 统计活动的报名总数
+     */
+    Long countSignups(
+        @Param("activityId") UUID activityId,
+        @Param("status") Integer status
     );
 }

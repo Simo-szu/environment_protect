@@ -76,6 +76,14 @@ public class SecurityUtil {
     }
     
     /**
+     * 检查当前用户是否是主办方
+     */
+    public static boolean isHost() {
+        UserRole role = getCurrentUserRole();
+        return role == UserRole.HOST || role == UserRole.ADMIN;
+    }
+    
+    /**
      * 要求当前用户是管理员
      * @throws BizException 如果不是管理员
      */

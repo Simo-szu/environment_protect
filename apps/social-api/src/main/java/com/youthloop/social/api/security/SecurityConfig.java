@@ -61,6 +61,12 @@ public class SecurityConfig {
                 .requestMatchers("GET", "/api/v1/contents/**").permitAll()
                 .requestMatchers("GET", "/api/v1/activities/**").permitAll()
                 .requestMatchers("GET", "/api/v1/search/**").permitAll()
+                .requestMatchers("GET", "/api/v1/recommendations/**").permitAll()
+                
+                // 放行：活动报名（游客可报名，文档标记为 G）
+                .requestMatchers("POST", "/api/v1/activities/*/signups").permitAll()
+                .requestMatchers("PATCH", "/api/v1/activities/*/signups/*").permitAll()
+                .requestMatchers("DELETE", "/api/v1/activities/*/signups/*").permitAll()
                 
                 // 放行：Swagger UI
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()

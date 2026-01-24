@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 主办方认证服务
@@ -90,6 +91,17 @@ public class HostVerificationService {
         }
         
         return mapToResponse(entity);
+    }
+    
+    /**
+     * 查询所有认证申请（管理端）
+     */
+    @Transactional(readOnly = true)
+    public List<HostVerificationResponse> getAllVerifications(Integer status) {
+        List<HostVerificationEntity> entities = hostVerificationMapper.selectAll(status);
+        return entities.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
     }
     
     /**

@@ -67,4 +67,34 @@
     WHERE id = #{id}::uuid
   </update>
 
+  <!-- 查询活动的报名列表（主办方查看） -->
+  <select id="selectSignupList" resultType="java.util.HashMap">
+    SELECT 
+      s.id, s.session_id as sessionId, s.user_id as userId,
+      s.email, s.nickname, s.real_name as realName, s.phone,
+      s.join_time as joinTime, s.status,
+      s.audited_by as auditedBy, s.audited_at as auditedAt, s.audit_note as auditNote,
+      s.canceled_at as canceledAt, s.cancel_note as cancelNote,
+      s.created_at as createdAt,
+      sess.title as sessionTitle
+    FROM social.activity_signup s
+    LEFT JOIN social.activity_session sess ON s.session_id = sess.id
+    WHERE s.activity_id = #{activityId}::uuid
+    <if test="status != null">
+      AND s.status = #{status}
+    </if>
+    ORDER BY s.created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计活动的报名总数 -->
+  <select id="countSignups" resultType="java.lang.Long">
+    SELECT COUNT(*)
+    FROM social.activity_signup
+    WHERE activity_id = #{activityId}::uuid
+    <if test="status != null">
+      AND status = #{status}
+    </if>
+  </select>
+
 </mapper>

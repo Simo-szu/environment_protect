@@ -66,11 +66,19 @@ public class NotificationService {
     public void markAsRead(UUID notificationId) {
         UUID currentUserId = SecurityUtil.getCurrentUserId();
         
-        // TODO: 权限检查（确保通知属于当前用户）
+        // 权限检查：确保通知属于当前用户
+        NotificationEntity notification = notificationMapper.selectById(notificationId);
+        if (notification == null) {
+            throw new BizException(60041, "通知不存在");
+        }
+        
+        if (!notification.getUserId().equals(currentUserId)) {
+            throw new BizException(60032, "无权操作他人的通知");
+        }
         
         int rows = notificationMapper.markAsRead(notificationId);
         if (rows == 0) {
-            throw new BizException(60041, "通知不存在");
+            throw new BizException(60022, "标记已读失败");
         }
         
         log.info("通知已读: notificationId={}, userId={}", notificationId, currentUserId);

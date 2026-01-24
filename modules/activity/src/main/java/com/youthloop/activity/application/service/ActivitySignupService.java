@@ -2,6 +2,7 @@ package com.youthloop.activity.application.service;
 
 import com.youthloop.activity.api.dto.SignupRequest;
 import com.youthloop.activity.api.dto.SignupResponse;
+import com.youthloop.activity.persistence.entity.ActivityEntity;
 import com.youthloop.activity.persistence.entity.ActivitySignupEntity;
 import com.youthloop.activity.persistence.mapper.ActivityMapper;
 import com.youthloop.activity.persistence.mapper.ActivitySignupMapper;
@@ -126,11 +127,11 @@ public class ActivitySignupService {
     }
     
     /**
-     * 取消报名
+     * 取消报名（支持登录用户和游客）
      */
     @Transactional
-    public void cancelSignup(UUID signupId, String cancelNote) {
-        UUID currentUserId = SecurityUtil.getCurrentUserId();
+    public void cancelSignup(UUID signupId, String cancelNote, String guestEmail) {
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
         
         // 查询报名记录
         ActivitySignupEntity signup = activitySignupMapper.selectById(signupId);
@@ -138,9 +139,21 @@ public class ActivitySignupService {
             throw new BizException(40041, "报名记录不存在");
         }
         
-        // 权限检查：只能取消自己的报名
-        if (signup.getUserId() != null && !signup.getUserId().equals(currentUserId)) {
-            throw new BizException(40032, "无权取消他人的报名");
+        // 权限检查
+        if (currentUserId != null) {
+            // 登录用户：只能取消自己的报名
+            if (signup.getUserId() != null && !signup.getUserId().equals(currentUserId)) {
+                throw new BizException(40032, "无权取消他人的报名");
+            }
+        } else {
+            // 游客：通过 email + dedup_key 验证
+            if (guestEmail == null || guestEmail.trim().isEmpty()) {
+                throw new BizException(40021, "游客取消报名必须提供邮箱");
+            }
+            String expectedDedupKey = "E:" + guestEmail.toLowerCase().trim();
+            if (!expectedDedupKey.equals(signup.getDedupKey())) {
+                throw new BizException(40032, "邮箱与报名记录不匹配");
+            }
         }
         
         // 状态检查：只能取消待审核或已通过的报名
@@ -154,7 +167,8 @@ public class ActivitySignupService {
             throw new BizException(40022, "取消报名失败");
         }
         
-        log.info("取消报名成功: signupId={}, userId={}", signupId, currentUserId);
+        log.info("取消报名成功: signupId={}, userId={}, guestEmail={}", 
+            signupId, currentUserId, guestEmail);
         
         // 发送 Outbox 事件（用于更新统计）
         SignupEventPayload payload = new SignupEventPayload(
@@ -169,11 +183,11 @@ public class ActivitySignupService {
     }
     
     /**
-     * 改场次
+     * 改场次（支持登录用户和游客）
      */
     @Transactional
-    public void changeSession(UUID signupId, UUID newSessionId) {
-        UUID currentUserId = SecurityUtil.getCurrentUserId();
+    public void changeSession(UUID signupId, UUID newSessionId, String guestEmail) {
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
         
         // 查询报名记录
         ActivitySignupEntity signup = activitySignupMapper.selectById(signupId);
@@ -182,8 +196,20 @@ public class ActivitySignupService {
         }
         
         // 权限检查
-        if (signup.getUserId() != null && !signup.getUserId().equals(currentUserId)) {
-            throw new BizException(40032, "无权修改他人的报名");
+        if (currentUserId != null) {
+            // 登录用户：只能修改自己的报名
+            if (signup.getUserId() != null && !signup.getUserId().equals(currentUserId)) {
+                throw new BizException(40032, "无权修改他人的报名");
+            }
+        } else {
+            // 游客：通过 email + dedup_key 验证
+            if (guestEmail == null || guestEmail.trim().isEmpty()) {
+                throw new BizException(40021, "游客改场次必须提供邮箱");
+            }
+            String expectedDedupKey = "E:" + guestEmail.toLowerCase().trim();
+            if (!expectedDedupKey.equals(signup.getDedupKey())) {
+                throw new BizException(40032, "邮箱与报名记录不匹配");
+            }
         }
         
         // 状态检查
@@ -197,7 +223,8 @@ public class ActivitySignupService {
             throw new BizException(40022, "改场次失败");
         }
         
-        log.info("改场次成功: signupId={}, newSessionId={}", signupId, newSessionId);
+        log.info("改场次成功: signupId={}, newSessionId={}, userId={}, guestEmail={}", 
+            signupId, newSessionId, currentUserId, guestEmail);
     }
     
     /**
@@ -207,15 +234,22 @@ public class ActivitySignupService {
     public void auditSignup(UUID signupId, Integer status, String auditNote) {
         UUID currentUserId = SecurityUtil.getCurrentUserId();
         
-        // 权限检查：需要是管理员或主办方（TODO: 增加主办方权限检查）
-        if (!SecurityUtil.isAdmin()) {
-            throw new BizException(40032, "无权审核报名");
-        }
-        
         // 查询报名记录
         ActivitySignupEntity signup = activitySignupMapper.selectById(signupId);
         if (signup == null) {
             throw new BizException(40041, "报名记录不存在");
+        }
+        
+        // 查询活动信息
+        ActivityEntity activity = activityMapper.selectById(signup.getActivityId());
+        if (activity == null) {
+            throw new BizException(40041, "活动不存在");
+        }
+        
+        // 权限检查：需要是管理员或主办方本人
+        boolean isHost = activity.getHostUserId() != null && activity.getHostUserId().equals(currentUserId);
+        if (!SecurityUtil.isAdmin() && !isHost) {
+            throw new BizException(40032, "无权审核报名");
         }
         
         // 状态检查：只能审核待审核的报名

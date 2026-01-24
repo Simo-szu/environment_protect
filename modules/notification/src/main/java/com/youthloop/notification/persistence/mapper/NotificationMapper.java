@@ -19,6 +19,11 @@ public interface NotificationMapper {
     int insert(NotificationEntity notification);
     
     /**
+     * 根据ID查询通知
+     */
+    NotificationEntity selectById(@Param("id") UUID id);
+    
+    /**
      * 查询用户的通知列表
      */
     List<NotificationEntity> selectByUser(
