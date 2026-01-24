@@ -15,7 +15,7 @@ import jakarta.validation.Valid;
 
 /**
  * 游戏 Controller
- * 4个核心端点
+ * 符合文档规范的 4 个核心端点
  */
 @Tag(name = "游戏", description = "虚拟池塘游戏")
 @RestController
@@ -25,35 +25,42 @@ public class GameController {
     
     private final GameFacade gameFacade;
     
-    @Operation(summary = "开始游戏会话", description = "创建新的游戏会话或返回现有活跃会话")
-    @PostMapping("/sessions/start")
+    @Operation(summary = "获取玩家游戏资料", description = "获取玩家游戏侧资料/进度")
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public BaseResponse<GameSessionDTO> getProfile() {
+        // 复用 getCurrentSession 逻辑，返回当前会话作为玩家资料
+        GameSessionDTO session = gameFacade.getCurrentSession();
+        return BaseResponse.success(session);
+    }
+    
+    @Operation(summary = "开始游戏会话", description = "开始一局游戏（返回 sessionId）")
+    @PostMapping("/sessions")
     @PreAuthorize("isAuthenticated()")
     public BaseResponse<GameSessionDTO> startSession() {
         GameSessionDTO session = gameFacade.startSession();
         return BaseResponse.success(session);
     }
     
-    @Operation(summary = "获取当前会话", description = "获取用户当前的活跃游戏会话")
-    @GetMapping("/sessions/current")
+    @Operation(summary = "上报游戏事件", description = "上报关键事件（用于成就/积分/回放）")
+    @PostMapping("/sessions/{id}/events")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<GameSessionDTO> getCurrentSession() {
-        GameSessionDTO session = gameFacade.getCurrentSession();
-        return BaseResponse.success(session);
-    }
-    
-    @Operation(summary = "执行游戏操作", description = "执行游戏操作(喂食/清洁/添加植物/添加鱼/调整参数)")
-    @PostMapping("/actions")
-    @PreAuthorize("isAuthenticated()")
-    public BaseResponse<GameActionResponse> performAction(@Valid @RequestBody GameActionRequest request) {
+    public BaseResponse<GameActionResponse> reportEvent(
+            @PathVariable("id") String sessionId,
+            @Valid @RequestBody GameActionRequest request) {
+        // 将 sessionId 设置到 request 中
+        request.setSessionId(java.util.UUID.fromString(sessionId));
         GameActionResponse response = gameFacade.performAction(request);
         return BaseResponse.success(response);
     }
     
-    @Operation(summary = "结束游戏会话", description = "结束当前的游戏会话")
-    @PostMapping("/sessions/end")
+    @Operation(summary = "结束游戏会话", description = "结束一局游戏（返回结算结果）")
+    @PostMapping("/sessions/{id}/finish")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<Void> endSession() {
+    public BaseResponse<GameActionResponse> finishSession(@PathVariable("id") String sessionId) {
+        // 结束会话并返回最终结算
         gameFacade.endSession();
-        return BaseResponse.success(null);
+        // TODO: 返回结算结果（当前简化为空响应）
+        return BaseResponse.success(GameActionResponse.builder().build());
     }
 }
