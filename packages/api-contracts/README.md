@@ -1,68 +1,86 @@
 # API Contracts
 
-YouthLoop API 契约文档
+YouthLoop 项目的 API 契约定义，包含错误码、OpenAPI 规范等跨服务共享的契约文档。
 
-## 文档列表
+## 目录结构
 
-- [错误码表](./ERROR_CODES.md) - 统一错误码定义与响应格式
-
-## 设计原则
-
-### 1. 统一响应格式
-
-所有 API 响应必须遵循统一格式：
-
-```json
-{
-  "code": 0,
-  "message": "操作成功",
-  "data": {},
-  "traceId": "a1b2c3d4e5f6g7h8"
-}
+```
+api-contracts/
+├── ERROR_CODES.md          # 错误码规范
+├── openapi/                # OpenAPI 规范文件（待补充）
+│   ├── social-api.yaml     # Social API 规范
+│   └── game-api.yaml       # Game API 规范
+└── schemas/                # 共享的数据模型定义（待补充）
 ```
 
-### 2. RESTful 风格
+## 文档说明
 
-- 使用标准 HTTP 方法：GET、POST、PUT、DELETE
-- 使用名词复数形式：`/api/v1/contents`、`/api/v1/activities`
-- 使用路径参数表示资源 ID：`/api/v1/contents/{id}`
+### ERROR_CODES.md
 
-### 3. 版本控制
+定义了整个系统的错误码规范，包括：
+- 错误码格式定义
+- 模块代码分配
+- 错误类型分类
+- 常用错误码列表
+- 响应格式规范
 
-- API 路径包含版本号：`/api/v1/...`
-- 向后兼容，不破坏现有接口
+所有服务必须遵循此错误码规范。
 
-### 4. 参数校验
+### openapi/ (待补充)
 
-- 使用 Bean Validation 注解（`@NotBlank`、`@Min`、`@Max` 等）
-- 校验失败返回 `1001` 错误码
+存放各服务的 OpenAPI 3.0 规范文件，用于：
+- API 文档生成
+- 前端 SDK 生成
+- API 测试
+- 契约测试
 
-### 5. 分页规范
+### schemas/ (待补充)
 
-- 统一使用 `page` 和 `pageSize` 参数
-- 响应包含 `total`、`totalPages`、`hasNext`、`hasPrev` 等元信息
-
-### 6. 日期时间格式
-
-- 统一使用 ISO 8601 格式：`2024-01-23T10:30:00Z`
-- 时区统一使用 UTC 或明确标注
-
-### 7. TraceId 追踪
-
-- 所有请求/响应携带 `X-Trace-Id` 头
-- 用于日志追踪和问题排查
+存放跨服务共享的数据模型定义，如：
+- 通用 DTO 定义
+- 枚举类型定义
+- 验证规则定义
 
 ## 使用方式
 
 ### 后端
 
-1. 所有 Controller 返回 `BaseResponse<T>`
-2. 使用 `@Valid` 注解进行参数校验
-3. 抛出 `BizException` 处理业务异常
-4. 分页接口继承 `PageRequest` 和返回 `PageResponse<T>`
+后端服务应参考 ERROR_CODES.md 定义错误码常量：
+
+```java
+public class ErrorCode {
+    public static final int SUCCESS = 0;
+    public static final int INVALID_PARAM = 00101;
+    public static final int USER_NOT_FOUND = 10022;
+    // ...
+}
+```
 
 ### 前端
 
-1. 根据 `code` 判断请求是否成功（0 为成功）
-2. 从 `data` 字段获取响应数据
-3. 使用 `traceId` 进行问题反馈
+前端应根据错误码进行统一的错误处理：
+
+```typescript
+const ERROR_MESSAGES = {
+  10023: '密码错误，请重试',
+  10024: '验证码错误',
+  // ...
+};
+
+function handleError(code: number) {
+  const message = ERROR_MESSAGES[code] || '操作失败，请稍后重试';
+  showToast(message);
+}
+```
+
+## 维护规范
+
+1. 新增错误码必须先在 ERROR_CODES.md 中定义
+2. 错误码一旦定义不得修改，只能废弃后新增
+3. 所有 API 变更必须同步更新 OpenAPI 规范
+4. 重大变更需要版本号升级
+
+## 相关文档
+
+- [Project-Structure.md](../../Project-Structure.md) - 项目整体架构
+- [Schema-V0.1.dsl.md.md](../../Schema-V0.1.dsl.md.md) - 数据库模型定义

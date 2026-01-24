@@ -39,6 +39,7 @@
         <module>modules/points</module>
         <module>modules/search</module>
         <module>modules/recommendation</module>
+        <module>modules/game</module>
         <module>modules/query</module>
         <module>modules/event</module>
         <module>modules/ops</module>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.recommendation.persistence.mapper.WeeklyRecommendationMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.recommendation.persistence.entity.WeeklyRecommendationEntity">
+        <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <id column="week_start" property="weekStart" jdbcType="DATE"/>
+        <result column="items" property="items" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectByUserIdAndWeek" resultMap="BaseResultMap">
+        SELECT user_id, week_start, items, created_at, updated_at
+        FROM social.weekly_recommendation
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND week_start = #{weekStart, jdbcType=DATE}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO social.weekly_recommendation (user_id, week_start, items, created_at, updated_at)
+        VALUES (
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{weekStart, jdbcType=DATE},
+            #{items, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{createdAt, jdbcType=TIMESTAMP},
+            #{updatedAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <update id="update">
+        UPDATE social.weekly_recommendation
+        SET items = #{items, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            updated_at = #{updatedAt, jdbcType=TIMESTAMP}
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND week_start = #{weekStart, jdbcType=DATE}
+    </update>
+    
+</mapper>

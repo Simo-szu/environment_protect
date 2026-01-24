@@ -1,5 +1,7 @@
 package com.youthloop.notification.application.service;
 
+import com.youthloop.common.exception.BizException;
+import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.notification.persistence.entity.NotificationEntity;
 import com.youthloop.notification.persistence.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,54 +23,76 @@ public class NotificationService {
     private final NotificationMapper notificationMapper;
     
     /**
-     * 创建评论回复通知
+     * 创建通知（由 Worker 调用）
      */
     @Transactional
-    public void createCommentReplyNotification(
-            UUID recipientUserId,
-            UUID actorUserId,
-            Integer targetType,
-            UUID targetId,
-            UUID commentId,
-            UUID rootCommentId) {
+    public UUID createNotification(
+        UUID userId,
+        Integer type,
+        UUID actorUserId,
+        Integer targetType,
+        UUID targetId,
+        UUID commentId,
+        UUID rootCommentId,
+        String meta
+    ) {
+        NotificationEntity entity = new NotificationEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setUserId(userId);
+        entity.setType(type);
+        entity.setActorUserId(actorUserId);
+        entity.setTargetType(targetType);
+        entity.setTargetId(targetId);
+        entity.setCommentId(commentId);
+        entity.setRootCommentId(rootCommentId);
+        entity.setMeta(meta);
+        entity.setCreatedAt(LocalDateTime.now());
         
-        // 不给自己发通知
-        if (recipientUserId.equals(actorUserId)) {
-            return;
+        int rows = notificationMapper.insert(entity);
+        if (rows == 0) {
+            throw new BizException(60022, "创建通知失败");
         }
         
-        log.info("创建评论回复通知: recipientUserId={}, actorUserId={}, commentId={}", 
-            recipientUserId, actorUserId, commentId);
+        log.info("通知创建成功: notificationId={}, userId={}, type={}", 
+            entity.getId(), userId, type);
         
-        NotificationEntity notification = new NotificationEntity();
-        notification.setId(UUID.randomUUID());
-        notification.setUserId(recipientUserId);
-        notification.setType(1); // comment_reply
-        notification.setActorUserId(actorUserId);
-        notification.setTargetType(targetType);
-        notification.setTargetId(targetId);
-        notification.setCommentId(commentId);
-        notification.setRootCommentId(rootCommentId);
-        notification.setCreatedAt(LocalDateTime.now());
-        
-        notificationMapper.insert(notification);
-        log.info("通知创建成功: id={}", notification.getId());
+        return entity.getId();
     }
     
     /**
-     * 统计未读通知数
+     * 标记通知为已读
      */
-    @Transactional(readOnly = true)
-    public Long countUnread(UUID userId) {
-        return notificationMapper.countUnreadByUser(userId);
+    @Transactional
+    public void markAsRead(UUID notificationId) {
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+        
+        // TODO: 权限检查（确保通知属于当前用户）
+        
+        int rows = notificationMapper.markAsRead(notificationId);
+        if (rows == 0) {
+            throw new BizException(60041, "通知不存在");
+        }
+        
+        log.info("通知已读: notificationId={}, userId={}", notificationId, currentUserId);
     }
     
     /**
      * 标记所有通知为已读
      */
     @Transactional
-    public void markAllAsRead(UUID userId) {
-        notificationMapper.markAllAsRead(userId);
-        log.info("已标记所有通知为已读: userId={}", userId);
+    public void markAllAsRead() {
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+        
+        int rows = notificationMapper.markAllAsRead(currentUserId);
+        
+        log.info("所有通知已读: userId={}, count={}", currentUserId, rows);
+    }
+    
+    /**
+     * 统计未读通知数
+     */
+    public Long countUnread() {
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+        return notificationMapper.countUnreadByUser(currentUserId);
     }
 }

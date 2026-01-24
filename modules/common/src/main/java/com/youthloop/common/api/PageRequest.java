@@ -21,19 +21,19 @@ public class PageRequest {
      */
     @Min(value = 1, message = "每页大小必须大于 0")
     @Max(value = 100, message = "每页大小不能超过 100")
-    private Integer pageSize = 20;
+    private Integer size = 20;
     
     /**
      * 获取偏移量（用于 SQL OFFSET）
      */
     public Integer getOffset() {
-        return (page - 1) * pageSize;
+        return (page - 1) * size;
     }
     
     /**
      * 获取限制数量（用于 SQL LIMIT）
      */
     public Integer getLimit() {
-        return pageSize;
+        return size;
     }
 }

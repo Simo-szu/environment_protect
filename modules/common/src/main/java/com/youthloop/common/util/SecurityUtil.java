@@ -2,7 +2,9 @@ package com.youthloop.common.util;
 
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
+import com.youthloop.common.security.UserRole;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.UUID;
@@ -45,7 +47,46 @@ public class SecurityUtil {
     }
     
     /**
-     * 检查是否已登录
+     * 获取当前用户角色
+     * @return 用户角色，如果未登录则返回 USER
+     */
+    public static UserRole getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return UserRole.USER;
+        }
+        
+        // 从 authorities 中提取角色
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            String role = authority.getAuthority();
+            if (role.startsWith("ROLE_")) {
+                return UserRole.fromString(role.substring(5));
+            }
+        }
+        
+        return UserRole.USER;
+    }
+    
+    /**
+     * 检查当前用户是否是管理员
+     */
+    public static boolean isAdmin() {
+        return getCurrentUserRole() == UserRole.ADMIN;
+    }
+    
+    /**
+     * 要求当前用户是管理员
+     * @throws BizException 如果不是管理员
+     */
+    public static void requireAdmin() {
+        if (!isAdmin()) {
+            throw new BizException(ErrorCode.FORBIDDEN, "需要管理员权限");
+        }
+    }
+    
+    /**
+     * 检查当前用户是否已登录
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

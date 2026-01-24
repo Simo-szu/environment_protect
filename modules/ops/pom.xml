@@ -13,5 +13,34 @@
 
   <artifactId>youthloop-ops</artifactId>
   <name>YouthLoop Ops</name>
+  <description>运营配置模块（轮播/运营位）</description>
+
+  <dependencies>
+    <!-- Common Module -->
+    <dependency>
+      <groupId>com.youthloop</groupId>
+      <artifactId>youthloop-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- MyBatis -->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+    </dependency>
+
+    <!-- Spring Boot -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
 </project>
 

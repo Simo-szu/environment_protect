@@ -50,4 +50,9 @@ public interface ContentMapper {
      * 删除内容
      */
     int deleteById(@Param("id") UUID id);
+    
+    /**
+     * 根据来源 URL 查询内容
+     */
+    ContentEntity selectBySourceUrl(@Param("sourceUrl") String sourceUrl);
 }

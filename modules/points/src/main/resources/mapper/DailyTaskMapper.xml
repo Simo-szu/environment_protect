@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.DailyTaskMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.points.persistence.entity.DailyTaskEntity">
+        <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="rule_json" property="ruleJson" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+        <result column="created_at" property="createdAt" jdbcType=TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectAllEnabled" resultMap="BaseResultMap">
+        SELECT id, code, name, rule_json, points, is_enabled, created_at
+        FROM social.daily_task
+        WHERE is_enabled = true
+        ORDER BY code
+    </select>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, code, name, rule_json, points, is_enabled, created_at
+        FROM social.daily_task
+        WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </select>
+    
+</mapper>

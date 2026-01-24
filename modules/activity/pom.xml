@@ -13,5 +13,51 @@
 
   <artifactId>youthloop-activity</artifactId>
   <name>YouthLoop Activity</name>
+
+  <dependencies>
+    <!-- 内部依赖 -->
+    <dependency>
+      <groupId>com.youthloop</groupId>
+      <artifactId>youthloop-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.youthloop</groupId>
+      <artifactId>youthloop-event</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Spring Boot -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <!-- MyBatis -->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Validation -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Swagger -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    </dependency>
+  </dependencies>
 </project>
 

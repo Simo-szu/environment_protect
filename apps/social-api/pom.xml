@@ -61,6 +61,55 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Query Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-query</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Ops Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-ops</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Points Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-points</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Search Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-search</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Recommendation Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-recommendation</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Activity Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-activity</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Host Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-host</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -71,6 +120,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Spring Boot AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <!-- Spring Boot Validation -->

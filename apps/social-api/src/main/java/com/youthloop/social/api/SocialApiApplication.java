@@ -17,7 +17,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @MapperScan(basePackages = {
     "com.youthloop.auth.persistence.mapper",
     "com.youthloop.user.persistence.mapper",
-    "com.youthloop.content.persistence.mapper"
+    "com.youthloop.content.persistence.mapper",
+    "com.youthloop.interaction.persistence.mapper",
+    "com.youthloop.notification.persistence.mapper",
+    "com.youthloop.event.persistence.mapper"
 })
 public class SocialApiApplication {
     public static void main(String[] args) {

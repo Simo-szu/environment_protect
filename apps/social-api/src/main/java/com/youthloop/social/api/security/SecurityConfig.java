@@ -3,6 +3,7 @@ package com.youthloop.social.api.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // 启用方法级安全
 @RequiredArgsConstructor
 public class SecurityConfig {
     
@@ -42,20 +44,23 @@ public class SecurityConfig {
             // 配置授权规则
             .authorizeHttpRequests(auth -> auth
                 // 放行：健康检查
-                .requestMatchers("/api/v1/health").permitAll()
+                .requestMatchers("/health").permitAll()
                 
-                // 放行：认证接口（仅公开接口）
-                .requestMatchers("/api/v1/auth/register").permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/auth/refresh").permitAll()
-                .requestMatchers("/api/v1/auth/logout").permitAll()
+                // 放行：认证接口（所有 auth 端点都允许匿名访问，除了 logout 需要登录）
+                .requestMatchers("/api/v1/auth/otp/**").permitAll()
+                .requestMatchers("/api/v1/auth/register/**").permitAll()
+                .requestMatchers("/api/v1/auth/login/**").permitAll()
+                .requestMatchers("/api/v1/auth/password/**").permitAll()
+                .requestMatchers("/api/v1/auth/token/refresh").permitAll()
                 
                 // 放行：用户档案查询（公开接口）
                 .requestMatchers("/api/v1/users/*/profile").permitAll()
                 
-                // 放行：内容接口（公开接口）
-                .requestMatchers("/api/v1/contents").permitAll()
-                .requestMatchers("/api/v1/contents/*").permitAll()
+                // 放行：所有 GET 读接口（Optional 场景）
+                .requestMatchers("GET", "/api/v1/home/**").permitAll()
+                .requestMatchers("GET", "/api/v1/contents/**").permitAll()
+                .requestMatchers("GET", "/api/v1/activities/**").permitAll()
+                .requestMatchers("GET", "/api/v1/search/**").permitAll()
                 
                 // 放行：Swagger UI
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()

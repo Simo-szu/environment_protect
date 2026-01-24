@@ -33,6 +33,34 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Content Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-content</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Points Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-points</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Search Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-search</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Recommendation Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-recommendation</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

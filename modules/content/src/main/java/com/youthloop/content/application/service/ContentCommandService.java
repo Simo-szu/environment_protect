@@ -2,7 +2,7 @@ package com.youthloop.content.application.service;
 
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
-import com.youthloop.content.application.dto.CreateContentRequest;
+import com.youthloop.content.api.dto.CreateContentRequest;
 import com.youthloop.content.application.dto.UpdateContentRequest;
 import com.youthloop.content.persistence.entity.ContentEntity;
 import com.youthloop.content.persistence.entity.ContentStatsEntity;
@@ -43,7 +43,13 @@ public class ContentCommandService {
         
         // 校验来源 URL 唯一性（如果提供）
         if (request.getSourceUrl() != null && !request.getSourceUrl().isEmpty()) {
-            // TODO: 添加唯一性校验（需要在 Mapper 中添加 selectBySourceUrl 方法）
+            ContentEntity existing = contentMapper.selectBySourceUrl(request.getSourceUrl());
+            if (existing != null) {
+                log.warn("来源 URL 已存在: sourceUrl={}, existingId={}", 
+                    request.getSourceUrl(), existing.getId());
+                throw new BizException(ErrorCode.RESOURCE_ALREADY_EXISTS, 
+                    "该来源 URL 已存在，内容 ID: " + existing.getId());
+            }
         }
         
         // 构建实体

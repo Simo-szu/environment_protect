@@ -60,3 +60,8 @@ jwt:
   access-token-validity: 3600      # 1 小时（秒）
   refresh-token-validity: 2592000  # 30 天（秒）
   max-refresh-tokens-per-user: 5   # 每个用户最多保留 5 个有效 refresh token
+
+# Resend 邮件服务配置
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:noreply@youthloop.top}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.ops.persistence.mapper.HomeBannerMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.ops.persistence.entity.HomeBannerEntity">
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="title" property="title" jdbcType="VARCHAR"/>
+    <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+    <result column="link_type" property="linkType" jdbcType="INTEGER"/>
+    <result column="link_target" property="linkTarget" jdbcType="VARCHAR"/>
+    <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+    <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    <result column="start_at" property="startAt" jdbcType="TIMESTAMP"/>
+    <result column="end_at" property="endAt" jdbcType="TIMESTAMP"/>
+    <result column="created_by" property="createdBy" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="updated_by" property="updatedBy" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, title, image_url, link_type, link_target, sort_order, is_enabled,
+    start_at, end_at, created_by, updated_by, created_at, updated_at
+  </sql>
+
+  <!-- 根据 ID 查询 -->
+  <select id="selectById" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.home_banner
+    WHERE id = #{id}::uuid
+  </select>
+
+  <!-- 查询所有（管理端） -->
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.home_banner
+    ORDER BY sort_order ASC, created_at DESC
+  </select>
+
+  <!-- 查询启用的（用户端） -->
+  <select id="selectActive" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM social.home_banner
+    WHERE is_enabled = true
+      AND (start_at IS NULL OR start_at &lt;= NOW())
+      AND (end_at IS NULL OR end_at &gt;= NOW())
+    ORDER BY sort_order ASC, created_at DESC
+  </select>
+
+  <!-- 插入 -->
+  <insert id="insert">
+    INSERT INTO social.home_banner (
+      id, title, image_url, link_type, link_target, sort_order, is_enabled,
+      start_at, end_at, created_by, updated_by, created_at, updated_at
+    ) VALUES (
+      #{id}::uuid, #{title}, #{imageUrl}, #{linkType}, #{linkTarget}, #{sortOrder}, #{isEnabled},
+      #{startAt}, #{endAt}, #{createdBy}::uuid, #{updatedBy}::uuid, #{createdAt}, #{updatedAt}
+    )
+  </insert>
+
+  <!-- 更新 -->
+  <update id="update">
+    UPDATE social.home_banner
+    SET title = #{title},
+        image_url = #{imageUrl},
+        link_type = #{linkType},
+        link_target = #{linkTarget},
+        sort_order = #{sortOrder},
+        is_enabled = #{isEnabled},
+        start_at = #{startAt},
+        end_at = #{endAt},
+        updated_by = #{updatedBy}::uuid,
+        updated_at = #{updatedAt}
+    WHERE id = #{id}::uuid
+  </update>
+
+  <!-- 删除 -->
+  <delete id="deleteById">
+    DELETE FROM social.home_banner
+    WHERE id = #{id}::uuid
+  </delete>
+
+</mapper>

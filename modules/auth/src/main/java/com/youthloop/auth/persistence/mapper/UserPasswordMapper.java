@@ -4,6 +4,7 @@ import com.youthloop.auth.persistence.entity.UserPasswordEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -26,6 +27,15 @@ public interface UserPasswordMapper {
      * 更新密码
      */
     int update(UserPasswordEntity password);
+    
+    /**
+     * 更新密码哈希
+     */
+    int updatePassword(
+        @Param("userId") UUID userId,
+        @Param("passwordHash") String passwordHash,
+        @Param("updatedAt") LocalDateTime updatedAt
+    );
     
     /**
      * 删除密码

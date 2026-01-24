@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.activity.persistence.mapper.ActivitySignupMapper">
+
+  <!-- 插入报名记录 -->
+  <insert id="insert">
+    INSERT INTO social.activity_signup (
+      id, activity_id, session_id, user_id, email, nickname, real_name, phone,
+      join_time, status, audited_by, audited_at, audit_note, dedup_key, created_at, updated_at
+    ) VALUES (
+      #{id}::uuid, #{activityId}::uuid, #{sessionId}::uuid, #{userId}::uuid,
+      #{email}, #{nickname}, #{realName}, #{phone},
+      #{joinTime}, #{status}, #{auditedBy}::uuid, #{auditedAt}, #{auditNote}, 
+      #{dedupKey}, #{createdAt}, #{updatedAt}
+    )
+  </insert>
+
+  <!-- 根据 ID 查询报名记录 -->
+  <select id="selectById" resultType="com.youthloop.activity.persistence.entity.ActivitySignupEntity">
+    SELECT 
+      id, activity_id, session_id, user_id, email, nickname, real_name, phone,
+      join_time, status, audited_by, audited_at, audit_note,
+      canceled_at, cancel_note, dedup_key, created_at, updated_at
+    FROM social.activity_signup
+    WHERE id = #{id}::uuid
+  </select>
+
+  <!-- 根据活动 ID 和去重键查询报名记录 -->
+  <select id="selectByActivityAndDedupKey" resultType="com.youthloop.activity.persistence.entity.ActivitySignupEntity">
+    SELECT 
+      id, activity_id, session_id, user_id, email, nickname, real_name, phone,
+      join_time, status, audited_by, audited_at, audit_note,
+      canceled_at, cancel_note, dedup_key, created_at, updated_at
+    FROM social.activity_signup
+    WHERE activity_id = #{activityId}::uuid
+    AND dedup_key = #{dedupKey}
+  </select>
+
+  <!-- 更新报名状态 -->
+  <update id="updateStatus">
+    UPDATE social.activity_signup
+    SET status = #{status},
+        audited_by = #{auditedBy}::uuid,
+        audited_at = now(),
+        audit_note = #{auditNote},
+        updated_at = now()
+    WHERE id = #{id}::uuid
+  </update>
+
+  <!-- 取消报名 -->
+  <update id="cancel">
+    UPDATE social.activity_signup
+    SET status = 4,
+        canceled_at = now(),
+        cancel_note = #{cancelNote},
+        updated_at = now()
+    WHERE id = #{id}::uuid
+  </update>
+
+  <!-- 更新场次 ID -->
+  <update id="updateSession">
+    UPDATE social.activity_signup
+    SET session_id = #{sessionId}::uuid,
+        updated_at = now()
+    WHERE id = #{id}::uuid
+  </update>
+
+</mapper>

@@ -2,12 +2,17 @@ package com.youthloop.social.worker.job;
 
 import com.youthloop.event.application.service.OutboxEventService;
 import com.youthloop.event.persistence.entity.OutboxEventEntity;
+import com.youthloop.social.worker.handler.EventHandler;
+import com.youthloop.social.worker.handler.SignupEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Outbox 事件消费者
@@ -20,9 +25,27 @@ import java.util.List;
 public class OutboxEventConsumer {
     
     private final OutboxEventService outboxEventService;
+    private final List<EventHandler> eventHandlers;
     
     private static final int BATCH_SIZE = 10;
     private static final int MAX_RETRY_COUNT = 5;
+    
+    private Map<String, EventHandler> handlerMap;
+    
+    /**
+     * 初始化 Handler 映射
+     */
+    private Map<String, EventHandler> getHandlerMap() {
+        if (handlerMap == null) {
+            handlerMap = eventHandlers.stream()
+                .collect(Collectors.toMap(
+                    EventHandler::supportedEventType,
+                    Function.identity()
+                ));
+            log.info("已注册 {} 个事件处理器: {}", handlerMap.size(), handlerMap.keySet());
+        }
+        return handlerMap;
+    }
     
     /**
      * 每 5 秒轮询一次待处理事件
@@ -58,17 +81,18 @@ public class OutboxEventConsumer {
             // 标记为处理中
             outboxEventService.markProcessing(event.getId());
             
-            // 根据事件类型分发处理
-            switch (event.getEventType()) {
-                case "CONTENT_CREATED":
-                    handleContentCreated(event);
-                    break;
-                case "CONTENT_UPDATED":
-                    handleContentUpdated(event);
-                    break;
-                default:
-                    log.warn("未知的事件类型: {}", event.getEventType());
+            // 查找对应的 Handler（优先精确匹配，然后尝试自定义匹配）
+            EventHandler handler = findHandler(event.getEventType());
+            
+            if (handler == null) {
+                log.warn("未找到事件处理器: eventType={}", event.getEventType());
+                // 未知事件类型，直接标记为完成（避免一直重试）
+                outboxEventService.markDone(event.getId());
+                return;
             }
+            
+            // 调用 Handler 处理
+            handler.handle(event);
             
             // 标记为完成
             outboxEventService.markDone(event.getId());
@@ -92,30 +116,25 @@ public class OutboxEventConsumer {
     }
     
     /**
-     * 处理内容创建事件
+     * 查找事件处理器（支持精确匹配和自定义匹配）
      */
-    private void handleContentCreated(OutboxEventEntity event) {
-        log.info("处理内容创建事件: payload={}", event.getPayload());
+    private EventHandler findHandler(String eventType) {
+        // 1. 优先精确匹配
+        EventHandler handler = getHandlerMap().get(eventType);
+        if (handler != null) {
+            return handler;
+        }
         
-        // TODO: 实现业务逻辑
-        // 例如：
-        // 1. 更新搜索索引
-        // 2. 发送通知
-        // 3. 更新推荐系统
-        // 4. 统计分析
+        // 2. 尝试自定义匹配（例如 SignupEventHandler 支持所有 SIGNUP_ 开头的事件）
+        for (EventHandler h : eventHandlers) {
+            if (h instanceof SignupEventHandler) {
+                SignupEventHandler signupHandler = (SignupEventHandler) h;
+                if (signupHandler.supports(eventType)) {
+                    return signupHandler;
+                }
+            }
+        }
         
-        // 当前仅记录日志
-        log.info("内容创建事件处理完成");
-    }
-    
-    /**
-     * 处理内容更新事件
-     */
-    private void handleContentUpdated(OutboxEventEntity event) {
-        log.info("处理内容更新事件: payload={}", event.getPayload());
-        
-        // TODO: 实现业务逻辑
-        
-        log.info("内容更新事件处理完成");
+        return null;
     }
 }

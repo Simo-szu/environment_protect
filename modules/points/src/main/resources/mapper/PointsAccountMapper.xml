@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.PointsAccountMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.points.persistence.entity.PointsAccountEntity">
+        <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="balance" property="balance" jdbcType="BIGINT"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT user_id, balance, updated_at
+        FROM social.points_account
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO social.points_account (user_id, balance, updated_at)
+        VALUES (
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{balance, jdbcType=BIGINT},
+            #{updatedAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <update id="updateBalance">
+        UPDATE social.points_account
+        SET balance = balance + #{delta, jdbcType=INTEGER},
+            updated_at = now()
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </update>
+    
+</mapper>
