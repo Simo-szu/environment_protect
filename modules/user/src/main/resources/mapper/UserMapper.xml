@@ -77,4 +77,12 @@
     WHERE id = #{id}::uuid
   </update>
 
+  <!-- 更新用户角色 -->
+  <update id="updateRole">
+    UPDATE shared.user
+    SET role = #{role},
+        updated_at = NOW()
+    WHERE id = #{id}::uuid
+  </update>
+
 </mapper>

@@ -1,0 +1,210 @@
+package com.youthloop.query.service;
+
+import com.youthloop.common.api.PageResponse;
+import com.youthloop.common.exception.BizException;
+import com.youthloop.common.util.SecurityUtil;
+import com.youthloop.query.dto.ActivityDetailDTO;
+import com.youthloop.query.dto.ActivityListItemDTO;
+import com.youthloop.query.dto.ActivitySessionDTO;
+import com.youthloop.query.dto.UserState;
+import com.youthloop.query.mapper.ActivityQueryMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 活动查询服务（只读）
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ActivityQueryService {
+    
+    private final ActivityQueryMapper activityQueryMapper;
+    
+    /**
+     * 查询活动列表（分页 + 筛选 + 排序）
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String sort, Integer page, Integer size) {
+        // 参数校验与默认值
+        int validPage = Math.max(1, page);
+        int validSize = Math.min(100, Math.max(1, size));
+        int offset = (validPage - 1) * validSize;
+        Integer validStatus = (status != null) ? status : 1; // 默认只查已发布
+        String validSort = (sort != null && sort.equals("hot")) ? "hot" : "latest";
+        
+        // 查询总数
+        Long total = activityQueryMapper.countActivityList(category, validStatus);
+        
+        if (total == 0) {
+            return PageResponse.of(Collections.emptyList(), total, validPage, validSize);
+        }
+        
+        // 查询列表
+        List<Map<String, Object>> rows = activityQueryMapper.selectActivityList(
+            category, validStatus, validSort, offset, validSize
+        );
+        
+        // 获取当前用户 ID（如果已登录）
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
+        
+        // 如果已登录，批量查询用户状态
+        Map<UUID, UserState> userStateMap = new HashMap<>();
+        if (currentUserId != null && !rows.isEmpty()) {
+            List<UUID> activityIds = rows.stream()
+                .map(row -> UUID.fromString(row.get("id").toString()))
+                .collect(Collectors.toList());
+            
+            List<Map<String, Object>> userStates = activityQueryMapper.selectUserStates(currentUserId, activityIds);
+            for (Map<String, Object> state : userStates) {
+                UUID activityId = UUID.fromString(state.get("activity_id").toString());
+                UserState us = new UserState();
+                us.setLiked((Boolean) state.get("liked"));
+                us.setFavorited((Boolean) state.get("favorited"));
+                us.setDownvoted((Boolean) state.get("downvoted"));
+                userStateMap.put(activityId, us);
+            }
+        }
+        
+        // 组装 DTO
+        List<ActivityListItemDTO> items = rows.stream()
+            .map(row -> mapToActivityListItem(row, userStateMap))
+            .collect(Collectors.toList());
+        
+        return PageResponse.of(items, total, validPage, validSize);
+    }
+    
+    /**
+     * 查询活动详情
+     */
+    @Transactional(readOnly = true)
+    public ActivityDetailDTO getActivityDetail(UUID activityId) {
+        Map<String, Object> row = activityQueryMapper.selectActivityDetail(activityId);
+        
+        if (row == null) {
+            throw new BizException(40041, "活动不存在");
+        }
+        
+        ActivityDetailDTO dto = mapToActivityDetail(row);
+        
+        // 获取当前用户 ID（如果已登录）
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
+        
+        // 如果已登录，查询用户状态
+        if (currentUserId != null) {
+            Map<String, Object> userState = activityQueryMapper.selectUserState(currentUserId, activityId);
+            if (userState != null) {
+                UserState us = new UserState();
+                us.setLiked((Boolean) userState.get("liked"));
+                us.setFavorited((Boolean) userState.get("favorited"));
+                us.setDownvoted((Boolean) userState.get("downvoted"));
+                dto.setUserState(us);
+                dto.setSignedUp((Boolean) userState.get("signed_up"));
+            }
+        }
+        
+        // 如果是 HOSTED 类型（sourceType=2），查询场次信息
+        Integer sourceType = (Integer) row.get("source_type");
+        if (sourceType != null && sourceType == 2) {
+            List<Map<String, Object>> sessionRows = activityQueryMapper.selectActivitySessions(activityId);
+            List<ActivitySessionDTO> sessions = sessionRows.stream()
+                .map(this::mapToActivitySession)
+                .collect(Collectors.toList());
+            dto.setSessions(sessions);
+        }
+        
+        return dto;
+    }
+    
+    // === 私有映射方法 ===
+    
+    private ActivityListItemDTO mapToActivityListItem(Map<String, Object> row, Map<UUID, UserState> userStateMap) {
+        ActivityListItemDTO dto = new ActivityListItemDTO();
+        dto.setId(UUID.fromString(row.get("id").toString()));
+        dto.setSourceType((Integer) row.get("source_type"));
+        dto.setTitle((String) row.get("title"));
+        dto.setCategory((Integer) row.get("category"));
+        dto.setTopic((String) row.get("topic"));
+        dto.setStartTime(row.get("start_time") != null ? (java.time.LocalDateTime) row.get("start_time") : null);
+        dto.setEndTime(row.get("end_time") != null ? (java.time.LocalDateTime) row.get("end_time") : null);
+        dto.setLocation((String) row.get("location"));
+        dto.setStatus((Integer) row.get("status"));
+        dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
+        
+        // 海报（取第一张）
+        Object posterUrls = row.get("poster_urls");
+        if (posterUrls != null && posterUrls instanceof String) {
+            String[] urls = ((String) posterUrls).replaceAll("[{}]", "").split(",");
+            if (urls.length > 0) {
+                dto.setPosterUrl(urls[0].trim());
+            }
+        }
+        
+        // 统计信息
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        
+        // 用户状态
+        UserState userState = userStateMap.get(dto.getId());
+        if (userState != null) {
+            dto.setUserState(userState);
+            dto.setSignedUp(row.get("signed_up") != null ? (Boolean) row.get("signed_up") : false);
+        }
+        
+        return dto;
+    }
+    
+    private ActivityDetailDTO mapToActivityDetail(Map<String, Object> row) {
+        ActivityDetailDTO dto = new ActivityDetailDTO();
+        dto.setId(UUID.fromString(row.get("id").toString()));
+        dto.setSourceType((Integer) row.get("source_type"));
+        dto.setTitle((String) row.get("title"));
+        dto.setCategory((Integer) row.get("category"));
+        dto.setTopic((String) row.get("topic"));
+        dto.setDescription((String) row.get("description"));
+        dto.setStartTime(row.get("start_time") != null ? (java.time.LocalDateTime) row.get("start_time") : null);
+        dto.setEndTime(row.get("end_time") != null ? (java.time.LocalDateTime) row.get("end_time") : null);
+        dto.setLocation((String) row.get("location"));
+        dto.setSignupPolicy((Integer) row.get("signup_policy"));
+        dto.setStatus((Integer) row.get("status"));
+        dto.setSourceUrl((String) row.get("source_url"));
+        dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
+        dto.setUpdatedAt((java.time.LocalDateTime) row.get("updated_at"));
+        
+        // 海报列表
+        Object posterUrls = row.get("poster_urls");
+        if (posterUrls != null && posterUrls instanceof String) {
+            String[] urls = ((String) posterUrls).replaceAll("[{}]", "").split(",");
+            dto.setPosterUrls(Arrays.stream(urls).map(String::trim).collect(Collectors.toList()));
+        }
+        
+        // 统计信息
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        
+        return dto;
+    }
+    
+    private ActivitySessionDTO mapToActivitySession(Map<String, Object> row) {
+        ActivitySessionDTO dto = new ActivitySessionDTO();
+        dto.setId(UUID.fromString(row.get("id").toString()));
+        dto.setActivityId(UUID.fromString(row.get("activity_id").toString()));
+        dto.setSessionName((String) row.get("session_name"));
+        dto.setStartTime((java.time.LocalDateTime) row.get("start_time"));
+        dto.setEndTime((java.time.LocalDateTime) row.get("end_time"));
+        dto.setLocation((String) row.get("location"));
+        dto.setCapacity((Integer) row.get("capacity"));
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setStatus((Integer) row.get("status"));
+        return dto;
+    }
+}

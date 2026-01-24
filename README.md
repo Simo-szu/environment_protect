@@ -16,7 +16,7 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
 ### 技术架构
 
 - **前端**：Next.js + React + TypeScript
-- **后端**：Spring Boot + Java 17（模块化单体架构）
+- **后端**：Spring Boot 3.4.x + Java 21（模块化单体架构）
 - **数据库**：PostgreSQL（多 schema 隔离）
 - **对象存储**：MinIO
 - **消息队列**：Outbox 模式（基于数据库轮询）
@@ -25,7 +25,7 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
 
 ### 前置要求
 
-- Java 17+
+- Java 21（Temurin 21 LTS）
 - Node.js 18+
 - PostgreSQL 14+
 - Docker & Docker Compose（可选，用于本地开发环境）

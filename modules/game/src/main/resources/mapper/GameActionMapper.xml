@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.game.persistence.mapper.GameActionMapper">
+    
+    <insert id="insert">
+        INSERT INTO game.game_action (id, session_id, user_id, action_type, action_data, points_earned, created_at)
+        VALUES (
+            #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{sessionId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{actionType, jdbcType=INTEGER},
+            #{actionData, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{pointsEarned, jdbcType=INTEGER},
+            #{createdAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+</mapper>

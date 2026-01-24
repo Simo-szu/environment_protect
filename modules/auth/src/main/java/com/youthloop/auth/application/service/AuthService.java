@@ -207,8 +207,17 @@ public class AuthService {
             }
         }
         
-        // 生成访问令牌
-        String accessToken = jwtTokenProvider.generateAccessToken(userId);
+        // 查询用户以获取角色
+        UserBasicInfo userInfo = userQueryFacade.getUserBasicInfo(userId);
+        if (userInfo == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+        
+        // 将数据库 role 转换为字符串
+        String roleStr = convertRoleToString(userInfo.getRole());
+        
+        // 生成访问令牌（带角色）
+        String accessToken = jwtTokenProvider.generateAccessToken(userId, roleStr);
         
         // 生成刷新令牌
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
@@ -224,6 +233,21 @@ public class AuthService {
         refreshTokenMapper.insert(tokenEntity);
         
         return new AuthResponse(userId, accessToken, refreshToken, accessTokenValidity);
+    }
+    
+    /**
+     * 将数据库 role 代码转换为字符串
+     */
+    private String convertRoleToString(Integer roleCode) {
+        if (roleCode == null) {
+            return "USER";
+        }
+        switch (roleCode) {
+            case 1: return "USER";
+            case 2: return "HOST";
+            case 3: return "ADMIN";
+            default: return "USER";
+        }
     }
     
     /**

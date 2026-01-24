@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.query.mapper.MeQueryMapper">
+
+  <!-- 查询我的收藏/点赞列表 -->
+  <select id="selectMyReactions" resultType="map">
+    SELECT 
+      r.id,
+      r.reaction_type,
+      r.target_type,
+      r.target_id,
+      r.created_at,
+      <choose>
+        <when test="targetType == null or targetType == 1">
+          c.title AS content_title,
+          c.type AS content_type,
+          c.cover_url AS content_cover_url,
+          c.summary AS content_summary,
+        </when>
+      </choose>
+      <choose>
+        <when test="targetType == null or targetType == 2">
+          a.title AS activity_title,
+          a.category AS activity_category,
+          (SELECT unnest(a.poster_urls) LIMIT 1) AS activity_poster_url,
+          a.start_time AS activity_start_time,
+          a.location AS activity_location,
+        </when>
+      </choose>
+      NULL AS placeholder
+    FROM social.reaction r
+    <if test="targetType == null or targetType == 1">
+      LEFT JOIN social.content c ON r.target_type = 1 AND r.target_id = c.id
+    </if>
+    <if test="targetType == null or targetType == 2">
+      LEFT JOIN social.activity a ON r.target_type = 2 AND r.target_id = a.id
+    </if>
+    WHERE r.user_id = #{userId}::uuid
+    <if test="reactionType != null">
+      AND r.reaction_type = #{reactionType}
+    </if>
+    <if test="targetType != null">
+      AND r.target_type = #{targetType}
+    </if>
+    ORDER BY r.created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计我的收藏/点赞总数 -->
+  <select id="countMyReactions" resultType="long">
+    SELECT COUNT(*)
+    FROM social.reaction r
+    WHERE r.user_id = #{userId}::uuid
+    <if test="reactionType != null">
+      AND r.reaction_type = #{reactionType}
+    </if>
+    <if test="targetType != null">
+      AND r.target_type = #{targetType}
+    </if>
+  </select>
+
+  <!-- 查询我的通知列表 -->
+  <select id="selectMyNotifications" resultType="map">
+    SELECT 
+      n.id,
+      n.type,
+      n.is_read,
+      n.created_at,
+      n.actor_id,
+      u.nickname AS actor_nickname,
+      up.avatar_url AS actor_avatar,
+      n.target_type,
+      n.target_id,
+      CASE 
+        WHEN n.target_type = 1 THEN c.title
+        WHEN n.target_type = 2 THEN a.title
+        WHEN n.target_type = 3 THEN SUBSTRING(cm.content, 1, 50)
+        ELSE NULL
+      END AS target_preview,
+      n.comment_id,
+      cm.content AS comment_content
+    FROM social.notification n
+    LEFT JOIN shared.user u ON n.actor_id = u.id
+    LEFT JOIN shared.user_profile up ON n.actor_id = up.user_id
+    LEFT JOIN social.content c ON n.target_type = 1 AND n.target_id = c.id
+    LEFT JOIN social.activity a ON n.target_type = 2 AND n.target_id = a.id
+    LEFT JOIN social.comment cm ON n.comment_id = cm.id
+    WHERE n.user_id = #{userId}::uuid
+    ORDER BY n.created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计我的通知总数 -->
+  <select id="countMyNotifications" resultType="long">
+    SELECT COUNT(*)
+    FROM social.notification
+    WHERE user_id = #{userId}::uuid
+  </select>
+
+  <!-- 查询我报名的活动列表 -->
+  <select id="selectMyActivities" resultType="map">
+    SELECT 
+      sig.id AS signup_id,
+      sig.activity_id,
+      sig.session_id,
+      sig.status AS signup_status,
+      sig.created_at AS signup_at,
+      a.title,
+      a.category,
+      a.start_time,
+      a.end_time,
+      a.location,
+      a.poster_urls,
+      a.status AS activity_status,
+      COALESCE(s.signup_count, 0) AS signup_count,
+      COALESCE(s.like_count, 0) AS like_count
+    FROM social.activity_signup sig
+    INNER JOIN social.activity a ON sig.activity_id = a.id
+    LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    WHERE sig.user_id = #{userId}::uuid
+    <if test="status != null">
+      AND sig.status = #{status}
+    </if>
+    ORDER BY sig.created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计我报名的活动总数 -->
+  <select id="countMyActivities" resultType="long">
+    SELECT COUNT(*)
+    FROM social.activity_signup
+    WHERE user_id = #{userId}::uuid
+    <if test="status != null">
+      AND status = #{status}
+    </if>
+  </select>
+
+</mapper>

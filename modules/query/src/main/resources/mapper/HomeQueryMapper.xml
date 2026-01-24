@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.query.mapper.HomeQueryMapper">
+
+  <!-- 查询启用的轮播/运营位 -->
+  <select id="selectActiveBanners" resultType="map">
+    SELECT 
+      id,
+      title,
+      image_url,
+      link_url,
+      sort_order,
+      start_at,
+      end_at
+    FROM social.home_banner
+    WHERE is_enabled = true
+      AND (start_at IS NULL OR start_at <= NOW())
+      AND (end_at IS NULL OR end_at >= NOW())
+    ORDER BY sort_order ASC, created_at DESC
+  </select>
+
+  <!-- 查询最新活动（首页用） -->
+  <select id="selectLatestActivities" resultType="map">
+    SELECT 
+      a.id,
+      a.source_type,
+      a.title,
+      a.category,
+      a.topic,
+      a.start_time,
+      a.end_time,
+      a.location,
+      a.poster_urls,
+      a.status,
+      a.created_at,
+      COALESCE(s.signup_count, 0) AS signup_count,
+      COALESCE(s.like_count, 0) AS like_count,
+      COALESCE(s.fav_count, 0) AS fav_count,
+      COALESCE(s.comment_count, 0) AS comment_count
+    FROM social.activity a
+    LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    WHERE a.status = 1
+    ORDER BY a.start_time DESC NULLS LAST, a.created_at DESC
+    LIMIT #{limit}
+  </select>
+
+</mapper>

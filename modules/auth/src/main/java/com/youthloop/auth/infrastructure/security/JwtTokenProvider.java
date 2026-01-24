@@ -33,17 +33,26 @@ public class JwtTokenProvider {
     private static final String TOKEN_TYPE_CLAIM = "typ";
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
+    private static final String ROLE_CLAIM = "role";
     
     /**
      * 生成访问令牌
      */
     public String generateAccessToken(UUID userId) {
+        return generateAccessToken(userId, "USER");
+    }
+    
+    /**
+     * 生成访问令牌（带角色）
+     */
+    public String generateAccessToken(UUID userId, String role) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiry = now.plusSeconds(accessTokenValidity);
         
         return Jwts.builder()
             .subject(userId.toString())
             .claim(TOKEN_TYPE_CLAIM, TOKEN_TYPE_ACCESS)
+            .claim(ROLE_CLAIM, role != null ? role : "USER")
             .issuedAt(toDate(now))
             .expiration(toDate(expiry))
             .signWith(getSigningKey())
@@ -72,6 +81,14 @@ public class JwtTokenProvider {
     public UUID getUserIdFromToken(String token) {
         Claims claims = parseToken(token);
         return UUID.fromString(claims.getSubject());
+    }
+    
+    /**
+     * 从 token 中获取用户角色
+     */
+    public String getRoleFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.get(ROLE_CLAIM, String.class);
     }
     
     /**

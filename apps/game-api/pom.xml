@@ -26,10 +26,30 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Game Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-game</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Auth Module (for JWT) -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <!-- Actuator -->

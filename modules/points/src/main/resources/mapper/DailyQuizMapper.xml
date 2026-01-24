@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.DailyQuizMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.points.persistence.entity.DailyQuizEntity">
+        <id column="quiz_date" property="quizDate" jdbcType="DATE"/>
+        <result column="question" property="question" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="answer" property="answer" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT quiz_date, question, answer, points, created_at
+        FROM social.daily_quiz
+        WHERE quiz_date = #{quizDate, jdbcType=DATE}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO social.daily_quiz (quiz_date, question, answer, points, created_at)
+        VALUES (
+            #{quizDate, jdbcType=DATE},
+            #{question, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{answer, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{points, jdbcType=INTEGER},
+            #{createdAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+</mapper>

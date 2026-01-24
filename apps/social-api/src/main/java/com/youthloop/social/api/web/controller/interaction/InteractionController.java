@@ -2,6 +2,7 @@ package com.youthloop.social.api.web.controller.interaction;
 
 import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.UnifiedRequest;
+import com.youthloop.common.security.RequireAuth;
 import com.youthloop.interaction.api.dto.CreateCommentRequest;
 import com.youthloop.interaction.api.dto.ToggleReactionRequest;
 import com.youthloop.interaction.api.facade.CommentFacade;
@@ -16,11 +17,13 @@ import java.util.UUID;
 
 /**
  * 互动 Controller（评论/反应）
+ * 所有写入接口都需要登录
  */
 @Tag(name = "互动", description = "评论、点赞、收藏、踩")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@RequireAuth
 public class InteractionController {
     
     private final CommentFacade commentFacade;

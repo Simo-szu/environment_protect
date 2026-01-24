@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.PointsLedgerMapper">
+    
+    <insert id="insert">
+        INSERT INTO social.points_ledger (id, user_id, delta, reason, ref_type, ref_id, memo, created_at)
+        VALUES (
+            #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{delta, jdbcType=INTEGER},
+            #{reason, jdbcType=INTEGER},
+            #{refType, jdbcType=INTEGER},
+            #{refId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{memo, jdbcType=VARCHAR},
+            #{createdAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+</mapper>

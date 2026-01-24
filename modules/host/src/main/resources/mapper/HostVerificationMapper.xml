@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.host.persistence.mapper.HostVerificationMapper">
+
+  <!-- 插入认证申请 -->
+  <insert id="insert">
+    INSERT INTO social.host_verification (
+      user_id, org_name, contact_name, contact_phone, doc_urls,
+      status, submitted_at, created_at, updated_at
+    ) VALUES (
+      #{userId}::uuid, #{orgName}, #{contactName}, #{contactPhone}, #{docUrls}::jsonb,
+      #{status}, #{submittedAt}, #{createdAt}, #{updatedAt}
+    )
+    ON CONFLICT (user_id) DO UPDATE SET
+      org_name = EXCLUDED.org_name,
+      contact_name = EXCLUDED.contact_name,
+      contact_phone = EXCLUDED.contact_phone,
+      doc_urls = EXCLUDED.doc_urls,
+      status = EXCLUDED.status,
+      submitted_at = EXCLUDED.submitted_at,
+      updated_at = EXCLUDED.updated_at
+  </insert>
+
+  <!-- 根据用户 ID 查询认证记录 -->
+  <select id="selectByUserId" resultType="com.youthloop.host.persistence.entity.HostVerificationEntity">
+    SELECT 
+      user_id, org_name, contact_name, contact_phone, doc_urls,
+      status, submitted_at, reviewed_by, reviewed_at, review_note,
+      created_at, updated_at
+    FROM social.host_verification
+    WHERE user_id = #{userId}::uuid
+  </select>
+
+  <!-- 更新审核状态 -->
+  <update id="updateReviewStatus">
+    UPDATE social.host_verification
+    SET status = #{status},
+        reviewed_by = #{reviewedBy}::uuid,
+        reviewed_at = now(),
+        review_note = #{reviewNote},
+        updated_at = now()
+    WHERE user_id = #{userId}::uuid
+  </update>
+
+</mapper>

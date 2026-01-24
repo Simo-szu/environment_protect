@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.DailyTaskProgressMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.points.persistence.entity.DailyTaskProgressEntity">
+        <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <id column="task_date" property="taskDate" jdbcType="DATE"/>
+        <id column="task_id" property="taskId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="progress" property="progress" jdbcType="INTEGER"/>
+        <result column="target" property="target" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectByUserIdAndDate" resultMap="BaseResultMap">
+        SELECT user_id, task_date, task_id, progress, target, status, updated_at
+        FROM social.daily_task_progress
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND task_date = #{taskDate, jdbcType=DATE}
+    </select>
+    
+    <select id="selectByUserIdDateAndTaskId" resultMap="BaseResultMap">
+        SELECT user_id, task_date, task_id, progress, target, status, updated_at
+        FROM social.daily_task_progress
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND task_date = #{taskDate, jdbcType=DATE}
+          AND task_id = #{taskId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO social.daily_task_progress (user_id, task_date, task_id, progress, target, status, updated_at)
+        VALUES (
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{taskDate, jdbcType=DATE},
+            #{taskId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{progress, jdbcType=INTEGER},
+            #{target, jdbcType=INTEGER},
+            #{status, jdbcType=INTEGER},
+            #{updatedAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <update id="update">
+        UPDATE social.daily_task_progress
+        SET progress = #{progress, jdbcType=INTEGER},
+            status = #{status, jdbcType=INTEGER},
+            updated_at = #{updatedAt, jdbcType=TIMESTAMP}
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND task_date = #{taskDate, jdbcType=DATE}
+          AND task_id = #{taskId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </update>
+    
+</mapper>

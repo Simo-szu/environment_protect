@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.activity.persistence.mapper.ActivityMapper">
+
+  <!-- 查询活动的报名策略 -->
+  <select id="selectSignupPolicy" resultType="java.lang.Integer">
+    SELECT signup_policy
+    FROM social.activity
+    WHERE id = #{activityId}::uuid
+  </select>
+
+</mapper>

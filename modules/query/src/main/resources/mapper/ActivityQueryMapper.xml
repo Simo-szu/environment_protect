@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.query.mapper.ActivityQueryMapper">
+
+  <!-- 查询活动列表 -->
+  <select id="selectActivityList" resultType="map">
+    SELECT 
+      a.id,
+      a.source_type,
+      a.title,
+      a.category,
+      a.topic,
+      a.start_time,
+      a.end_time,
+      a.location,
+      a.poster_urls,
+      a.status,
+      a.created_at,
+      COALESCE(s.signup_count, 0) AS signup_count,
+      COALESCE(s.like_count, 0) AS like_count,
+      COALESCE(s.fav_count, 0) AS fav_count,
+      COALESCE(s.comment_count, 0) AS comment_count,
+      COALESCE(s.hot_score, 0) AS hot_score
+    FROM social.activity a
+    LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    WHERE 1=1
+    <if test="category != null">
+      AND a.category = #{category}
+    </if>
+    <if test="status != null">
+      AND a.status = #{status}
+    </if>
+    <choose>
+      <when test="sort == 'hot'">
+        ORDER BY COALESCE(s.hot_score, 0) DESC, a.created_at DESC
+      </when>
+      <otherwise>
+        ORDER BY a.start_time DESC NULLS LAST, a.created_at DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 统计活动总数 -->
+  <select id="countActivityList" resultType="long">
+    SELECT COUNT(*)
+    FROM social.activity a
+    WHERE 1=1
+    <if test="category != null">
+      AND a.category = #{category}
+    </if>
+    <if test="status != null">
+      AND a.status = #{status}
+    </if>
+  </select>
+
+  <!-- 查询活动详情 -->
+  <select id="selectActivityDetail" resultType="map">
+    SELECT 
+      a.id,
+      a.source_type,
+      a.title,
+      a.category,
+      a.topic,
+      a.description,
+      a.start_time,
+      a.end_time,
+      a.location,
+      a.poster_urls,
+      a.signup_policy,
+      a.status,
+      a.source_url,
+      a.created_at,
+      a.updated_at,
+      COALESCE(s.signup_count, 0) AS signup_count,
+      COALESCE(s.like_count, 0) AS like_count,
+      COALESCE(s.fav_count, 0) AS fav_count,
+      COALESCE(s.comment_count, 0) AS comment_count
+    FROM social.activity a
+    LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    WHERE a.id = #{activityId}::uuid
+  </select>
+
+  <!-- 查询活动场次列表 -->
+  <select id="selectActivitySessions" resultType="map">
+    SELECT 
+      id,
+      activity_id,
+      session_name,
+      start_time,
+      end_time,
+      location,
+      capacity,
+      signup_count,
+      status
+    FROM social.activity_session
+    WHERE activity_id = #{activityId}::uuid
+    ORDER BY start_time ASC
+  </select>
+
+  <!-- 批量查询用户状态（列表用） -->
+  <select id="selectUserStates" resultType="map">
+    SELECT 
+      r.target_id AS activity_id,
+      MAX(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
+      MAX(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
+      MAX(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
+      EXISTS(
+        SELECT 1 FROM social.activity_signup sig 
+        WHERE sig.activity_id = r.target_id 
+        AND sig.user_id = #{userId}::uuid
+        AND sig.status IN (1, 2)
+      ) AS signed_up
+    FROM social.reaction r
+    WHERE r.user_id = #{userId}::uuid
+    AND r.target_type = 2
+    AND r.target_id IN
+    <foreach collection="activityIds" item="id" open="(" separator="," close=")">
+      #{id}::uuid
+    </foreach>
+    GROUP BY r.target_id
+  </select>
+
+  <!-- 查询单个活动的用户状态（详情用） -->
+  <select id="selectUserState" resultType="map">
+    SELECT 
+      MAX(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
+      MAX(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
+      MAX(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
+      EXISTS(
+        SELECT 1 FROM social.activity_signup sig 
+        WHERE sig.activity_id = #{activityId}::uuid
+        AND sig.user_id = #{userId}::uuid
+        AND sig.status IN (1, 2)
+      ) AS signed_up
+    FROM social.reaction r
+    WHERE r.user_id = #{userId}::uuid
+    AND r.target_type = 2
+    AND r.target_id = #{activityId}::uuid
+  </select>
+
+</mapper>

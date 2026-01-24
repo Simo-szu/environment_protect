@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.search.persistence.mapper.SearchMapper">
+    
+    <resultMap id="SearchResultMap" type="com.youthloop.search.api.dto.SearchResultDTO">
+        <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="result_type" property="resultType" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="summary" property="summary" jdbcType="VARCHAR"/>
+        <result column="cover_url" property="coverUrl" jdbcType="VARCHAR"/>
+        <result column="published_at" property="publishedAt" jdbcType="TIMESTAMP"/>
+        <result column="relevance_score" property="relevanceScore" jdbcType="FLOAT"/>
+    </resultMap>
+    
+    <!-- 搜索内容 - 使用PostgreSQL全文搜索 -->
+    <select id="searchContent" resultMap="SearchResultMap">
+        SELECT 
+            id,
+            1 as result_type,
+            title,
+            summary,
+            cover_url,
+            published_at,
+            ts_rank(fts, plainto_tsquery('simple', #{keyword})) as relevance_score
+        FROM social.content
+        WHERE status = 1
+          AND fts @@ plainto_tsquery('simple', #{keyword})
+        ORDER BY relevance_score DESC, published_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="countContent" resultType="long">
+        SELECT COUNT(*)
+        FROM social.content
+        WHERE status = 1
+          AND fts @@ plainto_tsquery('simple', #{keyword})
+    </select>
+    
+    <!-- 搜索活动 - 使用PostgreSQL全文搜索 -->
+    <select id="searchActivity" resultMap="SearchResultMap">
+        SELECT 
+            id,
+            2 as result_type,
+            title,
+            description as summary,
+            NULL as cover_url,
+            start_time as published_at,
+            ts_rank(fts, plainto_tsquery('simple', #{keyword})) as relevance_score
+        FROM social.activity
+        WHERE status = 1
+          AND fts @@ plainto_tsquery('simple', #{keyword})
+        ORDER BY relevance_score DESC, start_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="countActivity" resultType="long">
+        SELECT COUNT(*)
+        FROM social.activity
+        WHERE status = 1
+          AND fts @@ plainto_tsquery('simple', #{keyword})
+    </select>
+    
+</mapper>

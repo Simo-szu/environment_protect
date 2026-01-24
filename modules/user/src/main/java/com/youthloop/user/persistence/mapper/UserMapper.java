@@ -48,4 +48,9 @@ public interface UserMapper {
      * 更新最后登录时间
      */
     int updateLastLoginAt(@Param("id") UUID id);
+    
+    /**
+     * 更新用户角色
+     */
+    int updateRole(@Param("id") UUID id, @Param("role") Integer role);
 }

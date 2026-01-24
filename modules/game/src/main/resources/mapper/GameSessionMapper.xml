@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.game.persistence.mapper.GameSessionMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.game.persistence.entity.GameSessionEntity">
+        <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <result column="pond_state" property="pondState" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="score" property="score" jdbcType="BIGINT"/>
+        <result column="level" property="level" jdbcType="INTEGER"/>
+        <result column="started_at" property="startedAt" jdbcType="TIMESTAMP"/>
+        <result column="last_action_at" property="lastActionAt" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, user_id, pond_state, score, level, started_at, last_action_at, status, created_at, updated_at
+        FROM game.game_session
+        WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </select>
+    
+    <select id="selectActiveByUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, pond_state, score, level, started_at, last_action_at, status, created_at, updated_at
+        FROM game.game_session
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND status = 1
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO game.game_session (id, user_id, pond_state, score, level, started_at, last_action_at, status, created_at, updated_at)
+        VALUES (
+            #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{pondState, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{score, jdbcType=BIGINT},
+            #{level, jdbcType=INTEGER},
+            #{startedAt, jdbcType=TIMESTAMP},
+            #{lastActionAt, jdbcType=TIMESTAMP},
+            #{status, jdbcType=INTEGER},
+            #{createdAt, jdbcType=TIMESTAMP},
+            #{updatedAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <update id="update">
+        UPDATE game.game_session
+        SET pond_state = #{pondState, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            score = #{score, jdbcType=BIGINT},
+            level = #{level, jdbcType=INTEGER},
+            last_action_at = #{lastActionAt, jdbcType=TIMESTAMP},
+            status = #{status, jdbcType=INTEGER},
+            updated_at = #{updatedAt, jdbcType=TIMESTAMP}
+        WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </update>
+    
+</mapper>

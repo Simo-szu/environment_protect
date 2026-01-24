@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.points.persistence.mapper.DailyQuizRecordMapper">
+    
+    <resultMap id="BaseResultMap" type="com.youthloop.points.persistence.entity.DailyQuizRecordEntity">
+        <id column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
+        <id column="quiz_date" property="quizDate" jdbcType="DATE"/>
+        <result column="user_answer" property="userAnswer" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="is_correct" property="isCorrect" jdbcType="BOOLEAN"/>
+        <result column="points" property="points" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <select id="selectByUserIdAndDate" resultMap="BaseResultMap">
+        SELECT user_id, quiz_date, user_answer, is_correct, points, created_at
+        FROM social.daily_quiz_record
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND quiz_date = #{quizDate, jdbcType=DATE}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO social.daily_quiz_record (user_id, quiz_date, user_answer, is_correct, points, created_at)
+        VALUES (
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler},
+            #{quizDate, jdbcType=DATE},
+            #{userAnswer, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{isCorrect, jdbcType=BOOLEAN},
+            #{points, jdbcType=INTEGER},
+            #{createdAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+</mapper>
