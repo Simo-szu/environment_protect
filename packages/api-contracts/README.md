@@ -83,4 +83,4 @@ function handleError(code: number) {
 ## 相关文档
 
 - [Project-Structure.md](../../Project-Structure.md) - 项目整体架构
-- [Schema-V0.1.dsl.md.md](../../Schema-V0.1.dsl.md.md) - 数据库模型定义
+- [Schema-V0.1.dsl.md](../../Schema-V0.1.dsl.md) - 数据库模型定义

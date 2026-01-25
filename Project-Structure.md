@@ -1,7 +1,6 @@
 # Project-Structure（Monorepo 项目总指南）v0.4.1（2026-01-24）
 
 目标：用两份文档稳定推进开发：
-- 数据库设计：`Schema-V0.1.dsl.md.md`（当前仅覆盖 Social 模块，不包含 Game 业务表）
 - 项目总指南：本文件（monorepo 文件结构、接口规范、端点清单、数据库 schema / Flyway 组织方式）
 
 ---
@@ -160,8 +159,10 @@ modules/<domain>/
 └─ persistence/                                 # MyBatis 持久化（固定 MyBatis）
    ├─ entity/                                   # 数据库映射对象（PO/Entity，不承载业务规则）
    ├─ mapper/                                   # MyBatis Mapper 接口
-   ├─ xml/                                      # Mapper XML（如果选择 XML 方式）
    └─ sql/                                      # 复杂 SQL（可选：按场景存放，便于 review）
+
+Mapper XML 放置位置（强约束）：
+- `modules/<domain>/src/main/resources/mapper/**/*.xml`
 
 放置规则（强约束）：
 - `apps/social-api` 只能依赖 `modules/*`，不允许把业务写进 controller
@@ -565,7 +566,7 @@ JDBC 常见做法：
 ### 12.5 v0.1（Social）表归属清单（必须完整标注）
 说明：这里的“shared/social”是指 PostgreSQL schema。**表一旦定归属就不要跨 schema 迁移**；跨 schema 的关联只允许“读”或通过 API/事件协作写入。
 
-| 归属 schema | 表（Schema-V0.1.dsl.md.md 中的 model） | 备注 |
+| 归属 schema | 表（Schema-V0.1.dsl.md 中的 model） | 备注 |
 |---|---|---|
 | `shared` | `user` / `user_profile` / `user_identity` / `user_password` | 用户与档案（跨服务识别的最小集合） |
 | `shared` | `auth_refresh_token` / `verification_code` | 登录态与验证码（跨服务共享的最小集合） |

@@ -66,6 +66,8 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
    ```bash
    cd apps/web
    pnpm install
+   # 首次启动请准备环境变量
+   cp .env.example .env.local
    pnpm dev
    ```
 
@@ -108,7 +110,7 @@ youthloop/
 ### 核心文档
 
 - **[Project-Structure.md](./Project-Structure.md)** - 项目架构与开发规范（必读）
-- **[Schema-V0.1.dsl.md.md](./Schema-V0.1.dsl.md.md)** - 数据库模型定义
+- **[Schema-V0.1.dsl.md](./Schema-V0.1.dsl.md)** - 数据库模型定义
 - **[packages/api-contracts/ERROR_CODES.md](./packages/api-contracts/ERROR_CODES.md)** - 错误码规范
 
 ### 模块开发规范
