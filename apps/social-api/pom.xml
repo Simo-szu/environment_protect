@@ -14,7 +14,7 @@
 
     <artifactId>social-api</artifactId>
     <name>Social API</name>
-    <description>Social Service - API 杩涚▼</description>
+    <description>Social Service - API start▼</description>
 
 
 
@@ -188,6 +188,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- Spring Boot DevTools (Hot Reload) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

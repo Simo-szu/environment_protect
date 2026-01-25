@@ -25,6 +25,19 @@
         "joinNow": "Join Now",
         "viewContent": "View Content"
     },
+    "auth": {
+        "welcome": "Welcome back, continue your eco journey",
+        "login": {
+            "title": "Login",
+            "noAccount": "No account?",
+            "registerNow": "Register Now",
+            "agreeTerms": "Login implies agreement to",
+            "userAgreement": "User Service Agreement",
+            "and": "and",
+            "privacyPolicy": "Privacy Policy",
+            "or": "Or"
+        }
+    },
     "navigation": {
         "home": "Home",
         "activities": "Activities",

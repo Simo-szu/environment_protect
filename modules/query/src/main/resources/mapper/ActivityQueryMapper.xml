@@ -104,9 +104,9 @@
   <select id="selectUserStates" resultType="map">
     SELECT 
       r.target_id AS activity_id,
-      MAX(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
-      MAX(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
-      MAX(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
+      BOOL_OR(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
+      BOOL_OR(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
+      BOOL_OR(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
       EXISTS(
         SELECT 1 FROM social.activity_signup sig 
         WHERE sig.activity_id = r.target_id 
@@ -126,9 +126,9 @@
   <!-- 查询单个活动的用户状态（详情用） -->
   <select id="selectUserState" resultType="map">
     SELECT 
-      MAX(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
-      MAX(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
-      MAX(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
+      BOOL_OR(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
+      BOOL_OR(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
+      BOOL_OR(CASE WHEN r.reaction_type = 3 THEN true ELSE false END) AS downvoted,
       EXISTS(
         SELECT 1 FROM social.activity_signup sig 
         WHERE sig.activity_id = #{activityId}::uuid

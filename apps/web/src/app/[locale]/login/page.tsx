@@ -91,8 +91,13 @@ export default function LoginPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Google Login Error:', error);
-            setError('Google 登录失败');
+            setError(error.message || 'Google 登录失败，请重试');
         }
+    };
+
+    const handleGoogleError = () => {
+        console.error('Google Login Error: User cancelled or error occurred');
+        // 不显示错误信息，因为用户可能只是取消了登录
     };
 
 
@@ -289,16 +294,19 @@ export default function LoginPage() {
                                 {submitting ? '登录中...' : '立即登录'}
                             </button>
 
-                            <div className="flex justify-center w-full">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => setError('Google 登录失败')}
-                                    useOneTap
-                                    width="100%"
-                                    theme="outline"
-                                    shape="rectangular"
-                                />
-                            </div>
+                            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                                <div className="flex justify-center w-full">
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={handleGoogleError}
+                                        width="100%"
+                                        theme="outline"
+                                        shape="rectangular"
+                                        auto_select={false}
+                                        cancel_on_tap_outside={true}
+                                    />
+                                </div>
+                            )}
 
 
 

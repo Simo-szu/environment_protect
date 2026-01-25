@@ -91,8 +91,13 @@ export default function RegisterPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Google Register Error:', error);
-            setError('Google 注册失败');
+            setError(error.message || 'Google 注册失败，请重试');
         }
+    };
+
+    const handleGoogleError = () => {
+        console.error('Google Register Error: User cancelled or error occurred');
+        // 不显示错误信息，因为用户可能只是取消了注册
     };
 
 
@@ -364,16 +369,20 @@ export default function RegisterPage() {
                                 {submitting ? '注册中...' : '提交注册'}
                             </button>
 
-                            <div className="flex justify-center w-full">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => setError('Google 注册失败')}
-                                    text="signup_with"
-                                    width="100%"
-                                    theme="outline"
-                                    shape="rectangular"
-                                />
-                            </div>
+                            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                                <div className="flex justify-center w-full">
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={handleGoogleError}
+                                        text="signup_with"
+                                        width="100%"
+                                        theme="outline"
+                                        shape="rectangular"
+                                        auto_select={false}
+                                        cancel_on_tap_outside={true}
+                                    />
+                                </div>
+                            )}
 
 
                         </form>

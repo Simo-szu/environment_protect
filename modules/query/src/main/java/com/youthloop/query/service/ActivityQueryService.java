@@ -65,7 +65,7 @@ public class ActivityQueryService {
             
             List<Map<String, Object>> userStates = activityQueryMapper.selectUserStates(currentUserId, activityIds);
             for (Map<String, Object> state : userStates) {
-                UUID activityId = UUID.fromString(state.get("activity_id").toString());
+                UUID activityId = UUID.fromString(state.get("activityId").toString());
                 UserState us = new UserState();
                 us.setLiked((Boolean) state.get("liked"));
                 us.setFavorited((Boolean) state.get("favorited"));
@@ -107,12 +107,12 @@ public class ActivityQueryService {
                 us.setFavorited((Boolean) userState.get("favorited"));
                 us.setDownvoted((Boolean) userState.get("downvoted"));
                 dto.setUserState(us);
-                dto.setSignedUp((Boolean) userState.get("signed_up"));
+                dto.setSignedUp((Boolean) userState.get("signedUp"));
             }
         }
         
         // 如果是 HOSTED 类型（sourceType=2），查询场次信息
-        Integer sourceType = (Integer) row.get("source_type");
+        Integer sourceType = (Integer) row.get("sourceType");
         if (sourceType != null && sourceType == 2) {
             List<Map<String, Object>> sessionRows = activityQueryMapper.selectActivitySessions(activityId);
             List<ActivitySessionDTO> sessions = sessionRows.stream()
@@ -137,21 +137,32 @@ public class ActivityQueryService {
     
     // === 私有映射方法 ===
     
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     private ActivityListItemDTO mapToActivityListItem(Map<String, Object> row, Map<UUID, UserState> userStateMap) {
         ActivityListItemDTO dto = new ActivityListItemDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setSourceType((Integer) row.get("source_type"));
+        dto.setSourceType((Integer) row.get("sourceType"));
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
         dto.setTopic((String) row.get("topic"));
-        dto.setStartTime(row.get("start_time") != null ? (java.time.LocalDateTime) row.get("start_time") : null);
-        dto.setEndTime(row.get("end_time") != null ? (java.time.LocalDateTime) row.get("end_time") : null);
+        dto.setStartTime(toLocalDateTime(row.get("startTime")));
+        dto.setEndTime(toLocalDateTime(row.get("endTime")));
         dto.setLocation((String) row.get("location"));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
         
         // 海报（取第一张）- 正确解析JSONB
-        Object posterUrls = row.get("poster_urls");
+        Object posterUrls = row.get("posterUrls");
         if (posterUrls != null) {
             try {
                 List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
@@ -164,16 +175,16 @@ public class ActivityQueryService {
         }
         
         // 统计信息
-        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
-        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
-        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
-        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
+        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
+        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
+        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
         
         // 用户状态
         UserState userState = userStateMap.get(dto.getId());
         if (userState != null) {
             dto.setUserState(userState);
-            dto.setSignedUp(row.get("signed_up") != null ? (Boolean) row.get("signed_up") : false);
+            dto.setSignedUp(row.get("signedUp") != null ? (Boolean) row.get("signedUp") : false);
         }
         
         return dto;
@@ -182,22 +193,22 @@ public class ActivityQueryService {
     private ActivityDetailDTO mapToActivityDetail(Map<String, Object> row) {
         ActivityDetailDTO dto = new ActivityDetailDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setSourceType((Integer) row.get("source_type"));
+        dto.setSourceType((Integer) row.get("sourceType"));
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
         dto.setTopic((String) row.get("topic"));
         dto.setDescription((String) row.get("description"));
-        dto.setStartTime(row.get("start_time") != null ? (java.time.LocalDateTime) row.get("start_time") : null);
-        dto.setEndTime(row.get("end_time") != null ? (java.time.LocalDateTime) row.get("end_time") : null);
+        dto.setStartTime(toLocalDateTime(row.get("startTime")));
+        dto.setEndTime(toLocalDateTime(row.get("endTime")));
         dto.setLocation((String) row.get("location"));
-        dto.setSignupPolicy((Integer) row.get("signup_policy"));
+        dto.setSignupPolicy((Integer) row.get("signupPolicy"));
         dto.setStatus((Integer) row.get("status"));
-        dto.setSourceUrl((String) row.get("source_url"));
-        dto.setCreatedAt((java.time.LocalDateTime) row.get("created_at"));
-        dto.setUpdatedAt((java.time.LocalDateTime) row.get("updated_at"));
+        dto.setSourceUrl((String) row.get("sourceUrl"));
+        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
+        dto.setUpdatedAt(toLocalDateTime(row.get("updatedAt")));
         
         // 海报列表 - 正确解析JSONB
-        Object posterUrls = row.get("poster_urls");
+        Object posterUrls = row.get("posterUrls");
         if (posterUrls != null) {
             try {
                 List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
@@ -211,10 +222,10 @@ public class ActivityQueryService {
         }
         
         // 统计信息
-        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
-        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
-        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
-        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
+        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
+        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
+        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
         
         return dto;
     }
@@ -222,13 +233,13 @@ public class ActivityQueryService {
     private ActivitySessionDTO mapToActivitySession(Map<String, Object> row) {
         ActivitySessionDTO dto = new ActivitySessionDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setActivityId(UUID.fromString(row.get("activity_id").toString()));
-        dto.setSessionName((String) row.get("session_name"));
-        dto.setStartTime((java.time.LocalDateTime) row.get("start_time"));
-        dto.setEndTime((java.time.LocalDateTime) row.get("end_time"));
+        dto.setActivityId(UUID.fromString(row.get("activityId").toString()));
+        dto.setSessionName((String) row.get("sessionName"));
+        dto.setStartTime(toLocalDateTime(row.get("startTime")));
+        dto.setEndTime(toLocalDateTime(row.get("endTime")));
         dto.setLocation((String) row.get("location"));
         dto.setCapacity((Integer) row.get("capacity"));
-        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
         dto.setStatus((Integer) row.get("status"));
         return dto;
     }

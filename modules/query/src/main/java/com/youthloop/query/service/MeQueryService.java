@@ -135,6 +135,18 @@ public class MeQueryService {
         return PageResponse.of(items, total, validPage, validSize);
     }
     
+    
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     // === 私有映射方法 ===
     
     private ReactionItemDTO mapToReactionItem(Map<String, Object> row) {
@@ -143,7 +155,7 @@ public class MeQueryService {
         dto.setReactionType((Integer) row.get("reaction_type"));
         dto.setTargetType((Integer) row.get("target_type"));
         dto.setTargetId(UUID.fromString(row.get("target_id").toString()));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
         
         // 根据 targetType 填充不同的字段
         Integer targetType = dto.getTargetType();
@@ -158,7 +170,7 @@ public class MeQueryService {
             dto.setActivityTitle((String) row.get("activity_title"));
             dto.setActivityCategory((Integer) row.get("activity_category"));
             dto.setActivityPosterUrl((String) row.get("activity_poster_url"));
-            dto.setActivityStartTime(row.get("activity_start_time") != null ? (LocalDateTime) row.get("activity_start_time") : null);
+            dto.setActivityStartTime(toLocalDateTime(row.get("activity_start_time")));
             dto.setActivityLocation((String) row.get("activity_location"));
         }
         
@@ -170,7 +182,7 @@ public class MeQueryService {
         dto.setId(UUID.fromString(row.get("id").toString()));
         dto.setType((Integer) row.get("type"));
         dto.setIsRead((Boolean) row.get("is_read"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
         
         // 触发者信息
         if (row.get("actor_id") != null) {
@@ -205,13 +217,13 @@ public class MeQueryService {
         }
         
         dto.setSignupStatus((Integer) row.get("signup_status"));
-        dto.setSignupAt((LocalDateTime) row.get("signup_at"));
+        dto.setSignupAt(toLocalDateTime(row.get("signup_at")));
         
         // 活动信息
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
-        dto.setStartTime(row.get("start_time") != null ? (LocalDateTime) row.get("start_time") : null);
-        dto.setEndTime(row.get("end_time") != null ? (LocalDateTime) row.get("end_time") : null);
+        dto.setStartTime(toLocalDateTime(row.get("start_time")));
+        dto.setEndTime(toLocalDateTime(row.get("end_time")));
         dto.setLocation((String) row.get("location"));
         
         // 解析 poster_urls (JSONB) - 正确解析

@@ -110,7 +110,7 @@ public class ContentQueryService {
         // 构建 contentId -> UserState 的映射
         Map<UUID, UserState> stateMap = reactions.stream()
             .collect(Collectors.toMap(
-                row -> (UUID) row.get("content_id"),
+                row -> (UUID) row.get("contentId"),
                 this::buildUserState
             ));
         
@@ -131,6 +131,17 @@ public class ContentQueryService {
         return new UserState(liked, favorited, downvoted);
     }
     
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     /**
      * 映射到内容列表项 DTO
      */
@@ -140,16 +151,16 @@ public class ContentQueryService {
         dto.setType((Integer) row.get("type"));
         dto.setTitle((String) row.get("title"));
         dto.setSummary((String) row.get("summary"));
-        dto.setCoverUrl((String) row.get("cover_url"));
-        dto.setPublishedAt((LocalDateTime) row.get("published_at"));
+        dto.setCoverUrl((String) row.get("coverUrl"));
+        dto.setPublishedAt(toLocalDateTime(row.get("publishedAt")));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
         
         // 统计信息（安全转换）
-        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
-        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
-        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
-        dto.setHotScore(row.get("hot_score") != null ? ((Number) row.get("hot_score")).longValue() : 0L);
+        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
+        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
+        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
+        dto.setHotScore(row.get("hotScore") != null ? ((Number) row.get("hotScore")).longValue() : 0L);
         
         return dto;
     }
@@ -163,21 +174,21 @@ public class ContentQueryService {
         dto.setType((Integer) row.get("type"));
         dto.setTitle((String) row.get("title"));
         dto.setSummary((String) row.get("summary"));
-        dto.setCoverUrl((String) row.get("cover_url"));
+        dto.setCoverUrl((String) row.get("coverUrl"));
         dto.setBody((String) row.get("body"));
-        dto.setSourceType((Integer) row.get("source_type"));
-        dto.setSourceUrl((String) row.get("source_url"));
-        dto.setPublishedAt((LocalDateTime) row.get("published_at"));
+        dto.setSourceType((Integer) row.get("sourceType"));
+        dto.setSourceUrl((String) row.get("sourceUrl"));
+        dto.setPublishedAt(toLocalDateTime(row.get("publishedAt")));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
-        dto.setUpdatedAt((LocalDateTime) row.get("updated_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
+        dto.setUpdatedAt(toLocalDateTime(row.get("updatedAt")));
         
         // 统计信息（安全转换）
-        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
-        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
-        dto.setDownCount(row.get("down_count") != null ? ((Number) row.get("down_count")).intValue() : 0);
-        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
-        dto.setHotScore(row.get("hot_score") != null ? ((Number) row.get("hot_score")).longValue() : 0L);
+        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
+        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
+        dto.setDownCount(row.get("downCount") != null ? ((Number) row.get("downCount")).intValue() : 0);
+        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
+        dto.setHotScore(row.get("hotScore") != null ? ((Number) row.get("hotScore")).longValue() : 0L);
         
         return dto;
     }

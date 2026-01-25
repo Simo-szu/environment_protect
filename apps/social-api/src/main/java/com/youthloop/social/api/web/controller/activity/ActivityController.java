@@ -32,11 +32,11 @@ public class ActivityController {
     @Operation(summary = "获取活动列表", description = "分页查询活动列表，支持按分类和状态筛选，含统计和用户状态")
     @GetMapping
     public BaseResponse<PageResponse<ActivityListItemDTO>> getActivityList(
-        @Parameter(description = "分类：1-8") @RequestParam(required = false) Integer category,
-        @Parameter(description = "状态：1=已发布 2=隐藏 3=已结束") @RequestParam(required = false) Integer status,
-        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(defaultValue = "latest") String sort,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") Integer size
+        @Parameter(description = "分类：1-8") @RequestParam(value = "category", required = false) Integer category,
+        @Parameter(description = "状态：1=已发布 2=隐藏 3=已结束") @RequestParam(value = "status", required = false) Integer status,
+        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
         PageResponse<ActivityListItemDTO> result = queryFacade.getActivityList(category, status, sort, page, size);
         return BaseResponse.success(result);
@@ -45,7 +45,7 @@ public class ActivityController {
     @Operation(summary = "获取活动详情", description = "根据 ID 查询活动详情，含统计、用户状态和场次信息")
     @GetMapping("/{id}")
     public BaseResponse<ActivityDetailDTO> getActivityById(
-        @Parameter(description = "活动 ID") @PathVariable UUID id
+        @Parameter(description = "活动 ID") @PathVariable("id") UUID id
     ) {
         ActivityDetailDTO activity = queryFacade.getActivityDetail(id);
         return BaseResponse.success(activity);
@@ -54,7 +54,7 @@ public class ActivityController {
     @Operation(summary = "获取活动场次列表", description = "查询活动的所有场次（仅 HOSTED 类型活动有场次）")
     @GetMapping("/{id}/sessions")
     public BaseResponse<List<ActivitySessionDTO>> getActivitySessions(
-        @Parameter(description = "活动 ID") @PathVariable UUID id
+        @Parameter(description = "活动 ID") @PathVariable("id") UUID id
     ) {
         List<ActivitySessionDTO> sessions = queryFacade.getActivitySessions(id);
         return BaseResponse.success(sessions);
@@ -63,10 +63,10 @@ public class ActivityController {
     @Operation(summary = "获取活动评论", description = "查询活动的评论树（根评论分页 + 回复）")
     @GetMapping("/{id}/comments")
     public BaseResponse<CommentTreeDTO> getActivityComments(
-        @Parameter(description = "活动 ID") @PathVariable UUID id,
-        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(defaultValue = "latest") String sort,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") Integer size
+        @Parameter(description = "活动 ID") @PathVariable("id") UUID id,
+        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
         CommentTreeDTO tree = queryFacade.getCommentTree(2, id, sort, page, size);
         return BaseResponse.success(tree);

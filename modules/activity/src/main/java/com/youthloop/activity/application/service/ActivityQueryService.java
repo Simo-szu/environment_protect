@@ -103,6 +103,18 @@ public class ActivityQueryService {
         return PageResponse.of(items, total, validPage, validSize);
     }
     
+    
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     private ActivitySignupListItemDTO mapToSignupListItem(Map<String, Object> row) {
         ActivitySignupListItemDTO dto = new ActivitySignupListItemDTO();
         dto.setId((UUID) row.get("id"));
@@ -113,14 +125,14 @@ public class ActivityQueryService {
         dto.setNickname((String) row.get("nickname"));
         dto.setRealName((String) row.get("realName"));
         dto.setPhone((String) row.get("phone"));
-        dto.setJoinTime((LocalDateTime) row.get("joinTime"));
+        dto.setJoinTime(toLocalDateTime(row.get("joinTime")));
         dto.setStatus((Integer) row.get("status"));
         dto.setAuditedBy((UUID) row.get("auditedBy"));
-        dto.setAuditedAt((LocalDateTime) row.get("auditedAt"));
+        dto.setAuditedAt(toLocalDateTime(row.get("auditedAt")));
         dto.setAuditNote((String) row.get("auditNote"));
-        dto.setCanceledAt((LocalDateTime) row.get("canceledAt"));
+        dto.setCanceledAt(toLocalDateTime(row.get("canceledAt")));
         dto.setCancelNote((String) row.get("cancelNote"));
-        dto.setCreatedAt((LocalDateTime) row.get("createdAt"));
+        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
         return dto;
     }
 }

@@ -89,6 +89,17 @@ public class CommentQueryService {
         return result;
     }
     
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     /**
      * 映射到评论 DTO
      */
@@ -105,8 +116,8 @@ public class CommentQueryService {
         dto.setDepth((Integer) row.get("depth"));
         dto.setBody((String) row.get("body"));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
-        dto.setUpdatedAt((LocalDateTime) row.get("updated_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
+        dto.setUpdatedAt(toLocalDateTime(row.get("updated_at")));
         
         // 统计信息（安全转换）
         dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);

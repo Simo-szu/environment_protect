@@ -56,6 +56,17 @@ public class HomeQueryService {
         return dto;
     }
     
+    private java.time.LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            return (java.time.LocalDateTime) obj;
+        }
+        return null;
+    }
+
     /**
      * 映射到轮播 DTO
      */
@@ -66,8 +77,8 @@ public class HomeQueryService {
         dto.setImageUrl((String) row.get("image_url"));
         dto.setLinkUrl((String) row.get("link_url"));
         dto.setSortOrder((Integer) row.get("sort_order"));
-        dto.setStartAt((LocalDateTime) row.get("start_at"));
-        dto.setEndAt((LocalDateTime) row.get("end_at"));
+        dto.setStartAt(toLocalDateTime(row.get("start_at")));
+        dto.setEndAt(toLocalDateTime(row.get("end_at")));
         return dto;
     }
     
@@ -81,9 +92,9 @@ public class HomeQueryService {
         dto.setTitle((String) row.get("title"));
         dto.setSummary((String) row.get("summary"));
         dto.setCoverUrl((String) row.get("cover_url"));
-        dto.setPublishedAt((LocalDateTime) row.get("published_at"));
+        dto.setPublishedAt(toLocalDateTime(row.get("published_at")));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
         
         // 统计信息（安全转换）
         dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
@@ -104,8 +115,8 @@ public class HomeQueryService {
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
         dto.setTopic((String) row.get("topic"));
-        dto.setStartTime((LocalDateTime) row.get("start_time"));
-        dto.setEndTime((LocalDateTime) row.get("end_time"));
+        dto.setStartTime(toLocalDateTime(row.get("start_time")));
+        dto.setEndTime(toLocalDateTime(row.get("end_time")));
         dto.setLocation((String) row.get("location"));
         
         // 提取第一张海报
@@ -116,7 +127,7 @@ public class HomeQueryService {
         }
         
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt((LocalDateTime) row.get("created_at"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
         
         // 统计信息（安全转换）
         dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);

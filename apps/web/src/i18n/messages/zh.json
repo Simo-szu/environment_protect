@@ -19,6 +19,19 @@
         "viewAll": "查看全部",
         "loadMore": "加载更多"
     },
+    "auth": {
+        "welcome": "欢迎回来，继续你的环保之旅",
+        "login": {
+            "title": "登录",
+            "noAccount": "没有账号？",
+            "registerNow": "立即注册",
+            "agreeTerms": "登录即代表同意",
+            "userAgreement": "《用户服务协议》",
+            "and": "和",
+            "privacyPolicy": "《隐私政策》",
+            "or": "或者"
+        }
+    },
     "navigation": {
         "home": "首页",
         "activities": "活动",

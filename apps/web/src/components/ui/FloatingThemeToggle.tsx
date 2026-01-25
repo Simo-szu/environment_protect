@@ -8,8 +8,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function FloatingThemeToggle() {
     const { theme, setTheme } = useTheme();
     // 使用函数初始化来避免 hydration 问题
-    const [mounted, setMounted] = useState(() => typeof window !== 'undefined');
+    const [mounted, setMounted] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     if (!mounted) {
         return null;
