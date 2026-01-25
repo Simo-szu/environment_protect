@@ -9,7 +9,7 @@
         <result column="rule_json" property="ruleJson" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="points" property="points" jdbcType="INTEGER"/>
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
-        <result column="created_at" property="createdAt" jdbcType=TIMESTAMP"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
     </resultMap>
     
     <select id="selectAllEnabled" resultMap="BaseResultMap">

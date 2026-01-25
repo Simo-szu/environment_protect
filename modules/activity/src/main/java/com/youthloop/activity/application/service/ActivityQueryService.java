@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * 活动查询服务（主办方视角）
  */
 @Slf4j
-@Service
+@Service("activityBasicQueryService")
 @RequiredArgsConstructor
 public class ActivityQueryService {
     

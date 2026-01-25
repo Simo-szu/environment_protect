@@ -23,7 +23,7 @@
     FROM shared.auth_refresh_token
     WHERE token_hash = #{tokenHash}
       AND revoked_at IS NULL
-      AND expires_at > NOW()
+      AND expires_at &gt; NOW()
   </select>
 
   <select id="countActiveByUserId" resultType="int">
@@ -31,7 +31,7 @@
     FROM shared.auth_refresh_token
     WHERE user_id = #{userId}::uuid
       AND revoked_at IS NULL
-      AND expires_at > NOW()
+      AND expires_at &gt; NOW()
   </select>
 
   <select id="selectOldestByUserId" resultMap="BaseResultMap">
@@ -39,7 +39,7 @@
     FROM shared.auth_refresh_token
     WHERE user_id = #{userId}::uuid
       AND revoked_at IS NULL
-      AND expires_at > NOW()
+      AND expires_at &gt; NOW()
     ORDER BY created_at ASC
     LIMIT 1
   </select>

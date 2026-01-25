@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * 内容查询服务
  */
 @Slf4j
-@Service
+@Service("contentBasicQueryService")
 @RequiredArgsConstructor
 public class ContentQueryService {
     

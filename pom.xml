@@ -98,6 +98,23 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                    <configuration>
+                        <excludes>
+                            <!-- 排除 macOS 隐藏文件 -->
+                            <exclude>**/.DS_Store</exclude>
+                            <exclude>**/.AppleDouble</exclude>
+                            <exclude>**/.LSOverride</exclude>
+                            <exclude>**/._*</exclude>
+                            <!-- 排除 Windows 隐藏文件 -->
+                            <exclude>**/Thumbs.db</exclude>
+                            <exclude>**/Desktop.ini</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

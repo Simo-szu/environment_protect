@@ -16,8 +16,8 @@
       end_at
     FROM social.home_banner
     WHERE is_enabled = true
-      AND (start_at IS NULL OR start_at <= NOW())
-      AND (end_at IS NULL OR end_at >= NOW())
+      AND (start_at IS NULL OR start_at &lt;= NOW())
+      AND (end_at IS NULL OR end_at &gt;= NOW())
     ORDER BY sort_order ASC, created_at DESC
   </select>
 

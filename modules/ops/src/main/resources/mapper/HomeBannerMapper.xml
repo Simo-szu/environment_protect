@@ -5,7 +5,7 @@
 <mapper namespace="com.youthloop.ops.persistence.mapper.HomeBannerMapper">
 
   <resultMap id="BaseResultMap" type="com.youthloop.ops.persistence.entity.HomeBannerEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="title" property="title" jdbcType="VARCHAR"/>
     <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
     <result column="link_type" property="linkType" jdbcType="INTEGER"/>
@@ -14,8 +14,8 @@
     <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     <result column="start_at" property="startAt" jdbcType="TIMESTAMP"/>
     <result column="end_at" property="endAt" jdbcType="TIMESTAMP"/>
-    <result column="created_by" property="createdBy" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="updated_by" property="updatedBy" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="created_by" property="createdBy" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="updated_by" property="updatedBy" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
   </resultMap>

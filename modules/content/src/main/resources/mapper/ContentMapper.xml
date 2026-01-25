@@ -6,7 +6,7 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.content.persistence.entity.ContentEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="type" property="type" jdbcType="INTEGER"/>
     <result column="title" property="title" jdbcType="VARCHAR"/>
     <result column="summary" property="summary" jdbcType="VARCHAR"/>

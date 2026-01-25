@@ -19,10 +19,11 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    schemas: shared,social
+    # 只使用 social schema 的迁移文件
+    schemas: social
     default-schema: social
     table: flyway_schema_history_social
-    locations: classpath:db/migration/shared,classpath:db/migration/social
+    locations: classpath:db/migration/social
     user: ${FLYWAY_USER:social_migrator}
     password: ${FLYWAY_PASSWORD:postgres}
   

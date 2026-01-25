@@ -6,10 +6,10 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.interaction.persistence.entity.ReactionEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="target_type" property="targetType" jdbcType="INTEGER"/>
-    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="reaction_type" property="reactionType" jdbcType="INTEGER"/>
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
   </resultMap>

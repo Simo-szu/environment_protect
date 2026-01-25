@@ -6,7 +6,7 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.event.persistence.entity.OutboxEventEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="event_type" property="eventType" jdbcType="VARCHAR"/>
     <result column="payload" property="payload" jdbcType="VARCHAR"/>
     <result column="status" property="status" jdbcType="INTEGER"/>

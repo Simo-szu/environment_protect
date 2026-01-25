@@ -196,6 +196,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.youthloop.social.api.SocialApiApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>

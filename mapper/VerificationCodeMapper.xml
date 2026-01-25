@@ -6,7 +6,7 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.auth.persistence.entity.VerificationCodeEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
     <result column="account" property="account" jdbcType="VARCHAR"/>
     <result column="channel" property="channel" jdbcType="INTEGER"/>
     <result column="purpose" property="purpose" jdbcType="INTEGER"/>
@@ -21,7 +21,7 @@
     INSERT INTO shared.verification_code (
       id, account, channel, purpose, code_hash, expires_at, attempts, created_at
     ) VALUES (
-      #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler},
+      #{id, jdbcType=OTHER, typeHandler=org.apache.ibatis.type.UUIDTypeHandler},
       #{account, jdbcType=VARCHAR},
       #{channel, jdbcType=INTEGER},
       #{purpose, jdbcType=INTEGER},
@@ -38,7 +38,7 @@
     FROM shared.verification_code
     WHERE account = #{account, jdbcType=VARCHAR}
       AND purpose = #{purpose, jdbcType=INTEGER}
-      AND expires_at &gt; #{now, jdbcType=TIMESTAMP}
+      AND expires_at > #{now, jdbcType=TIMESTAMP}
     ORDER BY created_at DESC
     LIMIT 1
   </select>
@@ -47,19 +47,19 @@
   <update id="incrementAttempts">
     UPDATE shared.verification_code
     SET attempts = attempts + 1
-    WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler}
+    WHERE id = #{id, jdbcType=OTHER, typeHandler=org.apache.ibatis.type.UUIDTypeHandler}
   </update>
 
   <!-- 根据 ID 删除验证码 -->
   <delete id="deleteById">
     DELETE FROM shared.verification_code
-    WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler}
+    WHERE id = #{id, jdbcType=OTHER, typeHandler=org.apache.ibatis.type.UUIDTypeHandler}
   </delete>
 
   <!-- 删除过期的验证码 -->
   <delete id="deleteExpired">
     DELETE FROM shared.verification_code
-    WHERE expires_at &lt; #{before, jdbcType=TIMESTAMP}
+    WHERE expires_at < #{before, jdbcType=TIMESTAMP}
   </delete>
 
 </mapper>

@@ -77,12 +77,12 @@
         <foreach collection="rootIds" item="id" open="(" separator="," close=")">
           #{id}::uuid
         </foreach>
-        AND c.depth > 0
+        AND c.depth &gt; 0
         AND c.status = 1
     )
     SELECT *
     FROM ranked_replies
-    WHERE rn <= #{limit}
+    WHERE rn &lt;= #{limit}
     ORDER BY root_id, created_at DESC
   </select>
 

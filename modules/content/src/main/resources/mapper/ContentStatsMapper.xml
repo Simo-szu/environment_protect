@@ -6,13 +6,13 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.content.persistence.entity.ContentStatsEntity">
-    <id column="content_id" property="contentId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="content_id" property="contentId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="like_count" property="likeCount" jdbcType="INTEGER"/>
     <result column="fav_count" property="favCount" jdbcType="INTEGER"/>
     <result column="down_count" property="downCount" jdbcType="INTEGER"/>
     <result column="comment_count" property="commentCount" jdbcType="INTEGER"/>
     <result column="hot_score" property="hotScore" jdbcType="BIGINT"/>
-    <result column="hot_rule_id" property="hotRuleId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="hot_rule_id" property="hotRuleId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
   </resultMap>
 

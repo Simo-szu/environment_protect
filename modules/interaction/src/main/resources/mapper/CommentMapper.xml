@@ -6,12 +6,12 @@
 
   <!-- Result Map -->
   <resultMap id="BaseResultMap" type="com.youthloop.interaction.persistence.entity.CommentEntity">
-    <id column="id" property="id" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="target_type" property="targetType" jdbcType="INTEGER"/>
-    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="parent_id" property="parentId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
-    <result column="root_id" property="rootId" jdbcType="OTHER" typeHandler="org.apache.ibatis.type.UUIDTypeHandler"/>
+    <result column="target_id" property="targetId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="parent_id" property="parentId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="root_id" property="rootId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="depth" property="depth" jdbcType="INTEGER"/>
     <result column="body" property="body" jdbcType="VARCHAR"/>
     <result column="status" property="status" jdbcType="INTEGER"/>
