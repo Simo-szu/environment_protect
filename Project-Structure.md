@@ -418,7 +418,7 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 
 ## 10. 前端页面 → Social API（对接映射）
 
-你们当前 Next.js 路由（示例）：`src/app/activities`、`src/app/science`、`src/app/points`、`src/app/profile`、`src/app/login`、`src/app/register`、`src/app/notifications` 等。
+你们当前 Next.js 路由（示例）：`apps/web/src/app/activities`、`apps/web/src/app/science`、`apps/web/src/app/points`、`apps/web/src/app/profile`、`apps/web/src/app/login`、`apps/web/src/app/register`、`apps/web/src/app/notifications` 等。
 
 映射建议（只列核心）：
 - `/`（首页）：`GET /api/v1/home`
