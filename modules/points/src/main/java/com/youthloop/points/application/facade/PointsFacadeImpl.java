@@ -1,5 +1,6 @@
 package com.youthloop.points.application.facade;
 
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.points.api.dto.*;
 import com.youthloop.points.api.facade.PointsFacade;
@@ -25,9 +26,14 @@ public class PointsFacadeImpl implements PointsFacade {
     private final QuizService quizService;
     private final PointsService pointsService;
     
-    @Override
+
     public SigninResponse signin(SigninRequest request) {
         return signinService.signin(request);
+    }
+    
+    @Override
+    public SigninRecordDTO getTodaySignin() {
+        return signinService.getTodaySignin();
     }
     
     @Override
@@ -58,6 +64,16 @@ public class PointsFacadeImpl implements PointsFacade {
         return PointsAccountDTO.builder()
             .userId(userId)
             .balance(balance)
+            .totalPoints(balance)
+            .availablePoints(balance)
+            .level(1)
+            .levelName("默认等级")
             .build();
+    }
+    
+    @Override
+    public PageResponse<PointsLedgerDTO> getLedger(int page, int size) {
+        UUID userId = SecurityUtil.getCurrentUserId();
+        return pointsService.getLedger(userId, page, size);
     }
 }

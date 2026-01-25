@@ -12,13 +12,15 @@
     <result column="gender" property="gender" jdbcType="INTEGER"/>
     <result column="birthday" property="birthday" jdbcType="DATE"/>
     <result column="hometown" property="hometown" jdbcType="VARCHAR"/>
+    <result column="bio" property="bio" jdbcType="VARCHAR"/>
+    <result column="location" property="location" jdbcType="VARCHAR"/>
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
   </resultMap>
 
   <!-- Base Column List -->
   <sql id="Base_Column_List">
-    user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at
+    user_id, nickname, avatar_url, gender, birthday, hometown, bio, location, created_at, updated_at
   </sql>
 
   <!-- 鏍规嵁鐢ㄦ埛 ID 鏌ヨ -->
@@ -30,7 +32,7 @@
 
   <!-- 鎻掑叆 -->
   <insert id="insert">
-    INSERT INTO shared.user_profile (user_id, nickname, avatar_url, gender, birthday, hometown, created_at, updated_at)
+    INSERT INTO shared.user_profile (user_id, nickname, avatar_url, gender, birthday, hometown, bio, location, created_at, updated_at)
     VALUES (
       #{userId}::uuid,
       #{nickname},
@@ -38,6 +40,8 @@
       #{gender},
       #{birthday},
       #{hometown},
+      #{bio},
+      #{location},
       #{createdAt},
       #{updatedAt}
     )
@@ -51,6 +55,8 @@
         gender = #{gender},
         birthday = #{birthday},
         hometown = #{hometown},
+        bio = #{bio},
+        location = #{location},
         updated_at = #{updatedAt}
     WHERE user_id = #{userId}::uuid
   </update>

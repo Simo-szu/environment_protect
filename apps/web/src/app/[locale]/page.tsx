@@ -41,7 +41,7 @@ export default function HomePage() {
         const loadHomeData = async () => {
             try {
                 setLoading(true);
-                
+
                 // 并行加载科普内容和活动
                 const [contentsRes, activitiesRes] = await Promise.all([
                     contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
@@ -70,14 +70,7 @@ export default function HomePage() {
             icon: Coins,
             link: `/${locale}/points`
         },
-        {
-            id: 'game',
-            title: t('cards.game.title', '绿色游戏'),
-            sub: t('cards.game.subtitle', '虚拟种植'),
-            color: '#56B949',
-            icon: PlayCircle,
-            link: `/${locale}/game`
-        },
+
         {
             id: 'science',
             title: t('cards.science.title', '权威科普'),
@@ -439,11 +432,10 @@ export default function HomePage() {
                                                         {new Date(activity.startTime).toLocaleDateString('zh-CN')} · {activity.location || '待定'}
                                                     </p>
                                                     <Link href={`/zh/activities/${activity.id}`}>
-                                                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${
-                                                            activity.signupPolicy === 'OPEN'
+                                                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${activity.signupPolicy === 'OPEN'
                                                                 ? 'bg-[#EE4035] text-white hover:bg-[#d63730] shadow-lg shadow-[#EE4035]/20'
                                                                 : 'bg-white dark:bg-slate-700 border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
-                                                        }`}>
+                                                            }`}>
                                                             {activity.signupPolicy === 'OPEN' ? '立即报名' : '查看详情'}
                                                         </button>
                                                     </Link>
@@ -519,42 +511,7 @@ export default function HomePage() {
                     </div>
                 </AnimatedSection>
 
-                {/* Section: Eco Game */}
-                <AnimatedSection delay={0.9}>
-                    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl shadow-[#56B949]/20">
-                        {mounted && (
-                            <motion.div whileHover={{ y: -4 }}>
-                                {/* Background */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#56B949] to-[#30499B] opacity-90"></div>
-                                <div className="absolute inset-0 bg-[url('https://api.iconify.design/lucide/sprout.svg?color=%23ffffff&opacity=0.2')] bg-repeat bg-[length:120px_120px] opacity-10"></div>
 
-                                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
-                                    <div className="text-center md:text-left">
-                                        <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium mb-4 border border-white/30">
-                                            {t('sections.game.badge', 'INTERACTIVE GAME')}
-                                        </span>
-                                        <h3 className="text-3xl md:text-4xl text-white font-serif font-medium mb-3">
-                                            {t('sections.game.title', '开启你的绿色探索之旅')}
-                                        </h3>
-                                        <p className="text-white/80 text-sm md:text-base max-w-md mx-auto md:mx-0">
-                                            {t('sections.game.subtitle', '在虚拟世界中种植树木，我们在现实世界为您种下真树。让游戏变得有意义。')}
-                                        </p>
-                                    </div>
-
-                                    {/* Main Button */}
-                                    <Link href={`/${locale}/game`}>
-                                        <button className="flex-shrink-0 relative overflow-hidden bg-white text-[#56B949] hover:text-[#30499B] px-8 py-3 rounded-xl text-lg font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95">
-                                            <span className="flex items-center gap-2">
-                                                {t('sections.game.button', '开始游戏')}
-                                                <PlayCircle className="w-5 h-5" />
-                                            </span>
-                                        </button>
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        )}
-                    </div>
-                </AnimatedSection>
 
                 {/* Section: Points Park */}
                 <AnimatedSection delay={1.0}>

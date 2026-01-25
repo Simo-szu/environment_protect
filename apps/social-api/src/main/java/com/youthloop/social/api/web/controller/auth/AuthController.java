@@ -30,12 +30,7 @@ public class AuthController {
         return BaseResponse.success("验证码已发送", null);
     }
     
-    @Operation(summary = "发送短信验证码", description = "发送短信验证码（注册/登录/重置密码）")
-    @PostMapping("/otp/phone")
-    public BaseResponse<Void> sendPhoneOtp(@Valid @RequestBody UnifiedRequest<SendOtpRequest> request) {
-        authFacade.sendPhoneOtp(request.getData());
-        return BaseResponse.success("验证码已发送", null);
-    }
+
     
     // ==================== 注册 ====================
     
@@ -46,12 +41,7 @@ public class AuthController {
         return BaseResponse.success("注册成功", response);
     }
     
-    @Operation(summary = "手机注册", description = "使用手机+验证码+密码注册")
-    @PostMapping("/register/phone")
-    public BaseResponse<AuthResponse> registerByPhone(@Valid @RequestBody UnifiedRequest<PhoneRegisterRequest> request) {
-        AuthResponse response = authFacade.registerByPhone(request.getData());
-        return BaseResponse.success("注册成功", response);
-    }
+
     
     // ==================== 登录 ====================
     
@@ -62,19 +52,23 @@ public class AuthController {
         return BaseResponse.success("登录成功", response);
     }
     
-    @Operation(summary = "手机验证码登录", description = "使用手机+验证码登录")
-    @PostMapping("/login/otp/phone")
-    public BaseResponse<AuthResponse> loginByPhoneOtp(@Valid @RequestBody UnifiedRequest<OtpLoginRequest> request) {
-        AuthResponse response = authFacade.loginByPhoneOtp(request.getData());
-        return BaseResponse.success("登录成功", response);
-    }
+
     
-    @Operation(summary = "账号密码登录", description = "使用账号（邮箱/手机）+密码登录")
+    @Operation(summary = "账号密码登录", description = "使用邮箱+密码登录")
+
     @PostMapping("/login/password")
     public BaseResponse<AuthResponse> loginByPassword(@Valid @RequestBody UnifiedRequest<PasswordLoginRequest> request) {
         AuthResponse response = authFacade.loginByPassword(request.getData());
         return BaseResponse.success("登录成功", response);
     }
+    
+    @Operation(summary = "Google登录", description = "使用Google ID Token登录或注册")
+    @PostMapping("/login/google")
+    public BaseResponse<AuthResponse> loginByGoogle(@Valid @RequestBody UnifiedRequest<GoogleLoginRequest> request) {
+        AuthResponse response = authFacade.loginByGoogle(request.getData());
+        return BaseResponse.success("登录成功", response);
+    }
+
     
     // ==================== 密码管理 ====================
     

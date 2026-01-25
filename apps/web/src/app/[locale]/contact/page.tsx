@@ -19,6 +19,8 @@ import {
     Globe,
     Heart
 } from 'lucide-react';
+import { submitContact } from '@/lib/api/support';
+
 
 export default function ContactPage() {
     const params = useParams();
@@ -42,11 +44,22 @@ export default function ContactPage() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
-        // 这里应该调用API提交联系信息
-        console.log('提交联系信息:', formData);
-        setSubmitted(true);
+        try {
+            await submitContact({
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                subject: formData.subject,
+                message: formData.message
+            });
+            setSubmitted(true);
+        } catch (error) {
+            console.error('提交联系信息失败:', error);
+            alert('提交失败，请重试');
+        }
     };
 
     if (submitted) {

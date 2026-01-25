@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
-import { userApi } from '@/lib/api';
+import { userApi, activityApi } from '@/lib/api';
 import type { MyActivityItem } from '@/lib/api/user';
 import {
     CalendarCheck,
@@ -26,108 +26,6 @@ import {
     TreePine
 } from 'lucide-react';
 
-interface Activity {
-    id: string;
-    title: string;
-    description: string;
-    date: string;
-    time: string;
-    location: string;
-    status: 'registered' | 'ongoing' | 'completed';
-    points?: number;
-    registrationDate?: string;
-    completionDate?: string;
-    icon: React.ComponentType<any>;
-    category: string;
-}
-
-// 生成模拟活动数据
-const generateMockActivities = (): Activity[] => {
-    const activities: Activity[] = [
-        {
-            id: 'activity-001',
-            title: '城市绿洲：周末社区花园种植计划',
-            description: '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识...',
-            date: '2024年5月20日',
-            time: '09:00-17:00',
-            location: '市中心社区公园',
-            status: 'registered',
-            registrationDate: '2024-05-15',
-            icon: Leaf,
-            category: '植树造林'
-        },
-        {
-            id: 'activity-002',
-            title: '旧物新生：创意环保DIY工作坊',
-            description: '不要扔掉你的旧T恤和玻璃瓶！在这个工作坊中，艺术家将教你如何将废弃物品变废为宝...',
-            date: '2024年5月22日',
-            time: '14:00-17:00',
-            location: '创意工作室',
-            status: 'completed',
-            points: 50,
-            completionDate: '2024-05-22',
-            icon: Recycle,
-            category: '废物利用'
-        },
-        {
-            id: 'activity-003',
-            title: '海洋守护者：海滩清洁行动',
-            description: '保护我们的海洋环境，清理海滩垃圾，了解海洋污染的危害...',
-            date: '2024年6月1日',
-            time: '08:00-12:00',
-            location: '阳光海滩',
-            status: 'ongoing',
-            registrationDate: '2024-05-25',
-            icon: Droplets,
-            category: '环境清洁'
-        }
-    ];
-
-    // 生成更多模拟数据
-    const additionalActivities: Activity[] = [];
-    const titles = [
-        '绿色出行：自行车环城骑行',
-        '节能减排：家庭节能讲座',
-        '垃圾分类：社区分类指导',
-        '生态保护：湿地观鸟活动',
-        '清洁能源：太阳能体验',
-        '有机农业：城市农场参观',
-        '环保手工：废纸制作艺术品',
-        '绿色建筑：可持续建筑参观',
-        '水资源保护：节水技术展示',
-        '空气质量：植物净化空气实验'
-    ];
-
-    const locations = ['市中心公园', '社区活动中心', '环保教育基地', '科技馆', '大学校园', '生态园区'];
-    const icons = [Leaf, Recycle, Droplets, Trees, Wind, CalendarCheck];
-    const categories = ['植树造林', '废物利用', '环境清洁', '节能减排', '生态保护', '环保教育'];
-    const statuses: ('registered' | 'ongoing' | 'completed')[] = ['registered', 'ongoing', 'completed'];
-
-    for (let i = 4; i <= 28; i++) {
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const title = titles[Math.floor(Math.random() * titles.length)];
-        const location = locations[Math.floor(Math.random() * locations.length)];
-        const icon = icons[Math.floor(Math.random() * icons.length)];
-        const category = categories[Math.floor(Math.random() * categories.length)];
-
-        additionalActivities.push({
-            id: `activity-${i.toString().padStart(3, '0')}`,
-            title,
-            description: `${title}的详细描述，包含活动内容、目标和预期效果...`,
-            date: `2024年${Math.floor(Math.random() * 6) + 5}月${Math.floor(Math.random() * 28) + 1}日`,
-            time: `${Math.floor(Math.random() * 12) + 8}:00-${Math.floor(Math.random() * 6) + 15}:00`,
-            location,
-            status,
-            points: status === 'completed' ? Math.floor(Math.random() * 80) + 20 : undefined,
-            registrationDate: `2024-0${Math.floor(Math.random() * 2) + 4}-${Math.floor(Math.random() * 28) + 1}`,
-            completionDate: status === 'completed' ? `2024-0${Math.floor(Math.random() * 2) + 5}-${Math.floor(Math.random() * 28) + 1}` : undefined,
-            icon,
-            category
-        });
-    }
-
-    return [...activities, ...additionalActivities];
-};
 
 export default function MyActivitiesPage() {
     const params = useParams();
@@ -203,15 +101,22 @@ export default function MyActivitiesPage() {
         console.log('查看活动详情');
     };
 
-    const cancelRegistration = () => {
+    const cancelRegistration = async (signupId: string, activityId: string) => {
         if (confirm('确定要取消报名吗？')) {
-            console.log('取消报名');
-            alert('报名已取消');
+            try {
+                await activityApi.cancelSignup(activityId, signupId);
+                alert('报名已取消');
+                // Refresh list
+                const result = await userApi.getMyActivities({
+                    page: currentPage,
+                    size: activitiesPerPage
+                });
+                setMyActivities(result.items);
+            } catch (error) {
+                console.error('取消报名失败:', error);
+                alert('取消失败，请重试');
+            }
         }
-    };
-
-    const rateActivity = () => {
-        alert('评价功能开发中...');
     };
 
     if (loading || loadingActivities) {
@@ -353,8 +258,8 @@ export default function MyActivitiesPage() {
                                     <div className="flex flex-col md:flex-row gap-6">
                                         {/* Activity Image */}
                                         <div className="w-full md:w-48 h-32 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {activity.activityCoverUrl ? (
-                                                <img src={activity.activityCoverUrl} alt={activity.activityTitle} className="w-full h-full object-cover" />
+                                            {activity.coverImageUrl ? (
+                                                <img src={activity.coverImageUrl} alt={activity.title} className="w-full h-full object-cover" />
                                             ) : (
                                                 <TreePine className="w-12 h-12 text-[#56B949]/40" />
                                             )}
@@ -363,29 +268,29 @@ export default function MyActivitiesPage() {
                                         <div className="flex-1">
                                             <div className="flex items-start justify-between mb-3">
                                                 <div>
-                                                    <h3 className="text-lg font-serif font-semibold text-[#30499B] dark:text-[#56B949] mb-2">{activity.activityTitle}</h3>
+                                                    <h3 className="text-lg font-serif font-semibold text-[#30499B] dark:text-[#56B949] mb-2">{activity.title}</h3>
                                                     <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-2 flex-wrap">
                                                         <span className="flex items-center gap-1">
                                                             <Calendar className="w-4 h-4" />
                                                             {new Date(activity.startTime).toLocaleString('zh-CN')}
                                                         </span>
-                                                        {activity.sessionName && (
+                                                        {activity.sessionId && ( // MyActivityItem has sessionId
                                                             <span className="flex items-center gap-1">
                                                                 <Clock className="w-4 h-4" />
-                                                                {activity.sessionName}
+                                                                {/* Session Name is not in MyActivityItem currently, display ID or just "场次" */}
+                                                                场次: {activity.sessionId.slice(0, 8)}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                    activity.status === 'PENDING' ? 'bg-gradient-to-r from-[#F0A32F] to-[#e67e22] text-white' :
-                                                    activity.status === 'APPROVED' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
-                                                    activity.status === 'REJECTED' ? 'bg-gradient-to-r from-[#EE4035] to-[#d63031] text-white' :
-                                                    'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
-                                                }`}>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${activity.status === 'PENDING' ? 'bg-gradient-to-r from-[#F0A32F] to-[#e67e22] text-white' :
+                                                        activity.status === 'APPROVED' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
+                                                            activity.status === 'REJECTED' ? 'bg-gradient-to-r from-[#EE4035] to-[#d63031] text-white' :
+                                                                'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
+                                                    }`}>
                                                     {activity.status === 'PENDING' ? '待审核' :
-                                                     activity.status === 'APPROVED' ? '已通过' :
-                                                     activity.status === 'REJECTED' ? '已拒绝' : '已取消'}
+                                                        activity.status === 'APPROVED' ? '已通过' :
+                                                            activity.status === 'REJECTED' ? '已拒绝' : '已取消'}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
@@ -401,7 +306,7 @@ export default function MyActivitiesPage() {
                                                     </button>
                                                     {activity.status === 'PENDING' && (
                                                         <button
-                                                            onClick={() => alert('取消报名功能开发中')}
+                                                            onClick={() => cancelRegistration(activity.signupId, activity.activityId)}
                                                             className="px-4 py-2 text-[#EE4035] border border-[#EE4035] rounded-lg hover:bg-[#EE4035] hover:text-white transition-colors text-sm"
                                                         >
                                                             取消报名

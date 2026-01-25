@@ -14,6 +14,8 @@ import {
     EyeOff,
     Mail
 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+
 
 export default function RegisterPage() {
     const params = useParams();
@@ -22,7 +24,7 @@ export default function RegisterPage() {
 
     const [registerMode, setRegisterMode] = useState<'password' | 'otp'>('password');
     const [formData, setFormData] = useState({
-        contact: '',
+        email: '',
         password: '',
         confirmPassword: '',
         otpCode: '',
@@ -48,8 +50,8 @@ export default function RegisterPage() {
 
     // 发送验证码
     const handleSendOtp = async () => {
-        if (!formData.contact.trim()) {
-            setError('请输入手机号或邮箱');
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
             return;
         }
 
@@ -57,20 +59,14 @@ export default function RegisterPage() {
             setSendingOtp(true);
             setError('');
 
-            // 判断是手机号还是邮箱
-            const isPhone = /^1[3-9]\d{9}$/.test(formData.contact);
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
-            if (!isPhone && !isEmail) {
-                setError('请输入正确的手机号或邮箱');
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
                 return;
             }
 
-            if (isPhone) {
-                await authApi.sendPhoneOtp(formData.contact);
-            } else {
-                await authApi.sendEmailOtp(formData.contact);
-            }
+            await authApi.sendEmailOtp(formData.email, 'register');
 
             setCountdown(60);
             alert('验证码已发送');
@@ -82,12 +78,31 @@ export default function RegisterPage() {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            if (!credentialResponse.credential) {
+                throw new Error('No credential received');
+            }
+            // 注册也走 unify login 接口逻辑，后端会自动创建
+            await authApi.loginWithGoogle(credentialResponse.credential);
+
+            const userProfile = await userApi.getMyProfile();
+            login(userProfile);
+            router.push(`/${locale}`);
+        } catch (error: any) {
+            console.error('Google Register Error:', error);
+            setError('Google 注册失败');
+        }
+    };
+
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!formData.contact.trim()) {
-            setError('请输入手机号或邮箱');
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
             return;
         }
 
@@ -121,33 +136,22 @@ export default function RegisterPage() {
         try {
             setSubmitting(true);
 
-            // 判断是手机号还是邮箱
-            const isPhone = /^1[3-9]\d{9}$/.test(formData.contact);
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
-            if (!isPhone && !isEmail) {
-                setError('请输入正确的手机号或邮箱');
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
                 return;
             }
 
             // 调用注册 API
-            if (isPhone) {
-                await authApi.registerWithPhone({
-                    phone: formData.contact,
-                    password: registerMode === 'password' ? formData.password : undefined,
-                    otpCode: registerMode === 'otp' ? formData.otpCode : undefined,
-                    nickname: formData.nickname || undefined,
-                    agreedToTerms: formData.terms
-                });
-            } else {
-                await authApi.registerWithEmail({
-                    email: formData.contact,
-                    password: registerMode === 'password' ? formData.password : undefined,
-                    otpCode: registerMode === 'otp' ? formData.otpCode : undefined,
-                    nickname: formData.nickname || undefined,
-                    agreedToTerms: formData.terms
-                });
-            }
+            await authApi.registerWithEmail({
+                email: formData.email,
+                password: registerMode === 'password' ? formData.password : undefined,
+                otpCode: registerMode === 'otp' ? formData.otpCode : undefined,
+                nickname: formData.nickname || undefined,
+                agreedToTerms: formData.terms
+            });
+
 
             // 获取用户信息
             const userProfile = await userApi.getMyProfile();
@@ -218,18 +222,19 @@ export default function RegisterPage() {
 
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                    <Smartphone className="w-4 h-4" />
+                                    <Mail className="w-4 h-4" />
                                 </div>
                                 <input
                                     type="text"
-                                    name="contact"
-                                    value={formData.contact}
+                                    name="email"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="手机号/邮箱"
+                                    placeholder="邮箱地址"
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                     disabled={submitting}
                                 />
                             </div>
+
 
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
@@ -358,6 +363,19 @@ export default function RegisterPage() {
                             >
                                 {submitting ? '注册中...' : '提交注册'}
                             </button>
+
+                            <div className="flex justify-center w-full">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => setError('Google 注册失败')}
+                                    text="signup_with"
+                                    width="100%"
+                                    theme="outline"
+                                    shape="rectangular"
+                                />
+                            </div>
+
+
                         </form>
 
                         {/* Divider */}
@@ -372,9 +390,9 @@ export default function RegisterPage() {
 
                         {/* Quick Register Tip */}
                         <div className="text-center text-sm text-slate-500">
-                            <p>支持手机号或邮箱注册</p>
-                            <p className="text-xs mt-1">选择验证码注册更快捷</p>
+                            <p>支持邮箱密码或验证码注册</p>
                         </div>
+
                     </div>
                 </div>
             </div>

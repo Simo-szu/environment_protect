@@ -21,7 +21,7 @@
 
 ## Changelog
 
-- v0.4.1（2026-01-24）：补充“已实现但 v0.4 未列出”的 API 端点（见第 6 章），以确保文档与代码一致、对外契约无歧义。
+- v0.4.2（2026-01-25）：修正架构边界，移除“手机号验证”（尚未支持），新增“Google 登录”；移除“游戏服务”具体规范（标记为未来规划），清理历史遗留的生态小游戏逻辑。
 
 ---
 
@@ -88,9 +88,8 @@ repo-root/
 │  │     └─ main/resources/
 │  │        ├─ application.yml
 │  │        └─ logback-spring.xml
-│  └─ game-api/                         # Game Service - API 进程（独立服务；技术栈可不同）
-│     ├─ build.gradle / pom.xml
-│     └─ src/main/java/com/youthloop/game/api/GameApiApplication.java
+
+
 ├─ modules/                             # Social Service 业务模块（模块化单体）
 │  ├─ common/
 │  ├─ auth/
@@ -265,12 +264,10 @@ modules/<domain>/
 | Method | Path | Auth | 用途 |
 |------|------|------|------|
 | POST | /api/v1/auth/otp/email | No | 发送邮箱验证码（注册/登录/重置密码） |
-| POST | /api/v1/auth/otp/phone | No | 发送短信验证码（注册/登录/重置密码） |
 | POST | /api/v1/auth/register/email | No | 邮箱注册（email+otp+password+termsAccepted） |
-| POST | /api/v1/auth/register/phone | No | 手机注册（phone+otp+password+termsAccepted） |
 | POST | /api/v1/auth/login/otp/email | No | 邮箱验证码登录 |
-| POST | /api/v1/auth/login/otp/phone | No | 手机验证码登录 |
-| POST | /api/v1/auth/login/password | No | 账号密码登录（email/phone + password） |
+| POST | /api/v1/auth/login/password | No | 账号密码登录（email + password） |
+| POST | /api/v1/auth/login/google | No | Google 登录/注册（携带 idToken） |
 | POST | /api/v1/auth/password/reset | No | 找回/重置密码（account+otp+newPassword） |
 | POST | /api/v1/auth/token/refresh | No | 刷新 token |
 | POST | /api/v1/auth/logout | Yes | 登出 |
@@ -385,22 +382,9 @@ modules/<domain>/
 | GET | /api/v1/admin/host/verifications | Admin | 主办方认证审核：列表 |
 | PATCH | /api/v1/admin/host/verifications/{id} | Admin | 主办方认证审核：通过/拒绝 |
 
-### 6.13 Game：Game Session（v0.1 最小集合）
-
-说明：Game 是独立服务；下面只定义 Web 对接需要的最小端点，后续可在 Game 文档中继续细化，但路径风格保持一致。
-
-| Method | Path | Auth | 用途 |
-|------|------|------|------|
-| GET | /api/v1/game/profile | Yes | 获取玩家游戏侧资料/进度 |
-| POST | /api/v1/game/sessions | Yes | 开始一局（返回 sessionId） |
-| POST | /api/v1/game/sessions/{id}/events | Yes | 上报关键事件（用于成就/积分/回放，v0.1 可简化） |
-| POST | /api/v1/game/sessions/{id}/finish | Yes | 结束一局（返回结算结果） |
-
-### 6.14 Game：System / Health
-
-| Method | Path | Auth | 用途 |
-|------|------|------|------|
-| GET | /health | No | 健康检查 |
+### 6.13 Game：(规划中)
+ 
+说明：Game 服务目前处于“规划中”状态，前端生态小游戏功能暂停开发。接口预留但暂不实现。
 
 ---
 
@@ -447,9 +431,7 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 - `/profile`：`GET /api/v1/me/profile`；编辑：`POST /api/v1/me/profile`
 - `/points`：`POST /api/v1/points/signins`、`GET /api/v1/points/tasks`、`POST /api/v1/points/tasks/{taskId}/claim`、`GET /api/v1/points/quiz/today`、`POST /api/v1/points/quiz/submissions`
 - `/notifications`：`GET /api/v1/me/notifications`、`POST /api/v1/me/notifications/read`
-- `/login`、`/register`：Auth 端点（见 6.1）
-
-（注）`/game` 属于独立游戏服务，后端主业务不承载该模块。
+- `/login`、`/register`：Auth 端点（支持 Email / Google）
 
 ---
 
@@ -463,8 +445,9 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 - 热门排序（hot_score 重算、规则切换）：规则在数据库 + `modules/*` 的 stats 模型；重算任务在 `apps/social-worker/jobs`
 
 ### 11.2 登录/注册/忘记密码
-- OTP 发送/校验：`modules/auth/application` + `modules/auth/infrastructure`（sms/email 适配）
-- 多登录方式 identity：`modules/auth/domain`
+- OTP 发送/校验：`modules/auth/application` + `modules/auth/infrastructure`（email 适配；*注：sms/phone 已暂停支持*）
+- Google 登录：`modules/auth/infrastructure`（Google IdP 适配，校验 idToken）
+- 多登录方式 identity：`modules/auth/domain`（支持 Email、Google 自动创建账户）
 - refresh token：`modules/auth/persistence`
 - 条款/隐私同意留痕：`modules/auth`（对应数据库 `user_terms_acceptance`）
 - API 路由与参数：`apps/social-api/web/controller/auth`
@@ -538,7 +521,7 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 一个实例内使用 3 个 schema 隔离：
 - `shared`：共享基础（建议放 auth/user 之类“跨服务都需要识别”的最小集合；Owner 明确，避免双方乱改）
 - `social`：社媒后端自有表（content/activity/interaction/points/recommendation/...）
-- `game`：游戏后端自有表（本文档不展开 game 业务表）
+- `game`：游戏后端自有表（*规划中*）
 
 原则：
 - 一个表只属于一个 schema（一个 Owner）
@@ -569,18 +552,11 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 - Social Worker（apps/social-worker）：
   - 默认不跑 Flyway（避免多进程并发迁移带来的锁/启动顺序问题）
   - 约定：先启动 `social-api` 完成迁移，再启动 `social-worker`
-- Game Service（apps/game-api）：
-  - 负责：`game`（只迁移自己的 schema）
-  - 只读共享：运行时把 `shared` 加到 search_path（只读不迁移）
-  - `flyway.schemas=game`
-  - `flyway.defaultSchema=game`
-  - `flyway.table=flyway_schema_history_game`
-  - migrations：`db/migration/game/V001__init_game.sql`
+
 
 ### 12.4 两服务怎么连同一个库
 连接同一个 Postgres 实例，但使用不同账号 + 不同默认 schema：
 - Social Service：使用 `social_app`，search_path=`social,shared`
-- Game Service：使用 `game_app`，search_path=`game,shared`
 
 JDBC 常见做法：
 - 用连接串参数 `currentSchema=social,shared`（或在连接池 init SQL 里 `set search_path`）
@@ -613,7 +589,7 @@ JDBC 常见做法：
 
 - Java：21（Temurin 21 LTS）
 - Spring Boot：3.4.x（建议固定到具体小版本；与 Java 21 兼容性最好、生态成熟）
-- DB：PostgreSQL（单实例 + 3 schema：shared/social/game）
+- DB：PostgreSQL（单实例 + 2 schema：shared/social）
 - Migration：Flyway（必选）
 - Cache：Redis
 - Queue：RabbitMQ（必选）

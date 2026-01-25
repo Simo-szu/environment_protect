@@ -25,7 +25,6 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     // 导航项目
     const navigationItems = [
         { href: `/${locale}`, label: t('home', '首页'), color: '#30499B' },
-        { href: `/${locale}/game`, label: t('game', '游戏'), color: '#56B949' },
         { href: `/${locale}/science`, label: t('science', '科普'), color: '#F0A32F' },
         { href: `/${locale}/activities`, label: t('activities', '活动'), color: '#30499B' },
         { href: `/${locale}/points`, label: t('points', '积分'), color: '#EE4035' }

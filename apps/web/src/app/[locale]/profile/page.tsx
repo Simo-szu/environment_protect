@@ -151,7 +151,7 @@ export default function ProfilePage() {
                                             <div className="flex items-center gap-1">
                                                 <User className="w-4 h-4" />
                                                 <span>
-                                                    {profile.gender === 'MALE' ? '男' : profile.gender === 'FEMALE' ? '女' : '其他'}
+                                                    {profile.gender === 1 ? '男' : profile.gender === 2 ? '女' : '其他'}
                                                 </span>
                                             </div>
                                         )}
@@ -185,7 +185,7 @@ export default function ProfilePage() {
                                         <div>
                                             <p className="text-xs text-slate-500">性别</p>
                                             <p className="font-medium text-slate-800">
-                                                {profile.gender === 'MALE' ? '男' : profile.gender === 'FEMALE' ? '女' : '其他'}
+                                                {profile.gender === 1 ? '男' : profile.gender === 2 ? '女' : '其他'}
                                             </p>
                                         </div>
                                     </div>

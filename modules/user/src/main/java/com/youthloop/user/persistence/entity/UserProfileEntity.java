@@ -43,4 +43,14 @@ public class UserProfileEntity extends BaseEntity {
      * 家乡
      */
     private String hometown;
+    
+    /**
+     * 个人简介
+     */
+    private String bio;
+    
+    /**
+     * 所在地
+     */
+    private String location;
 }

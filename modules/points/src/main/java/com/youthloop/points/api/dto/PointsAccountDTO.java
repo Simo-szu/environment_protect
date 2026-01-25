@@ -16,4 +16,10 @@ import java.util.UUID;
 public class PointsAccountDTO {
     private UUID userId;
     private Long balance;
+    
+    // Frontend compatibility
+    private Long totalPoints;
+    private Long availablePoints;
+    private Integer level;
+    private String levelName;
 }

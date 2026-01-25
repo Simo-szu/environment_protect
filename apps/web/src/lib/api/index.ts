@@ -15,3 +15,4 @@ export * as authApi from './auth';
 export * as userApi from './user';
 export * as pointsApi from './points';
 export * as interactionApi from './interaction';
+export * as filesApi from './files';

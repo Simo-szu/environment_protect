@@ -143,23 +143,7 @@ public class OtpNotificationService {
         log.info("=".repeat(60));
     }
     
-    /**
-     * 发送短信验证码
-     * 
-     * @param phone 手机号
-     * @param code 验证码
-     * @param purpose 用途（register/login/reset_password）
-     */
-    public void sendPhoneOtp(String phone, String code, String purpose) {
-        // TODO: 生产环境需要集成真实的短信服务（如阿里云短信、腾讯云短信等）
-        log.info("=".repeat(60));
-        log.info("【开发模式】短信验证码");
-        log.info("手机号: {}", phone);
-        log.info("用途: {}", getPurposeText(purpose));
-        log.info("验证码: {}", code);
-        log.info("有效期: 5 分钟");
-        log.info("=".repeat(60));
-    }
+
     
     /**
      * 获取用途文本

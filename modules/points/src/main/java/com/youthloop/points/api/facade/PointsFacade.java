@@ -1,5 +1,6 @@
 package com.youthloop.points.api.facade;
 
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.points.api.dto.*;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,11 @@ public interface PointsFacade {
      * 签到
      */
     SigninResponse signin(SigninRequest request);
+    
+    /**
+     * 获取今日签到状态
+     */
+    SigninRecordDTO getTodaySignin();
     
     /**
      * 获取今日任务列表
@@ -38,4 +44,9 @@ public interface PointsFacade {
      * 获取用户积分账户
      */
     PointsAccountDTO getAccount();
+    
+    /**
+     * 获取积分流水
+     */
+    PageResponse<PointsLedgerDTO> getLedger(int page, int size);
 }

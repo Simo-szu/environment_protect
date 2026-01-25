@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -22,6 +23,7 @@ public class EmailRegisterRequest {
     @Schema(description = "验证码", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "验证码不能为空")
     @Size(min = 6, max = 6, message = "验证码必须为6位")
+    @JsonProperty("otpCode")
     private String otp;
     
     @Schema(description = "密码", example = "Password123!", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -31,5 +33,6 @@ public class EmailRegisterRequest {
     
     @Schema(description = "是否同意服务条款", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "必须同意服务条款")
+    @JsonProperty("agreedToTerms")
     private Boolean termsAccepted;
 }

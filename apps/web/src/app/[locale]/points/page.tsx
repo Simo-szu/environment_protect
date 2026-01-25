@@ -26,29 +26,29 @@ import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/ap
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('points');
-    
+
     // 积分账户数据
     const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
     const [loadingAccount, setLoadingAccount] = useState(true);
-    
+
     // 签到数据
     const [todaySignin, setTodaySignin] = useState<SigninRecord | null>(null);
     const [loadingSignin, setLoadingSignin] = useState(true);
     const [signingIn, setSigningIn] = useState(false);
     const [showCheckInAnimation, setShowCheckInAnimation] = useState(false);
-    
+
     // 每日任务数据
     const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
     const [loadingTasks, setLoadingTasks] = useState(true);
     const [claimingTask, setClaimingTask] = useState<string | null>(null);
-    
+
     // 每日问答数据
     const [todayQuiz, setTodayQuiz] = useState<DailyQuiz | null>(null);
     const [loadingQuiz, setLoadingQuiz] = useState(true);
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [quizSubmitted, setQuizSubmitted] = useState(false);
     const [quizResult, setQuizResult] = useState<{ correct: boolean; earnedPoints: number; explanation?: string } | null>(null);
-    
+
     const [quizStates, setQuizStates] = useState<{ [key: number]: { answered: boolean; correct: boolean } }>({
         1: { answered: false, correct: false },
         2: { answered: false, correct: false },
@@ -142,10 +142,10 @@ function PointsPageContent() {
         try {
             setSigningIn(true);
             setShowCheckInAnimation(true);
-            
+
             const result = await pointsApi.signin();
             setTodaySignin(result);
-            
+
             // 更新积分账户
             if (pointsAccount) {
                 setPointsAccount({
@@ -156,7 +156,7 @@ function PointsPageContent() {
             }
 
             alert(`签到成功！获得 ${result.points} 积分`);
-            
+
             // 动画结束后重置
             setTimeout(() => {
                 setShowCheckInAnimation(false);
@@ -175,16 +175,16 @@ function PointsPageContent() {
         try {
             setClaimingTask(taskId);
             await pointsApi.claimTaskReward(taskId);
-            
+
             // 更新任务列表
-            setDailyTasks(prev => prev.map(task => 
-                task.id === taskId ? { ...task, completed: true } : task
+            setDailyTasks(prev => prev.map(task =>
+                task.id === taskId ? { ...task, status: 3 } : task
             ));
-            
+
             // 重新加载积分账户
             const account = await pointsApi.getPointsAccount();
             setPointsAccount(account);
-            
+
             alert('领取成功！');
         } catch (error: any) {
             console.error('Failed to claim task:', error);
@@ -200,13 +200,13 @@ function PointsPageContent() {
 
         try {
             const result = await pointsApi.submitQuizAnswer({
-                quizId: todayQuiz.id,
-                answer: quizAnswer
+                quizDate: todayQuiz.quizDate,
+                userAnswer: { selectedOption: quizAnswer }
             });
-            
+
             setQuizResult(result);
             setQuizSubmitted(true);
-            
+
             // 更新积分账户
             if (result.correct && pointsAccount) {
                 setPointsAccount({
@@ -632,7 +632,7 @@ function PointsPageContent() {
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-[#30499B] font-serif">每日任务</h3>
                             <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
-                                今日剩余 {dailyTasks.filter(t => !t.completed).length}
+                                今日剩余 {dailyTasks.filter(t => t.status !== 3).length}
                             </span>
                         </div>
 
@@ -649,60 +649,55 @@ function PointsPageContent() {
                                 {dailyTasks.map((task) => (
                                     <div
                                         key={task.id}
-                                        className={`flex items-center justify-between p-3 sm:p-4 rounded-xl transition-colors border ${
-                                            task.completed
-                                                ? 'bg-slate-50 border-transparent'
-                                                : task.currentCompletions >= task.maxCompletions
+                                        className={`flex items-center justify-between p-3 sm:p-4 rounded-xl transition-colors border ${task.status === 3
+                                            ? 'bg-slate-50 border-transparent'
+                                            : task.progress >= task.target
                                                 ? 'bg-[#F0A32F]/5 border-[#F0A32F]/20 relative overflow-hidden'
                                                 : 'bg-slate-50 hover:bg-[#30499B]/5 group border-transparent hover:border-[#30499B]/10'
-                                        }`}
+                                            }`}
                                     >
-                                        {task.currentCompletions >= task.maxCompletions && !task.completed && (
+                                        {task.progress >= task.target && task.status !== 3 && (
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite] -translate-x-full"></div>
                                         )}
-                                        
+
                                         <div className="flex items-center gap-3 relative z-10">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
-                                                task.completed
-                                                    ? 'bg-[#56B949]/10 text-[#56B949]'
-                                                    : 'bg-white text-[#30499B]'
-                                            }`}>
-                                                {task.completed ? (
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${task.status === 3
+                                                ? 'bg-[#56B949]/10 text-[#56B949]'
+                                                : 'bg-white text-[#30499B]'
+                                                }`}>
+                                                {task.status === 3 ? (
                                                     <CheckCircle className="w-4 h-4" />
                                                 ) : (
                                                     <BookOpen className="w-4 h-4" />
                                                 )}
                                             </div>
                                             <div>
-                                                <div className={`text-sm font-semibold ${
-                                                    task.completed ? 'text-slate-400 line-through' : 'text-[#30499B]'
-                                                }`}>
-                                                    {task.taskName}
+                                                <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 line-through' : 'text-[#30499B]'
+                                                    }`}>
+                                                    {task.name}
                                                 </div>
-                                                <div className={`text-xs font-medium ${
-                                                    task.completed ? 'text-slate-400' : 'text-[#F0A32F]'
-                                                }`}>
-                                                    {task.completed ? '已完成' : `+${task.points} 积分`}
+                                                <div className={`text-xs font-medium ${task.status === 3 ? 'text-slate-400' : 'text-[#F0A32F]'
+                                                    }`}>
+                                                    {task.status === 3 ? '已完成' : `+${task.points} 积分`}
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-3 relative z-10">
-                                            <span className={`text-xs font-medium ${
-                                                task.completed
-                                                    ? 'text-[#56B949]'
-                                                    : task.currentCompletions >= task.maxCompletions
+                                            <span className={`text-xs font-medium ${task.status === 3
+                                                ? 'text-[#56B949]'
+                                                : task.progress >= task.target
                                                     ? 'text-[#F0A32F]'
                                                     : 'text-slate-400 group-hover:text-[#30499B]'
-                                            }`}>
-                                                {task.currentCompletions}/{task.maxCompletions}
+                                                }`}>
+                                                {task.progress}/{task.target}
                                             </span>
-                                            
-                                            {task.completed ? (
+
+                                            {task.status === 3 ? (
                                                 <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">
                                                     已完成
                                                 </button>
-                                            ) : task.currentCompletions >= task.maxCompletions ? (
+                                            ) : task.progress >= task.target ? (
                                                 <button
                                                     onClick={() => handleClaimTask(task.id)}
                                                     disabled={claimingTask === task.id}

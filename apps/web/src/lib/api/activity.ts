@@ -50,9 +50,9 @@ interface ActivityDetailDTO {
   startTime: string;
   endTime: string;
   location?: string;
+  contactInfo?: string;
   posterUrls?: string[];
   externalUrl?: string;
-  contactInfo?: string;
   status: number;
   createdAt: string;
   signupCount: number;
@@ -155,6 +155,19 @@ export interface SignupResponse {
   sessionId?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   createdAt: string;
+}
+
+// 主办方创建活动请求
+export interface CreateHostActivityRequest {
+  title: string;
+  category: number;
+  topic?: string;
+  signupPolicy: number; // 1=自动通过 2=需要审核
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  location?: string;
+  description?: string;
+  posterUrls?: string[];
 }
 
 /**
@@ -286,7 +299,7 @@ export async function getActivities(params: {
     page: params.page || 1,
     size: params.size || 10,
   });
-  
+
   return {
     ...response,
     items: response.items.map(mapActivityListItemDtoToItem)
@@ -326,7 +339,7 @@ export async function getActivityComments(
     page: params.page || 1,
     size: params.size || 10,
   });
-  
+
   // 将 CommentTreeDTO 转换为 PageResponse<Comment>
   return {
     ...treeDto.rootComments,
@@ -378,4 +391,17 @@ export async function cancelSignup(
     `/api/v1/activities/${activityId}/signups/${signupId}`,
     body
   );
+}
+
+/**
+ * 主办方发布活动
+ */
+export async function createHostActivity(
+  data: CreateHostActivityRequest
+): Promise<string> {
+  const activityId = await apiPost<string>(
+    '/api/v1/host/activities',
+    data
+  );
+  return activityId;
 }

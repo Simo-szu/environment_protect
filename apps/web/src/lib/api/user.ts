@@ -5,27 +5,26 @@
 import { apiGet, apiPost } from '../api-client';
 import { PageResponse } from '../api-types';
 
-// 用户资料
+// 用户资料（后端返回格式）
 export interface UserProfile {
   userId: string;
   nickname: string;
   avatarUrl?: string;
+  gender?: number; // 0=未知 1=男 2=女
+  birthday?: string; // yyyy-MM-dd
+  hometown?: string;
   bio?: string;
-  email?: string;
-  phone?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
-  birthDate?: string;
   location?: string;
-  createdAt: string;
 }
 
-// 更新资料请求
+// 更新资料请求（与后端 DTO 一致）
 export interface UpdateProfileRequest {
   nickname?: string;
   avatarUrl?: string;
+  gender?: number; // 0=未知 1=男 2=女
+  birthday?: string; // yyyy-MM-dd
+  hometown?: string;
   bio?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
-  birthDate?: string;
   location?: string;
 }
 
@@ -62,25 +61,64 @@ export interface MarkNotificationsReadRequest {
   markAllAsRead?: boolean;
 }
 
-// Reaction 项
+// Reaction 项（与后端 ReactionItemDTO 对齐）
 export interface ReactionItem {
   id: string;
-  targetType: 'CONTENT' | 'ACTIVITY' | 'COMMENT';
+  reactionType: number; // 1=点赞 2=收藏 3=踩
+  targetType: number; // 1=内容 2=活动
   targetId: string;
-  reactionType: 'LIKE' | 'FAVORITE' | 'DISLIKE';
-  targetTitle?: string;
-  targetCoverUrl?: string;
   createdAt: string;
+  // 内容字段（targetType=1）
+  contentTitle?: string;
+  contentType?: number;
+  contentCoverUrl?: string;
+  contentSummary?: string;
+  // 活动字段（targetType=2）
+  activityTitle?: string;
+  activityCategory?: number;
+  activityPosterUrl?: string;
+  activityStartTime?: string;
+  activityLocation?: string;
 }
 
-// 我的活动项
+// 前端类型映射
+const REACTION_TYPE_MAP: Record<string, number> = {
+  'LIKE': 1,
+  'FAVORITE': 2,
+  'DISLIKE': 3
+};
+
+const TARGET_TYPE_MAP: Record<string, number> = {
+  'CONTENT': 1,
+  'ACTIVITY': 2
+};
+
+/**
+ * 获取我的点赞/收藏
+ */
+export async function getMyReactions(
+  reactionType: 'LIKE' | 'FAVORITE',
+  targetType: 'CONTENT' | 'ACTIVITY',
+  page: number = 1,
+  size: number = 20
+): Promise<PageResponse<ReactionItem>> {
+  // 映射为后端需要的 int 参数
+  const params = new URLSearchParams({
+    reactionType: REACTION_TYPE_MAP[reactionType].toString(),
+    targetType: TARGET_TYPE_MAP[targetType].toString(),
+    page: page.toString(),
+    size: size.toString()
+  });
+  return apiGet<PageResponse<ReactionItem>>(`/api/v1/me/reactions?${params}`);
+}
 export interface MyActivityItem {
   signupId: string;
   activityId: string;
-  activityTitle: string;
-  activityCoverUrl?: string;
-  sessionName?: string;
+  title: string;
+  coverImageUrl?: string;
+  sessionId?: string;
   startTime: string;
+  endTime: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   signedUpAt: string;
 }
@@ -112,7 +150,7 @@ export async function getMyNotifications(params: {
     page: params.page || 1,
     size: params.size || 20,
   });
-  
+
   // 映射后端 DTO 到前端 ViewModel
   return {
     ...response,
@@ -127,28 +165,28 @@ function mapNotificationDtoToItem(dto: NotificationItemDTO): NotificationItem {
   let title = '';
   let content = '';
   let linkUrl: string | undefined;
-  
+
   // 根据类型生成 title 和 content
   switch (dto.type) {
     case 1: // 评论
       title = `${dto.actorNickname || '用户'} 评论了你`;
       content = dto.commentContent || '';
-      linkUrl = dto.targetType === 1 
-        ? `/science/${dto.targetId}` 
+      linkUrl = dto.targetType === 1
+        ? `/science/${dto.targetId}`
         : `/activities/${dto.targetId}`;
       break;
     case 2: // 回复
       title = `${dto.actorNickname || '用户'} 回复了你`;
       content = dto.commentContent || '';
-      linkUrl = dto.targetType === 1 
-        ? `/science/${dto.targetId}` 
+      linkUrl = dto.targetType === 1
+        ? `/science/${dto.targetId}`
         : `/activities/${dto.targetId}`;
       break;
     case 3: // 点赞
       title = `${dto.actorNickname || '用户'} 点赞了你`;
       content = dto.targetPreview || '';
-      linkUrl = dto.targetType === 1 
-        ? `/science/${dto.targetId}` 
+      linkUrl = dto.targetType === 1
+        ? `/science/${dto.targetId}`
         : `/activities/${dto.targetId}`;
       break;
     case 4: // 系统通知
@@ -159,7 +197,7 @@ function mapNotificationDtoToItem(dto: NotificationItemDTO): NotificationItem {
       title = '通知';
       content = dto.targetPreview || '';
   }
-  
+
   return {
     id: dto.id,
     type: dto.type.toString(),
@@ -181,31 +219,39 @@ export async function markNotificationsRead(
 }
 
 /**
- * 获取我的点赞/收藏
- */
-export async function getMyReactions(params: {
-  reactionType?: 'LIKE' | 'FAVORITE';
-  targetType?: 'CONTENT' | 'ACTIVITY';
-  page?: number;
-  size?: number;
-}): Promise<PageResponse<ReactionItem>> {
-  return apiGet<PageResponse<ReactionItem>>('/api/v1/me/reactions', {
-    reactionType: params.reactionType,
-    targetType: params.targetType,
-    page: params.page || 1,
-    size: params.size || 10,
-  });
-}
-
-/**
  * 获取我的活动报名
  */
 export async function getMyActivities(params: {
   page?: number;
   size?: number;
 }): Promise<PageResponse<MyActivityItem>> {
-  return apiGet<PageResponse<MyActivityItem>>('/api/v1/me/activities', {
+  const response = await apiGet<PageResponse<any>>('/api/v1/me/activities', {
     page: params.page || 1,
     size: params.size || 10,
   });
+
+  const mapStatus = (s: number): 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' => {
+    switch (s) {
+      case 1: return 'PENDING';
+      case 2: return 'APPROVED';
+      case 3: return 'REJECTED';
+      case 4: return 'CANCELLED';
+      default: return 'PENDING';
+    }
+  };
+
+  return {
+    ...response,
+    items: response.items.map((dto: any) => ({
+      signupId: dto.signupId,
+      activityId: dto.activityId,
+      title: dto.title,
+      coverImageUrl: dto.posterUrls && dto.posterUrls.length > 0 ? dto.posterUrls[0] : undefined,
+      sessionId: dto.sessionId,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+      status: mapStatus(dto.signupStatus),
+      signedUpAt: dto.signupAt
+    }))
+  };
 }

@@ -87,9 +87,8 @@ function RegisterActivityContent() {
         if (user && isLoggedIn) {
             setFormData(prev => ({
                 ...prev,
-                name: user.nickname || '',
-                email: user.email || '',
-                phone: user.phone || ''
+                name: user.nickname || ''
+                // email 和 phone 需要用户手动填写
             }));
         }
     }, [user, isLoggedIn]);

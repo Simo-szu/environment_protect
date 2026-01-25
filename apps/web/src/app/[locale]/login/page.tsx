@@ -15,15 +15,17 @@ import {
     Smartphone,
     ScanLine
 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+
 
 export default function LoginPage() {
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('auth');
 
-    const [loginMode, setLoginMode] = useState<'password' | 'otp'>('password');
+    const [loginMode, setLoginMode] = useState<'password' | 'otp' | 'google'>('password');
     const [formData, setFormData] = useState({
-        username: '',
+        email: '',
         password: '',
         otpCode: '',
         remember: false
@@ -47,8 +49,8 @@ export default function LoginPage() {
 
     // 发送验证码
     const handleSendOtp = async () => {
-        if (!formData.username.trim()) {
-            setError('请输入手机号或邮箱');
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
             return;
         }
 
@@ -56,20 +58,14 @@ export default function LoginPage() {
             setSendingOtp(true);
             setError('');
 
-            // 判断是手机号还是邮箱
-            const isPhone = /^1[3-9]\d{9}$/.test(formData.username);
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
-            if (!isPhone && !isEmail) {
-                setError('请输入正确的手机号或邮箱');
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
                 return;
             }
 
-            if (isPhone) {
-                await authApi.sendPhoneOtp(formData.username);
-            } else {
-                await authApi.sendEmailOtp(formData.username);
-            }
+            await authApi.sendEmailOtp(formData.email, 'login');
 
             setOtpSent(true);
             setCountdown(60);
@@ -82,12 +78,31 @@ export default function LoginPage() {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            if (!credentialResponse.credential) {
+                throw new Error('No credential received');
+            }
+
+            await authApi.loginWithGoogle(credentialResponse.credential);
+
+            const userProfile = await userApi.getMyProfile();
+            login(userProfile);
+            router.push(`/${locale}`);
+        } catch (error: any) {
+            console.error('Google Login Error:', error);
+            setError('Google 登录失败');
+        }
+    };
+
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!formData.username.trim()) {
-            setError('请输入手机号或邮箱');
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
             return;
         }
 
@@ -104,36 +119,26 @@ export default function LoginPage() {
         try {
             setSubmitting(true);
 
-            // 判断是手机号还是邮箱
-            const isPhone = /^1[3-9]\d{9}$/.test(formData.username);
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
-            if (!isPhone && !isEmail) {
-                setError('请输入正确的手机号或邮箱');
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
                 return;
             }
 
             // 调用登录 API
             if (loginMode === 'password') {
                 await authApi.loginWithPassword({
-                    email: isEmail ? formData.username : undefined,
-                    phone: isPhone ? formData.username : undefined,
+                    email: formData.email,
                     password: formData.password
                 });
             } else {
-                // 根据账号类型调用不同的 OTP 登录端点
-                if (isEmail) {
-                    await authApi.loginWithEmailOtp({
-                        email: formData.username,
-                        otpCode: formData.otpCode
-                    });
-                } else {
-                    await authApi.loginWithPhoneOtp({
-                        phone: formData.username,
-                        otpCode: formData.otpCode
-                    });
-                }
+                await authApi.loginWithEmailOtp({
+                    email: formData.email,
+                    otpCode: formData.otpCode
+                });
             }
+
 
             // 获取用户信息
             const userProfile = await userApi.getMyProfile();
@@ -208,14 +213,15 @@ export default function LoginPage() {
                                 </div>
                                 <input
                                     type="text"
-                                    name="username"
-                                    value={formData.username}
+                                    name="email"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="手机号/邮箱"
+                                    placeholder="邮箱地址"
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                     disabled={submitting}
                                 />
                             </div>
+
 
                             {loginMode === 'password' ? (
                                 <div className="relative group">
@@ -282,6 +288,19 @@ export default function LoginPage() {
                             >
                                 {submitting ? '登录中...' : '立即登录'}
                             </button>
+
+                            <div className="flex justify-center w-full">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => setError('Google 登录失败')}
+                                    useOneTap
+                                    width="100%"
+                                    theme="outline"
+                                    shape="rectangular"
+                                />
+                            </div>
+
+
 
                             {/* 用户协议提示 */}
                             <div className="text-center text-xs text-slate-500 leading-relaxed">

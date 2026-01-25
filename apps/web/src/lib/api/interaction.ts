@@ -86,5 +86,5 @@ export async function createReaction(
 export async function deleteReaction(
   data: DeleteReactionRequest
 ): Promise<void> {
-  return apiDelete<void>('/api/v1/reactions', data, true);
+  return apiPost<void>('/api/v1/reactions/delete', data, true);
 }

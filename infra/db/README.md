@@ -6,8 +6,8 @@ This directory contains database initialization scripts and migrations for the Y
 
 **Database Structure:**
 - 1 PostgreSQL instance
-- 3 schemas: `shared`, `social`, `game`
-- 4 roles: `social_migrator`, `social_app`, `game_migrator`, `game_app`
+- 3 schemas: `shared`, `social`
+- 2 roles: `social_migrator`, `social_app`
 
 ## Quick Start
 
@@ -38,8 +38,8 @@ psql -U postgres -h localhost -p 5432 -d youthloop -f infra/db/init/db_init_role
 ```
 
 This creates:
-- 4 roles with proper permissions
-- 3 schemas (shared, social, game)
+- 2 roles with proper permissions
+- 2 schemas (shared, social)
 - Default privileges for future tables
 
 ### Step 3: Run Migrations
@@ -79,17 +79,16 @@ SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto';
 **Check roles and schemas exist:**
 ```sql
 SELECT rolname FROM pg_roles
-WHERE rolname IN ('social_migrator','social_app','game_migrator','game_app');
+WHERE rolname IN ('social_migrator','social_app');
 
 SELECT nspname FROM pg_namespace
-WHERE nspname IN ('shared','social','game');
+WHERE nspname IN ('shared','social');
 ```
 
 **Permission expectations:**
 - ✅ `social_migrator` can create/drop tables in `shared` + `social`
 - ✅ `social_app` cannot create tables (DDL blocked)
 - ✅ `social_app` can read/write `shared` + `social` (DML only)
-- ✅ `game_app` has read-only access to `shared` (SELECT only)
 
 ## Schema Organization
 
@@ -122,9 +121,7 @@ Tables:
 
 v0.1 Social schema table count: **26** (as listed above).
 
-### game schema
-**Owner:** game_migrator  
-**Purpose:** Game service business data (to be defined)
+
 
 ## Role Permissions
 
@@ -132,9 +129,6 @@ v0.1 Social schema table count: **26** (as listed above).
 |------|--------|-------------|
 | social_migrator | shared, social | DDL (CREATE/ALTER/DROP) + DML |
 | social_app | shared, social | DML only (SELECT/INSERT/UPDATE/DELETE) |
-| game_migrator | game | DDL + DML |
-| game_app | game | DML only |
-| game_app | shared | SELECT only (read-only) |
 
 ## Connection Strings
 
@@ -143,10 +137,7 @@ v0.1 Social schema table count: **26** (as listed above).
 postgresql://social_app:postgres@localhost:5432/youthloop
 ```
 
-**For Game Service:**
-```
-postgresql://game_app:postgres@localhost:5432/youthloop
-```
+
 
 **For Migrations (Social):**
 ```
@@ -157,7 +148,7 @@ postgresql://social_migrator:postgres@localhost:5432/youthloop
 
 Flyway is now integrated into the Spring Boot apps and is the default way to run schema migrations.
 This follows `Project-Structure.md` requirements:
-- 1 Postgres instance, 3 schemas: `shared`, `social`, `game`
+- 1 Postgres instance, 2 schemas: `shared`, `social`
 - Separate Flyway history tables per service (no cross-service conflicts)
 - Use migrator roles for DDL (apps still connect with app roles)
 
@@ -170,13 +161,7 @@ This follows `Project-Structure.md` requirements:
   - `apps/social-api/src/main/resources/db/migration/shared`
   - `apps/social-api/src/main/resources/db/migration/social`
 
-**Game Service:**
-- schemas: `game`
-- defaultSchema: `game`
-- table: `flyway_schema_history_game`
-- user: `game_migrator` (DDL via Flyway)
-- locations (classpath):
-  - `apps/game-api/src/main/resources/db/migration/game`
+
 
 ### How to run migrations (recommended)
 
@@ -186,12 +171,11 @@ Start each service once; Flyway runs automatically on startup using the configur
 # Social API (runs shared + social migrations)
 mvn -pl apps/social-api spring-boot:run
 
-# Game API (runs game migrations)
-mvn -pl apps/game-api spring-boot:run
+
 ```
 
 Notes:
-- Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` for each service (defaults are `social_migrator` / `game_migrator`).
+- Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` (defaults are `social_migrator`).
 - Apps still use `DB_USER` / `DB_PASSWORD` for normal runtime DML.
 
 ## Troubleshooting
@@ -204,8 +188,8 @@ $env:PATH += ";C:\Program Files\PostgreSQL\16\bin"
 
 ### Permission denied
 Ensure you're using the correct role:
-- Migrations: use `social_migrator` or `game_migrator`
-- Application: use `social_app` or `game_app`
+- Migrations: use `social_migrator`
+- Application: use `social_app`
 
 ### Connection refused
 Check PostgreSQL service is running:

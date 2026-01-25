@@ -15,13 +15,14 @@ export interface AuthResponse {
 // 发送 OTP 请求
 export interface SendOtpRequest {
   email?: string;
-  phone?: string;
+
+  purpose: 'register' | 'login' | 'reset_password';
 }
 
 // 注册请求
 export interface RegisterRequest {
   email?: string;
-  phone?: string;
+
   password?: string;
   otpCode?: string;
   nickname?: string;
@@ -31,7 +32,7 @@ export interface RegisterRequest {
 // 登录请求
 export interface LoginRequest {
   email?: string;
-  phone?: string;
+
   password?: string;
   otpCode?: string;
 }
@@ -39,16 +40,11 @@ export interface LoginRequest {
 /**
  * 发送邮箱 OTP
  */
-export async function sendEmailOtp(email: string): Promise<void> {
-  return apiPost<void>('/api/v1/auth/otp/email', { email });
+export async function sendEmailOtp(email: string, purpose: 'register' | 'login' | 'reset_password' = 'register'): Promise<void> {
+  return apiPost<void>('/api/v1/auth/otp/email', { email, purpose });
 }
 
-/**
- * 发送手机 OTP
- */
-export async function sendPhoneOtp(phone: string): Promise<void> {
-  return apiPost<void>('/api/v1/auth/otp/phone', { phone });
-}
+
 
 /**
  * 邮箱注册
@@ -64,19 +60,7 @@ export async function registerWithEmail(
   return result;
 }
 
-/**
- * 手机注册
- */
-export async function registerWithPhone(
-  data: RegisterRequest
-): Promise<AuthResponse> {
-  const result = await apiPost<AuthResponse>(
-    '/api/v1/auth/register/phone',
-    data
-  );
-  authStore.setTokens(result);
-  return result;
-}
+
 
 /**
  * 密码登录
@@ -84,13 +68,27 @@ export async function registerWithPhone(
 export async function loginWithPassword(
   data: LoginRequest
 ): Promise<AuthResponse> {
+  const account = data.email || '';
   const result = await apiPost<AuthResponse>(
     '/api/v1/auth/login/password',
-    data
+    {
+      account,
+      password: data.password
+    }
   );
   authStore.setTokens(result);
   return result;
 }
+
+/**
+ * Google 登录 (Exchange ID Token)
+ */
+export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+  const result = await apiPost<AuthResponse>('/api/v1/auth/login/google', { idToken });
+  authStore.setTokens(result);
+  return result;
+}
+
 
 /**
  * OTP 登录（邮箱）
@@ -104,31 +102,7 @@ export async function loginWithEmailOtp(data: LoginRequest): Promise<AuthRespons
   return result;
 }
 
-/**
- * OTP 登录（手机）
- */
-export async function loginWithPhoneOtp(data: LoginRequest): Promise<AuthResponse> {
-  const result = await apiPost<AuthResponse>('/api/v1/auth/login/otp/phone', {
-    phone: data.phone,
-    otp: data.otpCode,
-  });
-  authStore.setTokens(result);
-  return result;
-}
 
-/**
- * OTP 登录（自动选择邮箱或手机）
- * @deprecated 建议直接使用 loginWithEmailOtp 或 loginWithPhoneOtp
- */
-export async function loginWithOtp(data: LoginRequest): Promise<AuthResponse> {
-  if (data.email) {
-    return loginWithEmailOtp(data);
-  } else if (data.phone) {
-    return loginWithPhoneOtp(data);
-  } else {
-    throw new Error('必须提供 email 或 phone');
-  }
-}
 
 /**
  * 登出

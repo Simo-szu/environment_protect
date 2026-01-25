@@ -76,3 +76,7 @@ jwt:
 resend:
   api-key: ${RESEND_API_KEY:}
   from-email: ${RESEND_FROM_EMAIL:noreply@youthloop.top}
+
+# Google 登录配置
+google:
+  client-id: 33948437410-0lf54mq37rf30gtadf4lpbg80kpddrqb.apps.googleusercontent.com

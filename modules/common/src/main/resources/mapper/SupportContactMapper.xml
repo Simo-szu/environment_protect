@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.common.persistence.mapper.SupportContactMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.common.domain.model.SupportContact">
+    <id column="id" property="id" jdbcType="OTHER"/>
+    <result column="user_id" property="userId" jdbcType="OTHER"/>
+    <result column="name" property="name" jdbcType="VARCHAR"/>
+    <result column="email" property="email" jdbcType="VARCHAR"/>
+    <result column="phone" property="phone" jdbcType="VARCHAR"/>
+    <result column="subject" property="subject" jdbcType="VARCHAR"/>
+    <result column="message" property="message" jdbcType="VARCHAR"/>
+    <result column="status" property="status" jdbcType="INTEGER"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    <result column="handled_by" property="handledBy" jdbcType="OTHER"/>
+    <result column="handled_at" property="handledAt" jdbcType="TIMESTAMP"/>
+    <result column="meta" property="meta" jdbcType="VARCHAR"/>
+  </resultMap>
+
+  <insert id="insert">
+    INSERT INTO social.support_contact (id, user_id, name, email, phone, subject, message, status, created_at, meta)
+    VALUES (
+      #{id}::uuid,
+      #{userId}::uuid,
+      #{name},
+      #{email},
+      #{phone},
+      #{subject},
+      #{message},
+      #{status},
+      #{createdAt},
+      #{meta}::jsonb
+    )
+  </insert>
+
+  <select id="selectById" resultMap="BaseResultMap">
+    SELECT id, user_id, name, email, phone, subject, message, status, created_at, handled_by, handled_at, meta
+    FROM social.support_contact
+    WHERE id = #{id}::uuid
+  </select>
+
+</mapper>

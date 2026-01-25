@@ -37,29 +37,27 @@ export interface SigninRecord {
 // 每日任务
 export interface DailyTask {
   id: string;
-  taskName: string;
-  description: string;
+  name: string;
+  code: string;
   points: number;
-  maxCompletions: number;
-  currentCompletions: number;
-  completed: boolean;
+  progress: number;
+  target: number;
+  status: number; // 1=doing 2=claimable 3=done
 }
 
 // 每日问答
 export interface DailyQuiz {
-  id: string;
   quizDate: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
+  question: any; // Backend returns JsonNode, assumes title/options inside
   points: number;
-  explanation?: string;
+  answered: boolean;
+  isCorrect?: boolean;
 }
 
 // 问答提交请求
 export interface QuizSubmissionRequest {
-  quizId: string;
-  answer: number;
+  quizDate: string; // yyyy-MM-dd
+  userAnswer: any;
 }
 
 // 问答提交响应
@@ -79,19 +77,14 @@ export async function getPointsAccount(): Promise<PointsAccount> {
 
 /**
  * 获取积分记录
- * 注意：后端暂未实现此端点，返回空数据
  */
 export async function getPointsLedger(params: {
   page?: number;
   size?: number;
 }): Promise<PageResponse<PointsLedger>> {
-  // TODO: 等待后端实现 GET /api/v1/points/ledger
-  return Promise.resolve({
-    items: [],
-    total: 0,
-    page: params.page || 1,
-    size: params.size || 20,
-  });
+  // 调用后端 GET /api/v1/points/ledger
+  // items: PointsLedger[], total: number
+  return apiGet<PageResponse<PointsLedger>>('/api/v1/points/ledger', params);
 }
 
 /**
@@ -103,12 +96,10 @@ export async function signin(): Promise<SigninRecord> {
 
 /**
  * 获取今日签到状态
- * 注意：后端暂未实现此端点，通过签到接口判断
  */
 export async function getTodaySignin(): Promise<SigninRecord | null> {
-  // TODO: 等待后端实现 GET /api/v1/points/signins/today
-  // 目前可以通过尝试签到来判断是否已签到（如果已签到会返回错误）
-  return Promise.resolve(null);
+  // 调用后端 GET /api/v1/points/signins/today
+  return apiGet<SigninRecord | null>('/api/v1/points/signins/today');
 }
 
 /**

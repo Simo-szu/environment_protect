@@ -26,7 +26,7 @@
         <!-- Apps -->
         <module>apps/social-api</module>
         <module>apps/social-worker</module>
-        <module>apps/game-api</module>
+
         
         <!-- Modules -->
         <module>modules/common</module>
