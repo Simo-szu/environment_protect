@@ -5,7 +5,7 @@
 -- ============================================================================
 
 -- === Support Contact Table ===
-CREATE TABLE social.support_contact (
+CREATE TABLE IF NOT EXISTS social.support_contact (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NULL, -- NULL 表示游客提交
   name text NOT NULL,
@@ -22,15 +22,15 @@ CREATE TABLE social.support_contact (
   CONSTRAINT fk_support_contact_handler FOREIGN KEY (handled_by) REFERENCES shared.user(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_support_contact_user_created ON social.support_contact(user_id, created_at);
-CREATE INDEX idx_support_contact_status_created ON social.support_contact(status, created_at);
-CREATE INDEX idx_support_contact_email ON social.support_contact(email);
+CREATE INDEX IF NOT EXISTS idx_support_contact_user_created ON social.support_contact(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_support_contact_status_created ON social.support_contact(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_support_contact_email ON social.support_contact(email);
 
 COMMENT ON TABLE social.support_contact IS '联系我们记录';
 COMMENT ON COLUMN social.support_contact.status IS '1=待处理 2=处理中 3=已完成 4=已关闭';
 
 -- === User Feedback Table ===
-CREATE TABLE social.user_feedback (
+CREATE TABLE IF NOT EXISTS social.user_feedback (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NULL, -- NULL 表示游客提交
   type int NOT NULL, -- 1=建议 2=Bug 3=表扬 4=其他
@@ -45,9 +45,9 @@ CREATE TABLE social.user_feedback (
   CONSTRAINT fk_user_feedback_user FOREIGN KEY (user_id) REFERENCES shared.user(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_user_feedback_user_created ON social.user_feedback(user_id, created_at);
-CREATE INDEX idx_user_feedback_status_created ON social.user_feedback(status, created_at);
-CREATE INDEX idx_user_feedback_type_created ON social.user_feedback(type, created_at);
+CREATE INDEX IF NOT EXISTS idx_user_feedback_user_created ON social.user_feedback(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_user_feedback_status_created ON social.user_feedback(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_user_feedback_type_created ON social.user_feedback(type, created_at);
 
 COMMENT ON TABLE social.user_feedback IS '用户反馈记录';
 COMMENT ON COLUMN social.user_feedback.type IS '1=建议 2=Bug 3=表扬 4=其他';
