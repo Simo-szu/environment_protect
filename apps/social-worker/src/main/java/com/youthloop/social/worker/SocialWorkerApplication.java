@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = "com.youthloop")
 @EnableScheduling
 @MapperScan(basePackages = {
+    "com.youthloop.common.persistence.mapper",
     "com.youthloop.auth.persistence.mapper",
     "com.youthloop.user.persistence.mapper",
     "com.youthloop.content.persistence.mapper",

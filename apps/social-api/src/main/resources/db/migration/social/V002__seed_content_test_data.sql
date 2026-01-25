@@ -135,7 +135,8 @@ VALUES
     1,
     now() - interval '12 hours',
     now() - interval '12 hours'
-  );
+  )
+ON CONFLICT (id) DO NOTHING;
 
 -- 插入对应的统计数据
 INSERT INTO social.content_stats (content_id, like_count, fav_count, down_count, comment_count, hot_score, updated_at)
@@ -144,4 +145,5 @@ VALUES
   ('b2c3d4e5-f6a7-4b5c-8d9e-0f1a2b3c4d5e'::uuid, 89, 67, 1, 15, 1200, now()),
   ('c3d4e5f6-a7b8-4c5d-8e9f-0a1b2c3d4e5f'::uuid, 234, 156, 3, 45, 2800, now()),
   ('d4e5f6a7-b8c9-4d5e-8f9a-0b1c2d3e4f5a'::uuid, 56, 23, 0, 8, 600, now()),
-  ('e5f6a7b8-c9d0-4e5f-8a9b-0c1d2e3f4a5b'::uuid, 312, 198, 5, 67, 3500, now());
+  ('e5f6a7b8-c9d0-4e5f-8a9b-0c1d2e3f4a5b'::uuid, 312, 198, 5, 67, 3500, now())
+ON CONFLICT (content_id) DO NOTHING;

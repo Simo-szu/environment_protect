@@ -7,6 +7,7 @@ import com.youthloop.content.api.dto.ContentQueryRequest;
 import com.youthloop.content.api.facade.ContentQueryFacade;
 import com.youthloop.content.application.service.ContentQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContentQueryFacadeImpl implements ContentQueryFacade {
     
+    @Qualifier("contentBasicQueryService")
     private final ContentQueryService contentQueryService;
     
     @Override

@@ -5,8 +5,8 @@
 <mapper namespace="com.youthloop.common.persistence.mapper.UserFeedbackMapper">
 
   <resultMap id="BaseResultMap" type="com.youthloop.common.domain.model.UserFeedback">
-    <id column="id" property="id" jdbcType="OTHER"/>
-    <result column="user_id" property="userId" jdbcType="OTHER"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="type" property="type" jdbcType="INTEGER"/>
     <result column="rating" property="rating" jdbcType="INTEGER"/>
     <result column="title" property="title" jdbcType="VARCHAR"/>

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * 活动查询服务（只读）
  */
 @Slf4j
-@Service
+@Service("activityAggregateQueryService")
 @RequiredArgsConstructor
 public class ActivityQueryService {
     

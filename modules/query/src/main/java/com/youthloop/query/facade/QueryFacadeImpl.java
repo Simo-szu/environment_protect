@@ -8,6 +8,7 @@ import com.youthloop.query.service.ContentQueryService;
 import com.youthloop.query.service.HomeQueryService;
 import com.youthloop.query.service.MeQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,9 +22,15 @@ import java.util.UUID;
 public class QueryFacadeImpl implements QueryFacade {
     
     private final HomeQueryService homeQueryService;
+    
+    @Qualifier("contentAggregateQueryService")
     private final ContentQueryService contentQueryService;
+    
     private final CommentQueryService commentQueryService;
+    
+    @Qualifier("activityAggregateQueryService")
     private final ActivityQueryService activityQueryService;
+    
     private final MeQueryService meQueryService;
     
     @Override

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * 内容查询服务（聚合查询）
  */
 @Slf4j
-@Service
+@Service("contentAggregateQueryService")
 @RequiredArgsConstructor
 public class ContentQueryService {
     

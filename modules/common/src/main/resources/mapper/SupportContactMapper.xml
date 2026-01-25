@@ -5,8 +5,8 @@
 <mapper namespace="com.youthloop.common.persistence.mapper.SupportContactMapper">
 
   <resultMap id="BaseResultMap" type="com.youthloop.common.domain.model.SupportContact">
-    <id column="id" property="id" jdbcType="OTHER"/>
-    <result column="user_id" property="userId" jdbcType="OTHER"/>
+    <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="user_id" property="userId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="name" property="name" jdbcType="VARCHAR"/>
     <result column="email" property="email" jdbcType="VARCHAR"/>
     <result column="phone" property="phone" jdbcType="VARCHAR"/>
@@ -14,7 +14,7 @@
     <result column="message" property="message" jdbcType="VARCHAR"/>
     <result column="status" property="status" jdbcType="INTEGER"/>
     <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
-    <result column="handled_by" property="handledBy" jdbcType="OTHER"/>
+    <result column="handled_by" property="handledBy" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="handled_at" property="handledAt" jdbcType="TIMESTAMP"/>
     <result column="meta" property="meta" jdbcType="VARCHAR"/>
   </resultMap>
