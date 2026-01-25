@@ -20,35 +20,32 @@ public class AuthFacadeImpl implements AuthFacade {
         authService.sendEmailOtp(request);
     }
     
-    @Override
-    public void sendPhoneOtp(SendOtpRequest request) {
-        authService.sendPhoneOtp(request);
-    }
+
     
     @Override
     public AuthResponse registerByEmail(EmailRegisterRequest request) {
         return authService.registerByEmail(request);
     }
     
-    @Override
-    public AuthResponse registerByPhone(PhoneRegisterRequest request) {
-        return authService.registerByPhone(request);
-    }
+
     
     @Override
     public AuthResponse loginByEmailOtp(OtpLoginRequest request) {
         return authService.loginByEmailOtp(request);
     }
     
-    @Override
-    public AuthResponse loginByPhoneOtp(OtpLoginRequest request) {
-        return authService.loginByPhoneOtp(request);
-    }
+
     
     @Override
     public AuthResponse loginByPassword(PasswordLoginRequest request) {
         return authService.loginByPassword(request);
     }
+
+    @Override
+    public AuthResponse loginByGoogle(GoogleLoginRequest request) {
+        return authService.loginByGoogle(request);
+    }
+
     
     @Override
     public void resetPassword(ResetPasswordRequest request) {

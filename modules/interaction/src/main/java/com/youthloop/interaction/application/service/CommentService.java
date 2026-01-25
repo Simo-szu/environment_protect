@@ -3,6 +3,7 @@ package com.youthloop.interaction.application.service;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.event.application.service.OutboxEventService;
+import com.youthloop.event.domain.payload.CommentCreatedPayload;
 import com.youthloop.interaction.api.dto.CreateCommentRequest;
 import com.youthloop.interaction.persistence.entity.CommentEntity;
 import com.youthloop.interaction.persistence.mapper.CommentMapper;
@@ -47,6 +48,7 @@ public class CommentService {
         entity.setUpdatedAt(LocalDateTime.now());
         
         // 如果是回复
+        UUID parentUserId = null;
         if (request.getParentId() != null) {
             CommentEntity parent = commentMapper.selectById(request.getParentId());
             if (parent == null) {
@@ -62,6 +64,9 @@ public class CommentService {
             entity.setParentId(request.getParentId());
             entity.setRootId(parent.getRootId() != null ? parent.getRootId() : parent.getId());
             entity.setDepth(depth);
+            
+            // 保存父评论作者 ID，用于事件 payload
+            parentUserId = parent.getUserId();
         } else {
             // 根评论
             entity.setParentId(null);
@@ -78,14 +83,16 @@ public class CommentService {
             entity.getId(), request.getTargetType(), request.getTargetId(), currentUserId);
         
         // 发布 outbox 事件（COMMENT_CREATED），用于更新统计和发送通知
-        Map<String, Object> eventPayload = new HashMap<>();
-        eventPayload.put("commentId", entity.getId().toString());
-        eventPayload.put("targetType", request.getTargetType());
-        eventPayload.put("targetId", request.getTargetId().toString());
-        eventPayload.put("userId", currentUserId.toString());
-        eventPayload.put("parentId", request.getParentId() != null ? request.getParentId().toString() : null);
-        eventPayload.put("rootId", entity.getRootId() != null ? entity.getRootId().toString() : null);
-        eventPayload.put("depth", entity.getDepth());
+        // 使用强类型 Payload 对象，避免 Map 类型不稳定
+        CommentCreatedPayload eventPayload = new CommentCreatedPayload(
+            entity.getId(),
+            request.getTargetType(),
+            request.getTargetId(),
+            request.getParentId(),
+            entity.getRootId(),
+            currentUserId,
+            parentUserId  // 父评论作者 ID（仅回复时有值）
+        );
         
         outboxEventService.publishEvent("COMMENT_CREATED", eventPayload);
         

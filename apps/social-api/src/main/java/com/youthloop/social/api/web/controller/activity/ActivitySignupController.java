@@ -51,10 +51,23 @@ public class ActivitySignupController {
         @Valid @RequestBody UnifiedRequest<UpdateSignupRequest> request
     ) {
         UpdateSignupRequest data = request.getData();
+        
+        // 改场次
         if (data.getNewSessionId() != null) {
             activityFacade.changeSession(signupId, data.getNewSessionId(), data.getGuestEmail());
         }
-        // TODO: 支持修改其他报名信息（昵称/手机号/真实姓名等）
+        
+        // 更新报名信息（昵称/真实姓名/手机号）
+        if (data.getNickname() != null || data.getRealName() != null || data.getPhone() != null) {
+            activityFacade.updateSignupInfo(
+                signupId, 
+                data.getNickname(), 
+                data.getRealName(), 
+                data.getPhone(), 
+                data.getGuestEmail()
+            );
+        }
+        
         return BaseResponse.success(null);
     }
     

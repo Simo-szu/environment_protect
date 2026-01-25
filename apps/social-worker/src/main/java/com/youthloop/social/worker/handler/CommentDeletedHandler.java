@@ -3,8 +3,8 @@ package com.youthloop.social.worker.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.activity.application.service.ActivityStatsUpdateService;
 import com.youthloop.content.application.service.ContentStatsUpdateService;
+import com.youthloop.event.api.dto.OutboxEventDTO;
 import com.youthloop.event.domain.EventType;
-import com.youthloop.event.persistence.entity.OutboxEventEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class CommentDeletedHandler implements EventHandler {
     private final ActivityStatsUpdateService activityStatsUpdateService;
     
     @Override
-    public void handle(OutboxEventEntity event) throws Exception {
+    public void handle(OutboxEventDTO event) throws Exception {
         @SuppressWarnings("unchecked")
         Map<String, Object> payload = objectMapper.readValue(
             event.getPayload(), 

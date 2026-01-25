@@ -14,35 +14,35 @@ public interface AuthFacade {
      */
     void sendEmailOtp(SendOtpRequest request);
     
-    /**
-     * 发送短信验证码
-     */
-    void sendPhoneOtp(SendOtpRequest request);
+
     
     /**
      * 邮箱注册
      */
     AuthResponse registerByEmail(EmailRegisterRequest request);
     
-    /**
-     * 手机注册
-     */
-    AuthResponse registerByPhone(PhoneRegisterRequest request);
+
     
     /**
      * 邮箱验证码登录
      */
     AuthResponse loginByEmailOtp(OtpLoginRequest request);
     
-    /**
-     * 手机验证码登录
-     */
-    AuthResponse loginByPhoneOtp(OtpLoginRequest request);
+
     
     /**
      * 账号密码登录
      */
+    /**
+     * 账号密码登录
+     */
     AuthResponse loginByPassword(PasswordLoginRequest request);
+
+    /**
+     * Google 登录/注册
+     */
+    AuthResponse loginByGoogle(GoogleLoginRequest request);
+
     
     /**
      * 重置密码

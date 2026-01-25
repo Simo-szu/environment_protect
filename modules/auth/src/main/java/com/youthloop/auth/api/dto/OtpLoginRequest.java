@@ -18,9 +18,7 @@ public class OtpLoginRequest {
     @Email(message = "邮箱格式不正确")
     private String email;
     
-    @Schema(description = "手机号（手机登录时必填）", example = "13800138000")
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    private String phone;
+
     
     @Schema(description = "验证码", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "验证码不能为空")

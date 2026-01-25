@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import Layout from '@/components/Layout';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import Layout from '@/components/Layout';
+import { authApi, userApi } from '@/lib/api';
 import {
     Smartphone,
     Lock,
@@ -13,41 +14,118 @@ import {
     EyeOff,
     Mail
 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+
 
 export default function RegisterPage() {
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('auth');
 
+    const [registerMode, setRegisterMode] = useState<'password' | 'otp'>('password');
     const [formData, setFormData] = useState({
-        contact: '',
+        email: '',
         password: '',
         confirmPassword: '',
+        otpCode: '',
+        nickname: '',
         terms: false
     });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [countdown, setCountdown] = useState(0);
     const { login } = useAuth();
     const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // 倒计时效果
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
+
+    // 发送验证码
+    const handleSendOtp = async () => {
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
+            return;
+        }
+
+        try {
+            setSendingOtp(true);
+            setError('');
+
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
+                return;
+            }
+
+            await authApi.sendEmailOtp(formData.email, 'register');
+
+            setCountdown(60);
+            alert('验证码已发送');
+        } catch (error: any) {
+            console.error('Failed to send OTP:', error);
+            setError(error.message || '发送验证码失败');
+        } finally {
+            setSendingOtp(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            if (!credentialResponse.credential) {
+                throw new Error('No credential received');
+            }
+            // 注册也走 unify login 接口逻辑，后端会自动创建
+            await authApi.loginWithGoogle(credentialResponse.credential);
+
+            const userProfile = await userApi.getMyProfile();
+            login(userProfile);
+            router.push(`/${locale}`);
+        } catch (error: any) {
+            console.error('Google Register Error:', error);
+            setError('Google 注册失败');
+        }
+    };
+
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!formData.contact || !formData.password || !formData.confirmPassword) {
-            setError(t('errors.fillCompleteRegister', '请填写完整的注册信息'));
+        if (!formData.email.trim()) {
+            setError('请输入邮箱');
             return;
         }
 
-        if (formData.password !== formData.confirmPassword) {
-            setError(t('errors.passwordMismatch', '两次输入的密码不一致'));
-            return;
-        }
+        if (registerMode === 'password') {
+            if (!formData.password.trim() || !formData.confirmPassword.trim()) {
+                setError('请填写完整的注册信息');
+                return;
+            }
 
-        if (formData.password.length < 8) {
-            setError(t('errors.passwordTooShort', '密码长度至少8位'));
-            return;
+            if (formData.password !== formData.confirmPassword) {
+                setError('两次输入的密码不一致');
+                return;
+            }
+
+            if (formData.password.length < 8) {
+                setError('密码长度至少8位');
+                return;
+            }
+        } else {
+            if (!formData.otpCode.trim()) {
+                setError('请输入验证码');
+                return;
+            }
         }
 
         if (!formData.terms) {
@@ -55,19 +133,38 @@ export default function RegisterPage() {
             return;
         }
 
-        // 模拟注册成功
-        const userData = {
-            id: Date.now().toString(),
-            username: formData.contact,
-            contact: formData.contact,
-            nickname: formData.contact,
-            points: 0,
-            level: 1,
-            avatar: undefined
-        };
+        try {
+            setSubmitting(true);
 
-        login(userData);
-        router.push(`/${locale}`);
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+
+            if (!isEmail) {
+                setError('请输入正确的邮箱');
+                return;
+            }
+
+            // 调用注册 API
+            await authApi.registerWithEmail({
+                email: formData.email,
+                password: registerMode === 'password' ? formData.password : undefined,
+                otpCode: registerMode === 'otp' ? formData.otpCode : undefined,
+                nickname: formData.nickname || undefined,
+                agreedToTerms: formData.terms
+            });
+
+
+            // 获取用户信息
+            const userProfile = await userApi.getMyProfile();
+            login(userProfile);
+
+            // 跳转到首页
+            router.push(`/${locale}`);
+        } catch (error: any) {
+            console.error('Register failed:', error);
+            setError(error.message || '注册失败，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,60 +222,116 @@ export default function RegisterPage() {
 
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                    <Smartphone className="w-4 h-4" />
+                                    <Mail className="w-4 h-4" />
                                 </div>
                                 <input
                                     type="text"
-                                    name="contact"
-                                    value={formData.contact}
+                                    name="email"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="手机号/邮箱"
+                                    placeholder="邮箱地址"
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                    disabled={submitting}
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="text-xs text-slate-400 px-1">密码需在8位以上，由数字、字母组成</div>
+
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                    <Mail className="w-4 h-4" />
+                                </div>
+                                <input
+                                    type="text"
+                                    name="nickname"
+                                    value={formData.nickname}
+                                    onChange={handleChange}
+                                    placeholder="昵称（选填）"
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                    disabled={submitting}
+                                />
+                            </div>
+
+                            {registerMode === 'password' ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <div className="text-xs text-slate-400 px-1">密码需在8位以上，由数字、字母组成</div>
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                                <Lock className="w-4 h-4" />
+                                            </div>
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                placeholder="请输入登录密码"
+                                                className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                                disabled={submitting}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            >
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                            <Lock className="w-4 h-4" />
+                                        </div>
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            placeholder="请确认登录密码"
+                                            className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                            disabled={submitting}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
                                         <Lock className="w-4 h-4" />
                                     </div>
                                     <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        name="password"
-                                        value={formData.password}
+                                        type="text"
+                                        name="otpCode"
+                                        value={formData.otpCode}
                                         onChange={handleChange}
-                                        placeholder="请输入登录密码"
-                                        className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                        placeholder="请输入验证码"
+                                        className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                        disabled={submitting}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                        onClick={handleSendOtp}
+                                        disabled={sendingOtp || countdown > 0 || submitting}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
                                     >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
                                     </button>
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                    <Lock className="w-4 h-4" />
-                                </div>
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    placeholder="请确认登录密码"
-                                    className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                                />
+                            <div className="flex items-center justify-between pt-1">
                                 <button
                                     type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                    onClick={() => setRegisterMode(registerMode === 'password' ? 'otp' : 'password')}
+                                    className="text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
                                 >
-                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {registerMode === 'password' ? '验证码注册' : '密码注册'}
                                 </button>
                             </div>
 
@@ -205,10 +358,24 @@ export default function RegisterPage() {
 
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide"
+                                disabled={submitting}
+                                className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                提交注册
+                                {submitting ? '注册中...' : '提交注册'}
                             </button>
+
+                            <div className="flex justify-center w-full">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => setError('Google 注册失败')}
+                                    text="signup_with"
+                                    width="100%"
+                                    theme="outline"
+                                    shape="rectangular"
+                                />
+                            </div>
+
+
                         </form>
 
                         {/* Divider */}
@@ -217,21 +384,15 @@ export default function RegisterPage() {
                                 <div className="w-full border-t border-slate-200"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-slate-400">快速注册</span>
+                                <span className="px-4 bg-white text-slate-400">或者</span>
                             </div>
                         </div>
 
-                        {/* Quick Register */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                                <Smartphone className="w-4 h-4" />
-                                手机注册
-                            </button>
-                            <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                                <Mail className="w-4 h-4" />
-                                邮箱注册
-                            </button>
+                        {/* Quick Register Tip */}
+                        <div className="text-center text-sm text-slate-500">
+                            <p>支持邮箱密码或验证码注册</p>
                         </div>
+
                     </div>
                 </div>
             </div>

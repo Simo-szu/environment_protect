@@ -1,6 +1,7 @@
 package com.youthloop.social.api.web.controller.points;
 
 import com.youthloop.common.api.BaseResponse;
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.api.UnifiedRequest;
 import com.youthloop.points.api.dto.*;
 import com.youthloop.points.api.facade.PointsFacade;
@@ -31,6 +32,14 @@ public class PointsController {
     @PreAuthorize("isAuthenticated()")
     public BaseResponse<SigninResponse> signin(@Valid @RequestBody UnifiedRequest<SigninRequest> request) {
         SigninResponse response = pointsFacade.signin(request.getData());
+        return BaseResponse.success(response);
+    }
+    
+    @Operation(summary = "获取今日签到状态", description = "检查今日是否已签到")
+    @GetMapping("/signins/today")
+    @PreAuthorize("isAuthenticated()")
+    public BaseResponse<SigninRecordDTO> getTodaySignin() {
+        SigninRecordDTO response = pointsFacade.getTodaySignin();
         return BaseResponse.success(response);
     }
     
@@ -74,5 +83,16 @@ public class PointsController {
     public BaseResponse<PointsAccountDTO> getAccount() {
         PointsAccountDTO account = pointsFacade.getAccount();
         return BaseResponse.success(account);
+    }
+    
+    @Operation(summary = "获取积分明细", description = "分页获取积分变动记录")
+    @GetMapping("/ledger")
+    @PreAuthorize("isAuthenticated()")
+    public BaseResponse<PageResponse<PointsLedgerDTO>> getLedger(
+        @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size
+    ) {
+        PageResponse<PointsLedgerDTO> response = pointsFacade.getLedger(page, size);
+        return BaseResponse.success(response);
     }
 }

@@ -7,7 +7,7 @@
 - **web/**: Next.js 前端应用
 - **social-api/**: Social Service API 进程 (Spring Boot)
 - **social-worker/**: Social Service Worker 进程 (Spring Boot) - 异步任务处理
-- **game-api/**: Game Service API 进程 (Spring Boot) - 独立游戏服务
+
 
 ## 说明
 

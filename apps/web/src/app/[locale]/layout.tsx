@@ -1,4 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
+import GoogleProvider from '@/components/GoogleProvider';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
@@ -34,7 +35,9 @@ export default async function LocaleLayout({
 
     return (
         <NextIntlClientProvider messages={messages} locale={locale}>
-            {children}
+            <GoogleProvider>
+                {children}
+            </GoogleProvider>
         </NextIntlClientProvider>
     );
 }

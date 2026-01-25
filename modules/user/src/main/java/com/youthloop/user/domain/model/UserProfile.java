@@ -18,6 +18,8 @@ public class UserProfile {
     private Integer gender;
     private LocalDate birthday;
     private String hometown;
+    private String bio;
+    private String location;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     

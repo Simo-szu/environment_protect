@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useRef, useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
+import { createHostActivity } from '@/lib/api/activity';
+import { filesApi } from '@/lib/api';
+
 function CreateActivityContent() {
     const { user, isLoggedIn, loading } = useAuth();
     const router = useRouter();
@@ -29,6 +32,10 @@ function CreateActivityContent() {
     const { t } = useSafeTranslation('activities');
     const { t: tCommon } = useSafeTranslation('common');
 
+    const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [posterUrls, setPosterUrls] = useState<string[]>([]);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -76,11 +83,117 @@ function CreateActivityContent() {
         }));
     };
 
-    const handleSubmit = () => {
-        // 这里应该调用API创建活动
-        console.log('创建活动:', formData);
-        // 创建成功后返回活动列表页
-        router.push(`/${locale}/activities`);
+    const uploadPoster = async (file: File) => {
+        if (!file.type.startsWith('image/')) {
+            alert('只支持图片文件');
+            return;
+        }
+        const maxBytes = 5 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            alert('图片最大支持 5MB');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const presign = await filesApi.getUploadPresignUrl({
+                fileType: 'poster',
+                fileName: file.name,
+                contentType: file.type || 'application/octet-stream',
+            });
+
+            const uploadResp = await fetch(presign.uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': file.type || 'application/octet-stream',
+                },
+                body: file,
+            });
+
+            if (!uploadResp.ok) {
+                throw new Error(`Upload failed: ${uploadResp.status}`);
+            }
+
+            setPosterUrls((prev) => [...prev, presign.fileUrl]);
+        } catch (error) {
+            console.error('上传图片失败:', error);
+            alert('上传图片失败，请重试');
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handlePickPoster = () => {
+        if (uploading || submitting) return;
+        fileInputRef.current?.click();
+    };
+
+    const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        await uploadPoster(file);
+    };
+
+    const removePoster = (url: string) => {
+        setPosterUrls((prev) => prev.filter((x) => x !== url));
+    };
+
+    const mapTypeToCategory = (type: string): number => {
+        switch (type) {
+            case 'tree': return 1; // 环保教育 (Example mapping)
+            case 'recycle': return 8; // 其他
+            case 'water': return 1;
+            case 'sun': return 6; // 科技创新
+            default: return 8;
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!formData.title || !formData.date || !formData.time || !formData.location || !formData.description) {
+            alert('请填写所有必填字段');
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+            const startTime = `${formData.date}T${formData.time}:00`;
+            // Default EndTime to 2 hours later
+            const endDate = new Date(new Date(startTime).getTime() + 2 * 60 * 60 * 1000);
+            const endTime = endDate.toISOString().slice(0, 19);
+
+            // Append extra info to description
+            let fullDescription = formData.description;
+            if (formData.requirements) {
+                fullDescription += `\n\n【参与要求】\n${formData.requirements}`;
+            }
+            if (formData.contactInfo) {
+                fullDescription += `\n\n【联系方式】\n${formData.contactInfo}`;
+            }
+            if (formData.maxParticipants) {
+                fullDescription += `\n\n【人数限制】\n${formData.maxParticipants}人`;
+            }
+
+            await createHostActivity({
+                title: formData.title,
+                category: mapTypeToCategory(formData.type),
+                signupPolicy: 1, // 默认自动通过
+                startTime,
+                endTime,
+                location: formData.location,
+                description: fullDescription,
+                posterUrls
+            });
+
+            router.push(`/${locale}/activities`);
+        } catch (error) {
+            console.error('创建活动失败:', error);
+            alert('创建活动失败，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleCancel = () => {
@@ -312,24 +425,65 @@ function CreateActivityContent() {
                                 <Image className="w-4 h-4 inline mr-2" />
                                 {t('create.form.image', '活动图片')}
                             </label>
-                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-[#56B949] transition-colors cursor-pointer">
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handlePosterChange}
+                            />
+
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={handlePickPoster}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') handlePickPoster();
+                                }}
+                                className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-[#56B949] transition-colors cursor-pointer"
+                            >
                                 <Image className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                                <p className="text-slate-500">{t('create.form.imageUpload', '点击上传活动图片')}</p>
-                                <p className="text-xs text-slate-400 mt-2">{t('create.form.imageSupport', '支持JPG、PNG格式，最大5MB')}</p>
+                                <p className="text-slate-500">
+                                    {uploading ? '上传中...' : t('create.form.imageUpload', '点击上传活动图片')}
+                                </p>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    {t('create.form.imageSupport', '支持JPG、PNG格式，最大5MB')}
+                                </p>
                             </div>
+
+                            {posterUrls.length > 0 && (
+                                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {posterUrls.map((url) => (
+                                        <div key={url} className="relative rounded-lg overflow-hidden border border-slate-200 bg-white">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={url} alt="poster" className="w-full h-28 object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removePoster(url)}
+                                                className="absolute top-2 right-2 px-2 py-1 text-xs bg-black/60 text-white rounded hover:bg-black/70"
+                                            >
+                                                移除
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6 border-t border-slate-200">
                             <button
                                 onClick={handleSubmit}
+                                disabled={submitting || uploading}
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                             >
                                 <Save className="w-4 h-4" />
-                                {t('create.form.publish', '发布活动')}
+                                {uploading ? '图片上传中...' : t('create.form.publish', '发布活动')}
                             </button>
                             <button
                                 onClick={handleCancel}
+                                disabled={submitting || uploading}
                                 className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                             >
                                 {tCommon('cancel', '取消')}

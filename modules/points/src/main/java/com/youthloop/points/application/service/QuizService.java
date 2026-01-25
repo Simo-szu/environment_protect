@@ -108,6 +108,8 @@ public class QuizService {
             .isCorrect(isCorrect)
             .pointsEarned(pointsEarned)
             .totalBalance(totalBalance)
+            .correctAnswer(quiz.getAnswer() != null ? quiz.getAnswer().asInt() : 0)
+            .explanation("暂无解析")
             .build();
     }
     

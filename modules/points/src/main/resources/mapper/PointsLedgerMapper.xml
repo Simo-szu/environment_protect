@@ -16,4 +16,16 @@
         )
     </insert>
     
+    <select id="selectByUserId" resultType="com.youthloop.points.persistence.entity.PointsLedgerEntity">
+        SELECT * FROM social.points_ledger
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM social.points_ledger
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+    </select>
+    
 </mapper>

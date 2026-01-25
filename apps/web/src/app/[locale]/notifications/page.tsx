@@ -8,6 +8,8 @@ import { MessageCircle, Clock, Heart, UserPlus, Reply, Check, ExternalLink, User
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
+import { userApi } from '@/lib/api';
+import type { NotificationItem } from '@/lib/api/user';
 
 interface Message {
     id: string;
@@ -126,15 +128,40 @@ const generateMockMessages = (t: any, locale: string): Message[] => {
 
 export default function NotificationsPage() {
     const { isLoggedIn, loading } = useAuth();
-    const { t } = useSafeTranslation('notifications');
     const params = useParams();
-    const locale = params?.locale as string || 'zh';
-    const [allMessages] = useState<Message[]>(generateMockMessages(t, locale));
-    const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'replies' | 'likes'>('all');
-    const [replyingTo, setReplyingTo] = useState<string | null>(null);
-    const [replyContent, setReplyContent] = useState('');
+    const locale = (params?.locale as string) || 'zh';
+    const { t } = useSafeTranslation('notifications');
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(true);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [messagesPerPage] = useState(6); // 每页显示6条消息
+    const [totalPages, setTotalPages] = useState(1);
+    const [messagesPerPage] = useState(10);
+
+    // 加载通知
+    useEffect(() => {
+        const loadNotifications = async () => {
+            if (!isLoggedIn) return;
+
+            try {
+                setLoadingNotifications(true);
+                const result = await userApi.getMyNotifications({
+                    page: currentPage,
+                    size: messagesPerPage
+                });
+                setNotifications(result.items);
+                setTotalPages(Math.ceil(result.total / messagesPerPage));
+            } catch (error) {
+                console.error('Failed to load notifications:', error);
+            } finally {
+                setLoadingNotifications(false);
+            }
+        };
+
+        if (!loading && isLoggedIn) {
+            loadNotifications();
+        }
+    }, [isLoggedIn, loading, currentPage, messagesPerPage]);
 
     // 如果未登录，重定向到登录页
     useEffect(() => {
@@ -144,130 +171,70 @@ export default function NotificationsPage() {
     }, [isLoggedIn, loading, locale]);
 
     // 显示加载状态
-    if (loading) {
+    if (loading || loadingNotifications) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-lg text-slate-600 mb-4">{t('messages.loading', '加载中...')}</div>
+            <Layout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
+                            YL
+                        </div>
+                        <p className="text-slate-600">加载中...</p>
+                    </div>
                 </div>
-            </div>
+            </Layout>
         );
     }
 
     if (!isLoggedIn) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-lg text-slate-600 mb-4">{t('messages.loginRequired', '请先登录查看消息通知')}</div>
-                    <Link href="/zh/login" className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
-                        {t('messages.goLogin', '去登录')}
-                    </Link>
+            <Layout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="text-lg text-slate-600 mb-4">请先登录查看消息通知</div>
+                        <Link href="/zh/login" className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
+                            去登录
+                        </Link>
+                    </div>
                 </div>
-            </div>
+            </Layout>
         );
     }
 
-    // 过滤消息
-    const filteredMessages = allMessages.filter(message => {
-        if (activeFilter === 'all') return true;
-        if (activeFilter === 'unread') return !message.isRead;
-        return message.type === activeFilter;
-    });
+    // 过滤通知
+    const filteredNotifications = activeFilter === 'unread' 
+        ? notifications.filter(n => !n.isRead) 
+        : notifications;
 
-    // 分页逻辑
-    const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
-    const startIndex = (currentPage - 1) * messagesPerPage;
-    const endIndex = startIndex + messagesPerPage;
-    const currentMessages = filteredMessages.slice(startIndex, endIndex);
+    const unreadCount = notifications.filter(n => !n.isRead).length;
 
-    // 重置页码当过滤器改变时
-    const handleFilterChange = (filter: 'all' | 'unread' | 'replies' | 'likes') => {
-        setActiveFilter(filter);
-        setCurrentPage(1); // 重置到第一页
+    const handleMarkAsRead = async (notificationIds?: string[]) => {
+        try {
+            await userApi.markNotificationsRead({
+                notificationIds,
+                markAllAsRead: !notificationIds
+            });
+            
+            // 重新加载通知
+            const result = await userApi.getMyNotifications({
+                page: currentPage,
+                size: messagesPerPage
+            });
+            setNotifications(result.items);
+        } catch (error: any) {
+            console.error('Failed to mark as read:', error);
+            alert(error.message || '操作失败');
+        }
     };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // 滚动到顶部
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const unreadCount = allMessages.filter(m => !m.isRead).length;
-    const todayReplies = 12;
-    const totalLikes = 45;
-    const totalReplies = 28;
-
-    const handleMarkAsRead = () => {
-        alert(t('messages.markAsReadAlert', '标记为已读功能需要后端支持'));
-    };
-
-    const handleReply = (messageId: string) => {
-        if (replyingTo === messageId) {
-            setReplyingTo(null);
-            setReplyContent('');
-        } else {
-            setReplyingTo(messageId);
-            setReplyContent('');
-        }
-    };
-
-    const handleSendReply = () => {
-        if (!replyContent.trim()) {
-            alert(t('messages.replyEmptyAlert', '请输入回复内容'));
-            return;
-        }
-
-        alert(t('messages.replySuccessAlert', '回复发送成功！'));
-        setReplyingTo(null);
-        setReplyContent('');
-    };
-
-    const handleLikeMessage = () => {
-        alert(t('messages.likeAlert', '点赞功能需要后端支持'));
-    };
-
-    const handleFollowBack = () => {
-        alert(t('messages.followAlert', '关注功能需要后端支持'));
-    };
-
-    const getMessageIcon = (type: string) => {
-        switch (type) {
-            case 'replies': return <MessageCircle className="w-4 h-4 text-[#30499B]" />;
-            case 'likes': return <Heart className="w-4 h-4 text-[#F0A32F]" />;
-            case 'follows': return <UserPlus className="w-4 h-4 text-[#56B949]" />;
-            default: return <MessageCircle className="w-4 h-4 text-[#30499B]" />;
-        }
-    };
-
-    const getMessageTypeText = (type: string) => {
-        switch (type) {
-            case 'replies': return t('types.replied', '回复了你的内容');
-            case 'likes': return t('types.liked', '点赞了你的内容');
-            case 'follows': return t('types.followed', '关注了你');
-            default: return t('types.replied', '互动了你的内容');
-        }
-    };
-
-    const getBadgeColor = (type: string, isRead: boolean) => {
-        if (isRead) return 'bg-slate-100 text-slate-500';
-
-        switch (type) {
-            case 'replies': return 'bg-[#EE4035]/10 text-[#EE4035]';
-            case 'likes': return 'bg-[#F0A32F]/10 text-[#F0A32F]';
-            case 'follows': return 'bg-[#56B949]/10 text-[#56B949]';
-            default: return 'bg-[#30499B]/10 text-[#30499B]';
-        }
-    };
-
-    const getBadgeText = (type: string, isRead: boolean) => {
-        if (isRead) return t('badges.read', '已读');
-
-        switch (type) {
-            case 'replies': return t('badges.newReply', '新回复');
-            case 'likes': return t('badges.newLike', '新点赞');
-            case 'follows': return t('badges.newFollow', '新关注');
-            default: return t('badges.newReply', '新消息');
-        }
+    const handleFilterChange = (filter: 'all' | 'unread') => {
+        setActiveFilter(filter);
+        setCurrentPage(1);
     };
 
     return (
@@ -285,22 +252,18 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#EE4035] mb-1">{unreadCount}</div>
                             <div className="text-sm text-slate-500">{t('stats.unread', '未读消息')}</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
-                            <div className="text-2xl font-bold text-[#F0A32F] mb-1">{todayReplies}</div>
-                            <div className="text-sm text-slate-500">{t('stats.todayReplies', '今日回复')}</div>
+                            <div className="text-2xl font-bold text-[#30499B] mb-1">{notifications.length}</div>
+                            <div className="text-sm text-slate-500">总消息数</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
-                            <div className="text-2xl font-bold text-[#56B949] mb-1">{totalLikes}</div>
-                            <div className="text-sm text-slate-500">{t('stats.totalLikes', '总点赞数')}</div>
-                        </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
-                            <div className="text-2xl font-bold text-[#30499B] mb-1">{totalReplies}</div>
-                            <div className="text-sm text-slate-500">{t('stats.totalReplies', '总回复数')}</div>
+                            <div className="text-2xl font-bold text-[#56B949] mb-1">{notifications.filter(n => n.isRead).length}</div>
+                            <div className="text-sm text-slate-500">已读消息</div>
                         </div>
                     </div>
 
@@ -327,186 +290,85 @@ export default function NotificationsPage() {
                                 {unreadCount > 0 && <span className="w-2 h-2 bg-[#EE4035] rounded-full"></span>}
                             </span>
                         </button>
-                        <button
-                            onClick={() => handleFilterChange('replies')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'replies'
-                                ? 'bg-[#30499B] text-white'
-                                : 'text-slate-600 hover:text-[#30499B]'
-                                }`}
-                        >
-                            {t('filters.replies', '回复')}
-                        </button>
-                        <button
-                            onClick={() => handleFilterChange('likes')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'likes'
-                                ? 'bg-[#30499B] text-white'
-                                : 'text-slate-600 hover:text-[#30499B]'
-                                }`}
-                        >
-                            {t('filters.likes', '点赞')}
-                        </button>
+                        {unreadCount > 0 && (
+                            <button
+                                onClick={() => handleMarkAsRead()}
+                                className="px-4 py-2 rounded-lg font-medium text-[#56B949] hover:bg-[#56B949]/10 transition-colors"
+                            >
+                                全部标记已读
+                            </button>
+                        )}
                     </div>
 
                     {/* Messages List */}
                     <div className="space-y-4">
-                        {currentMessages.map((message) => (
+                        {filteredNotifications.map((notification) => (
                             <div
-                                key={message.id}
-                                className={`card-hover bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg ${!message.isRead ? 'new-message' : ''
+                                key={notification.id}
+                                className={`bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl transition-all ${!notification.isRead ? 'border-l-4 border-l-[#EE4035]' : ''
                                     }`}
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#EE4035] flex items-center justify-center text-white font-semibold shadow-lg">
-                                        {message.user.avatar}
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white flex-shrink-0">
+                                        <MessageCircle className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-2">
+                                            <h3 className="font-semibold text-slate-800">{notification.title}</h3>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-medium text-slate-800">{message.user.name}</span>
-                                                <span className={`px-2 py-1 text-xs rounded-full ${getBadgeColor(message.type, message.isRead)}`}>
-                                                    {getBadgeText(message.type, message.isRead)}
+                                                {!notification.isRead && (
+                                                    <span className="px-2 py-1 text-xs rounded-full bg-[#EE4035]/10 text-[#EE4035]">
+                                                        未读
+                                                    </span>
+                                                )}
+                                                <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {new Date(notification.createdAt).toLocaleString('zh-CN')}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                                                <Clock className="w-3 h-3" />
-                                                <span>{message.timestamp}</span>
-                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            {getMessageIcon(message.type)}
-                                            <span className="text-sm text-slate-500">{getMessageTypeText(message.type)}</span>
-                                        </div>
-                                        <p className="text-slate-700 mb-3 leading-relaxed">{message.content}</p>
-
-                                        {message.originalContent && (
-                                            <div className="bg-slate-50 rounded-lg p-3 mb-4 border-l-4 border-[#56B949]">
-                                                <div className="text-xs text-slate-500 mb-1">
-                                                    {message.type === 'replies'
-                                                        ? t('messages.originalComment', '你的原评论：')
-                                                        : t('messages.originalShare', '你的原分享：')
-                                                    }
-                                                </div>
-                                                <p className="text-sm text-slate-600">{message.originalContent}</p>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center gap-4">
-                                            {message.type === 'replies' && (
-                                                <button
-                                                    onClick={() => handleReply(message.id)}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm"
-                                                >
-                                                    <Reply className="w-4 h-4" />
-                                                    {t('actions.reply', '回复')}
-                                                </button>
-                                            )}
-
-                                            {message.type === 'likes' && (
-                                                <button
-                                                    onClick={() => alert('跳转到原内容页面...')}
-                                                    className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm"
+                                        <p className="text-sm text-slate-600 mb-3">{notification.content}</p>
+                                        <div className="flex items-center gap-3">
+                                            {notification.linkUrl && (
+                                                <a
+                                                    href={notification.linkUrl}
+                                                    className="flex items-center gap-1 text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
-                                                    {t('actions.viewContent', '查看内容')}
-                                                </button>
+                                                    查看详情
+                                                </a>
                                             )}
-
-                                            {message.type === 'follows' && !message.isFollowedBack && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleFollowBack()}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm"
-                                                    >
-                                                        <UserPlus className="w-4 h-4" />
-                                                        {t('actions.follow', '回关')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => alert('跳转到用户资料页面...')}
-                                                        className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-[#30499B] hover:border-[#30499B] transition-colors text-sm"
-                                                    >
-                                                        <User className="w-4 h-4" />
-                                                        {t('actions.viewProfile', '查看资料')}
-                                                    </button>
-                                                </>
-                                            )}
-
-                                            {message.type === 'follows' && message.isFollowedBack && (
+                                            {!notification.isRead && (
                                                 <button
-                                                    disabled
-                                                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm cursor-not-allowed"
+                                                    onClick={() => handleMarkAsRead([notification.id])}
+                                                    className="flex items-center gap-1 text-sm text-slate-500 hover:text-[#30499B] transition-colors"
                                                 >
                                                     <Check className="w-4 h-4" />
-                                                    {t('actions.followed', '已关注')}
-                                                </button>
-                                            )}
-
-                                            {(message.type === 'replies' || message.type === 'likes') && (
-                                                <button
-                                                    onClick={() => handleLikeMessage()}
-                                                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${message.isLiked
-                                                        ? 'text-[#F0A32F] border-[#F0A32F] bg-[#F0A32F]/5'
-                                                        : 'border-slate-200 text-slate-600 hover:text-[#F0A32F] hover:border-[#F0A32F]'
-                                                        }`}
-                                                >
-                                                    <Heart className={`w-4 h-4 ${message.isLiked ? 'fill-current' : ''}`} />
-                                                    {message.isLiked ? t('actions.liked', '已点赞') : t('actions.like', '点赞')}
-                                                </button>
-                                            )}
-
-                                            {!message.isRead && (
-                                                <button
-                                                    onClick={() => handleMarkAsRead()}
-                                                    className="text-slate-400 hover:text-[#30499B] transition-colors"
-                                                >
-                                                    <Check className="w-4 h-4" />
+                                                    标记已读
                                                 </button>
                                             )}
                                         </div>
-
-                                        {/* Reply Area */}
-                                        {replyingTo === message.id && (
-                                            <div className="reply-area mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 reply-animation">
-                                                <textarea
-                                                    value={replyContent}
-                                                    onChange={(e) => setReplyContent(e.target.value)}
-                                                    placeholder={t('replyPlaceholder', '输入你的回复...')}
-                                                    className="w-full p-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B] outline-none"
-                                                    rows={3}
-                                                />
-                                                <div className="flex items-center justify-between mt-3">
-                                                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                        <span>💭</span>
-                                                        <span>{t('replySupport', '支持 Markdown 格式')}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={() => handleReply(message.id)}
-                                                            className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm"
-                                                        >
-                                                            {t('common.cancel', '取消')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSendReply()}
-                                                            className="px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm"
-                                                        >
-                                                            {t('sendReply', '发送回复')}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
                         ))}
+
+                        {filteredNotifications.length === 0 && (
+                            <div className="text-center py-12">
+                                <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                <p className="text-slate-500">暂无{activeFilter === 'unread' ? '未读' : ''}消息</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Pagination */}
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                    />
+                    {filteredNotifications.length > 0 && (
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    )}
                 </div>
             </div>
 

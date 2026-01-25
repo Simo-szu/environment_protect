@@ -1,185 +1,98 @@
-# 数据库设置指南
+# 数据库配置与初始化（YouthLoop）
 
-## 概述
+本文档说明 YouthLoop 后端在本地/测试环境如何初始化 PostgreSQL（含必须的 `pgcrypto` 扩展、3 个 schema、4 个账号）以及如何验证是否初始化成功。
 
-本项目使用 Redis 和 PostgreSQL 作为数据存储解决方案。这些服务已通过 Homebrew 安装为系统级服务。
+## 1. 关键约定
 
-## 已安装的服务
+- 1 个 PostgreSQL 实例，3 个 schema：`shared`、`social`、`game`
+- 4 个角色（最小权限）：
+  - 迁移用户（DDL）：`social_migrator`、`game_migrator`
+  - 运行用户（DML）：`social_app`、`game_app`
+- **必须启用 `pgcrypto` 扩展**：迁移脚本使用 `gen_random_uuid()` 作为默认主键生成函数
 
-### Redis
-- **版本**: 最新稳定版
-- **端口**: 6379
-- **用途**: 缓存、会话存储、实时数据
+`pgcrypto` 的启用属于“数据库初始化阶段”职责，建议由 `postgres` 超级用户执行一次，而不是让 Flyway migrator 去创建扩展（很多生产环境会禁用）。
 
-### PostgreSQL
-- **版本**: 16.x
-- **端口**: 5432
-- **数据库名**: environment_protect
-- **用户**: macbook (当前系统用户)
+## 2. 使用 Docker（推荐）
 
-## 服务管理
+仓库内已经提供基础设施编排：
 
-### 使用 npm 脚本 (推荐)
-
-```bash
-# 启动所有数据库服务
-npm run db:start
-
-# 停止所有数据库服务
-npm run db:stop
-
-# 重启所有数据库服务
-npm run db:restart
-
-# 查看服务状态
-npm run db:status
-
-# 测试连接
-npm run db:test
+```powershell
+cd infra/docker
+docker compose up -d
 ```
 
-### 使用 brew services
+说明：
+- `infra/docker/compose.yml` 会把 `infra/db/init/` 挂载到 Postgres 容器的 `/docker-entrypoint-initdb.d`。
+- **仅在首次创建数据卷时**，Postgres 会自动执行 `infra/db/init/db_init_roles_schemas.sql`（包含 `pgcrypto`、角色、schema、权限）。
 
-```bash
-# Redis
-brew services start redis
-brew services stop redis
-brew services restart redis
+如果你已经启动过并生成了数据卷，但需要重新初始化：
+- 清空并重建（会丢数据）：`docker compose down -v` 后再 `docker compose up -d`
+- 或者手动在容器内补跑 init（不丢数据，幂等执行）：
+  - 参考 `infra/docker/README.md` 的 “Database Initialization” 小节
 
-# PostgreSQL
-brew services start postgresql@16
-brew services stop postgresql@16
-brew services restart postgresql@16
+## 3. 不使用 Docker（手动初始化）
+
+### 3.1 创建数据库
+
+```powershell
+psql -U postgres -h localhost -p 5432
+CREATE DATABASE youthloop;
+\q
 ```
 
-### 直接命令行访问
+### 3.2 执行初始化脚本（必须先做）
 
-```bash
-# Redis CLI
-redis-cli
-
-# PostgreSQL CLI - 使用系统用户 (macbook)
-psql -d environment_protect
-
-# PostgreSQL CLI - 使用 postgres 用户
-export PGPASSWORD='postgres'
-psql -U postgres -h 127.0.0.1 -p 5432 -d environment_protect
-
-# 或者一行命令
-PGPASSWORD='postgres' psql -U postgres -h 127.0.0.1 -p 5432 -d environment_protect
+```powershell
+psql -U postgres -h localhost -p 5432 -d youthloop -f infra/db/init/db_init_roles_schemas.sql
 ```
 
-## 环境变量
+这个脚本会：
+- `CREATE EXTENSION IF NOT EXISTS pgcrypto;`
+- 创建 4 个角色与 3 个 schema，并设置最小权限/默认权限
 
-项目的 `.env.local` 文件已配置以下变量：
+## 4. 迁移（Flyway）
 
-```env
-# 数据库配置 - 默认使用系统用户
-DATABASE_URL=postgresql://macbook@localhost:5432/environment_protect
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=environment_protect
-POSTGRES_USER=macbook
+项目采用 Spring Boot 集成 Flyway，默认在服务启动时自动迁移：
 
-# 可选：使用 postgres 用户连接
-DATABASE_URL_POSTGRES=postgresql://postgres:postgres@localhost:5432/environment_protect
-POSTGRES_USER_ALT=postgres
-POSTGRES_PASSWORD=postgres
+```powershell
+# Social API：迁移 shared + social
+./mvnw -pl apps/social-api spring-boot:run
 
-# Redis 配置
-REDIS_URL=redis://localhost:6379
-REDIS_HOST=localhost
-REDIS_PORT=6379
+# Game API：迁移 game
+./mvnw -pl apps/game-api spring-boot:run
 ```
 
-## 用户说明
+说明：
+- `DB_USER/DB_PASSWORD` 是应用运行时账号（默认 `social_app` / `game_app`）。
+- `FLYWAY_USER/FLYWAY_PASSWORD` 是迁移账号（默认 `social_migrator` / `game_migrator`）。
+- 如果没先执行初始化脚本，Flyway 可能会在建表阶段因 `gen_random_uuid()` 报错而启动失败。
 
-PostgreSQL 实例现在有两个超级用户：
+## 5. 快速验收（建议每个新环境都跑一次）
 
-1. **macbook** (系统用户) - 无密码，本地连接
-2. **postgres** (标准用户) - 密码: `postgres`，可用于远程连接
+### 5.1 验证 pgcrypto
 
-## 常用操作
-
-### PostgreSQL
-
-```bash
-# 创建新数据库
-createdb my_new_database
-
-# 删除数据库
-dropdb my_database
-
-# 备份数据库
-pg_dump environment_protect > backup.sql
-
-# 恢复数据库
-psql environment_protect < backup.sql
-
-# 查看所有数据库
-psql -l
+```sql
+SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto';
+SELECT gen_random_uuid();
 ```
 
-### Redis
+### 5.2 验证 schema/角色
 
-```bash
-# 测试连接
-redis-cli ping
-
-# 查看所有键
-redis-cli keys "*"
-
-# 清空所有数据
-redis-cli flushall
-
-# 查看内存使用
-redis-cli info memory
+```sql
+SELECT nspname FROM pg_namespace WHERE nspname IN ('shared','social','game');
+SELECT rolname FROM pg_roles WHERE rolname IN ('social_migrator','social_app','game_migrator','game_app');
 ```
 
-## 故障排除
+### 5.3 验证权限预期（口径）
 
-### 服务无法启动
+- `social_migrator`：可在 `shared`、`social` 执行 DDL
+- `social_app`：只允许在 `shared`、`social` 执行 DML（不允许 DDL）
+- `game_migrator`：可在 `game` 执行 DDL
+- `game_app`：`game` 可 DML；`shared` 只读（SELECT）
 
-1. 检查端口是否被占用：
-   ```bash
-   lsof -i :5432  # PostgreSQL
-   lsof -i :6379  # Redis
-   ```
+## 6. 进一步参考
 
-2. 查看服务日志：
-   ```bash
-   brew services list
-   tail -f /opt/homebrew/var/log/postgresql@16.log
-   tail -f /opt/homebrew/var/log/redis.log
-   ```
+- `infra/db/README.md`（数据库结构、角色权限、迁移方式说明）
+- `infra/docker/README.md`（Docker 启动与容器内初始化）
+- `Project-Structure.md`（架构约束与 Flyway 多 schema 约定）
 
-### 连接问题
-
-1. 确保服务正在运行：
-   ```bash
-   npm run db:status
-   ```
-
-2. 测试连接：
-   ```bash
-   npm run db:test
-   ```
-
-3. 检查防火墙设置（如果适用）
-
-## 开发建议
-
-1. **自动启动**: 服务已配置为系统启动时自动启动
-2. **数据持久化**: 数据存储在 `/opt/homebrew/var/` 目录下
-3. **配置文件**: 
-   - PostgreSQL: `/opt/homebrew/var/postgresql@16/postgresql.conf`
-   - Redis: `/opt/homebrew/etc/redis.conf`
-
-## 生产环境注意事项
-
-在生产环境中，请确保：
-1. 使用强密码和适当的用户权限
-2. 配置防火墙规则
-3. 定期备份数据
-4. 监控服务状态和性能
-5. 使用环境变量管理敏感信息

@@ -20,6 +20,8 @@ import {
     Sun
 } from 'lucide-react';
 import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
+import { activityApi } from '@/lib/api';
+import type { ActivityDetail, ActivitySession } from '@/lib/api/activity';
 
 function RegisterActivityContent() {
     const { user, isLoggedIn, loading } = useAuth();
@@ -27,51 +29,71 @@ function RegisterActivityContent() {
     const searchParams = useSearchParams();
     const params = useParams();
     const locale = params.locale as string;
-    const activityId = searchParams.get('id');
     const { t } = useSafeTranslation('activities');
     const { t: tCommon } = useSafeTranslation('common');
+    const activityId = searchParams.get('id');
+
+    // 状态管理
+    const [activity, setActivity] = useState<ActivityDetail | null>(null);
+    const [sessions, setSessions] = useState<ActivitySession[]>([]);
+    const [selectedSession, setSelectedSession] = useState<string>('');
+    const [loadingActivity, setLoadingActivity] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
-        emergencyContact: '',
-        emergencyPhone: '',
-        specialRequirements: '',
+        remarks: '',
         agreement: false
     });
 
-    // 模拟活动数据
-    const mockActivity = {
-        id: activityId || 'activity-001',
-        title: t('register.mockActivity.title', '城市绿洲：周末社区花园种植计划'),
-        description: t('register.mockActivity.description', '加入我们在市中心创建绿色角落的行动。我们将一起种植本土花卉，学习堆肥知识，并为社区创造一个可持续的生态空间。'),
-        type: 'tree',
-        date: t('register.mockActivity.date', '2024年5月20日'),
-        time: '09:00-17:00',
-        location: t('register.mockActivity.location', '市中心公园东门集合'),
-        maxParticipants: 30,
-        currentParticipants: 18,
-        organizer: t('register.mockActivity.organizer', '绿色生活协会'),
-        requirements: t('register.mockActivity.requirements', '请穿着适合户外活动的服装，自备水杯和防晒用品'),
-        contactInfo: t('register.mockActivity.contactInfo', '联系人：张老师 13800138000')
-    };
-
+    // 加载活动数据
     useEffect(() => {
-        if (!loading && !isLoggedIn) {
-            router.replace(`/${locale}/login`);
+        if (!activityId) {
+            router.push(`/${locale}/activities`);
+            return;
         }
 
-        if (user) {
+        const loadActivityData = async () => {
+            try {
+                setLoadingActivity(true);
+                const [activityData, sessionsData] = await Promise.all([
+                    activityApi.getActivityDetail(activityId),
+                    activityApi.getActivitySessions(activityId).catch(() => [])
+                ]);
+
+                setActivity(activityData);
+                setSessions(sessionsData);
+                
+                // 如果只有一个场次，自动选中
+                if (sessionsData.length === 1) {
+                    setSelectedSession(sessionsData[0].id);
+                }
+            } catch (error) {
+                console.error('Failed to load activity:', error);
+                alert('加载活动信息失败');
+                router.push(`/${locale}/activities`);
+            } finally {
+                setLoadingActivity(false);
+            }
+        };
+
+        loadActivityData();
+    }, [activityId, router, locale]);
+
+    // 自动填充用户信息
+    useEffect(() => {
+        if (user && isLoggedIn) {
             setFormData(prev => ({
                 ...prev,
-                name: user.nickname || user.username || '',
-                email: user.email || ''
+                name: user.nickname || ''
+                // email 和 phone 需要用户手动填写
             }));
         }
-    }, [loading, isLoggedIn, router, user, locale]);
+    }, [user, isLoggedIn]);
 
-    if (loading) {
+    if (loading || loadingActivity) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -86,7 +108,7 @@ function RegisterActivityContent() {
         );
     }
 
-    if (!isLoggedIn || !user) {
+    if (!activity) {
         return null;
     }
 
@@ -106,31 +128,77 @@ function RegisterActivityContent() {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        // 验证必填字段
+        if (!formData.name.trim()) {
+            alert('请填写姓名');
+            return;
+        }
+
+        if (!formData.phone.trim()) {
+            alert('请填写手机号');
+            return;
+        }
+
+        // 验证手机号格式
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            alert('请填写正确的手机号');
+            return;
+        }
+
+        // 如果是游客，必须填写邮箱
+        if (!isLoggedIn && !formData.email.trim()) {
+            alert('游客报名需要填写邮箱');
+            return;
+        }
+
+        // 如果有场次，必须选择场次
+        if (sessions.length > 0 && !selectedSession) {
+            alert('请选择活动场次');
+            return;
+        }
+
         if (!formData.agreement) {
             alert(t('register.form.agreementRequired', '请先同意活动协议'));
             return;
         }
 
-        // 这里应该调用API提交报名
-        console.log('提交报名:', formData);
-        // 报名成功后跳转到成功页面或返回活动详情
-        alert(t('register.form.submitSuccess', '报名成功！'));
-        router.push(`/${locale}/my-activities`);
+        try {
+            setSubmitting(true);
+
+            // 调用报名 API
+            const result = await activityApi.signupActivity(activityId!, {
+                sessionId: selectedSession || undefined,
+                realName: formData.name,
+                phone: formData.phone,
+                email: formData.email || undefined,
+                guestEmail: !isLoggedIn ? formData.email : undefined, // 游客使用邮箱
+                remarks: formData.remarks || undefined
+            });
+
+            alert('报名成功！');
+            
+            // 跳转到我的活动页面或活动详情页
+            if (isLoggedIn) {
+                router.push(`/${locale}/my-activities`);
+            } else {
+                router.push(`/${locale}/activities/${activityId}`);
+            }
+        } catch (error: any) {
+            console.error('Failed to signup:', error);
+            alert(error.message || '报名失败，请重试');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleCancel = () => {
-        router.push(`/${locale}/activities`);
+        router.push(`/${locale}/activities/${activityId}`);
     };
 
-    const getTypeIcon = (type: string) => {
-        switch (type) {
-            case 'tree': return <TreePine className="w-6 h-6 text-[#56B949]" />;
-            case 'recycle': return <Recycle className="w-6 h-6 text-[#F0A32F]" />;
-            case 'water': return <Droplets className="w-6 h-6 text-[#30499B]" />;
-            case 'sun': return <Sun className="w-6 h-6 text-[#EE4035]" />;
-            default: return <TreePine className="w-6 h-6 text-[#56B949]" />;
-        }
+    const getTypeIcon = (type?: string) => {
+        return <TreePine className="w-6 h-6 text-[#56B949]" />;
     };
 
     return (
@@ -173,35 +241,80 @@ function RegisterActivityContent() {
                     >
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg sticky top-8">
                             <div className="flex items-center gap-3 mb-4">
-                                {getTypeIcon(mockActivity.type)}
-                                <h3 className="font-semibold text-[#30499B]">{t('register.activityInfo.title', '活动信息')}</h3>
+                                {getTypeIcon(activity.type)}
+                                <h3 className="font-semibold text-[#30499B]">活动信息</h3>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-medium text-slate-800 mb-2">{mockActivity.title}</h4>
-                                    <p className="text-sm text-slate-600 line-clamp-3">{mockActivity.description}</p>
+                                    <h4 className="font-medium text-slate-800 mb-2">{activity.title}</h4>
+                                    <p className="text-sm text-slate-600 line-clamp-3">{activity.summary || activity.description}</p>
                                 </div>
 
                                 <div className="space-y-3 text-sm">
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <Calendar className="w-4 h-4" />
-                                        <span>{mockActivity.date} {mockActivity.time}</span>
+                                        <span>{new Date(activity.startTime).toLocaleString('zh-CN')}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-slate-600">
-                                        <MapPin className="w-4 h-4" />
-                                        <span>{mockActivity.location}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-slate-600">
-                                        <Users className="w-4 h-4" />
-                                        <span>{mockActivity.currentParticipants}/{mockActivity.maxParticipants} {t('register.activityInfo.participants', '人')}</span>
-                                    </div>
+                                    {activity.location && (
+                                        <div className="flex items-center gap-2 text-slate-600">
+                                            <MapPin className="w-4 h-4" />
+                                            <span>{activity.location}</span>
+                                        </div>
+                                    )}
+                                    {activity.maxParticipants && (
+                                        <div className="flex items-center gap-2 text-slate-600">
+                                            <Users className="w-4 h-4" />
+                                            <span>{activity.currentParticipants}/{activity.maxParticipants} 人</span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="pt-4 border-t border-slate-200">
-                                    <p className="text-xs text-slate-500 mb-2">{t('register.activityInfo.organizer', '主办方')}</p>
-                                    <p className="text-sm font-medium text-slate-700">{mockActivity.organizer}</p>
-                                </div>
+                                {activity.organizerName && (
+                                    <div className="pt-4 border-t border-slate-200">
+                                        <p className="text-xs text-slate-500 mb-2">主办方</p>
+                                        <p className="text-sm font-medium text-slate-700">{activity.organizerName}</p>
+                                    </div>
+                                )}
+
+                                {/* 场次选择 */}
+                                {sessions.length > 0 && (
+                                    <div className="pt-4 border-t border-slate-200">
+                                        <p className="text-xs text-slate-500 mb-2">选择场次 *</p>
+                                        <div className="space-y-2">
+                                            {sessions.map((session) => (
+                                                <label
+                                                    key={session.id}
+                                                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                                                        selectedSession === session.id
+                                                            ? 'border-[#56B949] bg-[#56B949]/5'
+                                                            : 'border-slate-200 hover:border-[#56B949]/50'
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="session"
+                                                        value={session.id}
+                                                        checked={selectedSession === session.id}
+                                                        onChange={(e) => setSelectedSession(e.target.value)}
+                                                        className="mr-3"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-slate-800">{session.sessionName}</p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {new Date(session.startTime).toLocaleString('zh-CN')}
+                                                        </p>
+                                                        {session.maxParticipants && (
+                                                            <p className="text-xs text-slate-500">
+                                                                {session.currentParticipants}/{session.maxParticipants} 人
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -252,7 +365,7 @@ function RegisterActivityContent() {
                                 {/* 邮箱 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('register.form.email', '邮箱地址')}
+                                        邮箱地址 {!isLoggedIn && <span className="text-red-500">*</span>}
                                     </label>
                                     <input
                                         type="email"
@@ -260,59 +373,27 @@ function RegisterActivityContent() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                        placeholder={t('register.form.emailPlaceholder', '请输入邮箱地址')}
+                                        placeholder={isLoggedIn ? "选填" : "游客报名必填邮箱"}
+                                        required={!isLoggedIn}
                                     />
+                                    {!isLoggedIn && (
+                                        <p className="text-xs text-slate-500 mt-1">游客报名需要提供邮箱以接收活动通知</p>
+                                    )}
                                 </div>
 
-                                {/* 紧急联系人 */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            {t('register.form.emergencyContact', '紧急联系人')}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="emergencyContact"
-                                            value={formData.emergencyContact}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder={t('register.form.emergencyContactPlaceholder', '紧急联系人姓名')}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            {t('register.form.emergencyPhone', '紧急联系电话')}
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            name="emergencyPhone"
-                                            value={formData.emergencyPhone}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                            placeholder={t('register.form.emergencyPhonePlaceholder', '紧急联系人电话')}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* 特殊需求 */}
+                                {/* 备注 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('register.form.specialRequirements', '特殊需求或备注')}
+                                        备注信息
                                     </label>
                                     <textarea
-                                        name="specialRequirements"
-                                        value={formData.specialRequirements}
+                                        name="remarks"
+                                        value={formData.remarks}
                                         onChange={handleInputChange}
                                         rows={3}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
                                         placeholder={t('register.form.specialRequirementsPlaceholder', '如有特殊需求或其他需要说明的情况，请在此填写...')}
                                     />
-                                </div>
-
-                                {/* 活动要求 */}
-                                <div className="bg-slate-50 rounded-lg p-4">
-                                    <h4 className="font-medium text-slate-800 mb-2">{t('register.form.activityRequirements', '活动要求')}</h4>
-                                    <p className="text-sm text-slate-600">{mockActivity.requirements}</p>
                                 </div>
 
                                 {/* 协议同意 */}
@@ -339,15 +420,25 @@ function RegisterActivityContent() {
                                 <div className="flex gap-4 pt-6 border-t border-slate-200">
                                     <button
                                         onClick={handleSubmit}
-                                        disabled={!formData.agreement}
+                                        disabled={!formData.agreement || submitting}
                                         className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <CheckCircle className="w-4 h-4" />
-                                        {t('register.form.submit', '确认报名')}
+                                        {submitting ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                提交中...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="w-4 h-4" />
+                                                确认报名
+                                            </>
+                                        )}
                                     </button>
                                     <button
                                         onClick={handleCancel}
-                                        className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                        disabled={submitting}
+                                        className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {tCommon('cancel', '取消')}
                                     </button>

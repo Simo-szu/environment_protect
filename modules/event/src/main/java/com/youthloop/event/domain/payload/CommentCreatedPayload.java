@@ -43,4 +43,9 @@ public class CommentCreatedPayload {
      * 评论者 ID
      */
     private UUID userId;
+    
+    /**
+     * 父评论作者 ID（仅回复时有值，用于通知）
+     */
+    private UUID parentUserId;
 }

@@ -70,15 +70,15 @@ public class ActivitySignupService {
             }
         }
         
-        // 查询活动的报名策略
-        Integer signupPolicy = activityMapper.selectSignupPolicy(request.getActivityId());
-        if (signupPolicy == null) {
+        // 查询活动信息（获取报名策略和主办方 ID）
+        ActivityEntity activity = activityMapper.selectById(request.getActivityId());
+        if (activity == null) {
             throw new BizException(40041, "活动不存在");
         }
         
         // 根据报名策略决定初始状态
         // 1=auto_approve 自动通过，2=manual_review 需要审核
-        Integer initialStatus = (signupPolicy == 1) ? 2 : 1;
+        Integer initialStatus = (activity.getSignupPolicy() == 1) ? 2 : 1;
         
         // 创建报名记录
         ActivitySignupEntity entity = new ActivitySignupEntity();
@@ -119,7 +119,8 @@ public class ActivitySignupService {
             entity.getSessionId(),
             entity.getUserId(),
             entity.getStatus(),
-            initialStatus == 2 ? "APPROVED" : "CREATED"
+            initialStatus == 2 ? "APPROVED" : "CREATED",
+            activity.getHostUserId()  // 携带主办方 ID
         );
         outboxEventService.publishEvent("SIGNUP_CREATED", payload);
         
@@ -137,6 +138,12 @@ public class ActivitySignupService {
         ActivitySignupEntity signup = activitySignupMapper.selectById(signupId);
         if (signup == null) {
             throw new BizException(40041, "报名记录不存在");
+        }
+        
+        // 查询活动信息（获取主办方 ID）
+        ActivityEntity activity = activityMapper.selectById(signup.getActivityId());
+        if (activity == null) {
+            throw new BizException(40041, "活动不存在");
         }
         
         // 权限检查
@@ -177,7 +184,8 @@ public class ActivitySignupService {
             signup.getSessionId(),
             signup.getUserId(),
             4, // canceled
-            "CANCELED"
+            "CANCELED",
+            activity.getHostUserId()  // 携带主办方 ID
         );
         outboxEventService.publishEvent("SIGNUP_CANCELED", payload);
     }
@@ -225,6 +233,51 @@ public class ActivitySignupService {
         
         log.info("改场次成功: signupId={}, newSessionId={}, userId={}, guestEmail={}", 
             signupId, newSessionId, currentUserId, guestEmail);
+    }
+    
+    /**
+     * 更新报名信息（支持登录用户和游客）
+     */
+    @Transactional
+    public void updateSignupInfo(UUID signupId, String nickname, String realName, String phone, String guestEmail) {
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
+        
+        // 查询报名记录
+        ActivitySignupEntity signup = activitySignupMapper.selectById(signupId);
+        if (signup == null) {
+            throw new BizException(40041, "报名记录不存在");
+        }
+        
+        // 权限检查
+        if (currentUserId != null) {
+            // 登录用户：只能修改自己的报名
+            if (signup.getUserId() != null && !signup.getUserId().equals(currentUserId)) {
+                throw new BizException(40032, "无权修改他人的报名");
+            }
+        } else {
+            // 游客：通过 email + dedup_key 验证
+            if (guestEmail == null || guestEmail.trim().isEmpty()) {
+                throw new BizException(40021, "游客修改报名信息必须提供邮箱");
+            }
+            String expectedDedupKey = "E:" + guestEmail.toLowerCase().trim();
+            if (!expectedDedupKey.equals(signup.getDedupKey())) {
+                throw new BizException(40032, "邮箱与报名记录不匹配");
+            }
+        }
+        
+        // 状态检查
+        if (signup.getStatus() != 1 && signup.getStatus() != 2) {
+            throw new BizException(40051, "当前状态不允许修改报名信息");
+        }
+        
+        // 更新报名信息
+        int rows = activitySignupMapper.updateInfo(signupId, nickname, realName, phone);
+        if (rows == 0) {
+            throw new BizException(40022, "更新报名信息失败");
+        }
+        
+        log.info("更新报名信息成功: signupId={}, userId={}, guestEmail={}", 
+            signupId, currentUserId, guestEmail);
     }
     
     /**
@@ -278,7 +331,8 @@ public class ActivitySignupService {
             signup.getSessionId(),
             signup.getUserId(),
             status,
-            status == 2 ? "APPROVED" : "REJECTED"
+            status == 2 ? "APPROVED" : "REJECTED",
+            activity.getHostUserId()  // 携带主办方 ID
         );
         outboxEventService.publishEvent("SIGNUP_AUDITED", payload);
     }

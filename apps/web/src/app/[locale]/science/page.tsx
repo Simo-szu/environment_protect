@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -14,14 +14,45 @@ import {
     BatteryCharging,
     Waves
 } from 'lucide-react';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, hoverLift } from '@/lib/animations';
-import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { contentApi } from '@/lib/api';
+import type { ContentItem } from '@/lib/api/content';
 
 export default function SciencePage() {
-    const { t } = useSafeTranslation('science');
     const params = useParams();
-    const locale = params?.locale as string || 'zh';
+    const locale = (params?.locale as string) || 'zh';
+    const { t } = useSafeTranslation('science');
+    // 状态管理
+    const [contents, setContents] = useState<ContentItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
+    // 加载科普内容
+    useEffect(() => {
+        const loadContents = async () => {
+            try {
+                setLoading(true);
+                const result = await contentApi.getContents({
+                    page: currentPage,
+                    size: pageSize,
+                    sort: 'latest'
+                });
+                setContents(result.items);
+                setTotalPages(Math.ceil(result.total / pageSize));
+            } catch (error) {
+                console.error('Failed to load contents:', error);
+                // 失败时保持空数组，显示静态内容
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadContents();
+    }, [currentPage]);
 
     useEffect(() => {
         // 创建落叶动画
@@ -48,7 +79,12 @@ export default function SciencePage() {
     }, []);
 
     const viewArticle = (articleId: string) => {
-        window.location.href = `/${locale}/science/${articleId}`;
+        window.location.href = `/zh/science/${articleId}`;
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
@@ -204,146 +240,233 @@ export default function SciencePage() {
                         variants={staggerItem}
                         className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 flex flex-col gap-6"
                     >
-                        {/* News Item 1 */}
-                        <motion.div
-                            variants={staggerItem}
-                            whileHover={hoverLift}
-                            className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
-                        >
-                            {/* Image Placeholder */}
-                            <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 overflow-hidden relative flex-shrink-0">
-                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#30499B] shadow-sm">NEWS</div>
-                                <div className="w-full h-full flex items-center justify-center text-[#56B949]/40">
-                                    <Zap className="w-8 h-8" />
-                                </div>
-                            </div>
-                            {/* Content */}
-                            <div className="flex-1 flex flex-col justify-between py-1">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#30499B]/5 text-[#30499B] border border-[#30499B]/10">NEWS</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
+                        {loading ? (
+                            // 加载骨架屏
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="flex flex-col sm:flex-row gap-6 p-4 rounded-xl animate-pulse">
+                                    <div className="w-full sm:w-56 h-36 rounded-lg bg-slate-200"></div>
+                                    <div className="flex-1 space-y-3">
+                                        <div className="h-4 bg-slate-200 rounded w-24"></div>
+                                        <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                                        <div className="h-4 bg-slate-200 rounded"></div>
+                                        <div className="h-4 bg-slate-200 rounded w-5/6"></div>
                                     </div>
-                                    <h3
-                                        onClick={() => viewArticle('article-001')}
-                                        className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
-                                    >
-                                        {t('news.articles.greenTech.title', '绿色科技：未来城市的可持续能源解决方案')}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.greenTech.description', '随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...')}</p>
                                 </div>
-                                <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
-                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                        <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
-                                            <Eye className="w-3 h-3" /> 1.2k
-                                        </div>
-                                        <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
-                                            <Heart className="w-3 h-3" /> 452
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => viewArticle('article-001')}
-                                        className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
-                                    >
-                                        {t('actions.readFull', '阅读全文')}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
+                            ))
+                        ) : contents.length > 0 ? (
+                            // 真实数据
+                            contents.map((content, index) => {
+                                const typeColors: Record<string, { bg: string; text: string; icon: any }> = {
+                                    NEWS: { bg: 'from-[#56B949]/20 to-[#30499B]/20', text: '[#30499B]', icon: Zap },
+                                    DYNAMIC: { bg: 'from-[#F0A32F]/20 to-[#EE4035]/20', text: '[#F0A32F]', icon: Waves },
+                                    POLICY: { bg: 'from-[#30499B]/20 to-[#56B949]/20', text: '[#56B949]', icon: BatteryCharging },
+                                    WIKI: { bg: 'from-[#56B949]/20 to-[#F0A32F]/20', text: '[#56B949]', icon: BookOpen }
+                                };
+                                const typeConfig = typeColors[content.type] || typeColors.NEWS;
+                                const Icon = typeConfig.icon;
 
-                        {/* News Item 2 */}
-                        <motion.div
-                            variants={staggerItem}
-                            whileHover={hoverLift}
-                            className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#F0A32F]/5 border border-transparent hover:border-[#F0A32F]/20 relative"
-                        >
-                            {/* Image Placeholder */}
-                            <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#F0A32F]/20 to-[#EE4035]/20 overflow-hidden relative flex-shrink-0">
-                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#F0A32F] shadow-sm">REPORT</div>
-                                <div className="w-full h-full flex items-center justify-center text-[#F0A32F]/40">
-                                    <Waves className="w-8 h-8" />
-                                </div>
-                            </div>
-                            {/* Content */}
-                            <div className="flex-1 flex flex-col justify-between py-1">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F0A32F]/5 text-[#F0A32F] border border-[#F0A32F]/10">REPORT</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
-                                    </div>
-                                    <h3
-                                        onClick={() => viewArticle('article-002')}
-                                        className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#F0A32F] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
+                                return (
+                                    <motion.div
+                                        key={content.id}
+                                        variants={staggerItem}
+                                        whileHover={hoverLift}
+                                        className={`group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-${typeConfig.text}/5 border border-transparent hover:border-${typeConfig.text}/20 relative`}
                                     >
-                                        {t('news.articles.oceanPlastic.title', '海洋塑料污染：不仅仅是吸管的问题')}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.oceanPlastic.description', '每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...')}</p>
-                                </div>
-                                <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
-                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                        <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
-                                            <Eye className="w-3 h-3" /> 856
+                                        {/* Image */}
+                                        <div className={`w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br ${typeConfig.bg} overflow-hidden relative flex-shrink-0`}>
+                                            {content.coverImageUrl ? (
+                                                <img src={content.coverImageUrl} alt={content.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <>
+                                                    <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-${typeConfig.text} shadow-sm`}>
+                                                        {content.type}
+                                                    </div>
+                                                    <div className={`w-full h-full flex items-center justify-center text-${typeConfig.text}/40`}>
+                                                        <Icon className="w-8 h-8" />
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                        <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
-                                            <Heart className="w-3 h-3" /> 210
+                                        {/* Content */}
+                                        <div className="flex-1 flex flex-col justify-between py-1">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold bg-${typeConfig.text}/5 text-${typeConfig.text} border border-${typeConfig.text}/10`}>
+                                                        {content.type}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 font-medium">
+                                                        {new Date(content.publishedAt).toLocaleDateString('zh-CN')}
+                                                    </span>
+                                                </div>
+                                                <h3
+                                                    onClick={() => viewArticle(content.id)}
+                                                    className={`text-lg font-serif font-semibold text-[#30499B] group-hover:text-${typeConfig.text} transition-colors tracking-tight mb-2 cursor-pointer leading-tight`}
+                                                >
+                                                    {content.title}
+                                                </h3>
+                                                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">
+                                                    {content.summary || '点击查看详情...'}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
+                                                <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                    <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                        <Eye className="w-3 h-3" /> {content.viewCount}
+                                                    </div>
+                                                    <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                        <Heart className="w-3 h-3" /> {content.likeCount}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => viewArticle(content.id)}
+                                                    className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
+                                                >
+                                                    阅读全文
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })
+                        ) : (
+                            // 降级显示静态内容
+                            <>
+                                {/* News Item 1 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    whileHover={hoverLift}
+                                    className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
+                                >
+                                    <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 overflow-hidden relative flex-shrink-0">
+                                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#30499B] shadow-sm">NEWS</div>
+                                        <div className="w-full h-full flex items-center justify-center text-[#56B949]/40">
+                                            <Zap className="w-8 h-8" />
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => viewArticle('article-002')}
-                                        className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
-                                    >
-                                        {t('actions.readFull', '阅读全文')}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
+                                    <div className="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#30499B]/5 text-[#30499B] border border-[#30499B]/10">NEWS</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
+                                            </div>
+                                            <h3
+                                                onClick={() => viewArticle('article-001')}
+                                                className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
+                                            >
+                                                绿色科技：未来城市的可持续能源解决方案
+                                            </h3>
+                                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">随着全球气候变暖的加剧，如何在城市发展中融入更多的绿色科技成为了关键议题。本文将探讨最新的太阳能板技术、风能利用以及智能电网在现代都市中的应用案例...</p>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
+                                            <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                    <Eye className="w-3 h-3" /> 1.2k
+                                                </div>
+                                                <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                    <Heart className="w-3 h-3" /> 452
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => viewArticle('article-001')}
+                                                className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
+                                            >
+                                                阅读全文
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
 
-                        {/* News Item 3 */}
-                        <motion.div
-                            variants={staggerItem}
-                            whileHover={hoverLift}
-                            className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
-                        >
-                            {/* Image Placeholder */}
-                            <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#30499B]/20 to-[#56B949]/20 overflow-hidden relative flex-shrink-0">
-                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#56B949] shadow-sm">TECH</div>
-                                <div className="w-full h-full flex items-center justify-center text-[#56B949]/40">
-                                    <BatteryCharging className="w-8 h-8" />
-                                </div>
-                            </div>
-                            {/* Content */}
-                            <div className="flex-1 flex flex-col justify-between py-1">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#56B949]/5 text-[#56B949] border border-[#56B949]/10">TECH</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
-                                    </div>
-                                    <h3
-                                        onClick={() => viewArticle('article-003')}
-                                        className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
-                                    >
-                                        {t('news.articles.evBattery.title', '电动汽车：你需要知道的电池回收知识')}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">{t('news.articles.evBattery.description', '随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...')}</p>
-                                </div>
-                                <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
-                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                        <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
-                                            <Eye className="w-3 h-3" /> 2.1k
-                                        </div>
-                                        <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
-                                            <Heart className="w-3 h-3" /> 134
+                                {/* News Item 2 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    whileHover={hoverLift}
+                                    className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#F0A32F]/5 border border-transparent hover:border-[#F0A32F]/20 relative"
+                                >
+                                    <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#F0A32F]/20 to-[#EE4035]/20 overflow-hidden relative flex-shrink-0">
+                                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#F0A32F] shadow-sm">REPORT</div>
+                                        <div className="w-full h-full flex items-center justify-center text-[#F0A32F]/40">
+                                            <Waves className="w-8 h-8" />
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => viewArticle('article-003')}
-                                        className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
-                                    >
-                                        {t('actions.readFull', '阅读全文')}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
+                                    <div className="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F0A32F]/5 text-[#F0A32F] border border-[#F0A32F]/10">REPORT</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
+                                            </div>
+                                            <h3
+                                                onClick={() => viewArticle('article-002')}
+                                                className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#F0A32F] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
+                                            >
+                                                海洋塑料污染：不仅仅是吸管的问题
+                                            </h3>
+                                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">每年有数百万吨塑料垃圾流入海洋，威胁着海洋生物的生存。这篇深度报道将带你了解微塑料的危害，以及各国正在采取的清理行动和减塑政策...</p>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
+                                            <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                    <Eye className="w-3 h-3" /> 856
+                                                </div>
+                                                <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                    <Heart className="w-3 h-3" /> 210
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => viewArticle('article-002')}
+                                                className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
+                                            >
+                                                阅读全文
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* News Item 3 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    whileHover={hoverLift}
+                                    className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:shadow-[#56B949]/5 border border-transparent hover:border-[#56B949]/20 relative"
+                                >
+                                    <div className="w-full sm:w-56 h-36 rounded-lg bg-gradient-to-br from-[#30499B]/20 to-[#56B949]/20 overflow-hidden relative flex-shrink-0">
+                                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-[#56B949] shadow-sm">TECH</div>
+                                        <div className="w-full h-full flex items-center justify-center text-[#56B949]/40">
+                                            <BatteryCharging className="w-8 h-8" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#56B949]/5 text-[#56B949] border border-[#56B949]/10">TECH</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">2026.01.06</span>
+                                            </div>
+                                            <h3
+                                                onClick={() => viewArticle('article-003')}
+                                                className="text-lg font-serif font-semibold text-[#30499B] group-hover:text-[#56B949] transition-colors tracking-tight mb-2 cursor-pointer leading-tight"
+                                            >
+                                                电动汽车：你需要知道的电池回收知识
+                                            </h3>
+                                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 pr-4">随着电动汽车的普及，废旧电池的处理成为了一个新的环保挑战。如果处理不当，电池中的重金属将造成严重污染。了解正确的回收渠道和再生技术...</p>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
+                                            <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                <div className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                    <Eye className="w-3 h-3" /> 2.1k
+                                                </div>
+                                                <div className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                    <Heart className="w-3 h-3" /> 134
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => viewArticle('article-003')}
+                                                className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
+                                            >
+                                                阅读全文
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
                     </motion.div>
                 </div>
             </motion.div>
@@ -356,18 +479,60 @@ export default function SciencePage() {
                 variants={fadeUp}
                 className="flex justify-center items-center gap-4 py-8"
             >
-                <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    {locale === 'zh' ? '上一页' : 'Previous'}
+                <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    上一页
                 </button>
                 <div className="flex items-center gap-2">
-                    <button className="w-8 h-8 rounded-lg bg-[#30499B] text-white text-sm font-medium">1</button>
-                    <button className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm">2</button>
-                    <button className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm">3</button>
-                    <span className="text-slate-400 px-2">...</span>
-                    <button className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm">10</button>
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                            <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                disabled={loading}
+                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                    currentPage === pageNum
+                                        ? 'bg-[#30499B] text-white'
+                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <>
+                            <span className="text-slate-400 px-2">...</span>
+                            <button
+                                onClick={() => handlePageChange(totalPages)}
+                                disabled={loading}
+                                className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm"
+                            >
+                                {totalPages}
+                            </button>
+                        </>
+                    )}
                 </div>
-                <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
-                    {locale === 'zh' ? '下一页' : 'Next'}
+                <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || loading}
+                    className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    下一页
                 </button>
             </motion.div>
         </Layout>

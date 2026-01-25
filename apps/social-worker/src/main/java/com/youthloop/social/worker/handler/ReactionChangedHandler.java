@@ -3,9 +3,9 @@ package com.youthloop.social.worker.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.activity.application.service.ActivityStatsUpdateService;
 import com.youthloop.content.application.service.ContentStatsUpdateService;
+import com.youthloop.event.api.dto.OutboxEventDTO;
 import com.youthloop.event.domain.EventType;
 import com.youthloop.event.domain.payload.ReactionChangedPayload;
-import com.youthloop.event.persistence.entity.OutboxEventEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class ReactionChangedHandler implements EventHandler {
     private final ActivityStatsUpdateService activityStatsUpdateService;
     
     @Override
-    public void handle(OutboxEventEntity event) throws Exception {
+    public void handle(OutboxEventDTO event) throws Exception {
         ReactionChangedPayload payload = objectMapper.readValue(
             event.getPayload(), 
             ReactionChangedPayload.class

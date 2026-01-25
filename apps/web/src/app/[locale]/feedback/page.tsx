@@ -7,6 +7,8 @@ import BackButton from '@/components/ui/BackButton';
 import { useParams } from 'next/navigation';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import { ArrowLeft, MessageSquare, Star, Send, CheckCircle } from 'lucide-react';
+import { submitFeedback } from '@/lib/api/support';
+
 
 export default function FeedbackPage() {
     const params = useParams();
@@ -53,11 +55,23 @@ export default function FeedbackPage() {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
-        // 这里应该调用API提交反馈
-        console.log('提交反馈:', formData);
-        setSubmitted(true);
+        try {
+            await submitFeedback({
+                type: formData.type,
+                rating: formData.rating,
+                title: formData.title,
+                content: formData.content,
+                contact: formData.contact,
+                anonymous: formData.anonymous
+            });
+            setSubmitted(true);
+        } catch (error) {
+            console.error('提交反馈失败:', error);
+            alert('提交失败，请重试');
+        }
     };
 
     if (submitted) {

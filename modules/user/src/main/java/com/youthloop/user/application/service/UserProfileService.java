@@ -65,6 +65,12 @@ public class UserProfileService {
         if (dto.getHometown() != null) {
             profile.setHometown(dto.getHometown());
         }
+        if (dto.getBio() != null) {
+            profile.setBio(dto.getBio());
+        }
+        if (dto.getLocation() != null) {
+            profile.setLocation(dto.getLocation());
+        }
         
         // 保存
         userProfileRepository.save(profile);
@@ -83,6 +89,8 @@ public class UserProfileService {
         dto.setGender(model.getGender());
         dto.setBirthday(model.getBirthday());
         dto.setHometown(model.getHometown());
+        dto.setBio(model.getBio());
+        dto.setLocation(model.getLocation());
         return dto;
     }
 }

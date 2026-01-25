@@ -50,6 +50,13 @@ public class ActivityFacade {
     }
     
     /**
+     * 更新报名信息（支持游客）
+     */
+    public void updateSignupInfo(UUID signupId, String nickname, String realName, String phone, String guestEmail) {
+        activitySignupService.updateSignupInfo(signupId, nickname, realName, phone, guestEmail);
+    }
+    
+    /**
      * 审核报名
      */
     public void auditSignup(UUID signupId, Integer status, String auditNote) {

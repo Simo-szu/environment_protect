@@ -51,8 +51,6 @@ public class MeController {
     @Operation(summary = "获取我的积分余额", description = "获取当前用户的积分账户余额")
     @GetMapping("/points")
     public BaseResponse<PointsAccountDTO> getMyPoints() {
-        // TODO: 实现 PointsFacade.getMyPointsAccount 方法
-        // PointsAccountDTO account = pointsFacade.getMyPointsAccount();
         PointsAccountDTO account = pointsFacade.getAccount();
         return BaseResponse.success(account);
     }

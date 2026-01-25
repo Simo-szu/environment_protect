@@ -39,4 +39,12 @@ public class UserProfileDTO {
     @Schema(description = "家乡")
     @Size(max = 100, message = "家乡长度不能超过 100")
     private String hometown;
+    
+    @Schema(description = "个人简介")
+    @Size(max = 500, message = "个人简介长度不能超过 500")
+    private String bio;
+    
+    @Schema(description = "所在地")
+    @Size(max = 100, message = "所在地长度不能超过 100")
+    private String location;
 }

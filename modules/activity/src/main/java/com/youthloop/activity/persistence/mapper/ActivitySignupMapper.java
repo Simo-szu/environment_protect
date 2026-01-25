@@ -59,6 +59,16 @@ public interface ActivitySignupMapper {
     );
     
     /**
+     * 更新报名信息（昵称/真实姓名/手机号）
+     */
+    int updateInfo(
+        @Param("id") UUID id,
+        @Param("nickname") String nickname,
+        @Param("realName") String realName,
+        @Param("phone") String phone
+    );
+    
+    /**
      * 查询活动的报名列表（主办方查看）
      */
     List<Map<String, Object>> selectSignupList(

@@ -25,7 +25,6 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     // 导航项目
     const navigationItems = [
         { href: `/${locale}`, label: t('home', '首页'), color: '#30499B' },
-        { href: `/${locale}/game`, label: t('game', '游戏'), color: '#56B949' },
         { href: `/${locale}/science`, label: t('science', '科普'), color: '#F0A32F' },
         { href: `/${locale}/activities`, label: t('activities', '活动'), color: '#30499B' },
         { href: `/${locale}/points`, label: t('points', '积分'), color: '#EE4035' }
@@ -116,7 +115,7 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                     {user && isLoggedIn ? (
                         <div className="relative group">
                             <button className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                                <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}</span>
+                                <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}</span>
                             </button>
 
                             {/* 悬停下拉菜单 */}
@@ -125,15 +124,15 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                 <div className="px-6 py-3 border-b border-slate-100">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold text-lg">
-                                            <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}</span>
+                                            <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}</span>
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-slate-800">{user.nickname || user.username}</div>
+                                            <div className="font-semibold text-slate-800">{user.nickname || '用户'}</div>
                                             <div className="text-sm text-slate-500">
-                                                <span>{t('userId', 'ID')}: </span><span>{user.id || '123456789'}</span>
+                                                <span>ID: </span><span>{user.userId || '12345678'}</span>
                                             </div>
                                             <div className="text-sm text-[#F0A32F] font-medium">
-                                                <span>{t('points', '积分')}: </span><span>{user.points || 328}</span>
+                                                <span>积分: </span><span>0</span>
                                             </div>
                                         </div>
                                     </div>

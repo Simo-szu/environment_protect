@@ -2,6 +2,7 @@ package com.youthloop.auth.application.service;
 
 import com.youthloop.auth.api.dto.*;
 import com.youthloop.auth.infrastructure.notification.OtpNotificationService;
+import com.youthloop.auth.infrastructure.identity.GoogleIdentityProvider;
 import com.youthloop.auth.infrastructure.security.JwtTokenProvider;
 import com.youthloop.auth.infrastructure.security.PasswordEncoder;
 import com.youthloop.auth.persistence.entity.RefreshTokenEntity;
@@ -45,6 +46,8 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final OtpService otpService;
     private final OtpNotificationService otpNotificationService;
+    private final GoogleIdentityProvider googleIdentityProvider;
+
     
     @Value("${jwt.access-token-validity:3600}")
     private Long accessTokenValidity;
@@ -283,23 +286,7 @@ public class AuthService {
         log.info("邮箱验证码已发送: email={}, purpose={}", email, request.getPurpose());
     }
     
-    /**
-     * 发送短信验证码
-     */
-    public void sendPhoneOtp(SendOtpRequest request) {
-        String phone = request.getPhone().trim();
-        
-        // 映射 purpose 字符串到数字
-        Integer purposeCode = mapPurpose(request.getPurpose());
-        
-        // 生成并存储验证码
-        String code = otpService.generateAndStore(phone, 2, purposeCode);
-        
-        // 发送验证码（开发环境使用日志模拟）
-        otpNotificationService.sendPhoneOtp(phone, code, request.getPurpose());
-        
-        log.info("短信验证码已发送: phone={}, purpose={}", phone, request.getPurpose());
-    }
+
     
     /**
      * 邮箱注册
@@ -356,60 +343,7 @@ public class AuthService {
         return generateAuthResponse(userInfo.getUserId(), null);
     }
     
-    /**
-     * 手机注册
-     */
-    @Transactional
-    public AuthResponse registerByPhone(PhoneRegisterRequest request) {
-        String phone = request.getPhone().trim();
-        
-        // 检查是否同意条款
-        if (!Boolean.TRUE.equals(request.getTermsAccepted())) {
-            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "必须同意服务条款");
-        }
-        
-        // 验证 OTP
-        otpService.verifyAndConsume(phone, request.getOtp(), 1); // purpose=1 (register)
-        
-        // 检查手机号是否已存在
-        UserIdentityEntity existingIdentity = userIdentityMapper.selectByTypeAndIdentifier(2, phone);
-        if (existingIdentity != null) {
-            throw new BizException(ErrorCode.USER_ALREADY_EXISTS, "该手机号已被注册");
-        }
-        
-        // 创建用户
-        UUID userId = UUID.randomUUID();
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUserId(userId);
-        createUserRequest.setNickname("用户" + phone.substring(phone.length() - 4)); // 默认昵称
-        createUserRequest.setRole(1);
-        
-        UserBasicInfo userInfo = userRegistrationFacade.createUser(createUserRequest);
-        
-        // 创建手机身份
-        UserIdentityEntity identity = new UserIdentityEntity();
-        identity.setId(UUID.randomUUID());
-        identity.setUserId(userInfo.getUserId());
-        identity.setIdentityType(2); // PHONE
-        identity.setIdentityIdentifier(phone);
-        identity.setVerifiedAt(LocalDateTime.now());
-        identity.setIsPrimary(true);
-        identity.setCreatedAt(LocalDateTime.now());
-        identity.setUpdatedAt(LocalDateTime.now());
-        userIdentityMapper.insert(identity);
-        
-        // 创建密码
-        UserPasswordEntity password = new UserPasswordEntity();
-        password.setUserId(userInfo.getUserId());
-        password.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        password.setSetAt(LocalDateTime.now());
-        password.setUpdatedAt(LocalDateTime.now());
-        userPasswordMapper.insert(password);
-        
-        log.info("手机注册成功: userId={}, phone={}", userInfo.getUserId(), phone);
-        
-        return generateAuthResponse(userInfo.getUserId(), null);
-    }
+
     
     /**
      * 邮箱验证码登录
@@ -442,36 +376,7 @@ public class AuthService {
         return generateAuthResponse(userId, null);
     }
     
-    /**
-     * 手机验证码登录
-     */
-    @Transactional
-    public AuthResponse loginByPhoneOtp(OtpLoginRequest request) {
-        String phone = request.getPhone().trim();
-        
-        // 验证 OTP
-        otpService.verifyAndConsume(phone, request.getOtp(), 2); // purpose=2 (login)
-        
-        // 查找用户身份
-        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(2, phone);
-        if (identity == null) {
-            throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
-        }
-        
-        UUID userId = identity.getUserId();
-        
-        // 检查用户状态
-        if (!userQueryFacade.isUserActive(userId)) {
-            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
-        }
-        
-        // 更新最后登录时间
-        userRegistrationFacade.updateLastLoginTime(userId);
-        
-        log.info("手机验证码登录成功: userId={}, phone={}", userId, phone);
-        
-        return generateAuthResponse(userId, null);
-    }
+
     
     /**
      * 账号密码登录
@@ -481,14 +386,12 @@ public class AuthService {
         String account = request.getAccount().toLowerCase().trim();
         
         // 判断是邮箱还是手机号
-        UserIdentityEntity identity;
-        if (account.contains("@")) {
-            // 邮箱登录
-            identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
-        } else {
-            // 手机登录
-            identity = userIdentityMapper.selectByTypeAndIdentifier(2, account);
+        // 仅支持邮箱登录
+        if (!account.contains("@")) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "仅支持邮箱登录");
         }
+        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
+
         
         if (identity == null) {
             throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
@@ -526,12 +429,12 @@ public class AuthService {
         otpService.verifyAndConsume(account, request.getOtp(), 3); // purpose=3 (reset_pwd)
         
         // 查找用户身份
-        UserIdentityEntity identity;
-        if (account.contains("@")) {
-            identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
-        } else {
-            identity = userIdentityMapper.selectByTypeAndIdentifier(2, account);
+        // 仅支持邮箱
+        if (!account.contains("@")) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "仅支持邮箱重置密码");
         }
+        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(1, account);
+
         
         if (identity == null) {
             throw new BizException(ErrorCode.USER_NOT_FOUND, "用户不存在");
@@ -561,6 +464,95 @@ public class AuthService {
         
         log.info("密码重置成功: userId={}, account={}", userId, account);
     }
+
+    /**
+     * Google 登录/注册
+     */
+    @Transactional
+    public AuthResponse loginByGoogle(GoogleLoginRequest request) {
+        // 1. 验证 Google Token
+        var googleUser = googleIdentityProvider.verifyIdToken(request.getIdToken());
+        if (!googleUser.emailVerified()) {
+            throw new BizException(ErrorCode.FORBIDDEN, "Google 邮箱未验证，无法登录");
+        }
+        
+        String email = googleUser.email().toLowerCase();
+        
+        // 2. 查找用户（先按 Google Identity 找，再按 Email 找）
+        // 假设 Type 3 = Google
+        UserIdentityEntity identity = userIdentityMapper.selectByTypeAndIdentifier(3, googleUser.googleId());
+        
+        if (identity == null) {
+            // 尝试按邮箱查找（自动关联）
+            identity = userIdentityMapper.selectByTypeAndIdentifier(1, email);
+            
+            if (identity == null) {
+                // 3.均不存在 -> 自动注册
+                log.info("Google 用户不存在，自动注册: email={}", email);
+                
+                // 创建 User
+                UUID userId = UUID.randomUUID();
+                CreateUserRequest createUserRequest = new CreateUserRequest();
+                createUserRequest.setUserId(userId);
+                createUserRequest.setNickname(email.split("@")[0]); 
+                createUserRequest.setRole(1);
+                UserBasicInfo userInfo = userRegistrationFacade.createUser(createUserRequest);
+                
+                // 绑定 Google 身份 (Type 3)
+                UserIdentityEntity googleIdentity = new UserIdentityEntity();
+                googleIdentity.setId(UUID.randomUUID());
+                googleIdentity.setUserId(userInfo.getUserId());
+                googleIdentity.setIdentityType(3);
+                googleIdentity.setIdentityIdentifier(googleUser.googleId());
+                googleIdentity.setVerifiedAt(LocalDateTime.now());
+                googleIdentity.setIsPrimary(false);
+                googleIdentity.setCreatedAt(LocalDateTime.now());
+                googleIdentity.setUpdatedAt(LocalDateTime.now());
+                userIdentityMapper.insert(googleIdentity);
+                
+                // 同时绑定 Email 身份 (Type 1) - 方便后续邮箱登录
+                UserIdentityEntity emailIdentity = new UserIdentityEntity();
+                emailIdentity.setId(UUID.randomUUID());
+                emailIdentity.setUserId(userInfo.getUserId());
+                emailIdentity.setIdentityType(1);
+                emailIdentity.setIdentityIdentifier(email);
+                emailIdentity.setVerifiedAt(LocalDateTime.now());
+                emailIdentity.setIsPrimary(true);
+                emailIdentity.setCreatedAt(LocalDateTime.now());
+                emailIdentity.setUpdatedAt(LocalDateTime.now());
+                userIdentityMapper.insert(emailIdentity);
+
+                return generateAuthResponse(userId, null);
+            } else {
+                // 邮箱已存在 -> 绑定 Google 身份
+                log.info("关联现有邮箱账号: userId={}, email={}", identity.getUserId(), email);
+                
+                UserIdentityEntity googleIdentity = new UserIdentityEntity();
+                googleIdentity.setId(UUID.randomUUID());
+                googleIdentity.setUserId(identity.getUserId());
+                googleIdentity.setIdentityType(3);
+                googleIdentity.setIdentityIdentifier(googleUser.googleId());
+                googleIdentity.setVerifiedAt(LocalDateTime.now());
+                googleIdentity.setIsPrimary(false);
+                googleIdentity.setCreatedAt(LocalDateTime.now());
+                googleIdentity.setUpdatedAt(LocalDateTime.now());
+                userIdentityMapper.insert(googleIdentity);
+                
+                return generateAuthResponse(identity.getUserId(), null);
+            }
+        }
+        
+        // 4. 已存在 Google 身份 -> 直接登录
+        UUID userId = identity.getUserId();
+        if (!userQueryFacade.isUserActive(userId)) {
+            throw new BizException(ErrorCode.FORBIDDEN, "账号不存在或已被封禁");
+        }
+        userRegistrationFacade.updateLastLoginTime(userId);
+        
+        log.info("Google 登录成功: userId={}", userId);
+        return generateAuthResponse(userId, null);
+    }
+
     
     /**
      * 映射 purpose 字符串到数字代码

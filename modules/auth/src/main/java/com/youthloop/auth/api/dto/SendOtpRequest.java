@@ -17,9 +17,7 @@ public class SendOtpRequest {
     @Email(message = "邮箱格式不正确")
     private String email;
     
-    @Schema(description = "手机号（短信验证码时必填）", example = "13800138000")
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    private String phone;
+
     
     @Schema(description = "验证码用途", example = "register", allowableValues = {"register", "login", "reset_password"})
     @NotBlank(message = "用途不能为空")

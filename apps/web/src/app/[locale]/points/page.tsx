@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import {
     Coins,
@@ -16,30 +16,215 @@ import {
     Leaf
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/lib/animations';
-import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { pointsApi } from '@/lib/api';
+import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/api/points';
 
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('points');
+
+    // 积分账户数据
+    const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
+    const [loadingAccount, setLoadingAccount] = useState(true);
+
+    // 签到数据
+    const [todaySignin, setTodaySignin] = useState<SigninRecord | null>(null);
+    const [loadingSignin, setLoadingSignin] = useState(true);
+    const [signingIn, setSigningIn] = useState(false);
+    const [showCheckInAnimation, setShowCheckInAnimation] = useState(false);
+
+    // 每日任务数据
+    const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
+    const [loadingTasks, setLoadingTasks] = useState(true);
+    const [claimingTask, setClaimingTask] = useState<string | null>(null);
+
+    // 每日问答数据
+    const [todayQuiz, setTodayQuiz] = useState<DailyQuiz | null>(null);
+    const [loadingQuiz, setLoadingQuiz] = useState(true);
+    const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
+    const [quizSubmitted, setQuizSubmitted] = useState(false);
+    const [quizResult, setQuizResult] = useState<{ correct: boolean; earnedPoints: number; explanation?: string } | null>(null);
+
     const [quizStates, setQuizStates] = useState<{ [key: number]: { answered: boolean; correct: boolean } }>({
         1: { answered: false, correct: false },
         2: { answered: false, correct: false },
         3: { answered: false, correct: false }
     });
 
-    // 签到状态管理
-    const [checkedInDays, setCheckedInDays] = useState<number[]>([1, 2]); // 已签到的日期
-    const [todayCheckedIn, setTodayCheckedIn] = useState(false); // 今日是否已签到
-    const [showCheckInAnimation, setShowCheckInAnimation] = useState(false); // 签到动画
-    const currentDay = 5; // 当前日期
+    // 签到日历状态（简化版，实际应该从后端获取）
+    const [checkedInDays, setCheckedInDays] = useState<number[]>([1, 2]);
+    const currentDay = 5;
 
-    // 每日问答刷新状态管理
-    const [refreshCount, setRefreshCount] = useState(0); // 今日已刷新次数
-    const maxRefreshCount = 5; // 每日最大刷新次数
-    const [currentQuizSet, setCurrentQuizSet] = useState(0); // 当前题目集
+    // 加载积分账户
+    useEffect(() => {
+        const loadPointsAccount = async () => {
+            try {
+                setLoadingAccount(true);
+                const account = await pointsApi.getPointsAccount();
+                setPointsAccount(account);
+            } catch (error) {
+                console.error('Failed to load points account:', error);
+            } finally {
+                setLoadingAccount(false);
+            }
+        };
+
+        if (isLoggedIn) {
+            loadPointsAccount();
+        }
+    }, [isLoggedIn]);
+
+    // 加载签到状态
+    useEffect(() => {
+        const loadSigninStatus = async () => {
+            try {
+                setLoadingSignin(true);
+                const signin = await pointsApi.getTodaySignin();
+                setTodaySignin(signin);
+            } catch (error) {
+                console.error('Failed to load signin status:', error);
+            } finally {
+                setLoadingSignin(false);
+            }
+        };
+
+        if (isLoggedIn) {
+            loadSigninStatus();
+        }
+    }, [isLoggedIn]);
+
+    // 加载每日任务
+    useEffect(() => {
+        const loadDailyTasks = async () => {
+            try {
+                setLoadingTasks(true);
+                const tasks = await pointsApi.getDailyTasks();
+                setDailyTasks(tasks);
+            } catch (error) {
+                console.error('Failed to load daily tasks:', error);
+            } finally {
+                setLoadingTasks(false);
+            }
+        };
+
+        if (isLoggedIn) {
+            loadDailyTasks();
+        }
+    }, [isLoggedIn]);
+
+    // 加载每日问答
+    useEffect(() => {
+        const loadTodayQuiz = async () => {
+            try {
+                setLoadingQuiz(true);
+                const quiz = await pointsApi.getTodayQuiz();
+                setTodayQuiz(quiz);
+            } catch (error) {
+                console.error('Failed to load today quiz:', error);
+            } finally {
+                setLoadingQuiz(false);
+            }
+        };
+
+        if (isLoggedIn) {
+            loadTodayQuiz();
+        }
+    }, [isLoggedIn]);
+
+    // 处理签到
+    const handleCheckIn = async () => {
+        if (todaySignin || signingIn) return;
+
+        try {
+            setSigningIn(true);
+            setShowCheckInAnimation(true);
+
+            const result = await pointsApi.signin();
+            setTodaySignin(result);
+
+            // 更新积分账户
+            if (pointsAccount) {
+                setPointsAccount({
+                    ...pointsAccount,
+                    totalPoints: pointsAccount.totalPoints + result.points,
+                    availablePoints: pointsAccount.availablePoints + result.points
+                });
+            }
+
+            alert(`签到成功！获得 ${result.points} 积分`);
+
+            // 动画结束后重置
+            setTimeout(() => {
+                setShowCheckInAnimation(false);
+            }, 1000);
+        } catch (error: any) {
+            console.error('Failed to signin:', error);
+            alert(error.message || '签到失败');
+            setShowCheckInAnimation(false);
+        } finally {
+            setSigningIn(false);
+        }
+    };
+
+    // 领取任务奖励
+    const handleClaimTask = async (taskId: string) => {
+        try {
+            setClaimingTask(taskId);
+            await pointsApi.claimTaskReward(taskId);
+
+            // 更新任务列表
+            setDailyTasks(prev => prev.map(task =>
+                task.id === taskId ? { ...task, status: 3 } : task
+            ));
+
+            // 重新加载积分账户
+            const account = await pointsApi.getPointsAccount();
+            setPointsAccount(account);
+
+            alert('领取成功！');
+        } catch (error: any) {
+            console.error('Failed to claim task:', error);
+            alert(error.message || '领取失败');
+        } finally {
+            setClaimingTask(null);
+        }
+    };
+
+    // 提交问答答案
+    const handleSubmitQuiz = async () => {
+        if (!todayQuiz || quizAnswer === null || quizSubmitted) return;
+
+        try {
+            const result = await pointsApi.submitQuizAnswer({
+                quizDate: todayQuiz.quizDate,
+                userAnswer: { selectedOption: quizAnswer }
+            });
+
+            setQuizResult(result);
+            setQuizSubmitted(true);
+
+            // 更新积分账户
+            if (result.correct && pointsAccount) {
+                setPointsAccount({
+                    ...pointsAccount,
+                    totalPoints: pointsAccount.totalPoints + result.earnedPoints,
+                    availablePoints: pointsAccount.availablePoints + result.earnedPoints
+                });
+            }
+        } catch (error: any) {
+            console.error('Failed to submit quiz:', error);
+            alert(error.message || '提交失败');
+        }
+    };
+
+    // 每日问答刷新状态管理（保留原有逻辑用于演示）
+    const [refreshCount, setRefreshCount] = useState(0);
+    const maxRefreshCount = 5;
+    const [currentQuizSet, setCurrentQuizSet] = useState(0);
 
     // 题库 - 多套环保知识问答
     const getQuizSets = () => [
@@ -170,27 +355,12 @@ function PointsPageContent() {
         }
     ];
 
-    const quizSets = getQuizSets();
-
-    // 处理签到
-    const handleCheckIn = () => {
-        if (todayCheckedIn) return; // 已签到则不能重复签到
-
-        setShowCheckInAnimation(true);
-        setTodayCheckedIn(true);
-        setCheckedInDays(prev => [...prev, currentDay]);
-
-        // 动画结束后重置
-        setTimeout(() => {
-            setShowCheckInAnimation(false);
-        }, 1000);
-    };
-
     // 处理问答刷新
     const handleRefreshQuiz = () => {
         if (refreshCount >= maxRefreshCount) return; // 达到最大刷新次数
 
         setRefreshCount(prev => prev + 1);
+        const quizSets = getQuizSets();
         // 使用确定性的方式选择新的题目集，避免随机数导致hydration mismatch
         const newQuizSet = (currentQuizSet + 1) % quizSets.length;
         setCurrentQuizSet(newQuizSet);
@@ -206,6 +376,7 @@ function PointsPageContent() {
 
     // 获取当前题目集
     const getCurrentQuiz = (quizId: number): any => {
+        const quizSets = getQuizSets();
         return quizSets[currentQuizSet][`quiz${quizId}` as keyof typeof quizSets[0]];
     };
 
@@ -280,55 +451,62 @@ function PointsPageContent() {
                 >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#F0A32F]/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                        {/* 头像区 */}
-                        <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg shadow-slate-200 flex items-center justify-center overflow-hidden">
-                                <User className="w-10 h-10 text-slate-400" />
-                            </div>
-                            <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
-                                {t('level', 'Lv.3 绿色见习者')}
-                            </span>
+                    {loadingAccount ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="w-8 h-8 border-4 border-[#30499B]/20 border-t-[#30499B] rounded-full animate-spin"></div>
                         </div>
-
-                        {/* 积分与进度 */}
-                        <div className="flex-1 w-full space-y-4">
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B]">100</span>
-                                <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
-                                    <Coins className="w-3 h-3" /> {t('points', '积分')}
+                    ) : (
+                        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                            {/* 头像区 */}
+                            <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg shadow-slate-200 flex items-center justify-center overflow-hidden">
+                                    {user?.avatarUrl ? (
+                                        <img src={user.avatarUrl} alt={user.nickname} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User className="w-10 h-10 text-slate-400" />
+                                    )}
                                 </div>
+                                <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
+                                    Lv.{pointsAccount?.level || 1} {pointsAccount?.levelName || '绿色见习者'}
+                                </span>
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm text-[#30499B]/70 font-medium">
-                                    <span>{t('progress.current', '当前进度')}</span>
-                                    <span>{t('progress.nextBadge', '距离下一个徽章还差')} <span className="text-[#EE4035]">50</span> {t('progress.points', '积分')}</span>
-                                </div>
-                                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                    <div className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative w-2/3">
-                                        <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50"></div>
-                                        {/* 闪光特效 */}
-                                        <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] skew-x-12 translate-x-[-100%]"></div>
+                            {/* 积分与进度 */}
+                            <div className="flex-1 w-full space-y-4">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B]">
+                                        {pointsAccount?.availablePoints || 0}
+                                    </span>
+                                    <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
+                                        <Coins className="w-3 h-3" /> 积分
                                     </div>
                                 </div>
-                                <div className="flex justify-between text-xs text-slate-400">
-                                    <span>Lv.3</span>
-                                    <span>Lv.4</span>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm text-[#30499B]/70 font-medium">
+                                        <span>当前进度</span>
+                                        <span>总积分 <span className="text-[#30499B]">{pointsAccount?.totalPoints || 0}</span></span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                        <div className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative w-2/3">
+                                            <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50"></div>
+                                            <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] skew-x-12 translate-x-[-100%]"></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-slate-400">
+                                        <span>Lv.{pointsAccount?.level || 1}</span>
+                                        <span>Lv.{(pointsAccount?.level || 1) + 1}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* 右侧按钮 */}
-                        <div className="flex-shrink-0 flex md:flex-col gap-3">
-                            <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">
-                                {t('exchangeStore', '兑换商城')}
-                            </button>
-                            <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">
-                                {t('pointsHistory', '积分记录')}
-                            </button>
+                            {/* 右侧按钮 */}
+                            <div className="flex-shrink-0 flex md:flex-col gap-3">
+                                <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">兑换商城</button>
+                                <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">积分记录</button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </motion.section>
 
                 <motion.div
@@ -399,18 +577,18 @@ function PointsPageContent() {
                                 {/* 5号：今日 (可签到或已签到) */}
                                 <div
                                     onClick={handleCheckIn}
-                                    className={`aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer transition-all duration-300 ${todayCheckedIn
-                                        ? 'bg-white border border-[#56B949]/30 hover:shadow-md'
-                                        : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105'
+                                    className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all duration-300 ${todaySignin
+                                        ? 'bg-white border border-[#56B949]/30 hover:shadow-md cursor-default'
+                                        : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
                                         }`}
                                 >
-                                    <span className={`text-[10px] font-bold absolute top-1 left-1 ${todayCheckedIn ? 'text-slate-400' : 'text-[#56B949]'
+                                    <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400' : 'text-[#56B949]'
                                         }`}>5</span>
 
-                                    {todayCheckedIn ? (
+                                    {todaySignin ? (
                                         <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
                                     ) : (
-                                        <div className="text-xs font-bold text-[#56B949]">{t('calendar.signIn', '签到')}</div>
+                                        <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : '签到'}</div>
                                     )}
 
                                     {/* 签到成功动画 */}
@@ -423,7 +601,7 @@ function PointsPageContent() {
 
                                     {/* 提示文字 */}
                                     <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
-                                        {todayCheckedIn ? t('calendar.signedIn', '已签到 +5') : t('calendar.clickToSignIn', '点击签到')}
+                                        {todaySignin ? `已签到 +${todaySignin.points}` : '点击签到'}
                                     </div>
                                 </div>
 
@@ -435,9 +613,9 @@ function PointsPageContent() {
                         </div>
 
                         <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium px-2">
-                            <span>{t('calendar.signedDays', '已签到')} <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> {t('calendar.days', '天')}</span>
+                            <span>已签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : checkedInDays.length}</b> 天</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>{t('calendar.consecutiveDays', '连续签到')} <b className="text-[#30499B]">{todayCheckedIn ? checkedInDays.length : checkedInDays.length}</b> {t('calendar.days', '天')}</span>
+                            <span>连续签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : checkedInDays.length}</b> 天</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
                             <span>{t('calendar.missedDays', '已漏签')} <b className="text-[#EE4035]">2</b> {t('calendar.days', '天')}</span>
                         </div>
@@ -452,84 +630,91 @@ function PointsPageContent() {
                         className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">
-                                {t('dailyTasks', '每日任务')}
-                            </h3>
+                            <h3 className="text-xl font-bold text-[#30499B] font-serif">每日任务</h3>
                             <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
-                                {t('tasksRemaining', '今日剩余')} 2
+                                今日剩余 {dailyTasks.filter(t => t.status !== 3).length}
                             </span>
                         </div>
 
-                        <div className="space-y-3 flex-1">
-                            {/* Task 1 */}
-                            <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl hover:bg-[#30499B]/5 transition-colors group border border-transparent hover:border-[#30499B]/10">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#30499B] shadow-sm">
-                                        <BookOpen className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.readArticle', '浏览"保护动物"文章')}</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.points10', '+10 积分')}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs font-medium text-slate-400 group-hover:text-[#30499B] transition-colors">1/3</span>
-                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">{t('tasks.goComplete', '去完成')}</button>
-                                </div>
+                        {loadingTasks ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="w-8 h-8 border-4 border-[#30499B]/20 border-t-[#30499B] rounded-full animate-spin"></div>
                             </div>
+                        ) : dailyTasks.length === 0 ? (
+                            <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
+                                暂无任务
+                            </div>
+                        ) : (
+                            <div className="space-y-3 flex-1">
+                                {dailyTasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className={`flex items-center justify-between p-3 sm:p-4 rounded-xl transition-colors border ${task.status === 3
+                                            ? 'bg-slate-50 border-transparent'
+                                            : task.progress >= task.target
+                                                ? 'bg-[#F0A32F]/5 border-[#F0A32F]/20 relative overflow-hidden'
+                                                : 'bg-slate-50 hover:bg-[#30499B]/5 group border-transparent hover:border-[#30499B]/10'
+                                            }`}
+                                    >
+                                        {task.progress >= task.target && task.status !== 3 && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite] -translate-x-full"></div>
+                                        )}
 
-                            {/* Task 2 */}
-                            <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl border border-transparent">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#56B949]/10 flex items-center justify-center text-[#56B949] shadow-sm">
-                                        <CheckCircle className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-slate-400 line-through">{t('tasks.publishArticle', '发布"垃圾分类"文章')}</div>
-                                        <div className="text-xs text-slate-400 font-medium">{t('tasks.completed', '已完成')}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs font-medium text-[#56B949]">2/2</span>
-                                    <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">{t('tasks.completed', '已完成')}</button>
-                                </div>
-                            </div>
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${task.status === 3
+                                                ? 'bg-[#56B949]/10 text-[#56B949]'
+                                                : 'bg-white text-[#30499B]'
+                                                }`}>
+                                                {task.status === 3 ? (
+                                                    <CheckCircle className="w-4 h-4" />
+                                                ) : (
+                                                    <BookOpen className="w-4 h-4" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 line-through' : 'text-[#30499B]'
+                                                    }`}>
+                                                    {task.name}
+                                                </div>
+                                                <div className={`text-xs font-medium ${task.status === 3 ? 'text-slate-400' : 'text-[#F0A32F]'
+                                                    }`}>
+                                                    {task.status === 3 ? '已完成' : `+${task.points} 积分`}
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            {/* Task 3 */}
-                            <div className="flex items-center justify-between p-3 sm:p-4 bg-[#F0A32F]/5 rounded-xl border border-[#F0A32F]/20 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite] -translate-x-full"></div>
-                                <div className="flex items-center gap-3 relative z-10">
-                                    <div className="w-8 h-8 rounded-full bg-[#F0A32F] flex items-center justify-center text-white shadow-sm">
-                                        <Gift className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.commentArticle', '评论精选文章')}</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.rewardPending', '奖励待领取')}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 relative z-10">
-                                    <span className="text-xs font-medium text-[#F0A32F]">5/5</span>
-                                    <button className="px-3 py-1.5 bg-[#F0A32F] text-xs font-medium text-white rounded-lg shadow-md shadow-[#F0A32F]/30 hover:bg-[#d9901e] transition-all animate-pulse">{t('tasks.claim', '领取')}</button>
-                                </div>
-                            </div>
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <span className={`text-xs font-medium ${task.status === 3
+                                                ? 'text-[#56B949]'
+                                                : task.progress >= task.target
+                                                    ? 'text-[#F0A32F]'
+                                                    : 'text-slate-400 group-hover:text-[#30499B]'
+                                                }`}>
+                                                {task.progress}/{task.target}
+                                            </span>
 
-                            {/* Task 4 */}
-                            <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl hover:bg-[#30499B]/5 transition-colors group border border-transparent hover:border-[#30499B]/10">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#30499B] shadow-sm">
-                                        <Share2 className="w-4 h-4" />
+                                            {task.status === 3 ? (
+                                                <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">
+                                                    已完成
+                                                </button>
+                                            ) : task.progress >= task.target ? (
+                                                <button
+                                                    onClick={() => handleClaimTask(task.id)}
+                                                    disabled={claimingTask === task.id}
+                                                    className="px-3 py-1.5 bg-[#F0A32F] text-xs font-medium text-white rounded-lg shadow-md shadow-[#F0A32F]/30 hover:bg-[#d9901e] transition-all animate-pulse disabled:opacity-50"
+                                                >
+                                                    {claimingTask === task.id ? '领取中...' : '领取'}
+                                                </button>
+                                            ) : (
+                                                <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">
+                                                    去完成
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-[#30499B]">{t('tasks.shareToFriends', '分享给好友')}</div>
-                                        <div className="text-xs text-[#F0A32F] font-medium">{t('tasks.points50', '+50 积分')}</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs font-medium text-slate-400 group-hover:text-[#30499B] transition-colors">0/1</span>
-                                    <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">{t('tasks.goComplete', '去完成')}</button>
-                                </div>
+                                ))}
                             </div>
-                        </div>
+                        )}
                     </motion.section>
                 </motion.div>
 

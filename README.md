@@ -54,9 +54,6 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
    cd apps/social-worker
    mvn spring-boot:run
    
-   # Game API
-   cd apps/game-api
-   mvn spring-boot:run
    ```
 
 4. **启动前端**
@@ -71,8 +68,7 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
 - 前端：http://localhost:8000
 - Social API：http://localhost:8080
 - Social API Swagger：http://localhost:8080/swagger-ui.html
-- Game API：http://localhost:8082
-- Game API Swagger：http://localhost:8082/swagger-ui.html
+
 
 ## 项目结构
 
@@ -81,7 +77,7 @@ youthloop/
 ├── apps/                    # 应用层（API 进程 + 前端）
 │   ├── social-api/          # Social Service API
 │   ├── social-worker/       # Social Service Worker（后台任务）
-│   ├── game-api/            # Game Service API
+
 │   └── web/                 # Web 前端（Next.js）
 ├── modules/                 # 业务模块（模块化单体）
 │   ├── auth/                # 认证与授权
@@ -141,7 +137,7 @@ youthloop/
 
 - **shared**：跨服务共享的最小数据集（用户、身份、认证）
 - **social**：Social Service 业务数据
-- **game**：Game Service 业务数据
+
 
 ### 迁移管理
 
@@ -153,11 +149,7 @@ youthloop/
 - History 表：`flyway_schema_history_social`
 - Migrator 账号：`social_migrator`
 
-**Game Service（apps/game-api）：**
-- 管理 schemas：`game`
-- 迁移脚本位置：`apps/game-api/src/main/resources/db/migration/`
-- History 表：`flyway_schema_history_game`
-- Migrator 账号：`game_migrator`
+
 
 首次启动应用时，Flyway 会自动执行迁移。也可以通过环境变量配置：
 ```bash
