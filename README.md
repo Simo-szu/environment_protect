@@ -26,9 +26,15 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
 ### 前置要求
 
 - Java 21（Temurin 21 LTS）
-- Node.js 18+
+- Node.js 18.18+（建议使用 LTS）
 - PostgreSQL 14+
 - Docker & Docker Compose（可选，用于本地开发环境）
+
+### Windows / macOS 协同（必读）
+
+- 本仓库使用 `.gitattributes` 统一文本文件为 `LF`，并为 `*.cmd/*.ps1` 使用 `CRLF`；请不要手动改行尾。
+- 推荐在本仓库关闭自动行尾转换，避免反复出现“只改了换行”的 diff：`git config core.autocrlf false`
+- macOS/Linux 通过 `./mvnw` 启动 Maven（仓库已跟踪可执行位）。
 
 ### 本地开发
 
