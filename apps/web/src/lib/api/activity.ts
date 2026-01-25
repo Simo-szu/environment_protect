@@ -145,7 +145,6 @@ export interface SignupRequest {
   phone: string;
   email?: string;
   guestEmail?: string; // 游客报名时使用
-  remarks?: string;
 }
 
 // 报名响应
@@ -154,6 +153,15 @@ export interface SignupResponse {
   activityId: string;
   sessionId?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  createdAt: string;
+}
+
+// 后端实际返回的 DTO
+interface SignupResponseDTO {
+  id: string;
+  activityId: string;
+  sessionId?: string;
+  status: number; // 1=pending 2=approved 3=rejected 4=cancelled
   createdAt: string;
 }
 
@@ -286,15 +294,27 @@ function mapCommentDtoToComment(dto: CommentDTO): Comment {
  * 获取活动列表
  */
 export async function getActivities(params: {
-  category?: string;
+  category?: number;
   status?: ActivityStatus;
   sort?: 'latest' | 'hot' | 'upcoming';
   page?: number;
   size?: number;
 }): Promise<PageResponse<ActivityItem>> {
+  const mapStatusToBackend = (status?: ActivityStatus): number | undefined => {
+    if (!status) return undefined;
+    const statusMap: Record<ActivityStatus, number | undefined> = {
+      PUBLISHED: 1,
+      DRAFT: 2,
+      COMPLETED: 3,
+      ONGOING: undefined,
+      CANCELLED: 2,
+    };
+    return statusMap[status];
+  };
+
   const response = await apiGet<PageResponse<ActivityListItemDTO>>('/api/v1/activities', {
     category: params.category,
-    status: params.status,
+    status: mapStatusToBackend(params.status),
     sort: params.sort || 'latest',
     page: params.page || 1,
     size: params.size || 10,
@@ -354,11 +374,34 @@ export async function signupActivity(
   activityId: string,
   data: SignupRequest
 ): Promise<SignupResponse> {
-  return apiPost<SignupResponse>(
+  const dto = await apiPost<SignupResponseDTO>(
     `/api/v1/activities/${activityId}/signups`,
-    data,
+    {
+      sessionId: data.sessionId,
+      realName: data.realName,
+      phone: data.phone,
+      email: data.guestEmail || data.email,
+    },
     true // 需要 requestId 保证幂等
   );
+
+  const mapSignupStatus = (s: number): SignupResponse['status'] => {
+    switch (s) {
+      case 1: return 'PENDING';
+      case 2: return 'APPROVED';
+      case 3: return 'REJECTED';
+      case 4: return 'CANCELLED';
+      default: return 'PENDING';
+    }
+  };
+
+  return {
+    signupId: dto.id,
+    activityId: dto.activityId,
+    sessionId: dto.sessionId,
+    status: mapSignupStatus(dto.status),
+    createdAt: dto.createdAt,
+  };
 }
 
 /**
@@ -368,7 +411,13 @@ export async function signupActivity(
 export async function updateSignup(
   activityId: string,
   signupId: string,
-  data: Partial<SignupRequest>
+  data: {
+    newSessionId?: string;
+    nickname?: string;
+    realName?: string;
+    phone?: string;
+    guestEmail?: string;
+  }
 ): Promise<void> {
   return apiPatch<void>(
     `/api/v1/activities/${activityId}/signups/${signupId}`,

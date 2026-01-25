@@ -86,17 +86,22 @@
   <!-- 查询活动场次列表 -->
   <select id="selectActivitySessions" resultType="map">
     SELECT 
-      id,
-      activity_id,
-      session_name,
-      start_time,
-      end_time,
-      location,
-      capacity,
-      signup_count,
-      status
-    FROM social.activity_session
-    WHERE activity_id = #{activityId}::uuid
+      s.id,
+      s.activity_id,
+      s.title AS session_name,
+      s.start_time,
+      s.end_time,
+      NULL AS location,
+      s.capacity,
+      COALESCE((
+        SELECT COUNT(*)
+        FROM social.activity_signup sig
+        WHERE sig.session_id = s.id
+          AND sig.status IN (1, 2)
+      ), 0) AS signup_count,
+      s.status
+    FROM social.activity_session s
+    WHERE s.activity_id = #{activityId}::uuid
     ORDER BY start_time ASC
   </select>
 

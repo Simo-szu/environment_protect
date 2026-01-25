@@ -66,24 +66,23 @@
     SELECT 
       n.id,
       n.type,
-      n.is_read,
+      (n.read_at IS NOT NULL) AS is_read,
       n.created_at,
-      n.actor_id,
-      u.nickname AS actor_nickname,
+      n.actor_user_id AS actor_id,
+      up.nickname AS actor_nickname,
       up.avatar_url AS actor_avatar,
       n.target_type,
       n.target_id,
       CASE 
         WHEN n.target_type = 1 THEN c.title
         WHEN n.target_type = 2 THEN a.title
-        WHEN n.target_type = 3 THEN SUBSTRING(cm.content, 1, 50)
+        WHEN n.target_type = 3 THEN SUBSTRING(cm.body, 1, 50)
         ELSE NULL
       END AS target_preview,
       n.comment_id,
-      cm.content AS comment_content
+      cm.body AS comment_content
     FROM social.notification n
-    LEFT JOIN shared.user u ON n.actor_id = u.id
-    LEFT JOIN shared.user_profile up ON n.actor_id = up.user_id
+    LEFT JOIN shared.user_profile up ON n.actor_user_id = up.user_id
     LEFT JOIN social.content c ON n.target_type = 1 AND n.target_id = c.id
     LEFT JOIN social.activity a ON n.target_type = 2 AND n.target_id = a.id
     LEFT JOIN social.comment cm ON n.comment_id = cm.id

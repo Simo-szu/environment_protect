@@ -19,6 +19,16 @@ export interface HomeBanner {
   displayOrder: number;
 }
 
+// 后端 DTO（/api/v1/home/banners）
+interface HomeBannerDTO {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkType: number; // 1=none 2=content 3=activity 4=url
+  linkTarget?: string;
+  sortOrder: number;
+}
+
 /**
  * 获取首页数据
  */
@@ -30,5 +40,23 @@ export async function getHomeData(): Promise<HomeData> {
  * 获取首页轮播图
  */
 export async function getHomeBanners(): Promise<HomeBanner[]> {
-  return apiGet<HomeBanner[]>('/api/v1/home/banners');
+  const dtos = await apiGet<HomeBannerDTO[]>('/api/v1/home/banners');
+
+  const mapLinkUrl = (dto: HomeBannerDTO): string | undefined => {
+    if (!dto.linkTarget) return undefined;
+    switch (dto.linkType) {
+      case 2: return `/science/${dto.linkTarget}`;
+      case 3: return `/activities/${dto.linkTarget}`;
+      case 4: return dto.linkTarget;
+      default: return undefined;
+    }
+  };
+
+  return dtos.map((dto) => ({
+    id: dto.id,
+    title: dto.title,
+    imageUrl: dto.imageUrl,
+    linkUrl: mapLinkUrl(dto),
+    displayOrder: dto.sortOrder,
+  }));
 }

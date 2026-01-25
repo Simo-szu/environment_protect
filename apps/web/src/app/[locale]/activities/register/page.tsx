@@ -174,7 +174,6 @@ function RegisterActivityContent() {
                 phone: formData.phone,
                 email: formData.email || undefined,
                 guestEmail: !isLoggedIn ? formData.email : undefined, // 游客使用邮箱
-                remarks: formData.remarks || undefined
             });
 
             alert('报名成功！');

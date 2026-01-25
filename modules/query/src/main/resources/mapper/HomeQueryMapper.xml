@@ -10,7 +10,10 @@
       id,
       title,
       image_url,
-      link_url,
+      CASE
+        WHEN link_type = 4 THEN link_target
+        ELSE NULL
+      END AS link_url,
       sort_order,
       start_at,
       end_at

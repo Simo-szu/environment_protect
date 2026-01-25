@@ -21,6 +21,12 @@ $DB_PASSWORD = "postgres"
 
 $env:PGPASSWORD = $DB_PASSWORD
 
+# Resolve repo paths (use the same migrations as the runtime backend)
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\\..")).Path
+$InitSql = Join-Path $PSScriptRoot "init\\db_init_roles_schemas.sql"
+$SharedMigrationsDir = Join-Path $RepoRoot "apps\\social-api\\src\\main\\resources\\db\\migration\\shared"
+$SocialMigrationsDir = Join-Path $RepoRoot "apps\\social-api\\src\\main\\resources\\db\\migration\\social"
+
 # Check if psql is available
 Write-Host "Checking prerequisites..." -ForegroundColor Yellow
 try {
@@ -62,7 +68,7 @@ Write-Host ""
 
 # Step 2: Initialize roles and schemas
 Write-Host "Step 2: Initializing roles and schemas..." -ForegroundColor Yellow
-psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -d $DB_NAME -f init/db_init_roles_schemas.sql
+psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -d $DB_NAME -f $InitSql
 Write-Host "✓ Roles and schemas initialized" -ForegroundColor Green
 Write-Host ""
 
@@ -70,10 +76,15 @@ Write-Host ""
 Write-Host "Step 3: Running migrations..." -ForegroundColor Yellow
 
 Write-Host "  → Migrating shared schema..." -ForegroundColor Cyan
-psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f migrations/shared/V001__init_shared.sql
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SharedMigrationsDir "V001__init_shared.sql")
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SharedMigrationsDir "V002__extend_user_profile.sql")
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SharedMigrationsDir "V003__seed_demo_users_en.sql")
 
 Write-Host "  → Migrating social schema..." -ForegroundColor Cyan
-psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f migrations/social/V001__init_social.sql
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SocialMigrationsDir "V001__init_social.sql")
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SocialMigrationsDir "V003__support.sql")
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SocialMigrationsDir "V002__seed_content_test_data.sql")
+psql -h $DB_HOST -p $DB_PORT -U social_migrator -d $DB_NAME -f (Join-Path $SocialMigrationsDir "V004__seed_demo_data_en.sql")
 
 Write-Host "✓ Migrations completed" -ForegroundColor Green
 Write-Host ""
@@ -86,9 +97,9 @@ $sharedCount = psql -h $DB_HOST -p $DB_PORT -U social_app -d $DB_NAME -t -c "SEL
 $socialCount = psql -h $DB_HOST -p $DB_PORT -U social_app -d $DB_NAME -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'social';"
 
 Write-Host "  Shared schema: $sharedCount tables (expected: 7)" -ForegroundColor Cyan
-Write-Host "  Social schema: $socialCount tables (expected: 26)" -ForegroundColor Cyan
+Write-Host "  Social schema: $socialCount tables (expected: 28)" -ForegroundColor Cyan
 
-if ($sharedCount -ge 7 -and $socialCount -ge 26) {
+if ($sharedCount -ge 7 -and $socialCount -ge 28) {
     Write-Host "✓ All tables created successfully" -ForegroundColor Green
 } else {
     Write-Host "⚠ Table count mismatch - please check logs" -ForegroundColor Yellow

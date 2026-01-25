@@ -56,8 +56,6 @@ function PointsPageContent() {
     });
 
     // 签到日历状态（简化版，实际应该从后端获取）
-    const [checkedInDays, setCheckedInDays] = useState<number[]>([1, 2]);
-    const currentDay = 5;
 
     // 加载积分账户
     useEffect(() => {
@@ -201,7 +199,7 @@ function PointsPageContent() {
         try {
             const result = await pointsApi.submitQuizAnswer({
                 quizDate: todayQuiz.quizDate,
-                userAnswer: { selectedOption: quizAnswer }
+                userAnswer: quizAnswer
             });
 
             setQuizResult(result);
@@ -356,8 +354,22 @@ function PointsPageContent() {
     ];
 
     // 处理问答刷新
-    const handleRefreshQuiz = () => {
+    const handleRefreshQuiz = async () => {
         if (refreshCount >= maxRefreshCount) return; // 达到最大刷新次数
+
+        try {
+            setRefreshCount(prev => prev + 1);
+            setQuizAnswer(null);
+            setQuizSubmitted(false);
+            setQuizResult(null);
+
+            const quiz = await pointsApi.getTodayQuiz();
+            setTodayQuiz(quiz);
+        } catch (error) {
+            console.error('Failed to refresh quiz:', error);
+        }
+
+        return;
 
         setRefreshCount(prev => prev + 1);
         const quizSets = getQuizSets();
@@ -613,9 +625,9 @@ function PointsPageContent() {
                         </div>
 
                         <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium px-2">
-                            <span>已签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : checkedInDays.length}</b> 天</span>
+                            <span>已签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> 天</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>连续签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : checkedInDays.length}</b> 天</span>
+                            <span>连续签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> 天</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
                             <span>{t('calendar.missedDays', '已漏签')} <b className="text-[#EE4035]">2</b> {t('calendar.days', '天')}</span>
                         </div>
@@ -757,6 +769,107 @@ function PointsPageContent() {
                         viewport={{ once: true, margin: '-50px' }}
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
+                        {/* Backend Daily Quiz */}
+                        <motion.div
+                            variants={staggerItem}
+                            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden md:col-span-2 lg:col-span-3"
+                        >
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-[#56B949]/5 rounded-bl-full"></div>
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-between gap-3 mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">Q</div>
+                                        <span className="text-xs text-[#30499B] font-medium">
+                                            +{todayQuiz?.points ?? 0} 积分
+                                        </span>
+                                    </div>
+
+                                    {todayQuiz?.answered && (
+                                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${todayQuiz.isCorrect ? 'bg-[#56B949]/10 text-[#56B949]' : 'bg-[#EE4035]/10 text-[#EE4035]'}`}>
+                                            {todayQuiz.isCorrect ? '已答对' : '已答过'}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {!todayQuiz ? (
+                                    <div className="text-sm text-slate-500">
+                                        {t('quiz.noQuizToday', '今天暂无问答')}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h4 className="text-sm font-semibold text-[#30499B] mb-3">
+                                            {(todayQuiz.question as any)?.title ?? (todayQuiz.question as any)?.question ?? t('quiz.title', 'Daily Quiz')}
+                                        </h4>
+
+                                        {Array.isArray((todayQuiz.question as any)?.options) ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                                {((todayQuiz.question as any).options as any[]).map((option, index) => {
+                                                    const optionId = typeof option?.id === 'number' ? option.id : index + 1;
+                                                    const selected = quizAnswer === optionId;
+                                                    return (
+                                                        <button
+                                                            key={optionId}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (todayQuiz.answered || quizSubmitted) return;
+                                                                setQuizAnswer(optionId);
+                                                                setQuizResult(null);
+                                                                setQuizSubmitted(false);
+                                                            }}
+                                                            className={`w-full text-left p-3 rounded-xl text-xs transition-all border ${selected
+                                                                ? 'border-[#56B949] bg-[#56B949]/10'
+                                                                : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                                                                } ${todayQuiz.answered ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                                            disabled={todayQuiz.answered}
+                                                        >
+                                                            {option?.text ?? option?.label ?? String(optionId)}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="mb-4">
+                                                <input
+                                                    type="number"
+                                                    placeholder={t('quiz.enterNumber', '请输入数字')}
+                                                    className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
+                                                    value={quizAnswer ?? ''}
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        setQuizAnswer(v === '' ? null : Number(v));
+                                                        setQuizResult(null);
+                                                        setQuizSubmitted(false);
+                                                    }}
+                                                    disabled={todayQuiz.answered}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={handleSubmitQuiz}
+                                                disabled={!todayQuiz || todayQuiz.answered || quizSubmitted || quizAnswer === null}
+                                                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] text-white disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
+                                            >
+                                                {t('quiz.submit', '提交')}
+                                            </button>
+
+                                            {quizResult && (
+                                                <div className={`text-xs font-medium ${quizResult.correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
+                                                    {quizResult.correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                                    {quizResult.correct && quizResult.earnedPoints ? ` +${quizResult.earnedPoints}` : ''}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+
+                        {/* Legacy mock quiz (disabled) */}
+                        {false && (
+                            <>
                         {/* Quiz 1 */}
                         <motion.div
                             variants={staggerItem}
@@ -855,6 +968,8 @@ function PointsPageContent() {
                                 )}
                             </div>
                         </motion.div>
+                            </>
+                        )}
                     </motion.div>
                 </motion.section>
             </motion.div>
