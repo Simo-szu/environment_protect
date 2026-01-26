@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { userApi } from '@/lib/api';
 
 interface AuthenticatedHeaderProps {
     showSearch?: boolean;
@@ -14,6 +15,7 @@ interface AuthenticatedHeaderProps {
 
 export default function AuthenticatedHeader({ showSearch = true }: AuthenticatedHeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const pathname = usePathname();
     const params = useParams();
     const { user, logout, isLoggedIn } = useAuth();
@@ -21,6 +23,24 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
     // 获取当前语言
     const locale = params?.locale as string || 'zh';
+
+    // 加载未读消息数量
+    useEffect(() => {
+        const loadUnreadCount = async () => {
+            if (!isLoggedIn) return;
+
+            try {
+                const notifications = await userApi.getMyNotifications({ page: 1, size: 20 }).catch(() => ({ items: [], total: 0, page: 1, size: 20 }));
+                // 计算未读数量
+                const unread = notifications.items.filter(n => !n.isRead).length;
+                setUnreadCount(unread);
+            } catch (error) {
+                // 静默处理错误
+            }
+        };
+
+        loadUnreadCount();
+    }, [isLoggedIn]);
 
     // 导航项目
     const navigationItems = [
@@ -155,7 +175,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                     <Link href={`/${locale}/notifications`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <Bell className="w-5 h-5" />
                                         <span className="font-medium">{t('notifications', '消息通知')}</span>
-                                        <span className="ml-auto bg-[#EE4035] text-white text-xs px-2 py-0.5 rounded-full">3</span>
+                                        {unreadCount > 0 && (
+                                            <span className="ml-auto bg-[#EE4035] text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                                        )}
                                     </Link>
                                 </div>
 

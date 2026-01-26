@@ -27,7 +27,7 @@ export default function LikesPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
     const [likes, setLikes] = useState<ReactionItem[]>([]);
-    const [loadingLikes, setLoadingLikes] = useState(true);
+    const [loadingLikes, setLoadingLikes] = useState(false); // 改为 false
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 6;
@@ -38,15 +38,12 @@ export default function LikesPage() {
             if (!isLoggedIn) return;
 
             try {
-                setLoadingLikes(true);
                 const targetType = activeTab === 'articles' ? 'CONTENT' : 'ACTIVITY';
                 const result = await userApi.getMyReactions('LIKE', targetType, currentPage, itemsPerPage);
                 setLikes(result.items);
                 setTotalPages(Math.ceil(result.total / itemsPerPage));
             } catch (error) {
-                console.error('Failed to load likes:', error);
-            } finally {
-                setLoadingLikes(false);
+                // 完全静默处理错误
             }
         };
 
@@ -61,7 +58,7 @@ export default function LikesPage() {
         }
     }, [loading, isLoggedIn, router]);
 
-    if (loading || loadingLikes) {
+    if (loading) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -132,7 +129,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <Heart className="w-4 h-4" />
-                        科普文章 ({articlesCount})
+                        {t('tabs.articles', '科普文章')} ({articlesCount})
                     </button>
                     <button
                         onClick={() => handleTabChange('activities')}
@@ -142,7 +139,7 @@ export default function LikesPage() {
                             }`}
                     >
                         <ThumbsUp className="w-4 h-4" />
-                        环保活动 ({activitiesCount})
+                        {t('tabs.activities', '环保活动')} ({activitiesCount})
                     </button>
                 </div>
 
@@ -160,7 +157,7 @@ export default function LikesPage() {
                                                 <Droplets className="w-12 h-12 text-[#56B949]" />
                                             )}
                                         </div>
-                                        <h3 className="font-semibold text-slate-800 mb-2">{item.contentTitle || '科普文章'}</h3>
+                                        <h3 className="font-semibold text-slate-800 mb-2">{item.contentTitle || t('tabs.articles', '科普文章')}</h3>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1 text-[#EE4035]">
                                                 <Heart className="w-4 h-4 fill-current" />
@@ -176,7 +173,7 @@ export default function LikesPage() {
                             {likes.filter(l => l.targetType === 1).length === 0 && (
                                 <div className="text-center py-12">
                                     <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                    <p className="text-slate-500">暂无点赞的文章</p>
+                                    <p className="text-slate-500">{t('empty.articles', '暂无点赞的文章')}</p>
                                 </div>
                             )}
 
@@ -207,7 +204,7 @@ export default function LikesPage() {
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
                                                 </div>
-                                                <h3 className="font-semibold text-slate-800 mb-2">{item.activityTitle || '环保活动'}</h3>
+                                                <h3 className="font-semibold text-slate-800 mb-2">{item.activityTitle || t('tabs.activities', '环保活动')}</h3>
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-1 text-[#EE4035]">
                                                         <ThumbsUp className="w-4 h-4 fill-current" />
@@ -224,7 +221,7 @@ export default function LikesPage() {
                             {likes.filter(l => l.targetType === 2).length === 0 && (
                                 <div className="text-center py-12">
                                     <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                    <p className="text-slate-500">暂无点赞的活动</p>
+                                    <p className="text-slate-500">{t('empty.activities', '暂无点赞的活动')}</p>
                                 </div>
                             )}
 

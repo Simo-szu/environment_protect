@@ -31,21 +31,23 @@ public class ContentQueryController {
     @Operation(summary = "查询内容列表", description = "聚合查询：主数据 + 统计 + 用户状态（登录时）")
     @GetMapping
     public BaseResponse<PageResponse<ContentListItemDTO>> getContentList(
+        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
         @Parameter(description = "内容类型：1=新闻 2=动态 3=政策 4=百科") @RequestParam(value = "type", required = false) Integer type,
         @Parameter(description = "状态：1=已发布 2=草稿 3=隐藏") @RequestParam(value = "status", required = false) Integer status,
         @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
         @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "20") Integer size
     ) {
-        PageResponse<ContentListItemDTO> result = queryFacade.getContentList(type, status, page, size);
+        PageResponse<ContentListItemDTO> result = queryFacade.getContentList(type, status, locale, page, size);
         return BaseResponse.success(result);
     }
     
     @Operation(summary = "查询内容详情", description = "聚合查询：主数据 + 统计 + 用户状态（登录时）")
     @GetMapping("/{id}")
     public BaseResponse<ContentDetailDTO> getContentDetail(
+        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
         @Parameter(description = "内容 ID") @PathVariable("id") UUID id
     ) {
-        ContentDetailDTO detail = queryFacade.getContentDetail(id);
+        ContentDetailDTO detail = queryFacade.getContentDetail(id, locale);
         return BaseResponse.success(detail);
     }
     

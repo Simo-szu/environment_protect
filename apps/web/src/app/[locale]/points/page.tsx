@@ -27,24 +27,50 @@ function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('points');
 
-    // 积分账户数据
-    const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
-    const [loadingAccount, setLoadingAccount] = useState(true);
+    // 积分账户数据 - 添加默认模拟数据
+    const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>({
+        userId: user?.userId || '',
+        totalPoints: 150,
+        availablePoints: 150,
+        level: 3,
+        levelName: t('level', 'Lv.3 Green Apprentice')
+    });
+    const [loadingAccount, setLoadingAccount] = useState(false);
 
     // 签到数据
     const [todaySignin, setTodaySignin] = useState<SigninRecord | null>(null);
-    const [loadingSignin, setLoadingSignin] = useState(true);
+    const [loadingSignin, setLoadingSignin] = useState(false);
     const [signingIn, setSigningIn] = useState(false);
     const [showCheckInAnimation, setShowCheckInAnimation] = useState(false);
 
-    // 每日任务数据
-    const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
-    const [loadingTasks, setLoadingTasks] = useState(true);
+    // 每日任务数据 - 添加默认模拟数据
+    const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([
+        {
+            id: '1',
+            name: '阅读环保文章',
+            code: 'READ_ARTICLE',
+            points: 10,
+            target: 1,
+            progress: 0,
+            status: 1
+        },
+        {
+            id: '2',
+            name: '分享环保知识',
+            code: 'SHARE_CONTENT',
+            points: 20,
+            target: 1,
+            progress: 0,
+            status: 1
+        }
+    ]);
+    const [loadingTasks, setLoadingTasks] = useState(false);
+
     const [claimingTask, setClaimingTask] = useState<string | null>(null);
 
     // 每日问答数据
     const [todayQuiz, setTodayQuiz] = useState<DailyQuiz | null>(null);
-    const [loadingQuiz, setLoadingQuiz] = useState(true);
+    const [loadingQuiz, setLoadingQuiz] = useState(false);
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [quizSubmitted, setQuizSubmitted] = useState(false);
     const [quizResult, setQuizResult] = useState<{ correct: boolean; earnedPoints: number; explanation?: string } | null>(null);
@@ -61,13 +87,11 @@ function PointsPageContent() {
     useEffect(() => {
         const loadPointsAccount = async () => {
             try {
-                setLoadingAccount(true);
                 const account = await pointsApi.getPointsAccount();
                 setPointsAccount(account);
             } catch (error) {
                 console.error('Failed to load points account:', error);
-            } finally {
-                setLoadingAccount(false);
+                // 失败时不设置 loading 状态，让页面继续显示
             }
         };
 
@@ -80,13 +104,11 @@ function PointsPageContent() {
     useEffect(() => {
         const loadSigninStatus = async () => {
             try {
-                setLoadingSignin(true);
                 const signin = await pointsApi.getTodaySignin();
                 setTodaySignin(signin);
             } catch (error) {
                 console.error('Failed to load signin status:', error);
-            } finally {
-                setLoadingSignin(false);
+                // 失败时不设置 loading 状态
             }
         };
 
@@ -99,13 +121,11 @@ function PointsPageContent() {
     useEffect(() => {
         const loadDailyTasks = async () => {
             try {
-                setLoadingTasks(true);
                 const tasks = await pointsApi.getDailyTasks();
                 setDailyTasks(tasks);
             } catch (error) {
                 console.error('Failed to load daily tasks:', error);
-            } finally {
-                setLoadingTasks(false);
+                // 失败时不设置 loading 状态
             }
         };
 
@@ -118,13 +138,11 @@ function PointsPageContent() {
     useEffect(() => {
         const loadTodayQuiz = async () => {
             try {
-                setLoadingQuiz(true);
                 const quiz = await pointsApi.getTodayQuiz();
                 setTodayQuiz(quiz);
             } catch (error) {
                 console.error('Failed to load today quiz:', error);
-            } finally {
-                setLoadingQuiz(false);
+                // 失败时不设置 loading 状态
             }
         };
 
@@ -490,14 +508,14 @@ function PointsPageContent() {
                                         {pointsAccount?.availablePoints || 0}
                                     </span>
                                     <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
-                                        <Coins className="w-3 h-3" /> 积分
+                                        <Coins className="w-3 h-3" /> {t('points', '积分')}
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm text-[#30499B]/70 font-medium">
-                                        <span>当前进度</span>
-                                        <span>总积分 <span className="text-[#30499B]">{pointsAccount?.totalPoints || 0}</span></span>
+                                        <span>{t('progress.current', '当前进度')}</span>
+                                        <span>{t('progress.nextBadge', '总积分')} <span className="text-[#30499B]">{pointsAccount?.totalPoints || 0}</span></span>
                                     </div>
                                     <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
                                         <div className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative w-2/3">
@@ -514,8 +532,8 @@ function PointsPageContent() {
 
                             {/* 右侧按钮 */}
                             <div className="flex-shrink-0 flex md:flex-col gap-3">
-                                <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">兑换商城</button>
-                                <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">积分记录</button>
+                                <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">{t('exchangeStore', '兑换商城')}</button>
+                                <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">{t('pointsHistory', '积分记录')}</button>
                             </div>
                         </div>
                     )}
@@ -600,7 +618,7 @@ function PointsPageContent() {
                                     {todaySignin ? (
                                         <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
                                     ) : (
-                                        <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : '签到'}</div>
+                                        <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : t('calendar.signIn', '签到')}</div>
                                     )}
 
                                     {/* 签到成功动画 */}
@@ -613,7 +631,7 @@ function PointsPageContent() {
 
                                     {/* 提示文字 */}
                                     <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
-                                        {todaySignin ? `已签到 +${todaySignin.points}` : '点击签到'}
+                                        {todaySignin ? `${t('calendar.signedIn', '已签到')} +${todaySignin.points}` : t('calendar.clickToSignIn', '点击签到')}
                                     </div>
                                 </div>
 
@@ -625,9 +643,9 @@ function PointsPageContent() {
                         </div>
 
                         <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium px-2">
-                            <span>已签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> 天</span>
+                            <span>{t('calendar.signedDays', '已签到')} <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>连续签到 <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> 天</span>
+                            <span>{t('calendar.consecutiveDays', '连续签到')} <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
                             <div className="h-3 w-[1px] bg-slate-300"></div>
                             <span>{t('calendar.missedDays', '已漏签')} <b className="text-[#EE4035]">2</b> {t('calendar.days', '天')}</span>
                         </div>
@@ -642,9 +660,9 @@ function PointsPageContent() {
                         className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">每日任务</h3>
+                            <h3 className="text-xl font-bold text-[#30499B] font-serif">{t('dailyTasks', '每日任务')}</h3>
                             <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
-                                今日剩余 {dailyTasks.filter(t => t.status !== 3).length}
+                                {t('tasksRemaining', '今日剩余')} {dailyTasks.filter(t => t.status !== 3).length}
                             </span>
                         </div>
 
@@ -654,7 +672,7 @@ function PointsPageContent() {
                             </div>
                         ) : dailyTasks.length === 0 ? (
                             <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
-                                暂无任务
+                                {t('tasks.noTasks', '暂无任务')}
                             </div>
                         ) : (
                             <div className="space-y-3 flex-1">
@@ -690,7 +708,7 @@ function PointsPageContent() {
                                                 </div>
                                                 <div className={`text-xs font-medium ${task.status === 3 ? 'text-slate-400' : 'text-[#F0A32F]'
                                                     }`}>
-                                                    {task.status === 3 ? '已完成' : `+${task.points} 积分`}
+                                                    {task.status === 3 ? t('tasks.completed', '已完成') : `+${task.points} ${t('points', '积分')}`}
                                                 </div>
                                             </div>
                                         </div>
@@ -707,7 +725,7 @@ function PointsPageContent() {
 
                                             {task.status === 3 ? (
                                                 <button className="px-3 py-1.5 bg-slate-100 text-xs font-medium text-slate-400 rounded-lg cursor-not-allowed">
-                                                    已完成
+                                                    {t('tasks.completed', '已完成')}
                                                 </button>
                                             ) : task.progress >= task.target ? (
                                                 <button
@@ -715,11 +733,11 @@ function PointsPageContent() {
                                                     disabled={claimingTask === task.id}
                                                     className="px-3 py-1.5 bg-[#F0A32F] text-xs font-medium text-white rounded-lg shadow-md shadow-[#F0A32F]/30 hover:bg-[#d9901e] transition-all animate-pulse disabled:opacity-50"
                                                 >
-                                                    {claimingTask === task.id ? '领取中...' : '领取'}
+                                                    {claimingTask === task.id ? t('tasks.claiming', '领取中...') : t('tasks.claim', '领取')}
                                                 </button>
                                             ) : (
                                                 <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">
-                                                    去完成
+                                                    {t('tasks.goComplete', '去完成')}
                                                 </button>
                                             )}
                                         </div>
@@ -769,205 +787,207 @@ function PointsPageContent() {
                         viewport={{ once: true, margin: '-50px' }}
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        {/* Backend Daily Quiz */}
-                        <motion.div
-                            variants={staggerItem}
-                            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden md:col-span-2 lg:col-span-3"
-                        >
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-[#56B949]/5 rounded-bl-full"></div>
-                            <div className="relative z-10">
-                                <div className="flex items-center justify-between gap-3 mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-7 h-7 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">Q</div>
-                                        <span className="text-xs text-[#30499B] font-medium">
-                                            +{todayQuiz?.points ?? 0} 积分
-                                        </span>
-                                    </div>
+                        {/* Backend Daily Quiz - 已隐藏 */}
+                        {false && (
+                            <motion.div
+                                variants={staggerItem}
+                                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden md:col-span-2 lg:col-span-3"
+                            >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-[#56B949]/5 rounded-bl-full"></div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between gap-3 mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-7 h-7 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">Q</div>
+                                            <span className="text-xs text-[#30499B] font-medium">
+                                                +{todayQuiz?.points ?? 0} 积分
+                                            </span>
+                                        </div>
 
-                                    {todayQuiz?.answered && (
-                                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${todayQuiz.isCorrect ? 'bg-[#56B949]/10 text-[#56B949]' : 'bg-[#EE4035]/10 text-[#EE4035]'}`}>
-                                            {todayQuiz.isCorrect ? '已答对' : '已答过'}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {!todayQuiz ? (
-                                    <div className="text-sm text-slate-500">
-                                        {t('quiz.noQuizToday', '今天暂无问答')}
-                                    </div>
-                                ) : (
-                                    <>
-                                        <h4 className="text-sm font-semibold text-[#30499B] mb-3">
-                                            {(todayQuiz.question as any)?.title ?? (todayQuiz.question as any)?.question ?? t('quiz.title', 'Daily Quiz')}
-                                        </h4>
-
-                                        {Array.isArray((todayQuiz.question as any)?.options) ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                                                {((todayQuiz.question as any).options as any[]).map((option, index) => {
-                                                    const optionId = typeof option?.id === 'number' ? option.id : index + 1;
-                                                    const selected = quizAnswer === optionId;
-                                                    return (
-                                                        <button
-                                                            key={optionId}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                if (todayQuiz.answered || quizSubmitted) return;
-                                                                setQuizAnswer(optionId);
-                                                                setQuizResult(null);
-                                                                setQuizSubmitted(false);
-                                                            }}
-                                                            className={`w-full text-left p-3 rounded-xl text-xs transition-all border ${selected
-                                                                ? 'border-[#56B949] bg-[#56B949]/10'
-                                                                : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
-                                                                } ${todayQuiz.answered ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                                            disabled={todayQuiz.answered}
-                                                        >
-                                                            {option?.text ?? option?.label ?? String(optionId)}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="mb-4">
-                                                <input
-                                                    type="number"
-                                                    placeholder={t('quiz.enterNumber', '请输入数字')}
-                                                    className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
-                                                    value={quizAnswer ?? ''}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        setQuizAnswer(v === '' ? null : Number(v));
-                                                        setQuizResult(null);
-                                                        setQuizSubmitted(false);
-                                                    }}
-                                                    disabled={todayQuiz.answered}
-                                                />
-                                            </div>
+                                        {todayQuiz?.answered && (
+                                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${todayQuiz?.isCorrect ? 'bg-[#56B949]/10 text-[#56B949]' : 'bg-[#EE4035]/10 text-[#EE4035]'}`}>
+                                                {todayQuiz?.isCorrect ? '已答对' : '已答过'}
+                                            </span>
                                         )}
+                                    </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={handleSubmitQuiz}
-                                                disabled={!todayQuiz || todayQuiz.answered || quizSubmitted || quizAnswer === null}
-                                                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] text-white disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
-                                            >
-                                                {t('quiz.submit', '提交')}
-                                            </button>
+                                    {!todayQuiz ? (
+                                        <div className="text-sm text-slate-500">
+                                            {t('quiz.noQuizToday', '今天暂无问答')}
+                                        </div>
+                                    ) : todayQuiz && (
+                                        <>
+                                            <h4 className="text-sm font-semibold text-[#30499B] mb-3">
+                                                {(todayQuiz!.question as any)?.title ?? (todayQuiz!.question as any)?.question ?? t('quiz.title', 'Daily Quiz')}
+                                            </h4>
 
-                                            {quizResult && (
-                                                <div className={`text-xs font-medium ${quizResult.correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                                    {quizResult.correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
-                                                    {quizResult.correct && quizResult.earnedPoints ? ` +${quizResult.earnedPoints}` : ''}
+                                            {Array.isArray((todayQuiz!.question as any)?.options) ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                                                    {((todayQuiz!.question as any).options as any[]).map((option, index) => {
+                                                        const optionId = typeof option?.id === 'number' ? option.id : index + 1;
+                                                        const selected = quizAnswer === optionId;
+                                                        return (
+                                                            <button
+                                                                key={optionId}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (todayQuiz!.answered || quizSubmitted) return;
+                                                                    setQuizAnswer(optionId);
+                                                                    setQuizResult(null);
+                                                                    setQuizSubmitted(false);
+                                                                }}
+                                                                className={`w-full text-left p-3 rounded-xl text-xs transition-all border ${selected
+                                                                    ? 'border-[#56B949] bg-[#56B949]/10'
+                                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                                                                    } ${todayQuiz!.answered ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                                                disabled={todayQuiz!.answered}
+                                                            >
+                                                                {option?.text ?? option?.label ?? String(optionId)}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="mb-4">
+                                                    <input
+                                                        type="number"
+                                                        placeholder={t('quiz.enterNumber', '请输入数字')}
+                                                        className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
+                                                        value={quizAnswer ?? ''}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            setQuizAnswer(v === '' ? null : Number(v));
+                                                            setQuizResult(null);
+                                                            setQuizSubmitted(false);
+                                                        }}
+                                                        disabled={todayQuiz!.answered}
+                                                    />
                                                 </div>
                                             )}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
 
-                        {/* Legacy mock quiz (disabled) */}
-                        {false && (
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSubmitQuiz}
+                                                    disabled={!todayQuiz || todayQuiz!.answered || quizSubmitted || quizAnswer === null}
+                                                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] text-white disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
+                                                >
+                                                    {t('quiz.submit', '提交')}
+                                                </button>
+
+                                                {quizResult && (
+                                                    <div className={`text-xs font-medium ${quizResult!.correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
+                                                        {quizResult!.correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                                        {quizResult!.correct && quizResult!.earnedPoints ? ` +${quizResult!.earnedPoints}` : ''}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Legacy mock quiz (enabled) */}
+                        {true && (
                             <>
-                        {/* Quiz 1 */}
-                        <motion.div
-                            variants={staggerItem}
-                            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#56B949]/5 rounded-bl-full"></div>
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs font-bold flex items-center justify-center">1</div>
-                                    <span className="text-xs text-[#56B949] font-medium">+{getCurrentQuiz(1).points} 积分</span>
-                                </div>
-                                <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(1).question}</h4>
-                                <div className="space-y-2 mb-4">
-                                    {getCurrentQuiz(1).options.map((option: any, index: number) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => handleQuizAnswer(1, option.correct ? 'correct' : 'wrong')}
-                                            className={`w-full text-left p-2 rounded-lg text-xs transition-all ${quizStates[1].answered
-                                                ? (quizStates[1].correct && option.correct ? 'bg-[#56B949] text-white' : 'bg-slate-100 text-slate-400')
-                                                : 'bg-slate-50 hover:bg-slate-100'
-                                                }`}
-                                            disabled={quizStates[1].answered}
-                                        >
-                                            {option.text}
-                                        </button>
-                                    ))}
-                                </div>
-                                {quizStates[1].answered && (
-                                    <div className={`text-xs font-medium ${quizStates[1].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[1].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                {/* Quiz 1 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#56B949]/5 rounded-bl-full"></div>
+                                    <div className="relative z-10">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs font-bold flex items-center justify-center">1</div>
+                                            <span className="text-xs text-[#56B949] font-medium">+{getCurrentQuiz(1).points} {t('points', '积分')}</span>
+                                        </div>
+                                        <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(1).question}</h4>
+                                        <div className="space-y-2 mb-4">
+                                            {getCurrentQuiz(1).options.map((option: any, index: number) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => handleQuizAnswer(1, option.correct ? 'correct' : 'wrong')}
+                                                    className={`w-full text-left p-2 rounded-lg text-xs transition-all ${quizStates[1].answered
+                                                        ? (quizStates[1].correct && option.correct ? 'bg-[#56B949] text-white' : 'bg-slate-100 text-slate-400')
+                                                        : 'bg-slate-50 hover:bg-slate-100'
+                                                        }`}
+                                                    disabled={quizStates[1].answered}
+                                                >
+                                                    {option.text}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {quizStates[1].answered && (
+                                            <div className={`text-xs font-medium ${quizStates[1].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
+                                                {quizStates[1].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
+                                </motion.div>
 
-                        {/* Quiz 2 */}
-                        <motion.div
-                            variants={staggerItem}
-                            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F0A32F]/5 rounded-bl-full"></div>
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs font-bold flex items-center justify-center">2</div>
-                                    <span className="text-xs text-[#F0A32F] font-medium">+{getCurrentQuiz(2).points} 积分</span>
-                                </div>
-                                <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(2).question}</h4>
-                                <div className="mb-4">
-                                    <input
-                                        type="text"
-                                        placeholder={t('quiz.enterNumber', '请输入数字')}
-                                        className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:border-[#F0A32F] focus:outline-none"
-                                        onChange={(e) => handleFillBlank(2, e.target.value)}
-                                        disabled={quizStates[2].answered}
-                                    />
-                                </div>
-                                {quizStates[2].answered && (
-                                    <div className={`text-xs font-medium ${quizStates[2].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[2].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : `${t('quiz.wrongAnswerWithCorrect', '✗ 回答错误，正确答案是')}${getCurrentQuiz(2).answer}`}
+                                {/* Quiz 2 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#F0A32F]/5 rounded-bl-full"></div>
+                                    <div className="relative z-10">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs font-bold flex items-center justify-center">2</div>
+                                            <span className="text-xs text-[#F0A32F] font-medium">+{getCurrentQuiz(2).points} {t('points', '积分')}</span>
+                                        </div>
+                                        <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(2).question}</h4>
+                                        <div className="mb-4">
+                                            <input
+                                                type="text"
+                                                placeholder={t('quiz.enterNumber', '请输入数字')}
+                                                className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:border-[#F0A32F] focus:outline-none"
+                                                onChange={(e) => handleFillBlank(2, e.target.value)}
+                                                disabled={quizStates[2].answered}
+                                            />
+                                        </div>
+                                        {quizStates[2].answered && (
+                                            <div className={`text-xs font-medium ${quizStates[2].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
+                                                {quizStates[2].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : `${t('quiz.wrongAnswerWithCorrect', '✗ 回答错误，正确答案是')}${getCurrentQuiz(2).answer}`}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
+                                </motion.div>
 
-                        {/* Quiz 3 */}
-                        <motion.div
-                            variants={staggerItem}
-                            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#30499B]/5 rounded-bl-full"></div>
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-6 h-6 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">3</div>
-                                    <span className="text-xs text-[#30499B] font-medium">+{getCurrentQuiz(3).points} 积分</span>
-                                </div>
-                                <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(3).question}</h4>
-                                <div className="space-y-2 mb-4">
-                                    {getCurrentQuiz(3).options.map((option: any, index: number) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => handleQuizAnswer(3, option.correct ? 'correct' : 'wrong')}
-                                            className={`w-full text-left p-2 rounded-lg text-xs transition-all ${quizStates[3].answered
-                                                ? (quizStates[3].correct && option.correct ? 'bg-[#56B949] text-white' : 'bg-slate-100 text-slate-400')
-                                                : 'bg-slate-50 hover:bg-slate-100'
-                                                }`}
-                                            disabled={quizStates[3].answered}
-                                        >
-                                            {option.text}
-                                        </button>
-                                    ))}
-                                </div>
-                                {quizStates[3].answered && (
-                                    <div className={`text-xs font-medium ${quizStates[3].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                        {quizStates[3].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                {/* Quiz 3 */}
+                                <motion.div
+                                    variants={staggerItem}
+                                    className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#30499B]/5 rounded-bl-full"></div>
+                                    <div className="relative z-10">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-6 h-6 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">3</div>
+                                            <span className="text-xs text-[#30499B] font-medium">+{getCurrentQuiz(3).points} {t('points', '积分')}</span>
+                                        </div>
+                                        <h4 className="text-sm font-semibold text-[#30499B] mb-3">{getCurrentQuiz(3).question}</h4>
+                                        <div className="space-y-2 mb-4">
+                                            {getCurrentQuiz(3).options.map((option: any, index: number) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => handleQuizAnswer(3, option.correct ? 'correct' : 'wrong')}
+                                                    className={`w-full text-left p-2 rounded-lg text-xs transition-all ${quizStates[3].answered
+                                                        ? (quizStates[3].correct && option.correct ? 'bg-[#56B949] text-white' : 'bg-slate-100 text-slate-400')
+                                                        : 'bg-slate-50 hover:bg-slate-100'
+                                                        }`}
+                                                    disabled={quizStates[3].answered}
+                                                >
+                                                    {option.text}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {quizStates[3].answered && (
+                                            <div className={`text-xs font-medium ${quizStates[3].correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
+                                                {quizStates[3].correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
+                                </motion.div>
                             </>
                         )}
                     </motion.div>

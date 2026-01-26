@@ -1,4 +1,7 @@
+'use client';
+
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 interface PaginationProps {
     currentPage: number;
@@ -7,6 +10,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+    const { t } = useSafeTranslation('common');
     const getVisiblePages = () => {
         const pages = [];
         const maxVisible = 5;
@@ -53,7 +57,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
             >
                 <ChevronLeft className="w-4 h-4" />
-                上一页
+                {t('previousPage', '上一页')}
             </button>
 
             {/* 页码 */}
@@ -81,7 +85,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 disabled={currentPage === totalPages}
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
             >
-                下一页
+                {t('nextPage', '下一页')}
                 <ChevronRight className="w-4 h-4" />
             </button>
         </div>

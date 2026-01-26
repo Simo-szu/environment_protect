@@ -15,17 +15,17 @@ public interface QueryFacade {
     /**
      * 查询首页聚合数据
      */
-    HomeDTO getHomeData();
+    HomeDTO getHomeData(String locale);
     
     /**
      * 查询内容列表（含统计和用户状态）
      */
-    PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, Integer page, Integer size);
+    PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String locale, Integer page, Integer size);
     
     /**
      * 查询内容详情（含统计和用户状态）
      */
-    ContentDetailDTO getContentDetail(UUID contentId);
+    ContentDetailDTO getContentDetail(UUID contentId, String locale);
     
     /**
      * 查询评论树
@@ -35,12 +35,12 @@ public interface QueryFacade {
     /**
      * 查询活动列表（含统计和用户状态）
      */
-    PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String sort, Integer page, Integer size);
+    PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String locale, String sort, Integer page, Integer size);
     
     /**
      * 查询活动详情（含统计和用户状态）
      */
-    ActivityDetailDTO getActivityDetail(UUID activityId);
+    ActivityDetailDTO getActivityDetail(UUID activityId, String locale);
     
     /**
      * 查询活动场次列表

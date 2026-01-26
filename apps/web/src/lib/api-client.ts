@@ -62,6 +62,19 @@ async function refreshAccessToken(): Promise<void> {
 }
 
 /**
+ * 获取当前语言（从 URL 路径中提取）
+ */
+function getCurrentLocale(): string {
+  if (typeof window === 'undefined') {
+    return 'zh'; // 服务端默认中文
+  }
+
+  const pathname = window.location.pathname;
+  const match = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  return match ? match[1] : 'zh';
+}
+
+/**
  * 统一的 API 请求方法
  */
 export async function apiFetch<T = any>(
@@ -71,6 +84,7 @@ export async function apiFetch<T = any>(
   // 准备请求头
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'Accept-Language': getCurrentLocale(),
     ...options.headers,
   };
 
@@ -155,10 +169,10 @@ export async function apiGet<T = any>(
 ): Promise<T> {
   const queryString = params
     ? '?' +
-      Object.entries(params)
-        .filter(([_, v]) => v !== undefined && v !== null && v !== '')
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&')
+    Object.entries(params)
+      .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&')
     : '';
 
   return apiFetch<T>(url + queryString, {

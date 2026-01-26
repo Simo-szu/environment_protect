@@ -9,15 +9,23 @@
         "edit": "编辑",
         "delete": "删除",
         "back": "返回",
+        "goBack": "返回上一页",
         "next": "下一步",
         "previous": "上一步",
+        "nextPage": "下一页",
+        "previousPage": "上一页",
         "submit": "提交",
         "search": "搜索",
         "filter": "筛选",
         "all": "全部",
         "more": "更多",
         "viewAll": "查看全部",
-        "loadMore": "加载更多"
+        "loadMore": "加载更多",
+        "verifyingAuth": "正在验证登录状态",
+        "loginRequired": "请先登录再查看此内容",
+        "needLogin": "需要登录访问",
+        "backToHome": "返回首页",
+        "loginNow": "立即登录"
     },
     "auth": {
         "welcome": "欢迎回来，继续你的环保之旅",
@@ -25,11 +33,67 @@
             "title": "登录",
             "noAccount": "没有账号？",
             "registerNow": "立即注册",
+            "emailPlaceholder": "邮箱地址",
+            "passwordPlaceholder": "请输入密码",
+            "otpPlaceholder": "请输入验证码",
+            "sendingOtp": "发送中...",
+            "getOtp": "获取验证码",
+            "retryAfter": "{seconds}秒后重试",
+            "otpLogin": "验证码登录",
+            "passwordLogin": "密码登录",
+            "forgotPassword": "忘记密码?",
+            "loggingIn": "登录中...",
+            "loginButton": "立即登录",
             "agreeTerms": "登录即代表同意",
             "userAgreement": "《用户服务协议》",
             "and": "和",
             "privacyPolicy": "《隐私政策》",
-            "or": "或者"
+            "or": "或者",
+            "googleLogin": "使用 Google 账号登录",
+            "errors": {
+                "emailRequired": "请输入邮箱",
+                "passwordRequired": "请输入密码",
+                "otpRequired": "请输入验证码",
+                "invalidEmail": "请输入正确的邮箱",
+                "loginFailed": "登录失败，请检查账号密码",
+                "otpSendFailed": "发送验证码失败",
+                "googleLoginFailed": "Google 登录失败，请重试"
+            },
+            "otpSent": "验证码已发送"
+        },
+        "register": {
+            "title": "注册",
+            "subtitle": "加入我们，开启绿色生活新篇章",
+            "hasAccount": "已有账号？",
+            "loginNow": "马上登录",
+            "emailPlaceholder": "邮箱地址",
+            "passwordPlaceholder": "设置密码（6-20位字符）",
+            "confirmPasswordPlaceholder": "确认密码",
+            "nicknamePlaceholder": "昵称（选填）",
+            "otpPlaceholder": "请输入验证码",
+            "sendingOtp": "发送中...",
+            "getOtp": "获取验证码",
+            "retryAfter": "{seconds}秒后重试",
+            "registering": "注册中...",
+            "registerButton": "立即注册",
+            "agreeTerms": "注册即代表同意",
+            "userAgreement": "《用户服务协议》",
+            "and": "和",
+            "privacyPolicy": "《隐私政策》",
+            "errors": {
+                "emailRequired": "请输入邮箱",
+                "passwordRequired": "请输入密码",
+                "confirmPasswordRequired": "请确认密码",
+                "otpRequired": "请输入验证码",
+                "invalidEmail": "请输入正确的邮箱",
+                "passwordTooShort": "密码至少6位字符",
+                "passwordTooLong": "密码不能超过20位字符",
+                "passwordMismatch": "两次密码不一致",
+                "registerFailed": "注册失败，请重试",
+                "otpSendFailed": "发送验证码失败"
+            },
+            "otpSent": "验证码已发送",
+            "registerSuccess": "注册成功！正在跳转登录..."
         }
     },
     "navigation": {
@@ -62,6 +126,10 @@
         "signUpNow": "立即报名",
         "joinNow": "一键参加",
         "viewContent": "查看详情",
+        "readMore": "阅读详情",
+        "views": "阅读",
+        "likes": "点赞",
+        "pending": "待定",
         "cards": {
             "points": {
                 "title": "积分·兑换",
@@ -238,47 +306,74 @@
                 "phonePlaceholder": "请输入手机号码",
                 "email": "邮箱地址",
                 "emailPlaceholder": "请输入邮箱地址",
+                "emailOptional": "选填",
+                "emailRequired": "游客报名必填邮箱",
+                "emailNote": "游客报名需要提供邮箱以接收活动通知",
                 "emergencyContact": "紧急联系人",
                 "emergencyContactPlaceholder": "紧急联系人姓名",
                 "emergencyPhone": "紧急联系电话",
                 "emergencyPhonePlaceholder": "紧急联系人电话",
-                "specialRequirements": "特殊需求或备注",
+                "specialRequirements": "备注信息",
                 "specialRequirementsPlaceholder": "如有特殊需求或其他需要说明的情况，请在此填写...",
                 "activityRequirements": "活动要求",
                 "agreementText": "我已阅读并同意活动相关协议，了解活动风险，自愿参与此次环保活动。",
                 "agreementNote": "参与活动期间请遵守组织方安排，注意人身安全。",
                 "agreementRequired": "请先同意活动协议",
                 "submitSuccess": "报名成功！",
-                "submit": "确认报名"
+                "submit": "确认报名",
+                "submitting": "提交中...",
+                "selectSession": "选择场次",
+                "sessionRequired": "请选择活动场次",
+                "nameRequired": "请填写姓名",
+                "phoneRequired": "请填写手机号",
+                "phoneInvalid": "请填写正确的手机号",
+                "emailRequiredForGuest": "游客报名需要填写邮箱",
+                "loadActivityFailed": "加载活动信息失败",
+                "signupFailed": "报名失败，请重试"
             }
         },
         "detail": {
             "title": "活动详情",
-            "subtitle": "了解活动详情并报名",
+            "subtitle": "了解活动详细信息并报名参与",
             "date": "日期",
             "time": "时间",
-            "location": "地点",
-            "participants": "参与者",
+            "activityTime": "活动时间",
+            "location": "活动地点",
+            "participants": "参与人数",
+            "organizer": "主办方",
+            "sessions": "活动场次",
+            "registered": "已报名",
             "detailsTitle": "活动详情",
             "requirements": "参与要求",
-            "register": "立即报名",
-            "loginToRegister": "登录后报名",
-            "spotsLeft": "个名额",
-            "registered": "已报名",
+            "registerNow": "立即报名参与",
+            "spotsLeft": "还有 {count} 个名额",
+            "unlimited": "不限",
             "totalSpots": "总名额",
-            "organizerInfo": "组织者信息",
-            "organization": "环保组织",
-            "linkCopied": "链接已复制到剪贴板"
+            "registerButton": "立即报名",
+            "loginToRegister": "登录后报名",
+            "organizerInfo": "主办方信息",
+            "ecoOrganization": "环保组织",
+            "linkCopied": "链接已复制到剪贴板",
+            "notFound": "活动不存在",
+            "backToList": "返回列表",
+            "operationFailed": "操作失败，请重试"
         },
         "status": {
             "registering": "正在报名",
             "upcoming": "即将开始",
-            "ended": "报名结束"
+            "ended": "报名结束",
+            "approvalRequired": "需审核",
+            "completed": "已结束",
+            "ongoing": "进行中"
         },
         "actions": {
             "register": "一键报名",
             "viewDetails": "了解详情",
             "oneClickRegister": "一键报名"
+        },
+        "empty": {
+            "title": "暂无活动",
+            "subtitle": "请稍后再来查看"
         }
     },
     "science": {
@@ -338,6 +433,9 @@
         }
     },
     "article": {
+        "article": {
+            "anonymous": "匿名用户"
+        },
         "meta": {
             "author": "作者",
             "publishDate": "发布日期",
@@ -363,6 +461,19 @@
             "loginNow": "立即登录",
             "linkCopied": "链接已复制到剪贴板"
         },
+        "comments": {
+            "title": "评论",
+            "placeholder": "写下你的评论...",
+            "submit": "发表评论",
+            "loginRequired": "登录后可以发表评论",
+            "login": "立即登录",
+            "reply": "回复",
+            "empty": "暂无评论，快来发表第一条评论吧！"
+        },
+        "error": {
+            "notFound": "文章不存在",
+            "operationFailed": "操作失败，请重试"
+        },
         "categories": {
             "climate": "气候变化",
             "energy": "可再生能源",
@@ -387,6 +498,10 @@
             "unread": "未读消息",
             "replies": "回复",
             "likes": "点赞"
+        },
+        "empty": {
+            "message": "暂无{filter}消息",
+            "unread": "未读"
         },
         "actions": {
             "reply": "回复",
@@ -475,9 +590,19 @@
         }
     },
     "myActivities": {
-        "title": "活动管理",
+        "title": "我的活动中心",
         "subtitle": "我的活动中心",
         "description": "管理您参与的所有环保活动",
+        "badge": "我的活动",
+        "loading": "加载中...",
+        "redirecting": "跳转到登录页面...",
+        "sessionLabel": "场次",
+        "signupTime": "报名时间",
+        "viewDetails": "查看详情",
+        "cancelRegistration": "取消报名",
+        "confirmCancel": "确定要取消报名吗？",
+        "cancelSuccess": "报名已取消",
+        "cancelFailed": "取消失败，请重试",
         "stats": {
             "registered": "已报名活动",
             "completed": "已完成活动",
@@ -491,30 +616,30 @@
             "completed": "已完成"
         },
         "status": {
+            "pending": "待审核",
+            "approved": "已通过",
+            "rejected": "已拒绝",
+            "cancelled": "已取消",
             "registered": "已报名",
             "ongoing": "进行中",
             "completed": "已完成",
             "waiting": "待参与",
             "inProgress": "正在进行"
         },
+        "empty": {
+            "all": "暂无活动",
+            "allDesc": "暂无相关活动",
+            "registered": "暂无已报名活动",
+            "registeredDesc": "您还没有报名任何活动",
+            "ongoing": "暂无进行中活动",
+            "ongoingDesc": "您目前没有正在进行的活动",
+            "completed": "暂无已完成活动",
+            "completedDesc": "您还没有完成任何活动"
+        },
         "actions": {
             "viewDetails": "查看详情",
             "cancelRegistration": "取消报名",
             "rateActivity": "评价活动"
-        },
-        "empty": {
-            "registered": {
-                "title": "暂无已报名活动",
-                "description": "您还没有报名任何活动"
-            },
-            "ongoing": {
-                "title": "暂无进行中活动",
-                "description": "您目前没有正在进行的活动"
-            },
-            "completed": {
-                "title": "暂无已完成活动",
-                "description": "您还没有完成任何活动"
-            }
         },
         "info": {
             "registrationTime": "报名时间",
@@ -533,7 +658,9 @@
             "gender": "性别",
             "location": "家乡",
             "points": "环保积分",
+            "pointsUnit": "分",
             "level": "环保等级",
+            "levelName": "环保达人",
             "bio": "个人简介",
             "male": "男",
             "female": "女",
@@ -546,6 +673,28 @@
         "actions": {
             "editProfile": "编辑资料",
             "logout": "退出登录"
+        },
+        "edit": {
+            "title": "编辑资料",
+            "subtitle": "更新你的个人信息",
+            "changeAvatar": "点击更换头像",
+            "nickname": "昵称",
+            "nicknamePlaceholder": "请输入昵称",
+            "gender": "性别",
+            "genderMale": "男",
+            "genderFemale": "女",
+            "genderOther": "其他",
+            "hometown": "家乡",
+            "hometownPlaceholder": "请输入家乡",
+            "defaultHometown": "广东省",
+            "bio": "个人简介",
+            "bioPlaceholder": "介绍一下你自己...",
+            "bioLimit": "最多200个字符",
+            "defaultBio": "热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。",
+            "save": "保存更改",
+            "saving": "保存中...",
+            "cancel": "取消",
+            "updateFailed": "更新资料失败，请重试"
         },
         "quickActions": {
             "likes": "我的点赞",
@@ -667,7 +816,83 @@
     "help": {
         "title": "帮助中心",
         "badge": "帮助支持",
-        "description": "欢迎来到YouthLoop帮助中心！这里有您需要的所有信息和支持。如果找不到答案，请随时联系我们的客服团队。"
+        "description": "欢迎来到YouthLoop帮助中心！这里有您需要的所有信息和支持。如果找不到答案，请随时联系我们的客服团队。",
+        "quickContact": {
+            "title": "快速联系",
+            "phone": {
+                "title": "客服热线",
+                "number": "400-123-4567"
+            },
+            "email": {
+                "title": "邮箱支持",
+                "address": "help@youthloop.org"
+            },
+            "chat": {
+                "title": "在线客服",
+                "hours": "工作日 9:00-18:00"
+            },
+            "hours": {
+                "title": "服务时间",
+                "schedule": "7×24小时"
+            },
+            "contactUs": "联系我们"
+        },
+        "search": {
+            "placeholder": "搜索帮助内容..."
+        },
+        "faq": {
+            "account": {
+                "title": "账号相关",
+                "register": {
+                    "q": "如何注册YouthLoop账号？",
+                    "a": "点击首页右上角的\"注册\"按钮，填写必要信息即可完成注册。您也可以使用第三方账号快速登录。"
+                },
+                "password": {
+                    "q": "忘记密码怎么办？",
+                    "a": "在登录页面点击\"忘记密码\"，输入您的注册邮箱，我们会发送密码重置链接到您的邮箱。"
+                },
+                "profile": {
+                    "q": "如何修改个人信息？",
+                    "a": "登录后进入\"个人中心\"，点击\"编辑资料\"即可修改您的个人信息。"
+                }
+            },
+            "activities": {
+                "title": "活动参与",
+                "register": {
+                    "q": "如何报名参加环保活动？",
+                    "a": "浏览活动广场，选择您感兴趣的活动，点击\"立即报名\"并填写相关信息即可。"
+                },
+                "cancel": {
+                    "q": "报名后可以取消吗？",
+                    "a": "可以的。您可以在活动开始前24小时内，在\"我的活动\"中取消报名。"
+                },
+                "cancelled": {
+                    "q": "活动取消了怎么办？",
+                    "a": "如果活动因故取消，我们会及时通知所有报名用户，并提供替代活动选项。"
+                }
+            },
+            "points": {
+                "title": "积分系统",
+                "earn": {
+                    "q": "如何获得积分？",
+                    "a": "参与环保活动、完成每日签到、分享环保知识、邀请好友等都可以获得积分奖励。"
+                },
+                "use": {
+                    "q": "积分有什么用？",
+                    "a": "积分可以用来兑换环保礼品、参与特殊活动、提升用户等级等。"
+                },
+                "expire": {
+                    "q": "积分会过期吗？",
+                    "a": "积分有效期为2年，超过有效期的积分将自动清零。"
+                }
+            }
+        },
+        "moreHelp": {
+            "title": "还有其他问题？",
+            "description": "如果您没有找到需要的答案，我们的客服团队随时为您提供帮助。",
+            "contactService": "联系客服",
+            "feedback": "意见反馈"
+        }
     },
     "privacy": {
         "title": "隐私政策",
@@ -820,7 +1045,58 @@
     "feedback": {
         "title": "意见反馈",
         "badge": "用户反馈",
-        "description": "您的意见对我们非常重要！请告诉我们您的想法，帮助我们改进YouthLoop，为更多用户提供更好的环保体验。"
+        "description": "您的意见对我们非常重要！请告诉我们您的想法，帮助我们改进YouthLoop，为更多用户提供更好的环保体验。",
+        "form": {
+            "type": {
+                "label": "反馈类型",
+                "options": {
+                    "suggestion": "功能建议",
+                    "bug": "问题反馈",
+                    "praise": "表扬鼓励",
+                    "other": "其他"
+                }
+            },
+            "rating": {
+                "label": "满意度评分",
+                "stars": "星"
+            },
+            "title": {
+                "label": "反馈标题",
+                "placeholder": "请简要描述您的反馈"
+            },
+            "content": {
+                "label": "详细内容",
+                "placeholder": "请详细描述您的想法、遇到的问题或建议..."
+            },
+            "contact": {
+                "label": "联系方式（选填）",
+                "placeholder": "邮箱或手机号，方便我们与您联系"
+            },
+            "anonymous": "匿名提交",
+            "submit": "提交反馈",
+            "cancel": "取消"
+        },
+        "success": {
+            "title": "提交成功！",
+            "description": "感谢您的反馈，我们会认真阅读并持续改进。",
+            "backHome": "返回首页",
+            "continueFeedback": "继续反馈"
+        },
+        "otherContact": {
+            "title": "其他联系方式",
+            "email": {
+                "title": "邮箱反馈",
+                "address": "feedback@youthloop.org"
+            },
+            "phone": {
+                "title": "电话反馈",
+                "number": "400-123-4567"
+            },
+            "hours": {
+                "title": "服务时间",
+                "schedule": "工作日 9:00-18:00"
+            }
+        }
     },
     "footer": {
         "terms": "服务协议",
@@ -891,9 +1167,11 @@
             "commentArticle": "评论精选文章",
             "rewardPending": "奖励待领取",
             "claim": "领取",
+            "claiming": "领取中...",
             "shareToFriends": "分享给好友",
             "points50": "+50 积分",
-            "goComplete": "去完成"
+            "goComplete": "去完成",
+            "noTasks": "暂无任务"
         },
         "dailyQuiz": "每日问答",
         "answerForPoints": "答对得积分",
@@ -901,6 +1179,9 @@
         "times": "次",
         "remaining": "次剩余",
         "quiz": {
+            "title": "每日问答",
+            "noQuizToday": "今天暂无问答",
+            "submit": "提交",
             "correctAnswer": "✓ 回答正确！",
             "wrongAnswer": "✗ 回答错误",
             "wrongAnswerWithCorrect": "✗ 回答错误，正确答案是",

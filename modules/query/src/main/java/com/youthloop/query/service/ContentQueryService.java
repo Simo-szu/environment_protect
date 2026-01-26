@@ -29,9 +29,10 @@ public class ContentQueryService {
      * 查询内容列表（含统计和用户状态）
      */
     @Transactional(readOnly = true)
-    public PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, Integer page, Integer size) {
+    public PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String locale, Integer page, Integer size) {
         // 参数校验
         status = status != null ? status : 1; // 默认只查已发布
+        locale = locale != null ? locale : "zh"; // 默认中文
         page = Math.max(1, page != null ? page : 1);
         size = Math.min(100, Math.max(1, size != null ? size : 20));
         int offset = (page - 1) * size;
@@ -44,7 +45,7 @@ public class ContentQueryService {
         }
         
         // 查询列表（含统计）
-        List<Map<String, Object>> rows = contentQueryMapper.selectContentListWithStats(type, status, offset, size);
+        List<Map<String, Object>> rows = contentQueryMapper.selectContentListWithStats(type, status, locale, offset, size);
         
         if (rows.isEmpty()) {
             return PageResponse.of(Collections.emptyList(), total, page, size);
@@ -68,9 +69,12 @@ public class ContentQueryService {
      * 查询内容详情（含统计和用户状态）
      */
     @Transactional(readOnly = true)
-    public ContentDetailDTO getContentDetail(UUID contentId) {
+    public ContentDetailDTO getContentDetail(UUID contentId, String locale) {
+        // 参数校验
+        locale = locale != null ? locale : "zh"; // 默认中文
+        
         // 查询详情（含统计）
-        Map<String, Object> row = contentQueryMapper.selectContentDetailWithStats(contentId);
+        Map<String, Object> row = contentQueryMapper.selectContentDetailWithStats(contentId, locale);
         
         if (row == null) {
             return null;

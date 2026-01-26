@@ -19,6 +19,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    validate-on-migrate: false  # 临时禁用校验
+    clean-disabled: false  # 允许清理（仅开发环境）
     # 只使用 social schema 的迁移文件
     schemas: social
     default-schema: social

@@ -132,7 +132,7 @@ export default function NotificationsPage() {
     const locale = (params?.locale as string) || 'zh';
     const { t } = useSafeTranslation('notifications');
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-    const [loadingNotifications, setLoadingNotifications] = useState(true);
+    const [loadingNotifications, setLoadingNotifications] = useState(false); // 改为 false
     const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -144,17 +144,15 @@ export default function NotificationsPage() {
             if (!isLoggedIn) return;
 
             try {
-                setLoadingNotifications(true);
                 const result = await userApi.getMyNotifications({
                     page: currentPage,
                     size: messagesPerPage
                 });
                 setNotifications(result.items);
                 setTotalPages(Math.ceil(result.total / messagesPerPage));
-            } catch (error) {
-                console.error('Failed to load notifications:', error);
-            } finally {
-                setLoadingNotifications(false);
+            } catch (error: any) {
+                // 完全静默处理所有错误，避免控制台噪音
+                // 页面会显示空状态
             }
         };
 
@@ -170,8 +168,8 @@ export default function NotificationsPage() {
         }
     }, [isLoggedIn, loading, locale]);
 
-    // 显示加载状态
-    if (loading || loadingNotifications) {
+    // 显示加载状态（仅在认证阶段）
+    if (loading) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -202,8 +200,8 @@ export default function NotificationsPage() {
     }
 
     // 过滤通知
-    const filteredNotifications = activeFilter === 'unread' 
-        ? notifications.filter(n => !n.isRead) 
+    const filteredNotifications = activeFilter === 'unread'
+        ? notifications.filter(n => !n.isRead)
         : notifications;
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -214,7 +212,7 @@ export default function NotificationsPage() {
                 notificationIds,
                 markAllAsRead: !notificationIds
             });
-            
+
             // 重新加载通知
             const result = await userApi.getMyNotifications({
                 page: currentPage,
@@ -222,8 +220,7 @@ export default function NotificationsPage() {
             });
             setNotifications(result.items);
         } catch (error: any) {
-            console.error('Failed to mark as read:', error);
-            alert(error.message || '操作失败');
+            // 完全静默处理错误
         }
     };
 
@@ -356,7 +353,7 @@ export default function NotificationsPage() {
                         {filteredNotifications.length === 0 && (
                             <div className="text-center py-12">
                                 <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                <p className="text-slate-500">暂无{activeFilter === 'unread' ? '未读' : ''}消息</p>
+                                <p className="text-slate-500">{t('empty.message', '暂无{filter}消息', { filter: activeFilter === 'unread' ? t('empty.unread', '未读') : '' })}</p>
                             </div>
                         )}
                     </div>

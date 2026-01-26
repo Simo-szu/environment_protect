@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import {
     User,
@@ -22,6 +23,7 @@ export default function ProfileEditPage() {
     const router = useRouter();
     const params = useParams();
     const locale = params?.locale as string || 'zh';
+    const { t } = useSafeTranslation('profile');
     const [submitting, setSubmitting] = useState(false);
 
     const mapGenderToString = (gender?: number): 'male' | 'female' | 'other' => {
@@ -34,8 +36,8 @@ export default function ProfileEditPage() {
     const [formData, setFormData] = useState(() => ({
         nickname: user?.nickname || '',
         gender: mapGenderToString(user?.gender),
-        hometown: user?.hometown || '广东省',
-        bio: user?.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'
+        hometown: user?.hometown || t('edit.defaultHometown', '广东省'),
+        bio: user?.bio || t('edit.defaultBio', '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。')
     }));
 
     // 当 user 变化时更新 formData（使用 render 阶段更新）
@@ -46,8 +48,8 @@ export default function ProfileEditPage() {
             setFormData({
                 nickname: user.nickname || '',
                 gender: mapGenderToString(user.gender),
-                hometown: user.hometown || '广东省',
-                bio: user.bio || '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。'
+                hometown: user.hometown || t('edit.defaultHometown', '广东省'),
+                bio: user.bio || t('edit.defaultBio', '热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。')
             });
         }
     }
@@ -66,7 +68,7 @@ export default function ProfileEditPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -104,7 +106,7 @@ export default function ProfileEditPage() {
             router.push(`/${locale}/profile`);
         } catch (error) {
             console.error('更新资料失败:', error);
-            alert('更新资料失败，请重试');
+            alert(t('edit.updateFailed', '更新资料失败，请重试'));
         } finally {
             setSubmitting(false);
         }
@@ -132,8 +134,8 @@ export default function ProfileEditPage() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">编辑资料</h1>
-                            <p className="text-slate-600">更新你的个人信息</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">{t('edit.title', '编辑资料')}</h1>
+                            <p className="text-slate-600">{t('edit.subtitle', '更新你的个人信息')}</p>
                         </div>
                     </div>
                 </div>
@@ -162,7 +164,7 @@ export default function ProfileEditPage() {
                                     <Camera className="w-4 h-4" />
                                 </button>
                             </div>
-                            <p className="text-sm text-slate-500">点击更换头像</p>
+                            <p className="text-sm text-slate-500">{t('edit.changeAvatar', '点击更换头像')}</p>
                         </div>
 
                         {/* Form Fields */}
@@ -171,7 +173,7 @@ export default function ProfileEditPage() {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
                                     <User className="w-4 h-4 inline mr-2" />
-                                    昵称
+                                    {t('edit.nickname', '昵称')}
                                 </label>
                                 <input
                                     type="text"
@@ -179,7 +181,7 @@ export default function ProfileEditPage() {
                                     value={formData.nickname}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                    placeholder="请输入昵称"
+                                    placeholder={t('edit.nicknamePlaceholder', '请输入昵称')}
                                 />
                             </div>
 
@@ -187,7 +189,7 @@ export default function ProfileEditPage() {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
                                     <User className="w-4 h-4 inline mr-2" />
-                                    性别
+                                    {t('edit.gender', '性别')}
                                 </label>
                                 <select
                                     name="gender"
@@ -195,9 +197,9 @@ export default function ProfileEditPage() {
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                 >
-                                    <option value="female">女</option>
-                                    <option value="male">男</option>
-                                    <option value="other">其他</option>
+                                    <option value="female">{t('edit.genderFemale', '女')}</option>
+                                    <option value="male">{t('edit.genderMale', '男')}</option>
+                                    <option value="other">{t('edit.genderOther', '其他')}</option>
                                 </select>
                             </div>
 
@@ -205,7 +207,7 @@ export default function ProfileEditPage() {
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-slate-700 mb-2">
                                     <MapPin className="w-4 h-4 inline mr-2" />
-                                    家乡
+                                    {t('edit.hometown', '家乡')}
                                 </label>
                                 <input
                                     type="text"
@@ -213,7 +215,7 @@ export default function ProfileEditPage() {
                                     value={formData.hometown}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                    placeholder="请输入家乡"
+                                    placeholder={t('edit.hometownPlaceholder', '请输入家乡')}
                                 />
                             </div>
                         </div>
@@ -222,7 +224,7 @@ export default function ProfileEditPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 <FileText className="w-4 h-4 inline mr-2" />
-                                个人简介
+                                {t('edit.bio', '个人简介')}
                             </label>
                             <textarea
                                 name="bio"
@@ -230,25 +232,27 @@ export default function ProfileEditPage() {
                                 onChange={handleInputChange}
                                 rows={4}
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
-                                placeholder="介绍一下你自己..."
+                                placeholder={t('edit.bioPlaceholder', '介绍一下你自己...')}
                             />
-                            <p className="text-xs text-slate-500 mt-2">最多200个字符</p>
+                            <p className="text-xs text-slate-500 mt-2">{t('edit.bioLimit', '最多200个字符')}</p>
                         </div>
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6 border-t border-slate-200">
                             <button
                                 onClick={handleSave}
-                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                                disabled={submitting}
+                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Save className="w-4 h-4" />
-                                保存更改
+                                {submitting ? t('edit.saving', '保存中...') : t('edit.save', '保存更改')}
                             </button>
                             <button
                                 onClick={handleCancel}
-                                className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                disabled={submitting}
+                                className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                取消
+                                {t('edit.cancel', '取消')}
                             </button>
                         </div>
                     </div>

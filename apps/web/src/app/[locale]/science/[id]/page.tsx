@@ -38,7 +38,7 @@ export default function ScienceArticleDetailPage() {
     const [article, setArticle] = useState<ContentDetail | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
     const [relatedArticles, setRelatedArticles] = useState<ContentItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
@@ -49,28 +49,36 @@ export default function ScienceArticleDetailPage() {
         const loadArticleData = async () => {
             try {
                 setLoading(true);
-                
-                // 并行加载文章详情、评论和相关文章
-                const [articleData, commentsData, relatedData] = await Promise.all([
-                    contentApi.getContentDetail(articleId),
-                    contentApi.getContentComments(articleId, { page: 1, size: 10, sort: 'latest' }),
-                    contentApi.getContents({ page: 1, size: 3, sort: 'latest' })
-                ]);
 
-                setArticle(articleData);
-                setComments(commentsData.items);
-                setRelatedArticles(relatedData.items.filter(item => item.id !== articleId).slice(0, 2));
-                
-                // 设置用户状态
-                if (articleData.userState) {
-                    setIsLiked(articleData.userState.liked);
-                    setIsFavorited(articleData.userState.favorited);
+                // 加载文章详情
+                const articleData = await contentApi.getContentDetail(articleId).catch(() => null);
+
+                if (articleData) {
+                    setArticle(articleData);
+
+                    // 设置用户状态
+                    if (articleData.userState) {
+                        setIsLiked(articleData.userState.liked);
+                        setIsFavorited(articleData.userState.favorited);
+                    }
+                    setLikeCount(articleData.likeCount);
+                    setFavoriteCount(articleData.favoriteCount);
                 }
-                setLikeCount(articleData.likeCount);
-                setFavoriteCount(articleData.favoriteCount); // 使用真实的收藏数
+
+                // 静默加载评论（失败不影响页面）
+                contentApi.getContentComments(articleId, { page: 1, size: 10, sort: 'latest' })
+                    .then(commentsData => setComments(commentsData.items))
+                    .catch(() => { });
+
+                // 静默加载相关文章（失败不影响页面）
+                contentApi.getContents({ page: 1, size: 3, sort: 'latest' })
+                    .then(relatedData => {
+                        setRelatedArticles(relatedData.items.filter(item => item.id !== articleId).slice(0, 2));
+                    })
+                    .catch(() => { });
+
             } catch (error) {
-                console.error('Failed to load article:', error);
-                // 可以显示错误提示或跳转回列表页
+                // 完全静默处理错误
             } finally {
                 setLoading(false);
             }
@@ -108,7 +116,7 @@ export default function ScienceArticleDetailPage() {
             setIsLiked(!isLiked);
         } catch (error: any) {
             console.error('Failed to toggle like:', error);
-            alert(error.message || '操作失败，请重试');
+            alert(error.message || t('error.operationFailed', '操作失败，请重试'));
         }
     };
 
@@ -137,13 +145,13 @@ export default function ScienceArticleDetailPage() {
             setIsFavorited(!isFavorited);
         } catch (error: any) {
             console.error('Failed to toggle favorite:', error);
-            alert(error.message || '操作失败，请重试');
+            alert(error.message || t('error.operationFailed', '操作失败，请重试'));
         }
     };
 
     const handleShare = () => {
         if (!article) return;
-        
+
         if (navigator.share) {
             navigator.share({
                 title: article.title,
@@ -199,12 +207,14 @@ export default function ScienceArticleDetailPage() {
         return (
             <Layout>
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-                    <h2 className="text-2xl font-semibold text-slate-800 mb-4">文章不存在</h2>
+                    <h2 className="text-2xl font-semibold text-slate-800 mb-4">
+                        {t('error.notFound', '文章不存在')}
+                    </h2>
                     <button
                         onClick={handleBack}
                         className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#2a4086] transition-colors"
                     >
-                        返回列表
+                        {t('actions.back', '返回列表')}
                     </button>
                 </div>
             </Layout>
@@ -298,83 +308,147 @@ export default function ScienceArticleDetailPage() {
                     variants={staggerItem}
                     className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
                 >
-                    <div className="flex items-center gap-2 mb-4">
+                    {/* 文章分类标签 */}
+                    <div className="flex items-center gap-2 mb-6">
                         {getCategoryIcon(article.type)}
                         <span className="text-sm font-medium text-slate-600 capitalize">
                             {article.type}
                         </span>
                     </div>
 
-                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-3">
-                        {article.title}
-                    </h1>
-
+                    {/* 文章摘要 */}
                     {article.summary && (
-                        <p className="text-lg text-slate-600 mb-6">
+                        <p className="text-lg text-slate-600 mb-6 leading-relaxed">
                             {article.summary}
                         </p>
                     )}
 
+                    {/* 文章正文 */}
+                    {article.content && (
+                        <div className="prose prose-slate max-w-none mb-8">
+                            <div
+                                className="text-slate-700 leading-relaxed whitespace-pre-wrap"
+                                dangerouslySetInnerHTML={{ __html: article.content }}
+                            />
+                        </div>
+                    )}
+
+                    {/* 文章标签 */}
                     {article.tags && article.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-6">
+                        <div className="flex flex-wrap gap-2 pt-6 border-t border-slate-200">
                             {article.tags.map((tag, index) => (
                                 <span
                                     key={index}
                                     className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full"
                                 >
-                                    {tag}
+                                    #{tag}
                                 </span>
                             ))}
                         </div>
                     )}
+                </motion.div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6 text-sm text-slate-600">
-                            {article.authorName && (
-                                <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4" />
-                                    <span>{article.authorName}</span>
+                {/* Comments Section */}
+                <motion.div
+                    variants={staggerItem}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg"
+                >
+                    <div className="flex items-center gap-2 mb-6">
+                        <MessageCircle className="w-5 h-5 text-[#30499B]" />
+                        <h3 className="text-xl font-semibold text-[#30499B]">
+                            {t('comments.title', '评论')} ({comments.length})
+                        </h3>
+                    </div>
+
+                    {/* Comment Input */}
+                    {isLoggedIn ? (
+                        <div className="mb-8">
+                            <div className="flex gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold flex-shrink-0">
+                                    {user?.nickname?.charAt(0).toUpperCase() || 'U'}
                                 </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>{new Date(article.publishedAt).toLocaleDateString('zh-CN')}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Eye className="w-4 h-4" />
-                                <span>{article.viewCount}</span>
+                                <div className="flex-1">
+                                    <textarea
+                                        placeholder={t('comments.placeholder', '写下你的评论...')}
+                                        className="w-full p-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none resize-none"
+                                        rows={3}
+                                    />
+                                    <div className="flex justify-end mt-2">
+                                        <button className="px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm font-medium">
+                                            {t('comments.submit', '发表评论')}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="mb-6 p-4 bg-slate-50 rounded-lg text-center">
-                            <p className="text-slate-600 mb-3">{t('content.loginToComment', '登录后可以发表评论')}</p>
+                        <div className="mb-8 p-4 bg-slate-50 rounded-lg text-center">
+                            <p className="text-slate-600 mb-3">{t('comments.loginRequired', '登录后可以发表评论')}</p>
                             <button
-                                onClick={handleLike}
-                                className={`flex items-center gap-1 px-3 py-1 rounded-lg border transition-colors ${isLiked
-                                    ? 'border-red-200 bg-red-50 text-red-500'
-                                    : 'border-slate-200 hover:bg-slate-50'
-                                    }`}
+                                onClick={() => router.push(`/${locale}/login`)}
+                                className="px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors text-sm font-medium"
                             >
-                                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                                <span className="text-sm">{likeCount}</span>
-                            </button>
-                            <button
-                                onClick={handleFavorite}
-                                className={`flex items-center gap-1 px-3 py-1 rounded-lg border transition-colors ${isFavorited
-                                    ? 'border-yellow-200 bg-yellow-50 text-yellow-600'
-                                    : 'border-slate-200 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <BookmarkPlus className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
-                            </button>
-                            <button
-                                onClick={handleShare}
-                                className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                            >
-                                <Share2 className="w-4 h-4" />
+                                {t('comments.login', '立即登录')}
                             </button>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Comments List */}
+                    {comments.length > 0 ? (
+                        <div className="space-y-6">
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="flex gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#30499B] to-[#253a7a] flex items-center justify-center text-white font-bold flex-shrink-0">
+                                        {comment.userName?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="font-medium text-slate-800">{comment.userName}</span>
+                                            <span className="text-xs text-slate-400">
+                                                {new Date(comment.createdAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                            </span>
+                                        </div>
+                                        <p className="text-slate-700 mb-2">{comment.content}</p>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <button className="flex items-center gap-1 text-slate-500 hover:text-[#EE4035] transition-colors">
+                                                <Heart className="w-4 h-4" />
+                                                <span>{comment.likeCount || 0}</span>
+                                            </button>
+                                            <button className="text-slate-500 hover:text-[#30499B] transition-colors">
+                                                {t('comments.reply', '回复')}
+                                            </button>
+                                        </div>
+
+                                        {/* Replies */}
+                                        {comment.replies && comment.replies.length > 0 && (
+                                            <div className="mt-4 space-y-4 pl-4 border-l-2 border-slate-100">
+                                                {comment.replies.map((reply) => (
+                                                    <div key={reply.id} className="flex gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#e8941a] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                                            {reply.userName?.charAt(0).toUpperCase() || 'U'}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-medium text-slate-800 text-sm">{reply.userName}</span>
+                                                                <span className="text-xs text-slate-400">
+                                                                    {new Date(reply.createdAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-slate-700 text-sm">{reply.content}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 text-slate-500">
+                            {t('comments.empty', '暂无评论，快来发表第一条评论吧！')}
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Related Articles */}
@@ -383,13 +457,15 @@ export default function ScienceArticleDetailPage() {
                         variants={staggerItem}
                         className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg"
                     >
-                        <h3 className="text-xl font-semibold text-[#30499B] mb-6">相关文章</h3>
+                        <h3 className="text-xl font-semibold text-[#30499B] mb-6">
+                            {t('content.relatedArticles', '相关文章')}
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {relatedArticles.map((relatedArticle) => (
                                 <div
                                     key={relatedArticle.id}
                                     onClick={() => router.push(`/${locale}/science/${relatedArticle.id}`)}
-                                    className="p-4 border border-slate-200 rounded-lg hover:border-[#56B949] transition-colors cursor-pointer"
+                                    className="p-4 border border-slate-200 rounded-lg hover:border-[#56B949] transition-colors cursor-pointer flex flex-col h-full"
                                 >
                                     <div className="flex items-center gap-2 mb-2">
                                         {getCategoryIcon(relatedArticle.type)}
@@ -397,17 +473,17 @@ export default function ScienceArticleDetailPage() {
                                             {relatedArticle.type}
                                         </span>
                                     </div>
-                                    <h4 className="font-medium text-slate-800 mb-2 line-clamp-2">
+                                    <h4 className="font-medium text-slate-800 mb-2 line-clamp-2 min-h-[3rem]">
                                         {relatedArticle.title}
                                     </h4>
                                     {relatedArticle.summary && (
-                                        <p className="text-sm text-slate-600 line-clamp-2 mb-3">
+                                        <p className="text-sm text-slate-600 line-clamp-2 mb-3 flex-1">
                                             {relatedArticle.summary}
                                         </p>
                                     )}
-                                    <div className="flex items-center gap-4 text-xs text-slate-500">
-                                        <span>{relatedArticle.viewCount} 阅读</span>
-                                        <span>{relatedArticle.likeCount} 点赞</span>
+                                    <div className="flex items-center gap-4 text-xs text-slate-500 mt-auto">
+                                        <span>{relatedArticle.viewCount} {locale === 'zh' ? '阅读' : 'views'}</span>
+                                        <span>{relatedArticle.likeCount} {locale === 'zh' ? '点赞' : 'likes'}</span>
                                     </div>
                                 </div>
                             ))}

@@ -37,7 +37,7 @@ function RegisterActivityContent() {
     const [activity, setActivity] = useState<ActivityDetail | null>(null);
     const [sessions, setSessions] = useState<ActivitySession[]>([]);
     const [selectedSession, setSelectedSession] = useState<string>('');
-    const [loadingActivity, setLoadingActivity] = useState(true);
+    const [loadingActivity, setLoadingActivity] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -65,14 +65,14 @@ function RegisterActivityContent() {
 
                 setActivity(activityData);
                 setSessions(sessionsData);
-                
+
                 // 如果只有一个场次，自动选中
                 if (sessionsData.length === 1) {
                     setSelectedSession(sessionsData[0].id);
                 }
             } catch (error) {
                 console.error('Failed to load activity:', error);
-                alert('加载活动信息失败');
+                alert(t('register.form.loadActivityFailed', '加载活动信息失败'));
                 router.push(`/${locale}/activities`);
             } finally {
                 setLoadingActivity(false);
@@ -131,31 +131,31 @@ function RegisterActivityContent() {
     const handleSubmit = async () => {
         // 验证必填字段
         if (!formData.name.trim()) {
-            alert('请填写姓名');
+            alert(t('register.form.nameRequired', '请填写姓名'));
             return;
         }
 
         if (!formData.phone.trim()) {
-            alert('请填写手机号');
+            alert(t('register.form.phoneRequired', '请填写手机号'));
             return;
         }
 
         // 验证手机号格式
         const phoneRegex = /^1[3-9]\d{9}$/;
         if (!phoneRegex.test(formData.phone)) {
-            alert('请填写正确的手机号');
+            alert(t('register.form.phoneInvalid', '请填写正确的手机号'));
             return;
         }
 
         // 如果是游客，必须填写邮箱
         if (!isLoggedIn && !formData.email.trim()) {
-            alert('游客报名需要填写邮箱');
+            alert(t('register.form.emailRequiredForGuest', '游客报名需要填写邮箱'));
             return;
         }
 
         // 如果有场次，必须选择场次
         if (sessions.length > 0 && !selectedSession) {
-            alert('请选择活动场次');
+            alert(t('register.form.sessionRequired', '请选择活动场次'));
             return;
         }
 
@@ -176,8 +176,8 @@ function RegisterActivityContent() {
                 guestEmail: !isLoggedIn ? formData.email : undefined, // 游客使用邮箱
             });
 
-            alert('报名成功！');
-            
+            alert(t('register.form.submitSuccess', '报名成功！'));
+
             // 跳转到我的活动页面或活动详情页
             if (isLoggedIn) {
                 router.push(`/${locale}/my-activities`);
@@ -186,7 +186,7 @@ function RegisterActivityContent() {
             }
         } catch (error: any) {
             console.error('Failed to signup:', error);
-            alert(error.message || '报名失败，请重试');
+            alert(error.message || t('register.form.signupFailed', '报名失败，请重试'));
         } finally {
             setSubmitting(false);
         }
@@ -241,7 +241,7 @@ function RegisterActivityContent() {
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg sticky top-8">
                             <div className="flex items-center gap-3 mb-4">
                                 {getTypeIcon(activity.type)}
-                                <h3 className="font-semibold text-[#30499B]">活动信息</h3>
+                                <h3 className="font-semibold text-[#30499B]">{t('register.activityInfo.title', '活动信息')}</h3>
                             </div>
 
                             <div className="space-y-4">
@@ -253,7 +253,7 @@ function RegisterActivityContent() {
                                 <div className="space-y-3 text-sm">
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <Calendar className="w-4 h-4" />
-                                        <span>{new Date(activity.startTime).toLocaleString('zh-CN')}</span>
+                                        <span>{new Date(activity.startTime).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
                                     </div>
                                     {activity.location && (
                                         <div className="flex items-center gap-2 text-slate-600">
@@ -264,14 +264,14 @@ function RegisterActivityContent() {
                                     {activity.maxParticipants && (
                                         <div className="flex items-center gap-2 text-slate-600">
                                             <Users className="w-4 h-4" />
-                                            <span>{activity.currentParticipants}/{activity.maxParticipants} 人</span>
+                                            <span>{activity.currentParticipants}/{activity.maxParticipants} {t('register.activityInfo.participants', '人')}</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {activity.organizerName && (
                                     <div className="pt-4 border-t border-slate-200">
-                                        <p className="text-xs text-slate-500 mb-2">主办方</p>
+                                        <p className="text-xs text-slate-500 mb-2">{t('register.activityInfo.organizer', '主办方')}</p>
                                         <p className="text-sm font-medium text-slate-700">{activity.organizerName}</p>
                                     </div>
                                 )}
@@ -279,16 +279,15 @@ function RegisterActivityContent() {
                                 {/* 场次选择 */}
                                 {sessions.length > 0 && (
                                     <div className="pt-4 border-t border-slate-200">
-                                        <p className="text-xs text-slate-500 mb-2">选择场次 *</p>
+                                        <p className="text-xs text-slate-500 mb-2">{t('register.form.selectSession', '选择场次')} *</p>
                                         <div className="space-y-2">
                                             {sessions.map((session) => (
                                                 <label
                                                     key={session.id}
-                                                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                                                        selectedSession === session.id
-                                                            ? 'border-[#56B949] bg-[#56B949]/5'
-                                                            : 'border-slate-200 hover:border-[#56B949]/50'
-                                                    }`}
+                                                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedSession === session.id
+                                                        ? 'border-[#56B949] bg-[#56B949]/5'
+                                                        : 'border-slate-200 hover:border-[#56B949]/50'
+                                                        }`}
                                                 >
                                                     <input
                                                         type="radio"
@@ -301,11 +300,11 @@ function RegisterActivityContent() {
                                                     <div className="flex-1">
                                                         <p className="text-sm font-medium text-slate-800">{session.sessionName}</p>
                                                         <p className="text-xs text-slate-500 mt-1">
-                                                            {new Date(session.startTime).toLocaleString('zh-CN')}
+                                                            {new Date(session.startTime).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US')}
                                                         </p>
                                                         {session.maxParticipants && (
                                                             <p className="text-xs text-slate-500">
-                                                                {session.currentParticipants}/{session.maxParticipants} 人
+                                                                {session.currentParticipants}/{session.maxParticipants} {locale === 'zh' ? '人' : 'people'}
                                                             </p>
                                                         )}
                                                     </div>
@@ -364,7 +363,7 @@ function RegisterActivityContent() {
                                 {/* 邮箱 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        邮箱地址 {!isLoggedIn && <span className="text-red-500">*</span>}
+                                        {t('register.form.email', '邮箱地址')} {!isLoggedIn && <span className="text-red-500">*</span>}
                                     </label>
                                     <input
                                         type="email"
@@ -372,18 +371,18 @@ function RegisterActivityContent() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
-                                        placeholder={isLoggedIn ? "选填" : "游客报名必填邮箱"}
+                                        placeholder={isLoggedIn ? t('register.form.emailOptional', '选填') : t('register.form.emailRequired', '游客报名必填邮箱')}
                                         required={!isLoggedIn}
                                     />
                                     {!isLoggedIn && (
-                                        <p className="text-xs text-slate-500 mt-1">游客报名需要提供邮箱以接收活动通知</p>
+                                        <p className="text-xs text-slate-500 mt-1">{t('register.form.emailNote', '游客报名需要提供邮箱以接收活动通知')}</p>
                                     )}
                                 </div>
 
                                 {/* 备注 */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        备注信息
+                                        {t('register.form.specialRequirements', '备注信息')}
                                     </label>
                                     <textarea
                                         name="remarks"
@@ -425,12 +424,12 @@ function RegisterActivityContent() {
                                         {submitting ? (
                                             <>
                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                提交中...
+                                                {t('register.form.submitting', '提交中...')}
                                             </>
                                         ) : (
                                             <>
                                                 <CheckCircle className="w-4 h-4" />
-                                                确认报名
+                                                {t('register.form.submit', '确认报名')}
                                             </>
                                         )}
                                     </button>
@@ -460,7 +459,7 @@ export default function RegisterActivityPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">Loading...</p>
                     </div>
                 </div>
             </Layout>

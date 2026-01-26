@@ -29,10 +29,14 @@ public class HomeQueryService {
     /**
      * 查询首页聚合数据
      * 
+     * @param locale 语言代码
      * @return 首页数据（轮播 + 最新内容 + 最新活动）
      */
     @Transactional(readOnly = true)
-    public HomeDTO getHomeData() {
+    public HomeDTO getHomeData(String locale) {
+        // 参数校验
+        locale = locale != null ? locale : "zh"; // 默认中文
+        
         HomeDTO dto = new HomeDTO();
         
         // 查询轮播/运营位
@@ -42,13 +46,13 @@ public class HomeQueryService {
             .collect(Collectors.toList()));
         
         // 查询最新内容（前 10 条）
-        List<Map<String, Object>> contentRows = contentQueryMapper.selectLatestContents(10);
+        List<Map<String, Object>> contentRows = contentQueryMapper.selectLatestContents(locale, 10);
         dto.setLatestContents(contentRows.stream()
             .map(this::mapToContentListItem)
             .collect(Collectors.toList()));
         
         // 查询最新活动（前 5 条）
-        List<Map<String, Object>> activityRows = homeQueryMapper.selectLatestActivities(5);
+        List<Map<String, Object>> activityRows = homeQueryMapper.selectLatestActivities(locale, 5);
         dto.setLatestActivities(activityRows.stream()
             .map(this::mapToActivityListItem)
             .collect(Collectors.toList()));

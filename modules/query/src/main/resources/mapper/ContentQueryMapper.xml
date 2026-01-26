@@ -9,8 +9,8 @@
     SELECT 
       c.id,
       c.type,
-      c.title,
-      c.summary,
+      COALESCE(t.title, c.title) AS title,
+      COALESCE(t.summary, c.summary) AS summary,
       c.cover_url,
       c.published_at,
       c.status,
@@ -21,6 +21,7 @@
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
+    LEFT JOIN social.content_translation t ON c.id = t.content_id AND t.locale = #{locale}
     WHERE 1=1
       <if test="type != null">
         AND c.type = #{type}
@@ -50,10 +51,10 @@
     SELECT 
       c.id,
       c.type,
-      c.title,
-      c.summary,
+      COALESCE(t.title, c.title) AS title,
+      COALESCE(t.summary, c.summary) AS summary,
+      COALESCE(t.body, c.body) AS body,
       c.cover_url,
-      c.body,
       c.source_type,
       c.source_url,
       c.published_at,
@@ -67,6 +68,7 @@
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
+    LEFT JOIN social.content_translation t ON c.id = t.content_id AND t.locale = #{locale}
     WHERE c.id = #{contentId}::uuid
   </select>
 
@@ -92,8 +94,8 @@
     SELECT 
       c.id,
       c.type,
-      c.title,
-      c.summary,
+      COALESCE(t.title, c.title) AS title,
+      COALESCE(t.summary, c.summary) AS summary,
       c.cover_url,
       c.published_at,
       c.status,
@@ -104,6 +106,7 @@
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
+    LEFT JOIN social.content_translation t ON c.id = t.content_id AND t.locale = #{locale}
     WHERE c.status = 1
     ORDER BY c.published_at DESC NULLS LAST, c.created_at DESC
     LIMIT #{limit}

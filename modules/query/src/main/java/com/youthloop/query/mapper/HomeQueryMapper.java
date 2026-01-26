@@ -22,8 +22,12 @@ public interface HomeQueryMapper {
     /**
      * 查询最新活动（首页用）
      * 
+     * @param locale 语言代码
      * @param limit 限制数量
      * @return 活动列表
      */
-    List<Map<String, Object>> selectLatestActivities(@Param("limit") Integer limit);
+    List<Map<String, Object>> selectLatestActivities(
+        @Param("locale") String locale,
+        @Param("limit") Integer limit
+    );
 }

@@ -50,7 +50,7 @@ export default function LoginPage() {
     // 发送验证码
     const handleSendOtp = async () => {
         if (!formData.email.trim()) {
-            setError('请输入邮箱');
+            setError(t('login.errors.emailRequired', '请输入邮箱'));
             return;
         }
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
             if (!isEmail) {
-                setError('请输入正确的邮箱');
+                setError(t('login.errors.invalidEmail', '请输入正确的邮箱'));
                 return;
             }
 
@@ -69,10 +69,10 @@ export default function LoginPage() {
 
             setOtpSent(true);
             setCountdown(60);
-            alert('验证码已发送');
+            alert(t('login.otpSent', '验证码已发送'));
         } catch (error: any) {
             console.error('Failed to send OTP:', error);
-            setError(error.message || '发送验证码失败');
+            setError(error.message || t('login.errors.otpSendFailed', '发送验证码失败'));
         } finally {
             setSendingOtp(false);
         }
@@ -91,7 +91,7 @@ export default function LoginPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Google Login Error:', error);
-            setError(error.message || 'Google 登录失败，请重试');
+            setError(error.message || t('login.errors.googleLoginFailed', 'Google 登录失败，请重试'));
         }
     };
 
@@ -107,17 +107,17 @@ export default function LoginPage() {
         setError('');
 
         if (!formData.email.trim()) {
-            setError('请输入邮箱');
+            setError(t('login.errors.emailRequired', '请输入邮箱'));
             return;
         }
 
         if (loginMode === 'password' && !formData.password.trim()) {
-            setError('请输入密码');
+            setError(t('login.errors.passwordRequired', '请输入密码'));
             return;
         }
 
         if (loginMode === 'otp' && !formData.otpCode.trim()) {
-            setError('请输入验证码');
+            setError(t('login.errors.otpRequired', '请输入验证码'));
             return;
         }
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
             if (!isEmail) {
-                setError('请输入正确的邮箱');
+                setError(t('login.errors.invalidEmail', '请输入正确的邮箱'));
                 return;
             }
 
@@ -153,7 +153,7 @@ export default function LoginPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Login failed:', error);
-            setError(error.message || '登录失败，请检查账号密码');
+            setError(error.message || t('login.errors.loginFailed', '登录失败，请检查账号密码'));
         } finally {
             setSubmitting(false);
         }
@@ -221,7 +221,7 @@ export default function LoginPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="邮箱地址"
+                                    placeholder={t('login.emailPlaceholder', '邮箱地址')}
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                     disabled={submitting}
                                 />
@@ -238,7 +238,7 @@ export default function LoginPage() {
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        placeholder="请输入密码"
+                                        placeholder={t('login.passwordPlaceholder', '请输入密码')}
                                         className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                         disabled={submitting}
                                     />
@@ -260,7 +260,7 @@ export default function LoginPage() {
                                         name="otpCode"
                                         value={formData.otpCode}
                                         onChange={handleChange}
-                                        placeholder="请输入验证码"
+                                        placeholder={t('login.otpPlaceholder', '请输入验证码')}
                                         className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                         disabled={submitting}
                                     />
@@ -270,7 +270,7 @@ export default function LoginPage() {
                                         disabled={sendingOtp || countdown > 0 || submitting}
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
                                     >
-                                        {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
+                                        {sendingOtp ? t('login.sendingOtp', '发送中...') : countdown > 0 ? t('login.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('login.getOtp', '获取验证码')}
                                     </button>
                                 </div>
                             )}
@@ -281,9 +281,9 @@ export default function LoginPage() {
                                     onClick={() => setLoginMode(loginMode === 'password' ? 'otp' : 'password')}
                                     className="text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
                                 >
-                                    {loginMode === 'password' ? '验证码登录' : '密码登录'}
+                                    {loginMode === 'password' ? t('login.otpLogin', '验证码登录') : t('login.passwordLogin', '密码登录')}
                                 </button>
-                                <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">忘记密码?</a>
+                                <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">{t('login.forgotPassword', '忘记密码?')}</a>
                             </div>
 
                             <button
@@ -291,7 +291,7 @@ export default function LoginPage() {
                                 disabled={submitting}
                                 className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {submitting ? '登录中...' : '立即登录'}
+                                {submitting ? t('login.loggingIn', '登录中...') : t('login.loginButton', '立即登录')}
                             </button>
 
                             {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (

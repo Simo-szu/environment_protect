@@ -29,9 +29,9 @@
     SELECT 
       a.id,
       a.source_type,
-      a.title,
+      COALESCE(t.title, a.title) AS title,
       a.category,
-      a.topic,
+      COALESCE(t.topic, a.topic) AS topic,
       a.start_time,
       a.end_time,
       a.location,
@@ -44,6 +44,7 @@
       COALESCE(s.comment_count, 0) AS comment_count
     FROM social.activity a
     LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    LEFT JOIN social.activity_translation t ON a.id = t.activity_id AND t.locale = #{locale}
     WHERE a.status = 1
     ORDER BY a.start_time DESC NULLS LAST, a.created_at DESC
     LIMIT #{limit}

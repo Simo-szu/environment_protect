@@ -34,7 +34,7 @@ export default function MyActivitiesPage() {
     const { t } = useSafeTranslation('myActivities');
     const [activeTab, setActiveTab] = useState('all');
     const [myActivities, setMyActivities] = useState<MyActivityItem[]>([]);
-    const [loadingActivities, setLoadingActivities] = useState(true);
+    const [loadingActivities, setLoadingActivities] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [activitiesPerPage] = useState(4);
@@ -49,11 +49,12 @@ export default function MyActivitiesPage() {
                 const result = await userApi.getMyActivities({
                     page: currentPage,
                     size: activitiesPerPage
-                });
+                }).catch(() => ({ items: [], total: 0 }));
+
                 setMyActivities(result.items);
                 setTotalPages(Math.ceil(result.total / activitiesPerPage));
             } catch (error) {
-                console.error('Failed to load my activities:', error);
+                // 完全静默处理错误
             } finally {
                 setLoadingActivities(false);
             }
@@ -102,19 +103,19 @@ export default function MyActivitiesPage() {
     };
 
     const cancelRegistration = async (signupId: string, activityId: string) => {
-        if (confirm('确定要取消报名吗？')) {
+        if (confirm(t('confirmCancel', '确定要取消报名吗？'))) {
             try {
                 await activityApi.cancelSignup(activityId, signupId);
-                alert('报名已取消');
+                alert(t('cancelSuccess', '报名已取消'));
                 // Refresh list
                 const result = await userApi.getMyActivities({
                     page: currentPage,
                     size: activitiesPerPage
-                });
+                }).catch(() => ({ items: [], total: 0 }));
                 setMyActivities(result.items);
             } catch (error) {
-                console.error('取消报名失败:', error);
-                alert('取消失败，请重试');
+                // 静默处理错误
+                alert(t('cancelFailed', '取消失败，请重试'));
             }
         }
     };
@@ -127,7 +128,7 @@ export default function MyActivitiesPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -142,7 +143,7 @@ export default function MyActivitiesPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">跳转到登录页面...</p>
+                        <p className="text-slate-600">{t('redirecting', '跳转到登录页面...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -272,44 +273,43 @@ export default function MyActivitiesPage() {
                                                     <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-2 flex-wrap">
                                                         <span className="flex items-center gap-1">
                                                             <Calendar className="w-4 h-4" />
-                                                            {new Date(activity.startTime).toLocaleString('zh-CN')}
+                                                            {new Date(activity.startTime).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US')}
                                                         </span>
-                                                        {activity.sessionId && ( // MyActivityItem has sessionId
+                                                        {activity.sessionId && (
                                                             <span className="flex items-center gap-1">
                                                                 <Clock className="w-4 h-4" />
-                                                                {/* Session Name is not in MyActivityItem currently, display ID or just "场次" */}
-                                                                场次: {activity.sessionId.slice(0, 8)}
+                                                                {t('sessionLabel', '场次')}: {activity.sessionId.slice(0, 8)}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${activity.status === 'PENDING' ? 'bg-gradient-to-r from-[#F0A32F] to-[#e67e22] text-white' :
-                                                        activity.status === 'APPROVED' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
-                                                            activity.status === 'REJECTED' ? 'bg-gradient-to-r from-[#EE4035] to-[#d63031] text-white' :
-                                                                'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
+                                                    activity.status === 'APPROVED' ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white' :
+                                                        activity.status === 'REJECTED' ? 'bg-gradient-to-r from-[#EE4035] to-[#d63031] text-white' :
+                                                            'bg-gradient-to-r from-[#30499B] to-[#253a7a] text-white'
                                                     }`}>
-                                                    {activity.status === 'PENDING' ? '待审核' :
-                                                        activity.status === 'APPROVED' ? '已通过' :
-                                                            activity.status === 'REJECTED' ? '已拒绝' : '已取消'}
+                                                    {activity.status === 'PENDING' ? t('status.pending', '待审核') :
+                                                        activity.status === 'APPROVED' ? t('status.approved', '已通过') :
+                                                            activity.status === 'REJECTED' ? t('status.rejected', '已拒绝') : t('status.cancelled', '已取消')}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-4 text-xs text-slate-400">
-                                                    <span>报名时间: {new Date(activity.signedUpAt).toLocaleDateString('zh-CN')}</span>
+                                                    <span>{t('signupTime', '报名时间')}: {new Date(activity.signedUpAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => window.location.href = `/${locale}/activities/${activity.activityId}`}
                                                         className="px-4 py-2 text-[#30499B] dark:text-[#56B949] border border-[#30499B] dark:border-[#56B949] rounded-lg hover:bg-[#30499B] dark:hover:bg-[#56B949] hover:text-white transition-colors text-sm"
                                                     >
-                                                        查看详情
+                                                        {t('viewDetails', '查看详情')}
                                                     </button>
                                                     {activity.status === 'PENDING' && (
                                                         <button
                                                             onClick={() => cancelRegistration(activity.signupId, activity.activityId)}
                                                             className="px-4 py-2 text-[#EE4035] border border-[#EE4035] rounded-lg hover:bg-[#EE4035] hover:text-white transition-colors text-sm"
                                                         >
-                                                            取消报名
+                                                            {t('cancelRegistration', '取消报名')}
                                                         </button>
                                                     )}
                                                 </div>
@@ -324,14 +324,14 @@ export default function MyActivitiesPage() {
                                 <div className="text-center py-12">
                                     <CalendarPlus className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                                        {activeTab === 'registered' ? '暂无已报名活动' :
-                                            activeTab === 'ongoing' ? '暂无进行中活动' :
-                                                activeTab === 'completed' ? '暂无已完成活动' : '暂无活动'}
+                                        {activeTab === 'registered' ? t('empty.registered', '暂无已报名活动') :
+                                            activeTab === 'ongoing' ? t('empty.ongoing', '暂无进行中活动') :
+                                                activeTab === 'completed' ? t('empty.completed', '暂无已完成活动') : t('empty.all', '暂无活动')}
                                     </h3>
                                     <p className="text-slate-400">
-                                        {activeTab === 'registered' ? '您还没有报名任何活动' :
-                                            activeTab === 'ongoing' ? '您目前没有正在进行的活动' :
-                                                activeTab === 'completed' ? '您还没有完成任何活动' : '暂无相关活动'}
+                                        {activeTab === 'registered' ? t('empty.registeredDesc', '您还没有报名任何活动') :
+                                            activeTab === 'ongoing' ? t('empty.ongoingDesc', '您目前没有正在进行的活动') :
+                                                activeTab === 'completed' ? t('empty.completedDesc', '您还没有完成任何活动') : t('empty.allDesc', '暂无相关活动')}
                                     </p>
                                 </div>
                             )}

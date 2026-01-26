@@ -51,7 +51,7 @@ export default function RegisterPage() {
     // 发送验证码
     const handleSendOtp = async () => {
         if (!formData.email.trim()) {
-            setError('请输入邮箱');
+            setError(t('register.errors.emailRequired', '请输入邮箱'));
             return;
         }
 
@@ -62,17 +62,17 @@ export default function RegisterPage() {
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
             if (!isEmail) {
-                setError('请输入正确的邮箱');
+                setError(t('register.errors.invalidEmail', '请输入正确的邮箱'));
                 return;
             }
 
             await authApi.sendEmailOtp(formData.email, 'register');
 
             setCountdown(60);
-            alert('验证码已发送');
+            alert(t('register.otpSent', '验证码已发送'));
         } catch (error: any) {
             console.error('Failed to send OTP:', error);
-            setError(error.message || '发送验证码失败');
+            setError(error.message || t('register.errors.otpSendFailed', '发送验证码失败'));
         } finally {
             setSendingOtp(false);
         }
@@ -91,7 +91,7 @@ export default function RegisterPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Google Register Error:', error);
-            setError(error.message || 'Google 注册失败，请重试');
+            setError(error.message || t('register.errors.googleRegisterFailed', 'Google 注册失败，请重试'));
         }
     };
 
@@ -107,34 +107,39 @@ export default function RegisterPage() {
         setError('');
 
         if (!formData.email.trim()) {
-            setError('请输入邮箱');
+            setError(t('register.errors.emailRequired', '请输入邮箱'));
             return;
         }
 
         if (registerMode === 'password') {
             if (!formData.password.trim() || !formData.confirmPassword.trim()) {
-                setError('请填写完整的注册信息');
+                setError(t('register.errors.passwordRequired', '请填写完整的注册信息'));
                 return;
             }
 
             if (formData.password !== formData.confirmPassword) {
-                setError('两次输入的密码不一致');
+                setError(t('register.errors.passwordMismatch', '两次输入的密码不一致'));
                 return;
             }
 
-            if (formData.password.length < 8) {
-                setError('密码长度至少8位');
+            if (formData.password.length < 6) {
+                setError(t('register.errors.passwordTooShort', '密码至少6位字符'));
+                return;
+            }
+
+            if (formData.password.length > 20) {
+                setError(t('register.errors.passwordTooLong', '密码不能超过20位字符'));
                 return;
             }
         } else {
             if (!formData.otpCode.trim()) {
-                setError('请输入验证码');
+                setError(t('register.errors.otpRequired', '请输入验证码'));
                 return;
             }
         }
 
         if (!formData.terms) {
-            setError(t('errors.agreeToTerms', '请同意用户协议和隐私政策'));
+            setError(t('register.errors.agreeToTerms', '请同意用户协议和隐私政策'));
             return;
         }
 
@@ -144,7 +149,7 @@ export default function RegisterPage() {
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
             if (!isEmail) {
-                setError('请输入正确的邮箱');
+                setError(t('register.errors.invalidEmail', '请输入正确的邮箱'));
                 return;
             }
 
@@ -166,7 +171,7 @@ export default function RegisterPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Register failed:', error);
-            setError(error.message || '注册失败，请重试');
+            setError(error.message || t('register.errors.registerFailed', '注册失败，请重试'));
         } finally {
             setSubmitting(false);
         }
@@ -234,7 +239,7 @@ export default function RegisterPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="邮箱地址"
+                                    placeholder={t('register.emailPlaceholder', '邮箱地址')}
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                     disabled={submitting}
                                 />
@@ -250,7 +255,7 @@ export default function RegisterPage() {
                                     name="nickname"
                                     value={formData.nickname}
                                     onChange={handleChange}
-                                    placeholder="昵称（选填）"
+                                    placeholder={t('register.nicknamePlaceholder', '昵称（选填）')}
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                     disabled={submitting}
                                 />
@@ -269,7 +274,7 @@ export default function RegisterPage() {
                                                 name="password"
                                                 value={formData.password}
                                                 onChange={handleChange}
-                                                placeholder="请输入登录密码"
+                                                placeholder={t('register.passwordPlaceholder', '设置密码（6-20位字符）')}
                                                 className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                                 disabled={submitting}
                                             />
@@ -292,7 +297,7 @@ export default function RegisterPage() {
                                             name="confirmPassword"
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
-                                            placeholder="请确认登录密码"
+                                            placeholder={t('register.confirmPasswordPlaceholder', '确认密码')}
                                             className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                             disabled={submitting}
                                         />
@@ -315,7 +320,7 @@ export default function RegisterPage() {
                                         name="otpCode"
                                         value={formData.otpCode}
                                         onChange={handleChange}
-                                        placeholder="请输入验证码"
+                                        placeholder={t('register.otpPlaceholder', '请输入验证码')}
                                         className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                         disabled={submitting}
                                     />
@@ -325,7 +330,7 @@ export default function RegisterPage() {
                                         disabled={sendingOtp || countdown > 0 || submitting}
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
                                     >
-                                        {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
+                                        {sendingOtp ? t('register.sendingOtp', '发送中...') : countdown > 0 ? t('register.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('register.getOtp', '获取验证码')}
                                     </button>
                                 </div>
                             )}
@@ -350,13 +355,13 @@ export default function RegisterPage() {
                                     className="w-4 h-4 rounded border-slate-300 text-[#30499B] focus:ring-[#30499B]/20 cursor-pointer mt-0.5"
                                 />
                                 <label htmlFor="terms" className="text-sm text-slate-500 select-none cursor-pointer leading-relaxed">
-                                    我已阅读并同意
+                                    {t('register.agreeTerms', '我已阅读并同意')}
                                     <Link href={`/${locale}/terms`} className="text-[#30499B] hover:underline ml-1">
-                                        《用户服务协议》
+                                        {t('register.userAgreement', '《用户服务协议》')}
                                     </Link>
-                                    和
+                                    {t('register.and', '和')}
                                     <Link href={`/${locale}/privacy`} className="text-[#30499B] hover:underline ml-1">
-                                        《隐私政策》
+                                        {t('register.privacyPolicy', '《隐私政策》')}
                                     </Link>
                                 </label>
                             </div>
@@ -366,7 +371,7 @@ export default function RegisterPage() {
                                 disabled={submitting}
                                 className="w-full py-3 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg font-medium shadow-lg shadow-[#30499B]/20 hover:shadow-xl hover:shadow-[#30499B]/30 transition-all active:scale-[0.98] text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {submitting ? '注册中...' : '提交注册'}
+                                {submitting ? t('register.registering', '注册中...') : t('register.registerButton', '立即注册')}
                             </button>
 
                             {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (

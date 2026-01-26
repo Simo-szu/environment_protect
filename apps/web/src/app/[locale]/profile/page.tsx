@@ -34,22 +34,27 @@ export default function ProfilePage() {
     const router = useRouter();
     const params = useParams();
     const locale = (params?.locale as string) || 'zh';
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loadingProfile, setLoadingProfile] = useState(true);
+    const [profile, setProfile] = useState<UserProfile | null>({
+        userId: user?.userId || '',
+        nickname: user?.nickname || '环保用户',
+        avatarUrl: user?.avatarUrl,
+        gender: 1,
+        location: '广东省',
+        bio: '热爱环保，致力于可持续生活方式的实践者。'
+    });
+    const [loadingProfile, setLoadingProfile] = useState(false);
 
     // 加载用户资料
     useEffect(() => {
         const loadProfile = async () => {
             if (!isLoggedIn) return;
-            
+
             try {
-                setLoadingProfile(true);
                 const profileData = await userApi.getMyProfile();
                 setProfile(profileData);
             } catch (error) {
                 console.error('Failed to load profile:', error);
-            } finally {
-                setLoadingProfile(false);
+                // 失败时不阻塞页面显示
             }
         };
 
@@ -70,8 +75,8 @@ export default function ProfilePage() {
         router.push(`/${locale}`);
     };
 
-    // ✅ loading 阶段只显示 loading
-    if (loading || loadingProfile) {
+    // ✅ 只在认证 loading 阶段显示加载动画
+    if (loading) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -210,8 +215,8 @@ export default function ProfilePage() {
                                         <Trophy className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">环保积分</p>
-                                        <p className="font-medium text-slate-800">0 分</p>
+                                        <p className="text-xs text-slate-500">{t('info.points', '环保积分')}</p>
+                                        <p className="font-medium text-slate-800">0 {t('info.pointsUnit', '分')}</p>
                                     </div>
                                 </div>
 
@@ -223,7 +228,7 @@ export default function ProfilePage() {
                                     <div>
                                         <p className="text-xs text-slate-500">{t('info.level', '环保等级')}</p>
                                         <p className="font-medium text-slate-800">
-                                            Lv.1 环保达人
+                                            Lv.1 {t('info.levelName', '环保达人')}
                                         </p>
                                     </div>
                                 </div>

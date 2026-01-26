@@ -33,12 +33,13 @@ public class ActivityQueryService {
      * 查询活动列表（分页 + 筛选 + 排序）
      */
     @Transactional(readOnly = true)
-    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String sort, Integer page, Integer size) {
+    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String locale, String sort, Integer page, Integer size) {
         // 参数校验与默认值
         int validPage = Math.max(1, page);
         int validSize = Math.min(100, Math.max(1, size));
         int offset = (validPage - 1) * validSize;
         Integer validStatus = (status != null) ? status : 1; // 默认只查已发布
+        String validLocale = (locale != null) ? locale : "zh"; // 默认中文
         String validSort = (sort != null && sort.equals("hot")) ? "hot" : "latest";
         
         // 查询总数
@@ -50,7 +51,7 @@ public class ActivityQueryService {
         
         // 查询列表
         List<Map<String, Object>> rows = activityQueryMapper.selectActivityList(
-            category, validStatus, validSort, offset, validSize
+            category, validStatus, validLocale, validSort, offset, validSize
         );
         
         // 获取当前用户 ID（如果已登录）
@@ -86,8 +87,11 @@ public class ActivityQueryService {
      * 查询活动详情
      */
     @Transactional(readOnly = true)
-    public ActivityDetailDTO getActivityDetail(UUID activityId) {
-        Map<String, Object> row = activityQueryMapper.selectActivityDetail(activityId);
+    public ActivityDetailDTO getActivityDetail(UUID activityId, String locale) {
+        // 参数校验
+        locale = locale != null ? locale : "zh"; // 默认中文
+        
+        Map<String, Object> row = activityQueryMapper.selectActivityDetail(activityId, locale);
         
         if (row == null) {
             throw new BizException(40041, "活动不存在");

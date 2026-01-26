@@ -9,8 +9,11 @@
         "edit": "Edit",
         "delete": "Delete",
         "back": "Back",
+        "goBack": "Go Back",
         "next": "Next",
         "previous": "Previous",
+        "nextPage": "Next",
+        "previousPage": "Previous",
         "submit": "Submit",
         "search": "Search",
         "filter": "Filter",
@@ -23,7 +26,12 @@
         "learnNow": "Learn Now",
         "signUpNow": "Sign Up Now",
         "joinNow": "Join Now",
-        "viewContent": "View Content"
+        "viewContent": "View Content",
+        "verifyingAuth": "Verifying login status",
+        "loginRequired": "Please login first to view this content",
+        "needLogin": "Login Required",
+        "backToHome": "Back to Home",
+        "loginNow": "Login Now"
     },
     "auth": {
         "welcome": "Welcome back, continue your eco journey",
@@ -31,11 +39,67 @@
             "title": "Login",
             "noAccount": "No account?",
             "registerNow": "Register Now",
+            "emailPlaceholder": "Email address",
+            "passwordPlaceholder": "Enter password",
+            "otpPlaceholder": "Enter verification code",
+            "sendingOtp": "Sending...",
+            "getOtp": "Get Code",
+            "retryAfter": "Retry after {seconds}s",
+            "otpLogin": "Login with Code",
+            "passwordLogin": "Login with Password",
+            "forgotPassword": "Forgot password?",
+            "loggingIn": "Logging in...",
+            "loginButton": "Login Now",
             "agreeTerms": "Login implies agreement to",
             "userAgreement": "User Service Agreement",
             "and": "and",
             "privacyPolicy": "Privacy Policy",
-            "or": "Or"
+            "or": "Or",
+            "googleLogin": "Sign in with Google",
+            "errors": {
+                "emailRequired": "Please enter email",
+                "passwordRequired": "Please enter password",
+                "otpRequired": "Please enter verification code",
+                "invalidEmail": "Please enter a valid email",
+                "loginFailed": "Login failed, please check your credentials",
+                "otpSendFailed": "Failed to send verification code",
+                "googleLoginFailed": "Google login failed, please try again"
+            },
+            "otpSent": "Verification code sent"
+        },
+        "register": {
+            "title": "Register",
+            "subtitle": "Join us and start a new chapter of green living",
+            "hasAccount": "Already have an account?",
+            "loginNow": "Login Now",
+            "emailPlaceholder": "Email address",
+            "passwordPlaceholder": "Set password (6-20 characters)",
+            "confirmPasswordPlaceholder": "Confirm password",
+            "nicknamePlaceholder": "Nickname (optional)",
+            "otpPlaceholder": "Enter verification code",
+            "sendingOtp": "Sending...",
+            "getOtp": "Get Code",
+            "retryAfter": "Retry after {seconds}s",
+            "registering": "Registering...",
+            "registerButton": "Register Now",
+            "agreeTerms": "Registration implies agreement to",
+            "userAgreement": "User Service Agreement",
+            "and": "and",
+            "privacyPolicy": "Privacy Policy",
+            "errors": {
+                "emailRequired": "Please enter email",
+                "passwordRequired": "Please enter password",
+                "confirmPasswordRequired": "Please confirm password",
+                "otpRequired": "Please enter verification code",
+                "invalidEmail": "Please enter a valid email",
+                "passwordTooShort": "Password must be at least 6 characters",
+                "passwordTooLong": "Password must not exceed 20 characters",
+                "passwordMismatch": "Passwords do not match",
+                "registerFailed": "Registration failed, please try again",
+                "otpSendFailed": "Failed to send verification code"
+            },
+            "otpSent": "Verification code sent",
+            "registerSuccess": "Registration successful! Redirecting to login..."
         }
     },
     "navigation": {
@@ -68,6 +132,10 @@
         "signUpNow": "Sign Up Now",
         "joinNow": "Join Now",
         "viewContent": "View Content",
+        "readMore": "Read More",
+        "views": "views",
+        "likes": "likes",
+        "pending": "Pending",
         "cards": {
             "points": {
                 "title": "Points·Exchange",
@@ -244,47 +312,74 @@
                 "phonePlaceholder": "Enter your phone number",
                 "email": "Email Address",
                 "emailPlaceholder": "Enter your email address",
+                "emailOptional": "Optional",
+                "emailRequired": "Email required for guest registration",
+                "emailNote": "Guests need to provide email to receive activity notifications",
                 "emergencyContact": "Emergency Contact",
                 "emergencyContactPlaceholder": "Emergency contact name",
                 "emergencyPhone": "Emergency Phone",
                 "emergencyPhonePlaceholder": "Emergency contact phone",
-                "specialRequirements": "Special Requirements or Notes",
+                "specialRequirements": "Notes",
                 "specialRequirementsPlaceholder": "If you have special requirements or other situations that need explanation, please fill in here...",
                 "activityRequirements": "Activity Requirements",
                 "agreementText": "I have read and agree to the activity agreement, understand the activity risks, and voluntarily participate in this environmental activity.",
                 "agreementNote": "Please follow the organizer's arrangements and pay attention to personal safety during the activity.",
                 "agreementRequired": "Please agree to the activity agreement first",
                 "submitSuccess": "Registration successful!",
-                "submit": "Confirm Registration"
+                "submit": "Confirm Registration",
+                "submitting": "Submitting...",
+                "selectSession": "Select Session",
+                "sessionRequired": "Please select an activity session",
+                "nameRequired": "Please enter your name",
+                "phoneRequired": "Please enter your phone number",
+                "phoneInvalid": "Please enter a valid phone number",
+                "emailRequiredForGuest": "Email is required for guest registration",
+                "loadActivityFailed": "Failed to load activity information",
+                "signupFailed": "Registration failed, please try again"
             }
         },
         "detail": {
             "title": "Activity Details",
-            "subtitle": "Learn about activity details and register",
+            "subtitle": "Learn about activity details and register to participate",
             "date": "Date",
             "time": "Time",
-            "location": "Location",
+            "activityTime": "Activity Time",
+            "location": "Activity Location",
             "participants": "Participants",
+            "organizer": "Organizer",
+            "sessions": "Activity Sessions",
+            "registered": "Registered",
             "detailsTitle": "Activity Details",
             "requirements": "Participation Requirements",
-            "register": "Register Now",
-            "loginToRegister": "Login to Register",
-            "spotsLeft": "spots left",
-            "registered": "Registered",
+            "registerNow": "Register Now",
+            "spotsLeft": "{count} spots left",
+            "unlimited": "unlimited",
             "totalSpots": "Total Spots",
+            "registerButton": "Register Now",
+            "loginToRegister": "Login to Register",
             "organizerInfo": "Organizer Information",
-            "organization": "Environmental Organization",
-            "linkCopied": "Link copied to clipboard"
+            "ecoOrganization": "Environmental Organization",
+            "linkCopied": "Link copied to clipboard",
+            "notFound": "Activity not found",
+            "backToList": "Back to List",
+            "operationFailed": "Operation failed, please try again"
         },
         "status": {
             "registering": "Registering",
             "upcoming": "Upcoming",
-            "ended": "Ended"
+            "ended": "Ended",
+            "approvalRequired": "Approval Required",
+            "completed": "Completed",
+            "ongoing": "Ongoing"
         },
         "actions": {
             "register": "Register",
             "viewDetails": "View Details",
             "oneClickRegister": "One-Click Register"
+        },
+        "empty": {
+            "title": "No Activities",
+            "subtitle": "Please check back later"
         }
     },
     "science": {
@@ -344,6 +439,9 @@
         }
     },
     "article": {
+        "article": {
+            "anonymous": "Anonymous"
+        },
         "meta": {
             "author": "Author",
             "publishDate": "Published",
@@ -368,6 +466,19 @@
             "loginToComment": "Login to post comments",
             "loginNow": "Login Now",
             "linkCopied": "Link copied to clipboard"
+        },
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write your comment...",
+            "submit": "Post Comment",
+            "loginRequired": "Login to post comments",
+            "login": "Login Now",
+            "reply": "Reply",
+            "empty": "No comments yet. Be the first to comment!"
+        },
+        "error": {
+            "notFound": "Article not found",
+            "operationFailed": "Operation failed, please try again"
         },
         "categories": {
             "climate": "Climate Change",
@@ -461,9 +572,14 @@
             "completed": "Completed",
             "rewardPending": "Reward pending",
             "claim": "Claim",
-            "goComplete": "Go Complete"
+            "claiming": "Claiming...",
+            "goComplete": "Go Complete",
+            "noTasks": "No tasks available"
         },
         "quiz": {
+            "title": "Daily Quiz",
+            "noQuizToday": "No quiz available today",
+            "submit": "Submit",
             "correctAnswer": "✓ Correct!",
             "wrongAnswer": "✗ Wrong answer",
             "wrongAnswerWithCorrect": "✗ Wrong answer, correct answer is",
@@ -555,7 +671,9 @@
             "gender": "Gender",
             "location": "Location",
             "points": "Eco Points",
+            "pointsUnit": "pts",
             "level": "Eco Level",
+            "levelName": "Eco Expert",
             "bio": "Bio",
             "male": "Male",
             "female": "Female",
@@ -568,6 +686,28 @@
         "actions": {
             "editProfile": "Edit Profile",
             "logout": "Logout"
+        },
+        "edit": {
+            "title": "Edit Profile",
+            "subtitle": "Update your personal information",
+            "changeAvatar": "Click to change avatar",
+            "nickname": "Nickname",
+            "nicknamePlaceholder": "Enter your nickname",
+            "gender": "Gender",
+            "genderMale": "Male",
+            "genderFemale": "Female",
+            "genderOther": "Other",
+            "hometown": "Hometown",
+            "hometownPlaceholder": "Enter your hometown",
+            "defaultHometown": "Guangdong Province",
+            "bio": "Bio",
+            "bioPlaceholder": "Tell us about yourself...",
+            "bioLimit": "Maximum 200 characters",
+            "defaultBio": "Environmental enthusiast committed to sustainable living practices. Contributing to environmental protection through daily actions.",
+            "save": "Save Changes",
+            "saving": "Saving...",
+            "cancel": "Cancel",
+            "updateFailed": "Failed to update profile, please try again"
         },
         "quickActions": {
             "likes": "My Likes",
@@ -630,6 +770,10 @@
             "unread": "Unread Messages",
             "replies": "Replies",
             "likes": "Likes"
+        },
+        "empty": {
+            "message": "No {filter}messages",
+            "unread": "unread "
         },
         "actions": {
             "reply": "Reply",
@@ -718,9 +862,19 @@
         }
     },
     "myActivities": {
-        "title": "Activity Management",
+        "title": "My Activity Center",
         "subtitle": "My Activity Center",
         "description": "Manage all your environmental activities",
+        "badge": "My Activities",
+        "loading": "Loading...",
+        "redirecting": "Redirecting to login...",
+        "sessionLabel": "Session",
+        "signupTime": "Signup Time",
+        "viewDetails": "View Details",
+        "cancelRegistration": "Cancel Registration",
+        "confirmCancel": "Are you sure you want to cancel your registration?",
+        "cancelSuccess": "Registration cancelled",
+        "cancelFailed": "Cancellation failed, please try again",
         "stats": {
             "registered": "Registered Activities",
             "completed": "Completed Activities",
@@ -734,30 +888,30 @@
             "completed": "Completed"
         },
         "status": {
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled",
             "registered": "Registered",
             "ongoing": "Ongoing",
             "completed": "Completed",
             "waiting": "Waiting",
             "inProgress": "In Progress"
         },
+        "empty": {
+            "all": "No activities",
+            "allDesc": "No related activities",
+            "registered": "No registered activities",
+            "registeredDesc": "You haven't registered for any activities yet",
+            "ongoing": "No ongoing activities",
+            "ongoingDesc": "You currently have no ongoing activities",
+            "completed": "No completed activities",
+            "completedDesc": "You haven't completed any activities yet"
+        },
         "actions": {
             "viewDetails": "View Details",
             "cancelRegistration": "Cancel Registration",
             "rateActivity": "Rate Activity"
-        },
-        "empty": {
-            "registered": {
-                "title": "No Registered Activities",
-                "description": "You haven't registered for any activities yet"
-            },
-            "ongoing": {
-                "title": "No Ongoing Activities",
-                "description": "You currently have no ongoing activities"
-            },
-            "completed": {
-                "title": "No Completed Activities",
-                "description": "You haven't completed any activities yet"
-            }
         },
         "info": {
             "registrationTime": "Registration Time",
@@ -1309,11 +1463,57 @@
     "feedback": {
         "title": "Feedback",
         "badge": "User Feedback",
-        "description": "Your opinion is very important to us! Please tell us your thoughts and help us improve YouthLoop to provide a better environmental experience for more users."
-    },
-    "help": {
-        "title": "Help Center",
-        "badge": "Help Support",
-        "description": "Welcome to YouthLoop Help Center! Here you'll find all the information and support you need. If you can't find the answer, please feel free to contact our customer service team."
+        "description": "Your opinion is very important to us! Please tell us your thoughts and help us improve YouthLoop to provide a better environmental experience for more users.",
+        "form": {
+            "type": {
+                "label": "Feedback Type",
+                "options": {
+                    "suggestion": "Feature Suggestion",
+                    "bug": "Bug Report",
+                    "praise": "Praise",
+                    "other": "Other"
+                }
+            },
+            "rating": {
+                "label": "Satisfaction Rating",
+                "stars": "stars"
+            },
+            "title": {
+                "label": "Feedback Title",
+                "placeholder": "Please briefly describe your feedback"
+            },
+            "content": {
+                "label": "Detailed Content",
+                "placeholder": "Please describe your thoughts, issues encountered, or suggestions in detail..."
+            },
+            "contact": {
+                "label": "Contact Information (Optional)",
+                "placeholder": "Email or phone number for us to reach you"
+            },
+            "anonymous": "Submit Anonymously",
+            "submit": "Submit Feedback",
+            "cancel": "Cancel"
+        },
+        "success": {
+            "title": "Submitted Successfully!",
+            "description": "Thank you for your feedback. We will read it carefully and continue to improve.",
+            "backHome": "Back to Home",
+            "continueFeedback": "Continue Feedback"
+        },
+        "otherContact": {
+            "title": "Other Contact Methods",
+            "email": {
+                "title": "Email Feedback",
+                "address": "feedback@youthloop.org"
+            },
+            "phone": {
+                "title": "Phone Feedback",
+                "number": "400-123-4567"
+            },
+            "hours": {
+                "title": "Service Hours",
+                "schedule": "Weekdays 9:00-18:00"
+            }
+        }
     }
 }

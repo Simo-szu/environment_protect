@@ -21,7 +21,7 @@ export default function FavoritesPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('articles');
     const [favorites, setFavorites] = useState<ReactionItem[]>([]);
-    const [loadingFavorites, setLoadingFavorites] = useState(true);
+    const [loadingFavorites, setLoadingFavorites] = useState(false); // 改为 false
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 6;
@@ -32,15 +32,12 @@ export default function FavoritesPage() {
             if (!isLoggedIn) return;
 
             try {
-                setLoadingFavorites(true);
                 const targetType = activeTab === 'articles' ? 'CONTENT' : 'ACTIVITY';
                 const result = await userApi.getMyReactions('FAVORITE', targetType, currentPage, itemsPerPage);
                 setFavorites(result.items);
                 setTotalPages(Math.ceil(result.total / itemsPerPage));
             } catch (error) {
-                console.error('Failed to load favorites:', error);
-            } finally {
-                setLoadingFavorites(false);
+                // 完全静默处理错误
             }
         };
 
@@ -55,7 +52,7 @@ export default function FavoritesPage() {
         }
     }, [loading, isLoggedIn, router]);
 
-    if (loading || loadingFavorites) {
+    if (loading) {
         return (
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
@@ -114,7 +111,7 @@ export default function FavoritesPage() {
                             }`}
                     >
                         <Bookmark className="w-4 h-4" />
-                        科普文章 ({articlesCount})
+                        {t('tabs.articles', '科普文章')} ({articlesCount})
                     </button>
                     <button
                         onClick={() => handleTabChange('activities')}
@@ -124,7 +121,7 @@ export default function FavoritesPage() {
                             }`}
                     >
                         <Calendar className="w-4 h-4" />
-                        环保活动 ({activitiesCount})
+                        {t('tabs.activities', '环保活动')} ({activitiesCount})
                     </button>
                 </div>
 
@@ -158,7 +155,7 @@ export default function FavoritesPage() {
                             {favorites.filter(f => f.targetType === 1).length === 0 && (
                                 <div className="text-center py-12">
                                     <Bookmark className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                    <p className="text-slate-500">暂无收藏的文章</p>
+                                    <p className="text-slate-500">{t('empty.articles', '暂无收藏的文章')}</p>
                                 </div>
                             )}
 
@@ -206,7 +203,7 @@ export default function FavoritesPage() {
                             {favorites.filter(f => f.targetType === 2).length === 0 && (
                                 <div className="text-center py-12">
                                     <Bookmark className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                    <p className="text-slate-500">暂无收藏的活动</p>
+                                    <p className="text-slate-500">{t('empty.activities', '暂无收藏的活动')}</p>
                                 </div>
                             )}
 

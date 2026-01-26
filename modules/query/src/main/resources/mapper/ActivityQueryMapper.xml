@@ -9,9 +9,9 @@
     SELECT 
       a.id,
       a.source_type,
-      a.title,
+      COALESCE(t.title, a.title) AS title,
       a.category,
-      a.topic,
+      COALESCE(t.topic, a.topic) AS topic,
       a.start_time,
       a.end_time,
       a.location,
@@ -25,6 +25,7 @@
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.activity a
     LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    LEFT JOIN social.activity_translation t ON a.id = t.activity_id AND t.locale = #{locale}
     WHERE 1=1
     <if test="category != null">
       AND a.category = #{category}
@@ -61,10 +62,10 @@
     SELECT 
       a.id,
       a.source_type,
-      a.title,
+      COALESCE(t.title, a.title) AS title,
       a.category,
-      a.topic,
-      a.description,
+      COALESCE(t.topic, a.topic) AS topic,
+      COALESCE(t.description, a.description) AS description,
       a.start_time,
       a.end_time,
       a.location,
@@ -80,6 +81,7 @@
       COALESCE(s.comment_count, 0) AS comment_count
     FROM social.activity a
     LEFT JOIN social.activity_stats s ON a.id = s.activity_id
+    LEFT JOIN social.activity_translation t ON a.id = t.activity_id AND t.locale = #{locale}
     WHERE a.id = #{activityId}::uuid
   </select>
 

@@ -32,22 +32,24 @@ public class ActivityController {
     @Operation(summary = "获取活动列表", description = "分页查询活动列表，支持按分类和状态筛选，含统计和用户状态")
     @GetMapping
     public BaseResponse<PageResponse<ActivityListItemDTO>> getActivityList(
+        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
         @Parameter(description = "分类：1-8") @RequestParam(value = "category", required = false) Integer category,
         @Parameter(description = "状态：1=已发布 2=隐藏 3=已结束") @RequestParam(value = "status", required = false) Integer status,
         @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
         @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
         @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
-        PageResponse<ActivityListItemDTO> result = queryFacade.getActivityList(category, status, sort, page, size);
+        PageResponse<ActivityListItemDTO> result = queryFacade.getActivityList(category, status, locale, sort, page, size);
         return BaseResponse.success(result);
     }
     
     @Operation(summary = "获取活动详情", description = "根据 ID 查询活动详情，含统计、用户状态和场次信息")
     @GetMapping("/{id}")
     public BaseResponse<ActivityDetailDTO> getActivityById(
+        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
         @Parameter(description = "活动 ID") @PathVariable("id") UUID id
     ) {
-        ActivityDetailDTO activity = queryFacade.getActivityDetail(id);
+        ActivityDetailDTO activity = queryFacade.getActivityDetail(id, locale);
         return BaseResponse.success(activity);
     }
     

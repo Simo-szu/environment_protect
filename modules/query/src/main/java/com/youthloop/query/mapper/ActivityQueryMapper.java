@@ -19,6 +19,7 @@ public interface ActivityQueryMapper {
     List<Map<String, Object>> selectActivityList(
         @Param("category") Integer category,
         @Param("status") Integer status,
+        @Param("locale") String locale,
         @Param("sort") String sort,
         @Param("offset") Integer offset,
         @Param("limit") Integer limit
@@ -35,7 +36,10 @@ public interface ActivityQueryMapper {
     /**
      * 查询活动详情
      */
-    Map<String, Object> selectActivityDetail(@Param("activityId") UUID activityId);
+    Map<String, Object> selectActivityDetail(
+        @Param("activityId") UUID activityId,
+        @Param("locale") String locale
+    );
     
     /**
      * 查询活动场次列表

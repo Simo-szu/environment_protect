@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 interface BackButtonProps {
     fallbackUrl?: string;
@@ -12,9 +13,10 @@ interface BackButtonProps {
 export default function BackButton({
     fallbackUrl = '/',
     className = "inline-flex items-center gap-2 text-slate-600 hover:text-[#30499B] transition-colors",
-    children = "返回上一页"
+    children
 }: BackButtonProps) {
     const router = useRouter();
+    const { t } = useSafeTranslation('common');
 
     const handleGoBack = () => {
         // 检查是否有历史记录可以返回
@@ -32,7 +34,7 @@ export default function BackButton({
             className={className}
         >
             <ArrowLeft className="w-4 h-4" />
-            {children}
+            {children || t('goBack', '返回上一页')}
         </button>
     );
 }

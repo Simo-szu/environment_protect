@@ -19,6 +19,7 @@ public interface ContentQueryMapper {
      * 
      * @param type 内容类型（可选）
      * @param status 状态（默认 1=已发布）
+     * @param locale 语言代码
      * @param offset 偏移量
      * @param limit 限制数量
      * @return 内容列表（Map 格式，包含主数据和统计）
@@ -26,6 +27,7 @@ public interface ContentQueryMapper {
     List<Map<String, Object>> selectContentListWithStats(
         @Param("type") Integer type,
         @Param("status") Integer status,
+        @Param("locale") String locale,
         @Param("offset") Integer offset,
         @Param("limit") Integer limit
     );
@@ -42,9 +44,13 @@ public interface ContentQueryMapper {
      * 查询内容详情（含统计）
      * 
      * @param contentId 内容 ID
+     * @param locale 语言代码
      * @return 内容详情（Map 格式，包含主数据和统计）
      */
-    Map<String, Object> selectContentDetailWithStats(@Param("contentId") UUID contentId);
+    Map<String, Object> selectContentDetailWithStats(
+        @Param("contentId") UUID contentId,
+        @Param("locale") String locale
+    );
     
     /**
      * 批量查询用户对内容的反应状态
@@ -61,8 +67,12 @@ public interface ContentQueryMapper {
     /**
      * 查询最新内容（首页用）
      * 
+     * @param locale 语言代码
      * @param limit 限制数量
      * @return 内容列表
      */
-    List<Map<String, Object>> selectLatestContents(@Param("limit") Integer limit);
+    List<Map<String, Object>> selectLatestContents(
+        @Param("locale") String locale,
+        @Param("limit") Integer limit
+    );
 }

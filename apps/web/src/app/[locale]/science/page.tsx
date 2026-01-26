@@ -24,9 +24,10 @@ export default function SciencePage() {
     const params = useParams();
     const locale = (params?.locale as string) || 'zh';
     const { t } = useSafeTranslation('science');
+    const { t: tCommon } = useSafeTranslation('common');
     // 状态管理
     const [contents, setContents] = useState<ContentItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const pageSize = 10;
@@ -79,7 +80,7 @@ export default function SciencePage() {
     }, []);
 
     const viewArticle = (articleId: string) => {
-        window.location.href = `/zh/science/${articleId}`;
+        window.location.href = `/${locale}/science/${articleId}`;
     };
 
     const handlePageChange = (page: number) => {
@@ -321,7 +322,7 @@ export default function SciencePage() {
                                                     onClick={() => viewArticle(content.id)}
                                                     className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                                 >
-                                                    阅读全文
+                                                    {t('actions.readFull', '阅读全文')}
                                                 </button>
                                             </div>
                                         </div>
@@ -370,7 +371,7 @@ export default function SciencePage() {
                                                 onClick={() => viewArticle('article-001')}
                                                 className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                             >
-                                                阅读全文
+                                                {t('actions.readFull', '阅读全文')}
                                             </button>
                                         </div>
                                     </div>
@@ -415,7 +416,7 @@ export default function SciencePage() {
                                                 onClick={() => viewArticle('article-002')}
                                                 className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                             >
-                                                阅读全文
+                                                {t('actions.readFull', '阅读全文')}
                                             </button>
                                         </div>
                                     </div>
@@ -460,7 +461,7 @@ export default function SciencePage() {
                                                 onClick={() => viewArticle('article-003')}
                                                 className="text-xs font-medium text-[#30499B] hover:underline decoration-dotted underline-offset-4"
                                             >
-                                                阅读全文
+                                                {t('actions.readFull', '阅读全文')}
                                             </button>
                                         </div>
                                     </div>
@@ -479,12 +480,12 @@ export default function SciencePage() {
                 variants={fadeUp}
                 className="flex justify-center items-center gap-4 py-8"
             >
-                <button 
+                <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1 || loading}
                     className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    上一页
+                    {tCommon('previousPage', '上一页')}
                 </button>
                 <div className="flex items-center gap-2">
                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -498,17 +499,16 @@ export default function SciencePage() {
                         } else {
                             pageNum = currentPage - 2 + i;
                         }
-                        
+
                         return (
                             <button
                                 key={pageNum}
                                 onClick={() => handlePageChange(pageNum)}
                                 disabled={loading}
-                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                                    currentPage === pageNum
-                                        ? 'bg-[#30499B] text-white'
-                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
-                                }`}
+                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                    ? 'bg-[#30499B] text-white'
+                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                    }`}
                             >
                                 {pageNum}
                             </button>
@@ -527,12 +527,12 @@ export default function SciencePage() {
                         </>
                     )}
                 </div>
-                <button 
+                <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages || loading}
                     className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    下一页
+                    {tCommon('nextPage', '下一页')}
                 </button>
             </motion.div>
         </Layout>

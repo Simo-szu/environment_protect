@@ -34,7 +34,7 @@ function ActivitiesPageContent() {
 
     // 状态管理
     const [activities, setActivities] = useState<ActivityItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(1);
 
     // 加载活动数据
@@ -229,8 +229,8 @@ function ActivitiesPageContent() {
                     >
                         {/* Categories Filter */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                            <div className="flex flex-col sm:flex-row gap-4 sm:items-baseline">
-                                <h2 className="text-lg font-serif font-bold text-[#30499B] flex-shrink-0 w-16">
+                            <div className="flex flex-col gap-4">
+                                <h2 className="text-lg font-serif font-bold text-[#30499B]">
                                     {t('filters.title', '分类')}
                                 </h2>
                                 <div className="flex flex-wrap gap-x-2 gap-y-3">
@@ -271,14 +271,14 @@ function ActivitiesPageContent() {
                                     // 根据活动类型确定图标和颜色
                                     const getIcon = () => <Trees className="w-8 h-8" />;
                                     const getGradient = () => 'from-[#56B949]/20 to-[#30499B]/20';
-                                    
+
                                     // 根据报名策略确定状态
                                     const getStatusText = () => {
-                                        if (activity.signupPolicy === 'CLOSED') return '报名结束';
-                                        if (activity.signupPolicy === 'APPROVAL_REQUIRED') return '需审核';
-                                        if (activity.status === 'COMPLETED') return '已结束';
-                                        if (activity.status === 'ONGOING') return '进行中';
-                                        return '正在报名';
+                                        if (activity.signupPolicy === 'CLOSED') return t('status.ended', '报名结束');
+                                        if (activity.signupPolicy === 'APPROVAL_REQUIRED') return t('status.approvalRequired', '需审核');
+                                        if (activity.status === 'COMPLETED') return t('status.completed', '已结束');
+                                        if (activity.status === 'ONGOING') return t('status.ongoing', '进行中');
+                                        return t('status.registering', '正在报名');
                                     };
 
                                     const getStatusColor = () => {
@@ -322,7 +322,7 @@ function ActivitiesPageContent() {
                                                 <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
                                                     <div className="flex items-center gap-4 text-xs text-slate-400">
                                                         <span className="flex items-center gap-1">
-                                                            <Calendar className="w-3 h-3" /> {new Date(activity.startTime).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
+                                                            <Calendar className="w-3 h-3" /> {new Date(activity.startTime).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', day: 'numeric' })}
                                                         </span>
                                                         <div className="flex items-center gap-3">
                                                             <span className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
@@ -335,13 +335,12 @@ function ActivitiesPageContent() {
                                                     </div>
                                                     <button
                                                         onClick={() => canSignup ? registerActivity(activity.id) : viewActivityDetails(activity.id)}
-                                                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                                                            canSignup
-                                                                ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-0.5'
-                                                                : 'bg-white border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
-                                                        }`}
+                                                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${canSignup
+                                                            ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-0.5'
+                                                            : 'bg-white border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
+                                                            }`}
                                                     >
-                                                        {canSignup ? '一键报名' : '了解详情'}
+                                                        {canSignup ? t('actions.register', '一键报名') : t('actions.viewDetails', '了解详情')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -352,8 +351,8 @@ function ActivitiesPageContent() {
                                 // 空状态
                                 <div className="flex flex-col items-center justify-center py-16 text-center">
                                     <CalendarHeart className="w-16 h-16 text-slate-300 mb-4" />
-                                    <p className="text-slate-500 mb-2">暂无活动</p>
-                                    <p className="text-xs text-slate-400">请稍后再来查看</p>
+                                    <p className="text-slate-500 mb-2">{t('empty.title', '暂无活动')}</p>
+                                    <p className="text-xs text-slate-400">{t('empty.subtitle', '请稍后再来查看')}</p>
                                 </div>
                             )}
                         </div>
