@@ -50,14 +50,18 @@ export default function Layout({ children, showHeader = true, showFooter = true 
         </div>
       </div>
 
-      {/* Browser Frame */}
-      <div className="w-full max-w-7xl bg-white/80 dark:bg-slate-800/80 sm:rounded-2xl shadow-2xl shadow-[#56B949]/5 dark:shadow-slate-900/20 border-x sm:border border-white/60 dark:border-slate-700/60 relative backdrop-blur-md z-10 scroll-smooth ring-1 ring-white/50 dark:ring-slate-700/50 mx-auto transition-colors duration-300">
-        {/* 主内容区 */}
-        <main className="p-4 sm:p-6 md:p-12 relative max-w-6xl mx-auto">
-          {showHeader && (
-            <AuthenticatedHeader showSearch={!isSubPage} />
-          )}
+      {/* Glass Container */}
+      <div className="w-full min-h-screen bg-white/40 dark:bg-slate-900/40 relative backdrop-blur-[2px] z-10 scroll-smooth transition-colors duration-300">
+        {showHeader && (
+          <div className="fixed top-0 left-0 right-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <AuthenticatedHeader showSearch={!isSubPage} />
+            </div>
+          </div>
+        )}
 
+        {/* 主内容区 */}
+        <main className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${showHeader ? 'pt-28' : 'pt-8'} pb-20`}>
           <PageTransition>
             {children}
           </PageTransition>

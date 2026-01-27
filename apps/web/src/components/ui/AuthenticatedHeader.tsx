@@ -68,7 +68,7 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     };
 
     return (
-        <nav className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100/60 px-4 sm:px-8 py-4 -mx-4 sm:-mx-6 md:-mx-12 mb-8 mt-4">
+        <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-b border-white/20 dark:border-slate-700/20 px-8 py-4 rounded-b-[2rem] shadow-2xl shadow-black/5 transition-all duration-500 ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Logo */}
                 <Link href={`/${locale}`} className="flex items-center gap-2">
@@ -93,9 +93,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                 <div className={`
           ${isMobileMenuOpen ? 'flex' : 'hidden'} 
           md:flex flex-col md:flex-row absolute md:static top-full left-0 w-full md:w-auto 
-          bg-white md:bg-transparent border-b md:border-none border-slate-100 
-          p-4 md:p-0 gap-4 md:gap-8 text-sm font-medium text-slate-500 
-          shadow-lg md:shadow-none transition-all duration-300 z-50
+          bg-white/95 dark:bg-slate-800/95 md:bg-transparent border-b md:border-none border-slate-100 dark:border-slate-700
+          p-6 md:p-0 gap-4 md:gap-8 text-sm font-medium text-slate-500 dark:text-slate-400
+          shadow-xl md:shadow-none transition-all duration-300 z-50 rounded-b-2xl md:rounded-none
         `}>
                     {navigationItems.map((item) => {
                         const isActive = isActivePage(item.href);
@@ -103,14 +103,11 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={
-                                    isActive
-                                        ? `text-[${item.color}] font-semibold bg-[${item.color}]/10 px-3 py-1 rounded-full w-fit`
-                                        : `hover:text-[${item.color}] transition-colors py-1`
-                                }
+                                className={`relative group py-1 transition-all duration-300 ${isActive ? 'text-slate-900 dark:text-white font-bold' : 'hover:text-slate-900 dark:hover:text-white'}`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                {item.label}
+                                <span>{item.label}</span>
+                                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#30499B] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                             </Link>
                         );
                     })}

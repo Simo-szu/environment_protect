@@ -153,22 +153,32 @@ export default function HomePage() {
             {/* Hero Section */}
             <AnimatedSection
                 useInView={false}
-                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white dark:from-slate-900 via-[#56B949]/5 dark:via-[#56B949]/10 to-white dark:to-slate-900 transition-colors duration-300"
+                className="relative text-center pt-8 pb-16 px-4 overflow-hidden"
             >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-semibold mb-4 border border-[#F0A32F]/20">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
-                    </span>
-                    {t('slogan', '全民环保行动季')}
-                </div>
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
-                    {t('title', 'YOUTHLOOP')}
-                </h1>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
-                    <div className="flex items-center gap-2">
-                        <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
-                        <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#56B949]/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#30499B]/5 rounded-full blur-3xl -z-10 animate-pulse [animation-delay:2s]"></div>
+
+                <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-[#F0A32F] text-xs font-bold mb-8 border border-[#F0A32F]/20 shadow-sm shadow-[#F0A32F]/10">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
+                        </span>
+                        {t('slogan', '全民环保行动季')}
+                    </div>
+
+                    <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-8 transition-colors duration-300">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#30499B] via-[#56B949] to-[#30499B] bg-[length:200%_auto] animate-[gradient_8s_linear_infinite]">
+                            {t('title', 'YOUTHLOOP')}
+                        </span>
+                    </h1>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-lg sm:text-xl text-slate-600 dark:text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed px-4 transition-colors duration-300">
+                        <div className="flex items-center gap-3 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm px-6 py-2 rounded-full border border-white/60 dark:border-slate-700/60 shadow-sm">
+                            <Recycle className="w-6 h-6 text-[#56B949]" />
+                            <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
+                        </div>
                     </div>
                 </div>
             </AnimatedSection>
@@ -193,44 +203,40 @@ export default function HomePage() {
                         return (
                             <div
                                 key={data.id}
-                                className={`carousel-item rounded-[1.5rem] shadow-sm transition-all duration-500 ${positionClass}`}
-                                style={getCardStyle(index)}
+                                className={`carousel-item rounded-[2.5rem] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${positionClass}`}
+                                style={{
+                                    ...getCardStyle(index),
+                                    borderWidth: '1px'
+                                }}
                                 onClick={() => handleCardClick(index, data)}
                             >
                                 {/* Active Content */}
-                                <div className={`card-content-active flex flex-col items-center justify-center text-center w-full h-full relative overflow-hidden p-4 z-20 ${isActive ? 'flex opacity-100' : 'hidden opacity-0'}`}>
-                                    <Icon className="w-10 h-10 text-white mb-3 stroke-[1.5]" />
-                                    <h3 className="text-2xl text-white font-serif font-medium leading-tight mb-4 text-center px-2">
+                                <div className={`card-content-active flex flex-col items-center justify-center text-center w-full h-full relative overflow-hidden p-8 z-20 ${isActive ? 'flex opacity-100' : 'hidden opacity-0'}`}>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+                                    <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl mb-6 shadow-inner ring-1 ring-white/30">
+                                        <Icon className="w-12 h-12 text-white stroke-[2]" />
+                                    </div>
+                                    <h3 className="text-3xl text-white font-black leading-tight mb-6 text-center px-2 drop-shadow-md">
                                         {data.title}
                                     </h3>
-                                    <button className="glass-btn px-4 py-1.5 rounded-full text-white text-xs font-medium hover:bg-white/30 transition-colors">
+                                    <button className="glass-btn px-8 py-2.5 rounded-full text-white text-sm font-bold hover:bg-white hover:text-slate-900 transition-all duration-300 shadow-xl active:scale-95">
                                         {t('enter', '进入')}
                                     </button>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
                                 </div>
 
                                 {/* Inactive Content */}
-                                <div className={`card-content-inactive flex flex-col items-center justify-center text-center w-full h-full relative overflow-hidden p-4 z-10 ${!isActive ? 'flex opacity-100' : 'hidden opacity-0'}`}>
+                                <div className={`card-content-inactive flex flex-col items-center justify-center text-center w-full h-full relative overflow-hidden p-6 z-10 ${!isActive ? 'flex opacity-100' : 'hidden opacity-0'}`}>
                                     <div
-                                        className="decor-circle w-16 h-16 absolute opacity-10 transition-all duration-500"
-                                        style={{
-                                            backgroundColor: data.color,
-                                            ...(index % 4 === 0 ? { top: 0, right: 0, borderBottomLeftRadius: '100%' } :
-                                                index % 4 === 1 ? { top: 0, left: 0, borderBottomRightRadius: '100%' } :
-                                                    index % 4 === 2 ? { bottom: 0, left: 0, borderTopRightRadius: '100%' } :
-                                                        { bottom: 0, right: 0, borderTopLeftRadius: '100%' })
-                                        }}
-                                    ></div>
-                                    <div
-                                        className="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                                        className="w-16 h-16 rounded-[2rem] flex items-center justify-center mb-4 transition-all duration-500 group-hover:scale-110 shadow-lg ring-1 ring-black/5"
                                         style={{ backgroundColor: `${data.color}15` }}
                                     >
-                                        <Icon className="w-5 h-5" style={{ color: data.color }} />
+                                        <Icon className="w-7 h-7" style={{ color: data.color }} />
                                     </div>
-                                    <h3 className="text-lg font-serif font-bold mb-1 text-[#30499B] text-center px-2">
+                                    <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100 text-center px-2">
                                         {data.title.replace('\n', '')}
                                     </h3>
-                                    <p className="text-[10px] text-slate-400 font-medium">{data.sub}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">{data.sub}</p>
+                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: data.color }}></div>
                                 </div>
                             </div>
                         );
@@ -247,19 +253,24 @@ export default function HomePage() {
             </section>
 
             {/* Main Content Grid */}
-            <div className="bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
+            <div className="relative mt-20 px-4 sm:px-6 lg:px-8 py-24 space-y-32">
                 {/* Section: Science Materials */}
                 <AnimatedSection delay={0.1}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                        <div className="flex items-center gap-6">
+                            <div className="w-2 h-16 bg-gradient-to-b from-[#30499B] to-[#56B949] rounded-full shadow-lg shadow-[#30499B]/20"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.science.title', '科普资料')}</h2>
-                                <p className="text-xs text-slate-400 mt-1">{t('sections.science.subtitle', 'TRUSTWORTHY KNOWLEDGE')}</p>
+                                <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight italic underline decoration-[#56B949]/30 underline-offset-8">
+                                    {t('sections.science.title', '科普资料')}
+                                </h2>
+                                <p className="text-sm font-bold text-[#30499B]/60 dark:text-[#56B949]/60 mt-3 tracking-[0.2em] uppercase">
+                                    {t('sections.science.subtitle', 'TRUSTWORTHY KNOWLEDGE')}
+                                </p>
                             </div>
                         </div>
-                        <Link href={`/${locale}/science`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            {t('viewAll', '查看全部')} -&gt;
+                        <Link href={`/${locale}/science`} className="group flex items-center gap-2 text-sm font-bold text-[#30499B] dark:text-[#56B949] hover:opacity-70 transition-all">
+                            <span className="border-b-2 border-current pb-0.5">{t('viewAll', '查看全部')}</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
@@ -403,16 +414,21 @@ export default function HomePage() {
 
                 {/* Section: Popular Activities */}
                 <AnimatedSection delay={0.5}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-8 bg-[#EE4035] rounded-full"></div>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                        <div className="flex items-center gap-6">
+                            <div className="w-2 h-16 bg-gradient-to-b from-[#EE4035] to-[#F0A32F] rounded-full shadow-lg shadow-[#EE4035]/20"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.activities.title', '热门活动')}</h2>
-                                <p className="text-xs text-slate-400 mt-1">{t('sections.activities.subtitle', 'JOIN THE ACTION')}</p>
+                                <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight italic underline decoration-[#EE4035]/30 underline-offset-8">
+                                    {t('sections.activities.title', '热门活动')}
+                                </h2>
+                                <p className="text-sm font-bold text-[#EE4035]/60 dark:text-[#F0A32F]/60 mt-3 tracking-[0.2em] uppercase">
+                                    {t('sections.activities.subtitle', 'JOIN THE ACTION')}
+                                </p>
                             </div>
                         </div>
-                        <Link href={`/${locale}/activities`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
-                            {t('viewAll', '查看全部')} -&gt;
+                        <Link href={`/${locale}/activities`} className="group flex items-center gap-2 text-sm font-bold text-[#30499B] dark:text-[#56B949] hover:opacity-70 transition-all">
+                            <span className="border-b-2 border-current pb-0.5">{t('viewAll', '查看全部')}</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
@@ -537,49 +553,58 @@ export default function HomePage() {
 
 
                 {/* Section: Points Park */}
-                <AnimatedSection delay={1.0}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-8 bg-[#F0A32F] rounded-full"></div>
+                <AnimatedSection delay={0.8}>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                        <div className="flex items-center gap-6">
+                            <div className="w-2 h-16 bg-gradient-to-b from-[#F0A32F] to-[#EE4035] rounded-full shadow-lg shadow-[#F0A32F]/20"></div>
                             <div>
-                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.points.title', '积分乐园')}</h2>
-                                <p className="text-xs text-slate-400 mt-1">{t('sections.points.subtitle', 'REWARDS & POINTS')}</p>
+                                <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight italic underline decoration-[#F0A32F]/30 underline-offset-8">
+                                    {t('sections.points.title', '积分乐园')}
+                                </h2>
+                                <p className="text-sm font-bold text-[#F0A32F]/60 dark:text-[#EE4035]/60 mt-3 tracking-[0.2em] uppercase">
+                                    {t('sections.points.subtitle', 'REWARDS & POINTS')}
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     <div
                         onClick={handlePointsClick}
-                        className="relative w-full p-6 md:p-8 rounded-2xl bg-[#fffcf5] dark:bg-slate-800/50 border border-[#F0A32F]/20 dark:border-[#F0A32F]/30 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden cursor-pointer hover:bg-[#fffbf0] dark:hover:bg-slate-800/70 transition-colors"
+                        className="group relative w-full p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-[#F0A32F]/10 transition-all duration-500"
                     >
                         {/* Decorative bg */}
-                        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-[#F0A32F]/5 rounded-full blur-3xl"></div>
+                        <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#F0A32F]/10 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-700"></div>
+                        <div className="absolute -left-20 -top-20 w-80 h-80 bg-[#56B949]/5 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-700"></div>
 
-                        <div className="flex items-center gap-4 md:gap-6 relative z-10 w-full md:w-auto">
-                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#F0A32F]/10 flex items-center justify-center text-[#F0A32F] border-2 border-[#F0A32F]/20 shadow-[0_0_15px_rgba(240,163,47,0.3)] shrink-0">
-                                <Coins className="w-8 h-8 md:w-10 md:h-10" />
+                        <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-[#F0A32F] to-[#EE4035] flex items-center justify-center text-white shadow-xl shadow-[#F0A32F]/40 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                                <Coins className="w-10 h-10 md:w-12 md:h-12" />
                             </div>
                             <div>
-                                <h3 className="text-lg md:text-xl font-bold text-[#30499B] dark:text-[#56B949]">{t('sections.points.dailyTask', '完成每日任务')}</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white">{t('sections.points.dailyTask', '完成每日任务')}</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-lg mt-2 font-medium">
                                     {t('sections.points.pointsNeeded', '今天还需 {points} 积分即可升级勋章', { points: 50 })}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
-                            <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
-                                <Footprints className="w-5 h-5 text-[#56B949]" />
-                                <div>
-                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.walking', '步行打卡')}</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.walkingPoints', '+10 积分')}</div>
+                        <div className="flex flex-col sm:flex-row gap-6 relative z-10 w-full md:w-auto">
+                            <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-slate-700/50 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 dark:border-slate-600 hover:scale-105 transition-transform">
+                                <div className="w-10 h-10 rounded-full bg-[#56B949]/10 flex items-center justify-center">
+                                    <Footprints className="w-6 h-6 text-[#56B949]" />
+                                </div>
+                                <div className="pr-4">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('sections.points.tasks.walking', '步行打卡')}</div>
+                                    <div className="text-lg font-black text-[#F0A32F] mt-1">{t('sections.points.tasks.walkingPoints', '+10 积分')}</div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-[#F0A32F]/20 active:bg-slate-50 dark:active:bg-slate-600 transition-colors cursor-pointer">
-                                <Trash className="w-5 h-5 text-[#30499B]" />
-                                <div>
-                                    <div className="text-xs text-slate-400">{t('sections.points.tasks.sorting', '垃圾分类')}</div>
-                                    <div className="text-sm font-bold text-[#F0A32F]">{t('sections.points.tasks.sortingPoints', '+20 积分')}</div>
+                            <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-slate-700/50 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 dark:border-slate-600 hover:scale-105 transition-transform">
+                                <div className="w-10 h-10 rounded-full bg-[#30499B]/10 flex items-center justify-center">
+                                    <Trash className="w-6 h-6 text-[#30499B]" />
+                                </div>
+                                <div className="pr-4">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('sections.points.tasks.sorting', '垃圾分类')}</div>
+                                    <div className="text-lg font-black text-[#F0A32F] mt-1">{t('sections.points.tasks.sortingPoints', '+20 积分')}</div>
                                 </div>
                             </div>
                         </div>
@@ -588,6 +613,11 @@ export default function HomePage() {
             </div >
 
             <style jsx>{`
+        @keyframes gradient {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
         /* 轮播样式核心 */
         .carousel-container {
           perspective: 1000px;
@@ -597,9 +627,9 @@ export default function HomePage() {
         .carousel-item {
           position: absolute;
           top: 50%;
-          width: 200px; 
-          height: 260px;
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 260px; 
+          height: 340px;
+          transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
           transform-origin: center center;
           opacity: 0;
           z-index: 10;
@@ -613,27 +643,27 @@ export default function HomePage() {
         
         /* 状态位置定义 - 确保三个卡片可见 */
         .carousel-item.pos-0 { /* 左侧 */
-          left: 25%;
-          opacity: 1;
+          left: 20%;
+          opacity: 0.7;
           z-index: 20;
-          transform: translateY(-50%) translateX(-50%) scale(0.9);
-          filter: blur(0px);
+          transform: translateY(-50%) translateX(-50%) scale(0.85) rotateY(15deg);
+          filter: blur(1px);
         }
         
         .carousel-item.pos-1 { /* 中间 (Active) */
           left: 50%;
           opacity: 1;
           z-index: 30;
-          transform: translateY(-50%) translateX(-50%) scale(1.15);
-          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
+          transform: translateY(-50%) translateX(-50%) scale(1.1);
+          box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
         }
         
         .carousel-item.pos-2 { /* 右侧 */
-          left: 75%;
-          opacity: 1;
+          left: 80%;
+          opacity: 0.7;
           z-index: 20;
-          transform: translateY(-50%) translateX(-50%) scale(0.9);
-          filter: blur(0px);
+          transform: translateY(-50%) translateX(-50%) scale(0.85) rotateY(-15deg);
+          filter: blur(1px);
         }
         
         .carousel-item.pos-3, .carousel-item.pos-hidden { /* 隐藏 (循环缓冲) */
@@ -647,22 +677,22 @@ export default function HomePage() {
         /* 移动端调整 */
         @media (max-width: 768px) {
           .carousel-item { 
-            width: 160px; 
-            height: 220px; 
+            width: 180px; 
+            height: 240px; 
           }
           .carousel-item.pos-0 { 
-            left: 10%; 
-            opacity: 0.6; 
-            transform: translateY(-50%) translateX(-50%) scale(0.8); 
+            left: 5%; 
+            opacity: 0.4; 
+            transform: translateY(-50%) translateX(-50%) scale(0.75); 
           }
           .carousel-item.pos-1 { 
             left: 50%; 
-            transform: translateY(-50%) translateX(-50%) scale(1.1); 
+            transform: translateY(-50%) translateX(-50%) scale(1.0); 
           }
           .carousel-item.pos-2 { 
-            left: 90%; 
-            opacity: 0.6; 
-            transform: translateY(-50%) translateX(-50%) scale(0.8); 
+            left: 95%; 
+            opacity: 0.4; 
+            transform: translateY(-50%) translateX(-50%) scale(0.75); 
           }
         }
         
