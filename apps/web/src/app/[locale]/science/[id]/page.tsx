@@ -25,6 +25,7 @@ import {
 import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 import { contentApi, interactionApi } from '@/lib/api';
 import type { ContentDetail, ContentItem, Comment } from '@/lib/api/content';
+import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
 export default function ScienceArticleDetailPage() {
     const router = useRouter();
@@ -43,6 +44,7 @@ export default function ScienceArticleDetailPage() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [favoriteCount, setFavoriteCount] = useState(0);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // 加载文章数据
     useEffect(() => {
@@ -93,7 +95,7 @@ export default function ScienceArticleDetailPage() {
 
     const handleLike = async () => {
         if (!isLoggedIn) {
-            router.push(`/${locale}/login`);
+            setIsAuthModalOpen(true);
             return;
         }
 
@@ -122,7 +124,7 @@ export default function ScienceArticleDetailPage() {
 
     const handleFavorite = async () => {
         if (!isLoggedIn) {
-            router.push(`/${locale}/login`);
+            setIsAuthModalOpen(true);
             return;
         }
 
@@ -491,6 +493,11 @@ export default function ScienceArticleDetailPage() {
                     </motion.div>
                 )}
             </motion.div>
+            {/* Auth Prompt Modal */}
+            <AuthPromptModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
         </Layout>
     );
 }

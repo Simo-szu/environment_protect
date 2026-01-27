@@ -4,9 +4,13 @@ import { useState, useEffect } from 'react';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import { activityApi } from '@/lib/api';
 import type { ActivitySummaryDTO, ActivityCategoryCountDTO } from '@/lib/api/activity';
-import { Trees, TreePine, Leaf, Sprout } from 'lucide-react';
+import { Trees, TreePine, Leaf, Sprout, Heart, Users, Music, Trophy, Cpu, Palette, Sun } from 'lucide-react';
 
-export default function ActivityStatsSidebar() {
+interface ActivityStatsSidebarProps {
+    onCategorySelect?: (categoryId: number) => void;
+}
+
+export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStatsSidebarProps) {
     const { t } = useSafeTranslation('activities');
     const [summary, setSummary] = useState<ActivitySummaryDTO | null>(null);
     const [categories, setCategories] = useState<ActivityCategoryCountDTO[]>([]);
@@ -78,17 +82,27 @@ export default function ActivityStatsSidebar() {
                         <div className="text-sm text-slate-400">Loading...</div>
                     ) : categories.length > 0 ? (
                         categories.map((cat, index) => (
-                            <div key={cat.category} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
-                                <div className="w-5 h-5 flex items-center justify-center">
+                            <div
+                                key={cat.category}
+                                onClick={() => onCategorySelect?.(cat.category)}
+                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer group"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm border border-slate-100/50">
                                     {/* Rotate icons for variety */}
-                                    {index % 3 === 0 && <Trees className="w-4 h-4 text-[#56B949]" />}
-                                    {index % 3 === 1 && <Leaf className="w-4 h-4 text-[#30499B]" />}
-                                    {index % 3 === 2 && <Sprout className="w-4 h-4 text-[#F0A32F]" />}
+                                    {cat.category === 1 && <Trees className="w-4 h-4 text-[#56B949]" />}
+                                    {cat.category === 2 && <Heart className="w-4 h-4 text-[#EE4035]" />}
+                                    {cat.category === 3 && <Users className="w-4 h-4 text-[#30499B]" />}
+                                    {cat.category === 4 && <Music className="w-4 h-4 text-[#F0A32F]" />}
+                                    {cat.category === 5 && <Trophy className="w-4 h-4 text-[#56B949]" />}
+                                    {cat.category === 6 && <Cpu className="w-4 h-4 text-[#30499B]" />}
+                                    {cat.category === 7 && <Palette className="w-4 h-4 text-[#F0A32F]" />}
+                                    {cat.category === 8 && <Sun className="w-4 h-4 text-[#56B949]" />}
+                                    {cat.category > 8 && <Leaf className="w-4 h-4 text-slate-400" />}
                                 </div>
-                                <span className="text-sm text-slate-600">
+                                <span className="text-sm text-slate-600 font-medium">
                                     {t(`categories.${activityApi.mapCategory(cat.category)}`)}
                                 </span>
-                                <span className="ml-auto text-xs text-slate-400">{cat.activityCount}</span>
+                                <span className="ml-auto text-xs text-slate-400 bg-slate-100/50 px-2 py-0.5 rounded-full">{cat.activityCount}</span>
                             </div>
                         ))
                     ) : (

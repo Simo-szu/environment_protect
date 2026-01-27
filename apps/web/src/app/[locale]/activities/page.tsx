@@ -14,7 +14,14 @@ import {
     Trees,
     Sun,
     Waves,
-    Recycle
+    Recycle,
+    Heart,
+    Users,
+    Music,
+    Trophy,
+    Cpu,
+    Palette,
+    Leaf
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
@@ -24,6 +31,7 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift 
 import { activityApi } from '@/lib/api';
 import type { ActivityItem } from '@/lib/api/activity';
 import ActivityStatsSidebar from '@/components/activity/ActivityStatsSidebar';
+import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
 function ActivitiesPageContent() {
     const { user, isLoggedIn } = useAuth();
@@ -35,8 +43,10 @@ function ActivitiesPageContent() {
 
     // 状态管理
     const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(1);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // 加载活动数据
     useEffect(() => {
@@ -46,7 +56,8 @@ function ActivitiesPageContent() {
                 const result = await activityApi.getActivities({
                     page: currentPage,
                     size: itemsPerPage,
-                    sort: 'hot'
+                    sort: 'hot',
+                    category: selectedCategory
                 });
                 setActivities(result.items);
                 setTotalPages(Math.ceil(result.total / itemsPerPage));
@@ -59,20 +70,19 @@ function ActivitiesPageContent() {
         };
 
         loadActivities();
-    }, [currentPage]);
+    }, [currentPage, selectedCategory]);
 
 
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // 滚动到活动列表顶部
-        const activitiesSection = document.getElementById('activities-section');
-        if (activitiesSection) {
-            activitiesSection.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+        scrollToActivities();
+    };
+
+    const handleCategoryChange = (category: number | undefined) => {
+        setSelectedCategory(category);
+        setCurrentPage(1); // 切换分类时重置到第一页
+        scrollToActivities();
     };
 
     const scrollToActivities = () => {
@@ -87,7 +97,7 @@ function ActivitiesPageContent() {
 
     const goToMyActivities = () => {
         if (!user || !isLoggedIn) {
-            window.location.href = `/${locale}/login`;
+            setIsAuthModalOpen(true);
         } else {
             window.location.href = `/${locale}/my-activities`;
         }
@@ -95,7 +105,7 @@ function ActivitiesPageContent() {
 
     const checkLoginAndRedirect = () => {
         if (!user || !isLoggedIn) {
-            window.location.href = `/${locale}/login`;
+            setIsAuthModalOpen(true);
         } else {
             window.location.href = `/${locale}/activities/create`;
         }
@@ -103,7 +113,7 @@ function ActivitiesPageContent() {
 
     const registerActivity = (activityId: string) => {
         if (!user || !isLoggedIn) {
-            window.location.href = `/${locale}/login`;
+            setIsAuthModalOpen(true);
         } else {
             window.location.href = `/${locale}/activities/register?id=${activityId}`;
         }
@@ -237,18 +247,27 @@ function ActivitiesPageContent() {
                                     {t('filters.title', '分类')}
                                 </h2>
                                 <div className="flex flex-wrap gap-x-2 gap-y-3">
-                                    <button className="px-4 py-1.5 rounded-full bg-[#30499B] text-white text-xs font-medium shadow-md shadow-[#30499B]/20 transition-all hover:scale-105">
+                                    <button
+                                        onClick={() => handleCategoryChange(undefined)}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 ${selectedCategory === undefined
+                                            ? 'bg-[#30499B] text-white shadow-md shadow-[#30499B]/20'
+                                            : 'bg-white/80 text-slate-600 border border-slate-100 hover:bg-[#30499B]/10'
+                                            }`}
+                                    >
                                         {t('filters.all', '全部')}
                                     </button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
-                                        {t('filters.market', '环保市集')}
-                                    </button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
-                                        {t('filters.planting', '植树活动')}
-                                    </button>
-                                    <button className="px-4 py-1.5 rounded-full bg-white/80 text-slate-600 border border-slate-100 text-xs font-medium hover:bg-[#56B949] hover:text-white hover:border-[#56B949] transition-all duration-300">
-                                        {t('filters.sorting', '垃圾分类')}
-                                    </button>
+                                    {[1, 2, 3, 4, 5, 6, 7, 8].map((catId) => (
+                                        <button
+                                            key={catId}
+                                            onClick={() => handleCategoryChange(catId)}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${selectedCategory === catId
+                                                ? 'bg-[#56B949] text-white shadow-md shadow-[#56B949]/20'
+                                                : 'bg-white/80 text-slate-600 border border-slate-100 hover:bg-[#56B949] hover:text-white hover:border-[#56B949]'
+                                                }`}
+                                        >
+                                            {t(`categories.${activityApi.mapCategory(catId)}`)}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -272,8 +291,29 @@ function ActivitiesPageContent() {
                                 // 真实数据
                                 activities.map((activity) => {
                                     // 根据活动类型确定图标和颜色
-                                    const getIcon = () => <Trees className="w-8 h-8" />;
-                                    const getGradient = () => 'from-[#56B949]/20 to-[#30499B]/20';
+                                    const getIcon = () => {
+                                        switch (activity.category) {
+                                            case 'environmental': return <Trees className="w-8 h-8" />;
+                                            case 'volunteer': return <Heart className="w-8 h-8" />;
+                                            case 'community': return <Users className="w-8 h-8" />;
+                                            case 'culture': return <Music className="w-8 h-8" />;
+                                            case 'sports': return <Trophy className="w-8 h-8" />;
+                                            case 'tech': return <Cpu className="w-8 h-8" />;
+                                            case 'art': return <Palette className="w-8 h-8" />;
+                                            default: return <Sun className="w-8 h-8" />;
+                                        }
+                                    };
+
+                                    const getGradient = () => {
+                                        switch (activity.category) {
+                                            case 'environmental': return 'from-[#56B949]/20 to-[#30499B]/20';
+                                            case 'volunteer': return 'from-[#EE4035]/20 to-[#F0A32F]/20';
+                                            case 'community': return 'from-[#30499B]/20 to-[#56B949]/20';
+                                            case 'culture': return 'from-[#F0A32F]/20 to-[#EE4035]/20';
+                                            case 'tech': return 'from-[#30499B]/20 to-[#4aa840]/20';
+                                            default: return 'from-slate-100 to-slate-200';
+                                        }
+                                    };
 
                                     // 根据报名策略确定状态
                                     const getStatusText = () => {
@@ -373,10 +413,15 @@ function ActivitiesPageContent() {
                         variants={staggerItem}
                         className="lg:col-span-4 space-y-6"
                     >
-                        <ActivityStatsSidebar />
+                        <ActivityStatsSidebar onCategorySelect={handleCategoryChange} />
                     </motion.div>
                 </motion.div>
             </motion.div >
+            {/* Auth Prompt Modal */}
+            <AuthPromptModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
         </Layout >
     );
 }

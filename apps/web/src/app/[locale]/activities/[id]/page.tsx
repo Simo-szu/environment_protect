@@ -27,6 +27,7 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animatio
 import { activityApi, interactionApi } from '@/lib/api';
 import type { ActivityDetail, ActivitySession } from '@/lib/api/activity';
 import ActivityStatsSidebar from '@/components/activity/ActivityStatsSidebar';
+import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
 export default function ActivityDetailPage() {
     const { isLoggedIn } = useAuth();
@@ -43,6 +44,7 @@ export default function ActivityDetailPage() {
     const [isLiked, setIsLiked] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // 加载活动数据
     useEffect(() => {
@@ -81,7 +83,7 @@ export default function ActivityDetailPage() {
 
     const handleRegister = () => {
         if (!isLoggedIn) {
-            router.push(`/${locale}/login`);
+            setIsAuthModalOpen(true);
             return;
         }
         router.push(`/${locale}/activities/register?id=${activityId}`);
@@ -89,7 +91,7 @@ export default function ActivityDetailPage() {
 
     const handleLike = async () => {
         if (!isLoggedIn) {
-            router.push(`/${locale}/login`);
+            setIsAuthModalOpen(true);
             return;
         }
 
@@ -118,7 +120,7 @@ export default function ActivityDetailPage() {
 
     const handleFavorite = async () => {
         if (!isLoggedIn) {
-            router.push(`/${locale}/login`);
+            setIsAuthModalOpen(true);
             return;
         }
 
@@ -494,6 +496,11 @@ export default function ActivityDetailPage() {
                     </motion.div>
                 </div>
             </motion.div>
+            {/* Auth Prompt Modal */}
+            <AuthPromptModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
         </Layout>
     );
 }

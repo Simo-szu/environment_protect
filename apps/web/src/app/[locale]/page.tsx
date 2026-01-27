@@ -13,6 +13,7 @@ import { useClientMounted } from '@/hooks/useClientMounted';
 import { homeApi, contentApi, activityApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
 import type { ActivityItem } from '@/lib/api/activity';
+import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
 interface CardData {
     id: string;
@@ -35,6 +36,7 @@ export default function HomePage() {
     const [contents, setContents] = useState<ContentItem[]>([]);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // 加载首页数据
     useEffect(() => {
@@ -102,7 +104,7 @@ export default function HomePage() {
         } else {
             // 处理点击事件 - 积分需要登录验证
             if (data.id === 'points' && !isLoggedIn) {
-                showLoginPrompt('请先登录再查看积分');
+                setIsAuthModalOpen(true);
             } else {
                 window.location.href = data.link;
             }
@@ -139,7 +141,7 @@ export default function HomePage() {
 
     const handlePointsClick = () => {
         if (!isLoggedIn) {
-            showLoginPrompt('请先登录再查看积分');
+            setIsAuthModalOpen(true);
         } else {
             window.location.href = `/${locale}/points`;
         }
@@ -680,6 +682,11 @@ export default function HomePage() {
         }
       `}</style>
 
+            {/* Auth Prompt Modal */}
+            <AuthPromptModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
         </Layout >
     );
 }
