@@ -34,18 +34,18 @@ public class QueryFacadeImpl implements QueryFacade {
     private final MeQueryService meQueryService;
     
     @Override
-    public HomeDTO getHomeData(String locale) {
-        return homeQueryService.getHomeData(locale);
+    public HomeDTO getHomeData() {
+        return homeQueryService.getHomeData();
     }
     
     @Override
-    public PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String locale, Integer page, Integer size) {
-        return contentQueryService.getContentList(type, status, locale, page, size);
+    public PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String sort, Integer page, Integer size) {
+        return contentQueryService.getContentList(type, status, sort, page, size);
     }
     
     @Override
-    public ContentDetailDTO getContentDetail(UUID contentId, String locale) {
-        return contentQueryService.getContentDetail(contentId, locale);
+    public ContentDetailDTO getContentDetail(UUID contentId) {
+        return contentQueryService.getContentDetail(contentId);
     }
     
     @Override
@@ -54,13 +54,13 @@ public class QueryFacadeImpl implements QueryFacade {
     }
     
     @Override
-    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String locale, String sort, Integer page, Integer size) {
-        return activityQueryService.getActivityList(category, status, locale, sort, page, size);
+    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String sort, Integer page, Integer size) {
+        return activityQueryService.getActivityList(category, status, sort, page, size);
     }
     
     @Override
-    public ActivityDetailDTO getActivityDetail(UUID activityId, String locale) {
-        return activityQueryService.getActivityDetail(activityId, locale);
+    public ActivityDetailDTO getActivityDetail(UUID activityId) {
+        return activityQueryService.getActivityDetail(activityId);
     }
     
     @Override
@@ -81,5 +81,15 @@ public class QueryFacadeImpl implements QueryFacade {
     @Override
     public PageResponse<MyActivityItemDTO> getMyActivities(Integer status, Integer page, Integer size) {
         return meQueryService.getMyActivities(status, page, size);
+    }
+
+    @Override
+    public ActivitySummaryDTO getActivitySummary(String month, UUID currentUserIdOrNull) {
+        return activityQueryService.getActivitySummary(month, currentUserIdOrNull);
+    }
+
+    @Override
+    public List<ActivityCategoryCountDTO> getPopularActivityCategories(String month, int limit) {
+        return activityQueryService.getPopularActivityCategories(month, limit);
     }
 }

@@ -11,120 +11,7 @@ import Pagination from '@/components/ui/Pagination';
 import { userApi } from '@/lib/api';
 import type { NotificationItem } from '@/lib/api/user';
 
-interface Message {
-    id: string;
-    type: 'replies' | 'likes' | 'follows';
-    isRead: boolean;
-    user: {
-        name: string;
-        avatar: string;
-    };
-    content: string;
-    originalContent?: string;
-    timestamp: string;
-    isLiked?: boolean;
-    isFollowedBack?: boolean;
-}
 
-// 扩展模拟数据到更多消息
-const generateMockMessages = (t: any, locale: string): Message[] => {
-    const baseMessages = [
-        {
-            id: '1',
-            type: 'replies' as const,
-            isRead: false,
-            user: { name: t('mockData.users.user1', '李环保达人'), avatar: t('mockData.users.user1', '李环保达人').charAt(0) },
-            content: t('mockData.contents.content1', '非常赞同你的观点！环保确实需要从每个人做起，我也会在日常生活中更加注意节能减排。你提到的那些小贴士很实用，已经开始实践了。'),
-            originalContent: t('mockData.originalContents.original1', '我们每个人都应该为环保贡献自己的力量，从日常的小事做起，比如节约用水、垃圾分类、绿色出行等...'),
-            timestamp: `2${t('mockData.timestamps.hoursAgo', '小时前')}`
-        },
-        {
-            id: '2',
-            type: 'likes' as const,
-            isRead: false,
-            user: { name: t('mockData.users.user2', '王小绿'), avatar: t('mockData.users.user2', '王小绿').charAt(0) },
-            content: t('mockData.contents.content2', '你分享的垃圾分类方法很实用，已经收藏了！希望能看到更多这样的环保小贴士。'),
-            originalContent: t('mockData.originalContents.original2', '垃圾分类小知识 - 让环保从细节做起'),
-            timestamp: `4${t('mockData.timestamps.hoursAgo', '小时前')}`
-        },
-        {
-            id: '3',
-            type: 'follows' as const,
-            isRead: false,
-            user: { name: t('mockData.users.user3', '张环保志愿者'), avatar: t('mockData.users.user3', '张环保志愿者').charAt(0) },
-            content: t('mockData.contents.content3', '看到你在环保方面的分享很有价值，希望能互相学习交流！'),
-            timestamp: `1${t('mockData.timestamps.daysAgo', '天前')}`
-        },
-        {
-            id: '4',
-            type: 'replies' as const,
-            isRead: true,
-            user: { name: t('mockData.users.user4', '陈小环'), avatar: t('mockData.users.user4', '陈小环').charAt(0) },
-            content: t('mockData.contents.content4', '感谢分享这么详细的节能小贴士！我已经开始在家里实践了，效果很不错。'),
-            originalContent: t('mockData.originalContents.original3', '家庭节能其实很简单，比如使用LED灯泡、及时关闭电器、合理设置空调温度等...'),
-            timestamp: `2${t('mockData.timestamps.daysAgo', '天前')}`,
-            isLiked: true
-        },
-        {
-            id: '5',
-            type: 'likes' as const,
-            isRead: true,
-            user: { name: t('mockData.users.user5', '刘绿色生活'), avatar: t('mockData.users.user5', '刘绿色生活').charAt(0) },
-            content: t('mockData.contents.content5', '很棒的环保活动分享！希望有机会也能参与这样的活动。'),
-            originalContent: t('mockData.originalContents.original4', '参与社区植树活动的感想'),
-            timestamp: `3${t('mockData.timestamps.daysAgo', '天前')}`
-        }
-    ];
-
-    // 生成更多模拟数据
-    const additionalMessages: Message[] = [];
-    // 根据语言环境使用不同的数组
-    const names = locale === 'en' ?
-        ['Zhao Eco', 'Qian Green', 'Sun Energy', 'Li Reduce', 'Zhou Cycle', 'Wu LowCarbon', 'Zheng Clean', 'Wang Sustain', 'Feng Eco', 'Chen Green'] :
-        ['赵环保', '钱绿色', '孙节能', '李减排', '周循环', '吴低碳', '郑清洁', '王可持续', '冯生态', '陈绿化'];
-
-    const types: ('replies' | 'likes' | 'follows')[] = ['replies', 'likes', 'follows'];
-
-    const contents = locale === 'en' ? [
-        'Your environmental philosophy is great, learned a lot!',
-        'I\'ve tried this method, it\'s really effective.',
-        'Thank you for sharing, very inspiring to me.',
-        'Hope to participate in more environmental activities with you.',
-        'Your sharing gave me a new understanding of environmental protection.',
-        'These tips are so practical, I\'ve started practicing them.',
-        'I totally agree with your point, environmental protection needs everyone\'s effort.',
-        'Your experience sharing is very valuable, thank you!'
-    ] : [
-        '你的环保理念很棒，学到了很多！',
-        '这个方法我试过，确实很有效果。',
-        '感谢分享，对我很有启发。',
-        '希望能和你一起参与更多环保活动。',
-        '你的分享让我对环保有了新的认识。',
-        '这些小贴士太实用了，已经开始实践。',
-        '非常认同你的观点，环保需要大家一起努力。',
-        '你的经验分享很有价值，谢谢！'
-    ];
-
-    for (let i = 6; i <= 42; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const name = names[Math.floor(Math.random() * names.length)];
-        const content = contents[Math.floor(Math.random() * contents.length)];
-
-        additionalMessages.push({
-            id: i.toString(),
-            type,
-            isRead: Math.random() > 0.3, // 70% 已读
-            user: { name, avatar: name.charAt(0) },
-            content,
-            originalContent: type !== 'follows' ? t('mockData.originalContents.original5', '环保相关的原始内容...') : undefined,
-            timestamp: `${Math.floor(Math.random() * 7) + 1}${t('mockData.timestamps.daysAgo', '天前')}`,
-            isLiked: Math.random() > 0.5,
-            isFollowedBack: type === 'follows' ? Math.random() > 0.5 : undefined
-        });
-    }
-
-    return [...baseMessages, ...additionalMessages];
-};
 
 export default function NotificationsPage() {
     const { isLoggedIn, loading } = useAuth();
@@ -161,12 +48,7 @@ export default function NotificationsPage() {
         }
     }, [isLoggedIn, loading, currentPage, messagesPerPage]);
 
-    // 如果未登录，重定向到登录页
-    useEffect(() => {
-        if (!loading && !isLoggedIn) {
-            window.location.href = `/${locale}/login`;
-        }
-    }, [isLoggedIn, loading, locale]);
+
 
     // 显示加载状态（仅在认证阶段）
     if (loading) {
@@ -190,7 +72,7 @@ export default function NotificationsPage() {
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
                         <div className="text-lg text-slate-600 mb-4">请先登录查看消息通知</div>
-                        <Link href="/zh/login" className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
+                        <Link href={`/${locale}/login`} className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
                             去登录
                         </Link>
                     </div>
@@ -320,7 +202,7 @@ export default function NotificationsPage() {
                                                 )}
                                                 <span className="text-xs text-slate-400 flex items-center gap-1">
                                                     <Clock className="w-3 h-3" />
-                                                    {new Date(notification.createdAt).toLocaleString('zh-CN')}
+                                                    {new Date(notification.createdAt).toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN')}
                                                 </span>
                                             </div>
                                         </div>

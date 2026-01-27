@@ -26,6 +26,7 @@ import {
 import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 import { activityApi, interactionApi } from '@/lib/api';
 import type { ActivityDetail, ActivitySession } from '@/lib/api/activity';
+import ActivityStatsSidebar from '@/components/activity/ActivityStatsSidebar';
 
 export default function ActivityDetailPage() {
     const { isLoggedIn } = useAuth();
@@ -462,6 +463,9 @@ export default function ActivityDetailPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Stats Sidebar */}
+                        <ActivityStatsSidebar />
 
                         {/* Organizer Info */}
                         {activity.organizerName && (

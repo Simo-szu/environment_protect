@@ -251,7 +251,15 @@
             "title": "Popular Categories",
             "planting": "Tree Planting",
             "beachCleanup": "Beach Cleanup",
-            "recycling": "Recycling"
+            "recycling": "Recycling",
+            "environmental": "Environmental Education",
+            "volunteer": "Volunteer Service",
+            "community": "Community Activities",
+            "culture": "Cultural Exchange",
+            "sports": "Sports & Fitness",
+            "tech": "Tech Innovation",
+            "art": "Art Performance",
+            "other": "Other"
         },
         "create": {
             "title": "Create Activity",
@@ -436,6 +444,12 @@
             "learnMore": "Learn More",
             "viewAll": "View All",
             "readFull": "Read Full Article"
+        },
+        "types": {
+            "NEWS": "News",
+            "DYNAMIC": "Dynamics",
+            "POLICY": "Policies",
+            "WIKI": "Wiki"
         }
     },
     "article": {

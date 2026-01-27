@@ -33,13 +33,12 @@ public class ActivityQueryService {
      * 查询活动列表（分页 + 筛选 + 排序）
      */
     @Transactional(readOnly = true)
-    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String locale, String sort, Integer page, Integer size) {
+    public PageResponse<ActivityListItemDTO> getActivityList(Integer category, Integer status, String sort, Integer page, Integer size) {
         // 参数校验与默认值
         int validPage = Math.max(1, page);
         int validSize = Math.min(100, Math.max(1, size));
         int offset = (validPage - 1) * validSize;
         Integer validStatus = (status != null) ? status : 1; // 默认只查已发布
-        String validLocale = (locale != null) ? locale : "zh"; // 默认中文
         String validSort = (sort != null && sort.equals("hot")) ? "hot" : "latest";
         
         // 查询总数
@@ -51,7 +50,7 @@ public class ActivityQueryService {
         
         // 查询列表
         List<Map<String, Object>> rows = activityQueryMapper.selectActivityList(
-            category, validStatus, validLocale, validSort, offset, validSize
+            category, validStatus, validSort, offset, validSize
         );
         
         // 获取当前用户 ID（如果已登录）
@@ -87,11 +86,8 @@ public class ActivityQueryService {
      * 查询活动详情
      */
     @Transactional(readOnly = true)
-    public ActivityDetailDTO getActivityDetail(UUID activityId, String locale) {
-        // 参数校验
-        locale = locale != null ? locale : "zh"; // 默认中文
-        
-        Map<String, Object> row = activityQueryMapper.selectActivityDetail(activityId, locale);
+    public ActivityDetailDTO getActivityDetail(UUID activityId) {
+        Map<String, Object> row = activityQueryMapper.selectActivityDetail(activityId);
         
         if (row == null) {
             throw new BizException(40041, "活动不存在");
@@ -137,6 +133,52 @@ public class ActivityQueryService {
         return sessionRows.stream()
             .map(this::mapToActivitySession)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get activity summary for a month
+     */
+    @Transactional(readOnly = true)
+    public com.youthloop.query.dto.ActivitySummaryDTO getActivitySummary(String month, UUID currentUserId) {
+        try {
+            java.time.YearMonth ym = java.time.YearMonth.parse(month);
+            java.time.LocalDateTime start = ym.atDay(1).atStartOfDay();
+            java.time.LocalDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay();
+
+            int activities = activityQueryMapper.selectMonthlyActivityCount(start, end);
+            int participants = activityQueryMapper.selectMonthlyParticipantCount(start, end);
+            Integer myReg = null;
+            if (currentUserId != null) {
+                myReg = activityQueryMapper.selectMyMonthlyRegistrationCount(start, end, currentUserId);
+            }
+
+            com.youthloop.query.dto.ActivitySummaryDTO dto = new com.youthloop.query.dto.ActivitySummaryDTO();
+            dto.setMonth(month);
+            dto.setMonthlyActivityCount(activities);
+            dto.setMonthlyParticipantCount(participants);
+            dto.setMyRegistrationCount(myReg);
+            return dto;
+        } catch (Exception e) {
+            log.error("Failed to get activity summary for month: {}", month, e);
+            throw new BizException(400, "Invalid month format or data error");
+        }
+    }
+
+    /**
+     * Get popular activity categories
+     */
+    @Transactional(readOnly = true)
+    public List<com.youthloop.query.dto.ActivityCategoryCountDTO> getPopularActivityCategories(String month, int limit) {
+        try {
+            java.time.YearMonth ym = java.time.YearMonth.parse(month);
+            java.time.LocalDateTime start = ym.atDay(1).atStartOfDay();
+            java.time.LocalDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay();
+            
+            return activityQueryMapper.selectPopularCategories(start, end, limit);
+        } catch (Exception e) {
+            log.error("Failed to get popular categories for month: {}", month, e);
+            throw new BizException(400, "Invalid month format");
+        }
     }
     
     // === 私有映射方法 ===

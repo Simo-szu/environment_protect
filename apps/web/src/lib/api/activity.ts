@@ -178,6 +178,18 @@ export interface CreateHostActivityRequest {
   posterUrls?: string[];
 }
 
+export interface ActivitySummaryDTO {
+  month: string;
+  monthlyActivityCount: number;
+  monthlyParticipantCount: number;
+  myRegistrationCount: number | null;
+}
+
+export interface ActivityCategoryCountDTO {
+  category: number;
+  activityCount: number;
+}
+
 /**
  * 映射活动类型：后端 sourceType → 前端 ActivityType
  */
@@ -198,20 +210,20 @@ function mapActivityStatus(status: number): ActivityStatus {
 }
 
 /**
- * 映射分类：后端 int → 前端 string
+ * 映射分类：后端 int → 前端 i18n key
  */
-function mapCategory(category: number): string {
+export function mapCategory(category: number): string {
   const categoryMap: Record<number, string> = {
-    1: '环保教育',
-    2: '志愿服务',
-    3: '社区活动',
-    4: '文化交流',
-    5: '体育健身',
-    6: '科技创新',
-    7: '艺术表演',
-    8: '其他',
+    1: 'environmental',
+    2: 'volunteer',
+    3: 'community',
+    4: 'culture',
+    5: 'sports',
+    6: 'tech',
+    7: 'art',
+    8: 'other',
   };
-  return categoryMap[category] || '其他';
+  return categoryMap[category] || 'other';
 }
 
 /**
@@ -453,4 +465,20 @@ export async function createHostActivity(
     data
   );
   return activityId;
+}
+
+/**
+ * Get activity summary for a month
+ */
+export async function getActivitySummary(month?: string): Promise<ActivitySummaryDTO> {
+  const m = month || new Date().toISOString().slice(0, 7);
+  return apiGet<ActivitySummaryDTO>('/api/v1/activities/summary', { month: m });
+}
+
+/**
+ * Get popular activity categories
+ */
+export async function getPopularActivityCategories(month?: string, limit: number = 3): Promise<ActivityCategoryCountDTO[]> {
+  const m = month || new Date().toISOString().slice(0, 7);
+  return apiGet<ActivityCategoryCountDTO[]>('/api/v1/activities/categories/popular', { month: m, limit });
 }

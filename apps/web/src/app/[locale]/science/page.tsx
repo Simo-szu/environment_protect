@@ -280,7 +280,7 @@ export default function SciencePage() {
                                             ) : (
                                                 <>
                                                     <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-${typeConfig.text} shadow-sm`}>
-                                                        {content.type}
+                                                        {t(`types.${content.type}`)}
                                                     </div>
                                                     <div className={`w-full h-full flex items-center justify-center text-${typeConfig.text}/40`}>
                                                         <Icon className="w-8 h-8" />
@@ -293,7 +293,7 @@ export default function SciencePage() {
                                             <div>
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold bg-${typeConfig.text}/5 text-${typeConfig.text} border border-${typeConfig.text}/10`}>
-                                                        {content.type}
+                                                        {t(`types.${content.type}`)}
                                                     </span>
                                                     <span className="text-[10px] text-slate-400 font-medium">
                                                         {new Date(content.publishedAt).toLocaleDateString('zh-CN')}

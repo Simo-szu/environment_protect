@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
+import com.youthloop.query.dto.ActivityCategoryCountDTO;
 
 /**
  * 活动查询 Mapper（只读）
@@ -19,7 +21,6 @@ public interface ActivityQueryMapper {
     List<Map<String, Object>> selectActivityList(
         @Param("category") Integer category,
         @Param("status") Integer status,
-        @Param("locale") String locale,
         @Param("sort") String sort,
         @Param("offset") Integer offset,
         @Param("limit") Integer limit
@@ -37,8 +38,7 @@ public interface ActivityQueryMapper {
      * 查询活动详情
      */
     Map<String, Object> selectActivityDetail(
-        @Param("activityId") UUID activityId,
-        @Param("locale") String locale
+        @Param("activityId") UUID activityId
     );
     
     /**
@@ -60,5 +60,38 @@ public interface ActivityQueryMapper {
     Map<String, Object> selectUserState(
         @Param("userId") UUID userId,
         @Param("activityId") UUID activityId
+    );
+    /**
+     * Count activities in a month range
+     */
+    int selectMonthlyActivityCount(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
+
+    /**
+     * Count participants in a month range
+     */
+    int selectMonthlyParticipantCount(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
+
+    /**
+     * Count user's registrations in a month range
+     */
+    Integer selectMyMonthlyRegistrationCount(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime,
+        @Param("userId") UUID userId
+    );
+
+    /**
+     * Get popular categories
+     */
+    List<ActivityCategoryCountDTO> selectPopularCategories(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime,
+        @Param("limit") int limit
     );
 }

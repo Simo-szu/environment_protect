@@ -23,6 +23,7 @@ import Pagination from '@/components/ui/Pagination';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter, hoverLift } from '@/lib/animations';
 import { activityApi } from '@/lib/api';
 import type { ActivityItem } from '@/lib/api/activity';
+import ActivityStatsSidebar from '@/components/activity/ActivityStatsSidebar';
 
 function ActivitiesPageContent() {
     const { user, isLoggedIn } = useAuth();
@@ -59,6 +60,8 @@ function ActivitiesPageContent() {
 
         loadActivities();
     }, [currentPage]);
+
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -370,62 +373,7 @@ function ActivitiesPageContent() {
                         variants={staggerItem}
                         className="lg:col-span-4 space-y-6"
                     >
-                        {/* Quick Stats */}
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
-                                {t('stats.title', '活动统计')}
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">
-                                        {t('stats.monthlyActivities', '本月活动')}
-                                    </span>
-                                    <span className="text-lg font-bold text-[#56B949]">12</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">
-                                        {t('stats.participants', '参与人数')}
-                                    </span>
-                                    <span className="text-lg font-bold text-[#30499B]">1,234</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-slate-600">
-                                        {t('stats.myRegistrations', '我的报名')}
-                                    </span>
-                                    <span className="text-lg font-bold text-[#F0A32F]">3</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Popular Categories */}
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                            <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
-                                {t('categories.title', '热门分类')}
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
-                                    <Trees className="w-5 h-5 text-[#56B949]" />
-                                    <span className="text-sm text-slate-600">
-                                        {t('categories.planting', '植树活动')}
-                                    </span>
-                                    <span className="ml-auto text-xs text-slate-400">8</span>
-                                </div>
-                                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
-                                    <Waves className="w-5 h-5 text-[#30499B]" />
-                                    <span className="text-sm text-slate-600">
-                                        {t('categories.beachCleanup', '净滩行动')}
-                                    </span>
-                                    <span className="ml-auto text-xs text-slate-400">5</span>
-                                </div>
-                                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer">
-                                    <Recycle className="w-5 h-5 text-[#F0A32F]" />
-                                    <span className="text-sm text-slate-600">
-                                        {t('categories.recycling', '回收利用')}
-                                    </span>
-                                    <span className="ml-auto text-xs text-slate-400">7</span>
-                                </div>
-                            </div>
-                        </div>
+                        <ActivityStatsSidebar />
                     </motion.div>
                 </motion.div>
             </motion.div >

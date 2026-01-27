@@ -245,7 +245,15 @@
             "title": "热门分类",
             "planting": "植树造林",
             "beachCleanup": "海滩清洁",
-            "recycling": "回收利用"
+            "recycling": "回收利用",
+            "environmental": "环保教育",
+            "volunteer": "志愿服务",
+            "community": "社区活动",
+            "culture": "文化交流",
+            "sports": "体育健身",
+            "tech": "科技创新",
+            "art": "艺术表演",
+            "other": "其他"
         },
         "create": {
             "title": "创建活动",
@@ -430,6 +438,12 @@
             "learnMore": "了解更多",
             "viewAll": "查看全部",
             "readFull": "阅读全文"
+        },
+        "types": {
+            "NEWS": "环保新闻",
+            "DYNAMIC": "活动动态",
+            "POLICY": "政策法规",
+            "WIKI": "环保百科"
         }
     },
     "article": {

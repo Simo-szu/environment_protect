@@ -7,10 +7,11 @@ import com.youthloop.ops.api.facade.HomeBannerFacade;
 import com.youthloop.query.dto.HomeDTO;
 import com.youthloop.query.facade.QueryFacade;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,10 +33,8 @@ public class HomeQueryController {
     
     @Operation(summary = "获取首页数据", description = "聚合查询：轮播配置 + 最新内容 + 最新活动")
     @GetMapping
-    public BaseResponse<HomeDTO> getHomeData(
-        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale
-    ) {
-        HomeDTO data = queryFacade.getHomeData(locale);
+    public BaseResponse<HomeDTO> getHomeData() {
+        HomeDTO data = queryFacade.getHomeData();
         return BaseResponse.success(data);
     }
     

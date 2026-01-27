@@ -11,6 +11,9 @@ import com.youthloop.query.facade.QueryFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.youthloop.query.dto.ActivitySummaryDTO;
+import com.youthloop.query.dto.ActivityCategoryCountDTO;
+import com.youthloop.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,27 +32,46 @@ public class ActivityController {
     
     private final QueryFacade queryFacade;
     
-    @Operation(summary = "获取活动列表", description = "分页查询活动列表，支持按分类和状态筛选，含统计和用户状态")
+    @Operation(summary = "获取活动列表", description = "分页查询活动列表,支持按分类和状态筛选,含统计和用户状态")
     @GetMapping
     public BaseResponse<PageResponse<ActivityListItemDTO>> getActivityList(
-        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
-        @Parameter(description = "分类：1-8") @RequestParam(value = "category", required = false) Integer category,
-        @Parameter(description = "状态：1=已发布 2=隐藏 3=已结束") @RequestParam(value = "status", required = false) Integer status,
-        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "分类:1-8") @RequestParam(value = "category", required = false) Integer category,
+        @Parameter(description = "状态:1=已发布 2=隐藏 3=已结束") @RequestParam(value = "status", required = false) Integer status,
+        @Parameter(description = "排序:latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "页码(从 1 开始)") @RequestParam(value = "page", defaultValue = "1") Integer page,
         @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
-        PageResponse<ActivityListItemDTO> result = queryFacade.getActivityList(category, status, locale, sort, page, size);
+        PageResponse<ActivityListItemDTO> result = queryFacade.getActivityList(category, status, sort, page, size);
         return BaseResponse.success(result);
     }
     
-    @Operation(summary = "获取活动详情", description = "根据 ID 查询活动详情，含统计、用户状态和场次信息")
+
+    @Operation(summary = "Get activity summary", description = "Get statistics for a specific month (server time)")
+    @GetMapping("/summary")
+    public BaseResponse<ActivitySummaryDTO> getActivitySummary(
+        @Parameter(description = "Month (YYYY-MM)") @RequestParam("month") String month
+    ) {
+        UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
+        ActivitySummaryDTO summary = queryFacade.getActivitySummary(month, currentUserId);
+        return BaseResponse.success(summary);
+    }
+
+    @Operation(summary = "Get popular categories", description = "Get top categories by activity count for a specific month")
+    @GetMapping("/categories/popular")
+    public BaseResponse<List<ActivityCategoryCountDTO>> getPopularActivityCategories(
+        @Parameter(description = "Month (YYYY-MM)") @RequestParam("month") String month,
+        @Parameter(description = "Limit (default 3)") @RequestParam(value = "limit", defaultValue = "3") Integer limit
+    ) {
+        List<ActivityCategoryCountDTO> stats = queryFacade.getPopularActivityCategories(month, limit);
+        return BaseResponse.success(stats);
+    }
+    
+    @Operation(summary = "获取活动详情", description = "根据 ID 查询活动详情,含统计、用户状态和场次信息")
     @GetMapping("/{id}")
     public BaseResponse<ActivityDetailDTO> getActivityById(
-        @RequestHeader(value = "Accept-Language", required = false, defaultValue = "zh") String locale,
         @Parameter(description = "活动 ID") @PathVariable("id") UUID id
     ) {
-        ActivityDetailDTO activity = queryFacade.getActivityDetail(id, locale);
+        ActivityDetailDTO activity = queryFacade.getActivityDetail(id);
         return BaseResponse.success(activity);
     }
     

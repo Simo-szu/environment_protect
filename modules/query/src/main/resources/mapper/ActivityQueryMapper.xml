@@ -9,9 +9,9 @@
     SELECT 
       a.id,
       a.source_type,
-      COALESCE(t.title, a.title) AS title,
+      a.title,
       a.category,
-      COALESCE(t.topic, a.topic) AS topic,
+      a.topic,
       a.start_time,
       a.end_time,
       a.location,
@@ -25,7 +25,6 @@
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.activity a
     LEFT JOIN social.activity_stats s ON a.id = s.activity_id
-    LEFT JOIN social.activity_translation t ON a.id = t.activity_id AND t.locale = #{locale}
     WHERE 1=1
     <if test="category != null">
       AND a.category = #{category}
@@ -62,10 +61,10 @@
     SELECT 
       a.id,
       a.source_type,
-      COALESCE(t.title, a.title) AS title,
+      a.title,
       a.category,
-      COALESCE(t.topic, a.topic) AS topic,
-      COALESCE(t.description, a.description) AS description,
+      a.topic,
+      a.description,
       a.start_time,
       a.end_time,
       a.location,
@@ -81,7 +80,6 @@
       COALESCE(s.comment_count, 0) AS comment_count
     FROM social.activity a
     LEFT JOIN social.activity_stats s ON a.id = s.activity_id
-    LEFT JOIN social.activity_translation t ON a.id = t.activity_id AND t.locale = #{locale}
     WHERE a.id = #{activityId}::uuid
   </select>
 
@@ -148,4 +146,48 @@
     AND r.target_id = #{activityId}::uuid
   </select>
 
+  <!-- Count Monthly Activities -->
+  <select id="selectMonthlyActivityCount" resultType="int">
+    SELECT COUNT(*)
+    FROM social.activity a
+    WHERE a.start_time &gt;= #{startTime}
+      AND a.start_time &lt; #{endTime}
+      AND a.status IN (1, 3)
+  </select>
+
+  <!-- Count Monthly Participants -->
+  <select id="selectMonthlyParticipantCount" resultType="int">
+    SELECT COUNT(*)
+    FROM social.activity_signup sig
+    JOIN social.activity a ON sig.activity_id = a.id
+    WHERE a.start_time &gt;= #{startTime}
+      AND a.start_time &lt; #{endTime}
+      AND a.status IN (1, 3)
+    AND sig.status = 2
+  </select>
+
+  <!-- Count My Registrations -->
+  <select id="selectMyMonthlyRegistrationCount" resultType="int">
+    SELECT COUNT(*)
+    FROM social.activity_signup sig
+    JOIN social.activity a ON sig.activity_id = a.id
+    WHERE a.start_time &gt;= #{startTime}
+      AND a.start_time &lt; #{endTime}
+    AND sig.user_id = #{userId}::uuid
+    AND sig.status IN (1, 2, 3)
+  </select>
+
+  <!-- Popular Categories -->
+  <select id="selectPopularCategories" resultType="com.youthloop.query.dto.ActivityCategoryCountDTO">
+    SELECT 
+      a.category,
+      COUNT(*) AS activityCount
+    FROM social.activity a
+    WHERE a.start_time &gt;= #{startTime}
+      AND a.start_time &lt; #{endTime}
+      AND a.status IN (1, 3)
+    GROUP BY a.category
+    ORDER BY activityCount DESC, a.category ASC
+    LIMIT #{limit}
+  </select>
 </mapper>
