@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import GoogleProvider from '@/components/GoogleProvider';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import NextTopLoader from 'nextjs-toploader';
 
 // 支持的语言列表
 const locales = ['zh', 'en'];
@@ -36,6 +37,17 @@ export default async function LocaleLayout({
     return (
         <NextIntlClientProvider messages={messages} locale={locale}>
             <GoogleProvider>
+                <NextTopLoader
+                    color="#56B949"
+                    initialPosition={0.08}
+                    crawlSpeed={200}
+                    height={3}
+                    crawl={true}
+                    showSpinner={false}
+                    easing="ease"
+                    speed={200}
+                    shadow="0 0 10px #56B949,0 0 5px #56B949"
+                />
                 {children}
             </GoogleProvider>
         </NextIntlClientProvider>

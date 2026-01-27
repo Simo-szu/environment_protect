@@ -6,6 +6,7 @@ import AuthenticatedHeader from './ui/AuthenticatedHeader';
 import UnifiedFooter from './ui/UnifiedFooter';
 import BackToTop from './ui/BackToTop';
 import { FloatingThemeToggle } from './ui/FloatingThemeToggle';
+import PageTransition from './PageTransition';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -57,7 +58,9 @@ export default function Layout({ children, showHeader = true, showFooter = true 
             <AuthenticatedHeader showSearch={!isSubPage} />
           )}
 
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
 
           {showFooter && (
             <UnifiedFooter showFullFooter={true} />

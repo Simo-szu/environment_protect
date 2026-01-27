@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useParams } from 'next/navigation';
+import { usePathname, useParams, useRouter } from 'next/navigation';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -18,6 +18,7 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     const [unreadCount, setUnreadCount] = useState(0);
     const pathname = usePathname();
     const params = useParams();
+    const router = useRouter();
     const { user, logout, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('navigation');
 
@@ -63,7 +64,7 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
     const handleLogout = () => {
         logout();
-        window.location.href = `/${locale}`;
+        router.push(`/${locale}`);
     };
 
     return (

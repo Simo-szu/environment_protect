@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Recycle,
@@ -22,6 +22,7 @@ import type { ContentItem } from '@/lib/api/content';
 
 export default function SciencePage() {
     const params = useParams();
+    const router = useRouter();
     const locale = (params?.locale as string) || 'zh';
     const { t } = useSafeTranslation('science');
     const { t: tCommon } = useSafeTranslation('common');
@@ -80,7 +81,7 @@ export default function SciencePage() {
     }, []);
 
     const viewArticle = (articleId: string) => {
-        window.location.href = `/${locale}/science/${articleId}`;
+        router.push(`/${locale}/science/${articleId}`);
     };
 
     const handlePageChange = (page: number) => {

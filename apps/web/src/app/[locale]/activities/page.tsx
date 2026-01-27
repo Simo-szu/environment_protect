@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
     CalendarHeart,
     Flame,
@@ -37,6 +37,7 @@ function ActivitiesPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t } = useSafeTranslation('activities');
     const params = useParams();
+    const router = useRouter();
     const locale = (params?.locale as string) || 'zh';
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4; // 每页显示4个活动
@@ -99,7 +100,7 @@ function ActivitiesPageContent() {
         if (!user || !isLoggedIn) {
             setIsAuthModalOpen(true);
         } else {
-            window.location.href = `/${locale}/my-activities`;
+            router.push(`/${locale}/my-activities`);
         }
     };
 
@@ -107,7 +108,7 @@ function ActivitiesPageContent() {
         if (!user || !isLoggedIn) {
             setIsAuthModalOpen(true);
         } else {
-            window.location.href = `/${locale}/activities/create`;
+            router.push(`/${locale}/activities/create`);
         }
     };
 
@@ -115,12 +116,12 @@ function ActivitiesPageContent() {
         if (!user || !isLoggedIn) {
             setIsAuthModalOpen(true);
         } else {
-            window.location.href = `/${locale}/activities/register?id=${activityId}`;
+            router.push(`/${locale}/activities/register?id=${activityId}`);
         }
     };
 
     const viewActivityDetails = (activityId: string) => {
-        window.location.href = `/${locale}/activities/${activityId}`;
+        router.push(`/${locale}/activities/${activityId}`);
     };
 
     return (

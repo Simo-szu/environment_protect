@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
@@ -30,6 +30,7 @@ import {
 
 export default function MyActivitiesPage() {
     const params = useParams();
+    const router = useRouter();
     const locale = (params?.locale as string) || 'zh';
     const { user, isLoggedIn, loading } = useAuth();
     const { t } = useSafeTranslation('myActivities');
@@ -289,7 +290,7 @@ export default function MyActivitiesPage() {
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            onClick={() => window.location.href = `/${locale}/activities/${activity.activityId}`}
+                                                            onClick={() => router.push(`/${locale}/activities/${activity.activityId}`)}
                                                             className="px-4 py-2 text-[#30499B] dark:text-[#56B949] border border-[#30499B] dark:border-[#56B949] rounded-lg hover:bg-[#30499B] dark:hover:bg-[#56B949] hover:text-white transition-colors text-sm"
                                                         >
                                                             {t('viewDetails', '查看详情')}
