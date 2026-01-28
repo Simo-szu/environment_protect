@@ -34,13 +34,33 @@ public class OtpService {
     /**
      * 生成并存储验证码
      * 
-     * @param account 账号（邮箱或手机号）
-     * @param channel 渠道：1=email 2=sms
-     * @param purpose 用途：1=register 2=login 3=reset_pwd
-     * @return 明文验证码（用于发送）
+     * @param account 账号(邮箱或手机号)
+     * @param channel 渠道:1=email 2=sms
+     * @param purpose 用途:1=register 2=login 3=reset_pwd
+     * @return 明文验证码(用于发送)
      */
     @Transactional
     public String generateAndStore(String account, Integer channel, Integer purpose) {
+        account = account.toLowerCase().trim();
+        
+        // 检查发送频率限制(60秒内不能重复发送)
+        VerificationCodeEntity recentCode = verificationCodeMapper.selectLatestValid(
+            account, 
+            purpose, 
+            LocalDateTime.now()
+        );
+        
+        if (recentCode != null) {
+            LocalDateTime canResendAt = recentCode.getCreatedAt().plusSeconds(60);
+            if (LocalDateTime.now().isBefore(canResendAt)) {
+                long secondsLeft = java.time.Duration.between(LocalDateTime.now(), canResendAt).getSeconds();
+                log.warn("验证码发送过于频繁: account={}, purpose={}, 请{}秒后重试", 
+                    account, purpose, secondsLeft);
+                throw new BizException(ErrorCode.OPERATION_TOO_FREQUENT, 
+                    "验证码发送过于频繁,请" + secondsLeft + "秒后重试");
+            }
+        }
+        
         // 生成 6 位随机数字验证码
         String code = generateCode();
         
@@ -50,7 +70,7 @@ public class OtpService {
         // 创建验证码记录
         VerificationCodeEntity entity = new VerificationCodeEntity();
         entity.setId(UUID.randomUUID());
-        entity.setAccount(account.toLowerCase().trim());
+        entity.setAccount(account);
         entity.setChannel(channel);
         entity.setPurpose(purpose);
         entity.setCodeHash(codeHash);

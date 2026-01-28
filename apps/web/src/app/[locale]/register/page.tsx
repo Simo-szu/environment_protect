@@ -22,7 +22,7 @@ export default function RegisterPage() {
     const locale = params.locale as string;
     const { t } = useSafeTranslation('auth');
 
-    const [registerMode, setRegisterMode] = useState<'password' | 'otp'>('password');
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -111,31 +111,36 @@ export default function RegisterPage() {
             return;
         }
 
-        if (registerMode === 'password') {
-            if (!formData.password.trim() || !formData.confirmPassword.trim()) {
-                setError(t('register.errors.passwordRequired', '请填写完整的注册信息'));
-                return;
-            }
+        // 验证验证码
+        if (!formData.otpCode.trim()) {
+            setError(t('register.errors.otpRequired', '请输入验证码'));
+            return;
+        }
 
-            if (formData.password !== formData.confirmPassword) {
-                setError(t('register.errors.passwordMismatch', '两次输入的密码不一致'));
-                return;
-            }
+        if (formData.otpCode.length !== 6) {
+            setError(t('register.errors.invalidOtp', '验证码必须为6位'));
+            return;
+        }
 
-            if (formData.password.length < 6) {
-                setError(t('register.errors.passwordTooShort', '密码至少6位字符'));
-                return;
-            }
+        // 验证密码
+        if (!formData.password.trim() || !formData.confirmPassword.trim()) {
+            setError(t('register.errors.passwordRequired', '请填写完整的注册信息'));
+            return;
+        }
 
-            if (formData.password.length > 20) {
-                setError(t('register.errors.passwordTooLong', '密码不能超过20位字符'));
-                return;
-            }
-        } else {
-            if (!formData.otpCode.trim()) {
-                setError(t('register.errors.otpRequired', '请输入验证码'));
-                return;
-            }
+        if (formData.password !== formData.confirmPassword) {
+            setError(t('register.errors.passwordMismatch', '两次输入的密码不一致'));
+            return;
+        }
+
+        if (formData.password.length < 8) {
+            setError(t('register.errors.passwordTooShort', '密码至少8位字符'));
+            return;
+        }
+
+        if (formData.password.length > 32) {
+            setError(t('register.errors.passwordTooLong', '密码不能超过32位字符'));
+            return;
         }
 
         if (!formData.terms) {
@@ -153,11 +158,11 @@ export default function RegisterPage() {
                 return;
             }
 
-            // 调用注册 API
+            // 调用注册 API (后端要求: email + otpCode + password + agreedToTerms)
             await authApi.registerWithEmail({
                 email: formData.email,
-                password: registerMode === 'password' ? formData.password : undefined,
-                otpCode: registerMode === 'otp' ? formData.otpCode : undefined,
+                password: formData.password,
+                otpCode: formData.otpCode,
                 nickname: formData.nickname || undefined,
                 agreedToTerms: formData.terms
             });
@@ -171,7 +176,15 @@ export default function RegisterPage() {
             router.push(`/${locale}`);
         } catch (error: any) {
             console.error('Register failed:', error);
-            setError(error.message || t('register.errors.registerFailed', '注册失败，请重试'));
+
+            // 优化错误提示
+            if (error.message?.includes('已被注册') || error.message?.includes('already exists')) {
+                setError('该邮箱已被注册。您可能已通过Google登录或邮箱注册过账号,请直接登录。');
+            } else if (error.message?.includes('验证码')) {
+                setError(error.message || '验证码错误或已过期,请重新获取');
+            } else {
+                setError(error.message || t('register.errors.registerFailed', '注册失败,请重试'));
+            }
         } finally {
             setSubmitting(false);
         }
@@ -226,7 +239,15 @@ export default function RegisterPage() {
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {error && (
                                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                                    {error}
+                                    <div>{error}</div>
+                                    {(error.includes('已被注册') || error.includes('already exists')) && (
+                                        <Link
+                                            href={`/${locale}/login`}
+                                            className="inline-block mt-2 text-[#30499B] hover:text-[#56B949] font-medium underline"
+                                        >
+                                            前往登录 →
+                                        </Link>
+                                    )}
                                 </div>
                             )}
 
@@ -261,89 +282,80 @@ export default function RegisterPage() {
                                 />
                             </div>
 
-                            {registerMode === 'password' ? (
-                                <>
-                                    <div className="space-y-2">
-                                        <div className="text-xs text-slate-400 px-1">密码需在8位以上，由数字、字母组成</div>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                                <Lock className="w-4 h-4" />
-                                            </div>
-                                            <input
-                                                type={showPassword ? 'text' : 'password'}
-                                                name="password"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                placeholder={t('register.passwordPlaceholder', '设置密码（6-20位字符）')}
-                                                className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                                                disabled={submitting}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                                            >
-                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
 
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
-                                            <Lock className="w-4 h-4" />
-                                        </div>
-                                        <input
-                                            type={showConfirmPassword ? 'text' : 'password'}
-                                            name="confirmPassword"
-                                            value={formData.confirmPassword}
-                                            onChange={handleChange}
-                                            placeholder={t('register.confirmPasswordPlaceholder', '确认密码')}
-                                            className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
-                                            disabled={submitting}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                                        >
-                                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
+                            {/* 验证码输入 */}
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                    <Lock className="w-4 h-4" />
+                                </div>
+                                <input
+                                    type="text"
+                                    name="otpCode"
+                                    value={formData.otpCode}
+                                    onChange={handleChange}
+                                    placeholder={t('register.otpPlaceholder', '请输入验证码')}
+                                    className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                    disabled={submitting}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={sendingOtp || countdown > 0 || submitting}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
+                                >
+                                    {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
+                                </button>
+                            </div>
+
+                            {/* 密码输入 */}
+                            <div className="space-y-2">
+                                <div className="text-xs text-slate-400 px-1">密码需在8位以上,由数字、字母组成</div>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
                                         <Lock className="w-4 h-4" />
                                     </div>
                                     <input
-                                        type="text"
-                                        name="otpCode"
-                                        value={formData.otpCode}
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
                                         onChange={handleChange}
-                                        placeholder={t('register.otpPlaceholder', '请输入验证码')}
-                                        className="w-full pl-10 pr-28 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                        placeholder={t('register.passwordPlaceholder', '设置密码(8-32位字符)')}
+                                        className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
                                         disabled={submitting}
                                     />
                                     <button
                                         type="button"
-                                        onClick={handleSendOtp}
-                                        disabled={sendingOtp || countdown > 0 || submitting}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                                     >
-                                        {sendingOtp ? t('register.sendingOtp', '发送中...') : countdown > 0 ? t('register.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('register.getOtp', '获取验证码')}
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
-                            )}
+                            </div>
 
-                            <div className="flex items-center justify-between pt-1">
+                            {/* 确认密码 */}
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
+                                    <Lock className="w-4 h-4" />
+                                </div>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder={t('register.confirmPasswordPlaceholder', '确认密码')}
+                                    className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#30499B]/10 focus:border-[#30499B] outline-none transition-all placeholder:text-slate-400 text-slate-700 shadow-sm"
+                                    disabled={submitting}
+                                />
                                 <button
                                     type="button"
-                                    onClick={() => setRegisterMode(registerMode === 'password' ? 'otp' : 'password')}
-                                    className="text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                                 >
-                                    {registerMode === 'password' ? '验证码注册' : '密码注册'}
+                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
+
 
                             <div className="flex items-start gap-3 pt-2">
                                 <input
@@ -404,7 +416,7 @@ export default function RegisterPage() {
 
                         {/* Quick Register Tip */}
                         <div className="text-center text-sm text-slate-500">
-                            <p>支持邮箱密码或验证码注册</p>
+                            <p>注册需要邮箱验证码和密码</p>
                         </div>
 
                     </div>

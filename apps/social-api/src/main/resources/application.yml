@@ -77,7 +77,7 @@ jwt:
 
 # Resend 邮件服务配置
 resend:
-  api-key: ${RESEND_API_KEY:}
+  api-key: ${RESEND_API_KEY:re_SRzUm3TY_5xW1n4XP8m47Rp7mLkT7r1h3}
   from-email: ${RESEND_FROM_EMAIL:noreply@youthloop.top}
 
 # Google 登录配置

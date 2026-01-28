@@ -86,7 +86,7 @@ public class OtpNotificationService {
     private String buildEmailHtml(String code, String purpose) {
         String purposeText = getPurposeText(purpose);
         
-        return """
+        String template = """
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -94,7 +94,7 @@ public class OtpNotificationService {
                     <style>
                         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); 
                                   color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
                         .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
                         .code-box { background: white; border: 2px dashed #667eea; 
@@ -127,7 +127,9 @@ public class OtpNotificationService {
                     </div>
                 </body>
                 </html>
-                """.formatted(purposeText, code);
+                """;  // 模板字符串结束
+        
+        return String.format(template, purposeText, code);
     }
     
     /**

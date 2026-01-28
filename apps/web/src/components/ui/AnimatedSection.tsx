@@ -36,7 +36,7 @@ export function AnimatedSection({
             opacity: 1,
             y: 0,
             transition: {
-                duration: 0.4,
+                duration: 0.3,
                 delay,
                 ease: [0.6, -0.05, 0.01, 0.99],
             },
@@ -47,7 +47,7 @@ export function AnimatedSection({
         ? {
             initial: "hidden",
             whileInView: "visible",
-            viewport: { once: true, margin: '-20px', amount: 0.1 },
+            viewport: { once: true, margin: '100px', amount: 0.05 },
         }
         : {
             initial: "hidden",

@@ -35,6 +35,7 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS(3101, "用户已存在"),
     PASSWORD_INCORRECT(3102, "密码错误"),
     VERIFICATION_CODE_INVALID(3103, "验证码无效或已过期"),
+    OPERATION_TOO_FREQUENT(3104, "操作过于频繁"),
     
     // Content 模块 (3200-3299)
     CONTENT_NOT_FOUND(3200, "内容不存在"),

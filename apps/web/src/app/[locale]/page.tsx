@@ -255,7 +255,7 @@ export default function HomePage() {
             {/* Main Content Grid */}
             <div className="relative mt-20 px-4 sm:px-6 lg:px-8 py-24 space-y-32">
                 {/* Section: Science Materials */}
-                <AnimatedSection delay={0.1}>
+                <AnimatedSection delay={0}>
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div className="flex items-center gap-6">
                             <div className="w-2 h-16 bg-gradient-to-b from-[#30499B] to-[#56B949] rounded-full shadow-lg shadow-[#30499B]/20"></div>
@@ -288,7 +288,7 @@ export default function HomePage() {
                         ) : contents.length > 0 ? (
                             // 真实数据
                             contents.map((content, index) => (
-                                <AnimatedSection key={content.id} delay={0.2 + index * 0.1}>
+                                <AnimatedSection key={content.id} delay={index * 0.05}>
                                     <Link href={`/${locale}/science/${content.id}`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block h-full">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
@@ -327,7 +327,7 @@ export default function HomePage() {
                         ) : (
                             // 降级显示静态内容
                             <>
-                                <AnimatedSection delay={0.2}>
+                                <AnimatedSection delay={0}>
                                     <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block h-full">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
@@ -354,7 +354,7 @@ export default function HomePage() {
                                     </Link>
                                 </AnimatedSection>
 
-                                <AnimatedSection delay={0.3}>
+                                <AnimatedSection delay={0.05}>
                                     <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block h-full">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
@@ -381,7 +381,7 @@ export default function HomePage() {
                                     </Link>
                                 </AnimatedSection>
 
-                                <AnimatedSection delay={0.4}>
+                                <AnimatedSection delay={0.1}>
                                     <Link href={`/${locale}/science`} className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer block h-full">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
@@ -413,7 +413,7 @@ export default function HomePage() {
                 </AnimatedSection>
 
                 {/* Section: Popular Activities */}
-                <AnimatedSection delay={0.5}>
+                <AnimatedSection delay={0.1}>
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div className="flex items-center gap-6">
                             <div className="w-2 h-16 bg-gradient-to-b from-[#EE4035] to-[#F0A32F] rounded-full shadow-lg shadow-[#EE4035]/20"></div>
@@ -448,7 +448,7 @@ export default function HomePage() {
                         ) : activities.length > 0 ? (
                             // 真实数据
                             activities.map((activity, index) => (
-                                <AnimatedSection key={activity.id} delay={0.6 + index * 0.1}>
+                                <AnimatedSection key={activity.id} delay={0.1 + index * 0.05}>
                                     <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }}>
@@ -487,7 +487,7 @@ export default function HomePage() {
                         ) : (
                             // 降级显示静态内容
                             <>
-                                <AnimatedSection delay={0.6}>
+                                <AnimatedSection delay={0.1}>
                                     <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }}>
@@ -508,7 +508,7 @@ export default function HomePage() {
                                     </div>
                                 </AnimatedSection>
 
-                                <AnimatedSection delay={0.7}>
+                                <AnimatedSection delay={0.15}>
                                     <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }}>
@@ -527,7 +527,7 @@ export default function HomePage() {
                                     </div>
                                 </AnimatedSection>
 
-                                <AnimatedSection delay={0.8}>
+                                <AnimatedSection delay={0.2}>
                                     <div className="relative rounded-xl overflow-hidden group shadow-md hover:shadow-xl transition-shadow duration-300">
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }}>
@@ -553,7 +553,7 @@ export default function HomePage() {
 
 
                 {/* Section: Points Park */}
-                <AnimatedSection delay={0.8}>
+                <AnimatedSection delay={0.2}>
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div className="flex items-center gap-6">
                             <div className="w-2 h-16 bg-gradient-to-b from-[#F0A32F] to-[#EE4035] rounded-full shadow-lg shadow-[#F0A32F]/20"></div>
