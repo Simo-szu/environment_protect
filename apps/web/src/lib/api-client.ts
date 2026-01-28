@@ -52,10 +52,11 @@ async function refreshAccessToken(): Promise<void> {
     // 更新 tokens
     authStore.setTokens(result.data);
   } catch (error) {
-    // 刷新失败，清除 tokens 并跳转登录
+    // 刷新失败,清除 tokens 并跳转登录
     authStore.clear();
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      const locale = getCurrentLocale();
+      window.location.href = `/${locale}/login`;
     }
     throw error;
   }
@@ -64,7 +65,7 @@ async function refreshAccessToken(): Promise<void> {
 /**
  * 获取当前语言（从 URL 路径中提取）
  */
-function getCurrentLocale(): string {
+export function getCurrentLocale(): string {
   if (typeof window === 'undefined') {
     return 'zh'; // 服务端默认中文
   }
@@ -137,7 +138,8 @@ export async function apiFetch<T = any>(
     if (result.code === 2000 || result.code === 2001 || result.code === 2002) {
       authStore.clear();
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const locale = getCurrentLocale();
+        window.location.href = `/${locale}/login`;
       }
     }
 

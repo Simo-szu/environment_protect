@@ -82,4 +82,5 @@ resend:
 
 # Google 登录配置
 google:
-  client-id: 33948437410-0lf54mq37rf30gtadf4lpbg80kpddrqb.apps.googleusercontent.com
+  client-id: ${GOOGLE_CLIENT_ID:717732984928-dvcgf1jrukvjnchu33htvog8lnpb2lm5.apps.googleusercontent.com}
+

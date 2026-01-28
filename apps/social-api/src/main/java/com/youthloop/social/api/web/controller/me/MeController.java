@@ -66,10 +66,10 @@ public class MeController {
     @Operation(summary = "获取我的收藏/点赞", description = "查询当前用户的收藏/点赞列表")
     @GetMapping("/reactions")
     public BaseResponse<PageResponse<ReactionItemDTO>> getMyReactions(
-        @Parameter(description = "反应类型：1=点赞 2=收藏 3=踩") @RequestParam(required = false) Integer reactionType,
-        @Parameter(description = "目标类型：1=内容 2=活动") @RequestParam(required = false) Integer targetType,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(defaultValue = "20") Integer size
+        @Parameter(description = "反应类型：1=点赞 2=收藏 3=踩") @RequestParam(name = "reactionType", required = false) Integer reactionType,
+        @Parameter(description = "目标类型：1=内容 2=活动") @RequestParam(name = "targetType", required = false) Integer targetType,
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(name = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
         PageResponse<ReactionItemDTO> result = queryFacade.getMyReactions(reactionType, targetType, page, size);
         return BaseResponse.success(result);
@@ -78,8 +78,8 @@ public class MeController {
     @Operation(summary = "获取我的通知", description = "查询当前用户的通知列表（回复我的）")
     @GetMapping("/notifications")
     public BaseResponse<PageResponse<NotificationItemDTO>> getMyNotifications(
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(defaultValue = "20") Integer size
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(name = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
         PageResponse<NotificationItemDTO> result = queryFacade.getMyNotifications(page, size);
         return BaseResponse.success(result);
@@ -106,9 +106,9 @@ public class MeController {
     @Operation(summary = "获取我报名的活动", description = "查询当前用户报名的活动列表")
     @GetMapping("/activities")
     public BaseResponse<PageResponse<MyActivityItemDTO>> getMyActivities(
-        @Parameter(description = "报名状态：1=待审核 2=已通过 3=已拒绝 4=已取消") @RequestParam(required = false) Integer status,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(defaultValue = "20") Integer size
+        @Parameter(description = "报名状态：1=待审核 2=已通过 3=已拒绝 4=已取消") @RequestParam(name = "status", required = false) Integer status,
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(name = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
         PageResponse<MyActivityItemDTO> result = queryFacade.getMyActivities(status, page, size);
         return BaseResponse.success(result);

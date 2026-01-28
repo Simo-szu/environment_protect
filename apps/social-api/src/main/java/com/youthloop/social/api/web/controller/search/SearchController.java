@@ -24,10 +24,10 @@ public class SearchController {
     @Operation(summary = "搜索", description = "搜索内容和活动")
     @GetMapping
     public BaseResponse<PageResponse<SearchResultDTO>> search(
-        @RequestParam String keyword,
-        @RequestParam(required = false) Integer type,
-        @RequestParam(defaultValue = "1") Integer page,
-        @RequestParam(defaultValue = "20") Integer size
+        @RequestParam(name = "keyword") String keyword,
+        @RequestParam(name = "type", required = false) Integer type,
+        @RequestParam(name = "page", defaultValue = "1") Integer page,
+        @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
         SearchRequest request = new SearchRequest();
         request.setKeyword(keyword);

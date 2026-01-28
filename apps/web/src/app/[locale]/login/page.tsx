@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useConfig } from '@/components/GoogleProvider';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { authApi, userApi } from '@/lib/api';
@@ -37,6 +38,7 @@ export default function LoginPage() {
     const [otpSent, setOtpSent] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const { login } = useAuth();
+    const config = useConfig();
     const router = useRouter();
 
     // 倒计时效果
@@ -302,19 +304,8 @@ export default function LoginPage() {
                                 {submitting ? t('login.loggingIn', '登录中...') : t('login.loginButton', '立即登录')}
                             </button>
 
-                            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-                                <div className="flex justify-center w-full">
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleError}
-                                        width="100%"
-                                        theme="outline"
-                                        shape="rectangular"
-                                        auto_select={false}
-                                        cancel_on_tap_outside={true}
-                                    />
-                                </div>
-                            )}
+                            {/* Google Login 移动到 divider 下方 */}
+
 
 
 
@@ -337,22 +328,38 @@ export default function LoginPage() {
                             </div>
                         </form>
 
-                        {/* Divider */}
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-200"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-slate-400">
-                                    {t('login.or', '或者')}
-                                </span>
-                            </div>
-                        </div>
+                        {/* Divider & Social Login */}
+                        {config.googleClientId && (
+                            <>
+                                <div className="relative my-6">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-slate-200"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-sm">
+                                        <span className="px-4 bg-white text-slate-400">
+                                            {t('login.or', '或者使用 Google 登录')}
+                                        </span>
+                                    </div>
+                                </div>
 
-                        {/* Login Tips */}
-                        <div className="text-center text-xs text-slate-500 leading-relaxed mt-4">
-                            <p>💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码</p>
-                        </div>
+                                <div className="flex justify-center w-full">
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={handleGoogleError}
+                                        width="100%"
+                                        theme="outline"
+                                        shape="rectangular"
+                                        auto_select={false}
+                                        cancel_on_tap_outside={true}
+                                    />
+                                </div>
+
+                                {/* Login Tips */}
+                                <div className="text-center text-xs text-slate-500 leading-relaxed mt-4">
+                                    <p>💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码</p>
+                                </div>
+                            </>
+                        )}
 
                     </div>
                 </div>

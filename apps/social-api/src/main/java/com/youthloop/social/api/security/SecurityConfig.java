@@ -72,6 +72,9 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()
                 
+                // 放行：系统公开配置
+                .requestMatchers("/api/v1/system/**").permitAll()
+                
                 // 放行：Actuator 健康检查
                 .requestMatchers("/actuator/health").permitAll()
                 

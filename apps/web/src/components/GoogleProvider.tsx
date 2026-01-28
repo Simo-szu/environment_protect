@@ -1,18 +1,30 @@
 'use client';
 
+import { createContext, useContext } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-export default function GoogleProvider({ children }: { children: React.ReactNode }) {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+interface ConfigContextType {
+    googleClientId: string;
+}
 
-    if (!clientId) {
-        console.warn('Google Client ID not found in environment variables');
-        return <>{children}</>;
-    }
+const ConfigContext = createContext<ConfigContextType>({ googleClientId: '' });
 
+export const useConfig = () => useContext(ConfigContext);
+
+export default function GoogleProvider({
+    children,
+    clientId = ''
+}: {
+    children: React.ReactNode,
+    clientId?: string
+}) {
     return (
-        <GoogleOAuthProvider clientId={clientId}>
-            {children}
-        </GoogleOAuthProvider>
+        <ConfigContext.Provider value={{ googleClientId: clientId }}>
+            {clientId ? (
+                <GoogleOAuthProvider clientId={clientId}>
+                    {children}
+                </GoogleOAuthProvider>
+            ) : children}
+        </ConfigContext.Provider>
     );
 }

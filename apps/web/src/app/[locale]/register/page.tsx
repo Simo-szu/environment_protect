@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useConfig } from '@/components/GoogleProvider';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { authApi, userApi } from '@/lib/api';
@@ -38,6 +39,7 @@ export default function RegisterPage() {
     const [sendingOtp, setSendingOtp] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const { login } = useAuth();
+    const config = useConfig();
     const router = useRouter();
 
     // 倒计时效果
@@ -386,20 +388,7 @@ export default function RegisterPage() {
                                 {submitting ? t('register.registering', '注册中...') : t('register.registerButton', '立即注册')}
                             </button>
 
-                            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-                                <div className="flex justify-center w-full">
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleError}
-                                        text="signup_with"
-                                        width="100%"
-                                        theme="outline"
-                                        shape="rectangular"
-                                        auto_select={false}
-                                        cancel_on_tap_outside={true}
-                                    />
-                                </div>
-                            )}
+                            {/* 原本在这里的 GoogleLogin 移除到 divider 下方 */}
 
 
                         </form>
@@ -410,9 +399,24 @@ export default function RegisterPage() {
                                 <div className="w-full border-t border-slate-200"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-slate-400">或者</span>
+                                <span className="px-4 bg-white text-slate-400">或者使用 Google 注册</span>
                             </div>
                         </div>
+
+                        {config.googleClientId && (
+                            <div className="flex justify-center w-full -mt-2">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleError}
+                                    text="signup_with"
+                                    width="100%"
+                                    theme="outline"
+                                    shape="rectangular"
+                                    auto_select={false}
+                                    cancel_on_tap_outside={true}
+                                />
+                            </div>
+                        )}
 
                         {/* Quick Register Tip */}
                         <div className="text-center text-sm text-slate-500">

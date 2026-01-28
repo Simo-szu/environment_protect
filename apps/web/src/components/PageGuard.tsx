@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, ReactNode } from 'react';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useErrorBoundary } from '@/hooks/useErrorBoundary';
 import Layout from '@/components/Layout';
@@ -20,12 +21,18 @@ export default function PageGuard({
 }: PageGuardProps) {
     const { user, isLoggedIn, loading } = useAuth();
     const { error, clearError } = useErrorBoundary();
+    const params = useParams();
+    const locale = params?.locale || 'zh';
 
     useEffect(() => {
         if (requireAuth && !loading && (!user || !isLoggedIn)) {
-            window.location.href = redirectTo;
+            // 确保重定向路径包含语言前缀
+            const localizedRedirectTo = redirectTo.startsWith('/') && !redirectTo.startsWith(`/${locale}`)
+                ? `/${locale}${redirectTo}`
+                : redirectTo;
+            window.location.href = localizedRedirectTo;
         }
-    }, [user, isLoggedIn, loading, requireAuth, redirectTo]);
+    }, [user, isLoggedIn, loading, requireAuth, redirectTo, locale]);
 
     // 显示加载状态
     if (loading) {

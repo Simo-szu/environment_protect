@@ -2,7 +2,7 @@
  * 认证相关 API
  */
 
-import { apiPost } from '../api-client';
+import { apiPost, getCurrentLocale } from '../api-client';
 import { authStore } from '../auth-store';
 
 // 认证响应
@@ -110,6 +110,7 @@ export async function loginWithEmailOtp(data: LoginRequest): Promise<AuthRespons
 export async function logout(): Promise<void> {
   authStore.clear();
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    const locale = getCurrentLocale();
+    window.location.href = `/${locale}/login`;
   }
 }
