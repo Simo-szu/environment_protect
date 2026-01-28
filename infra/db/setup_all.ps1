@@ -4,7 +4,7 @@
 # Usage: .\setup_all.ps1
 # ============================================================================
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 Write-Host ""
 Write-Host "------------------------------------------------------------"
@@ -49,10 +49,12 @@ $dbExists = psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -t -c "SELECT 1 FROM p
 
 if ($dbExists -match "1") {
     Write-Host "[WARN] Database '$DB_NAME' already exists" -ForegroundColor Yellow
-    $response = Read-Host "Do you want to DROP and recreate it? (yes/no)"
+    # $response = Read-Host "Do you want to DROP and recreate it? (yes/no)"
+    $response = "yes"
+    Write-Host "Do you want to DROP and recreate it? (yes/no): yes"
     if ($response -eq "yes") {
         Write-Host "Dropping existing database..." -ForegroundColor Red
-        psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -c "DROP DATABASE $DB_NAME;"
+        psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -c "DROP DATABASE $DB_NAME WITH (FORCE);"
         Write-Host "Creating database..." -ForegroundColor Green
         psql -h $DB_HOST -p $DB_PORT -U $DB_SUPERUSER -c "CREATE DATABASE $DB_NAME;"
     } else {
