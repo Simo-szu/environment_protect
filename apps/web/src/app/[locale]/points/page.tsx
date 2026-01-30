@@ -81,7 +81,17 @@ function PointsPageContent() {
         3: { answered: false, correct: false }
     });
 
-    // 签到日历状态（简化版，实际应该从后端获取）
+    // 签到日历状态 - 动态计算本周日期
+    const now = new Date();
+    const dayOfWeek = now.getDay() || 7; // 1 (Mon) - 7 (Sun)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
+
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        return d;
+    });
 
     // 加载积分账户
     useEffect(() => {
@@ -299,7 +309,7 @@ function PointsPageContent() {
                                     )}
                                 </div>
                                 <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
-                                    Lv.{pointsAccount?.level || 1} {pointsAccount?.levelName || t('level', 'Lv.3 Green Apprentice')}
+                                    Lv.{pointsAccount?.level || 1} {t('levelName', 'Green Apprentice')}
                                 </span>
                             </div>
 
@@ -358,7 +368,7 @@ function PointsPageContent() {
                                 {t('signInCalendar', '签到日历')}
                             </h3>
                             <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
-                                {t('currentMonth', { month: new Date().toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long' }) }, '2024年5月')}
+                                {t('currentMonth', 'May 2024', { month: new Date().toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long' }) })}
                             </div>
                         </div>
 
@@ -369,78 +379,96 @@ function PointsPageContent() {
 
                             <div className="grid grid-cols-7 gap-2 sm:gap-4 w-full text-center">
                                 {/* 星期头 */}
-                                <div className="text-xs text-slate-400 pb-2">Mon</div>
-                                <div className="text-xs text-slate-400 pb-2">Tue</div>
-                                <div className="text-xs text-slate-400 pb-2">Wed</div>
-                                <div className="text-xs text-slate-400 pb-2">Thu</div>
-                                <div className="text-xs text-slate-400 pb-2">Fri</div>
-                                <div className="text-xs text-slate-400 pb-2">Sat</div>
-                                <div className="text-xs text-slate-400 pb-2">Sun</div>
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                    <div key={day} className="text-xs text-slate-400 pb-2">{day}</div>
+                                ))}
 
                                 {/* 日期格子 */}
-                                {/* 1号：已签到 (小树苗) */}
-                                <div className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
-                                    <span className="text-[10px] text-slate-400 absolute top-1 left-1">1</span>
-                                    <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')} +5</div>
-                                </div>
+                                {weekDays.map((date, index) => {
+                                    const isToday = date.toDateString() === new Date().toDateString();
+                                    const isFuture = date > new Date() && !isToday;
+                                    const dayNum = date.getDate();
 
-                                {/* 2号：已签到 */}
-                                <div className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
-                                    <span className="text-[10px] text-slate-400 absolute top-1 left-1">2</span>
-                                    <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" style={{ animationDelay: '0.5s' }} />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')} +5</div>
-                                </div>
+                                    // 简单的模拟状态逻辑
+                                    // 如果是今天，根据 todaySignin 判断
+                                    // 如果是过去，假设前几天已签到 (根据 consecutiveDays 推断)
+                                    const consecutiveDays = todaySignin?.consecutiveDays || 0;
+                                    // 今天的 index 是 index. index < (今天index) 的是从周一开始的天数
+                                    // 简单起见，我们只处理今天和未来，过去的日子显示为"漏签"或者随机，
+                                    // 但为了展示"连续签到"，我们可以倒推：
+                                    // 如果今天已签到(consecutiveDays >= 1)，那今天亮。
+                                    // 昨天(index-1) 如果 consecutiveDays >= 2，那昨天亮...
 
-                                {/* 3号：漏签 (枯萎) */}
-                                <div className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
-                                    <span className="text-[10px] text-slate-400 absolute top-1 left-1">3</span>
-                                    <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
-                                </div>
+                                    const todayIndex = (new Date().getDay() || 7) - 1;
+                                    const distFromToday = todayIndex - index; // 0 for today, 1 for yesterday
 
-                                {/* 4号：漏签 */}
-                                <div className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
-                                    <span className="text-[10px] text-slate-400 absolute top-1 left-1">4</span>
-                                    <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
-                                </div>
+                                    const isSigned = (isToday && !!todaySignin) ||
+                                        (distFromToday > 0 && todaySignin && distFromToday < todaySignin.consecutiveDays);
 
-                                {/* 5号：今日 (可签到或已签到) */}
-                                <div
-                                    onClick={handleCheckIn}
-                                    className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all duration-300 ${todaySignin
-                                        ? 'bg-white border border-[#56B949]/30 hover:shadow-md cursor-default'
-                                        : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
-                                        }`}
-                                >
-                                    <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400' : 'text-[#56B949]'
-                                        }`}>5</span>
+                                    // 过去且未签到 -> 漏签
+                                    const isMissed = !isFuture && !isToday && !isSigned;
 
-                                    {todaySignin ? (
-                                        <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
-                                    ) : (
-                                        <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : t('calendar.signIn', '签到')}</div>
-                                    )}
+                                    if (isFuture) {
+                                        return (
+                                            <div key={index} className="aspect-square rounded-lg bg-white border border-transparent flex flex-col items-center justify-center text-slate-300">
+                                                {dayNum}
+                                            </div>
+                                        );
+                                    }
 
-                                    {/* 签到成功动画 */}
-                                    {showCheckInAnimation && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="w-8 h-8 rounded-full bg-[#56B949]/20 animate-ping"></div>
-                                            <Sprout className="w-6 h-6 text-[#56B949] absolute animate-bounce" />
+                                    if (isToday) {
+                                        return (
+                                            <div
+                                                key={index}
+                                                onClick={handleCheckIn}
+                                                className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all duration-300 ${todaySignin
+                                                    ? 'bg-white border border-[#56B949]/30 hover:shadow-md cursor-default'
+                                                    : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
+                                                    }`}
+                                            >
+                                                <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400' : 'text-[#56B949]'}`}>
+                                                    {dayNum}
+                                                </span>
+
+                                                {todaySignin ? (
+                                                    <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
+                                                ) : (
+                                                    <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : t('calendar.signIn', '签到')}</div>
+                                                )}
+
+                                                {showCheckInAnimation && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-8 h-8 rounded-full bg-[#56B949]/20 animate-ping"></div>
+                                                        <Sprout className="w-6 h-6 text-[#56B949] absolute animate-bounce" />
+                                                    </div>
+                                                )}
+
+                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
+                                                    {todaySignin ? `${t('calendar.signedIn', '已签到')} +${todaySignin.points}` : t('calendar.clickToSignIn', '点击签到')}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    if (isSigned) {
+                                        return (
+                                            <div key={index} className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
+                                                <span className="text-[10px] text-slate-400 absolute top-1 left-1">{dayNum}</span>
+                                                <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" style={{ animationDelay: `${index * 0.1}s` }} />
+                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')}</div>
+                                            </div>
+                                        );
+                                    }
+
+                                    // Missed
+                                    return (
+                                        <div key={index} className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
+                                            <span className="text-[10px] text-slate-400 absolute top-1 left-1">{dayNum}</span>
+                                            <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
+                                            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
                                         </div>
-                                    )}
-
-                                    {/* 提示文字 */}
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
-                                        {todaySignin ? `${t('calendar.signedIn', '已签到')} +${todaySignin.points}` : t('calendar.clickToSignIn', '点击签到')}
-                                    </div>
-                                </div>
-
-                                {/* 6号：未来 */}
-                                <div className="aspect-square rounded-lg bg-white border border-transparent flex flex-col items-center justify-center text-slate-300">6</div>
-                                {/* 7号：未来 */}
-                                <div className="aspect-square rounded-lg bg-white border border-transparent flex flex-col items-center justify-center text-slate-300">7</div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -695,7 +723,7 @@ export default function PointsPage() {
                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#d9901e] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                                 YL
                             </div>
-                            <p className="text-slate-600">{t('common.loading', '加载中...')}</p>
+                            <p className="text-slate-600">{t('loading', '加载中...')}</p>
                         </div>
                     </div>
                 </Layout>

@@ -289,27 +289,63 @@
             "environmental": "环保教育",
             "volunteer": "志愿服务",
             "community": "社区活动",
-            "recycle": "回收利用",
-            "water": "节水保护",
-            "energy": "清洁能源"
+            "culture": "文化交流",
+            "sports": "运动健身",
+            "tech": "科技创新",
+            "art": "艺术表演",
+            "other": "其他"
         },
-        "description": "活动描述",
-        "descriptionPlaceholder": "描述活动内容、目标和意义...",
-        "date": "活动日期",
-        "time": "活动时间",
-        "maxParticipants": "最大参与人数",
-        "maxParticipantsPlaceholder": "留空表示不限制",
-        "location": "活动地点",
-        "locationPlaceholder": "请输入详细地址",
-        "requirements": "参与要求",
-        "requirementsPlaceholder": "描述参与者需要准备什么或满足什么条件...",
-        "contact": "联系信息",
-        "contactPlaceholder": "请输入电话号码或微信号",
-        "image": "活动图片",
-        "imageUpload": "点击上传活动图片",
-        "imageSupport": "支持JPG、PNG格式，最大5MB",
-        "publish": "发布活动",
-        "cancel": "取消"
+        "create": {
+            "title": "创建活动",
+            "subtitle": "创建新的环保活动",
+            "loading": "加载中...",
+            "alerts": {
+                "imageOnly": "仅支持图片文件",
+                "imageSizeLimit": "图片大小不超过5MB",
+                "uploadFailed": "图片上传失败，请重试",
+                "fillRequired": "请填写所有必填项",
+                "createFailed": "创建活动失败，请重试"
+            },
+            "descriptionLabels": {
+                "requirements": "[参与要求]",
+                "contact": "[联系方式]",
+                "maxParticipants": "[人数限制]",
+                "personUnit": "人"
+            },
+            "status": {
+                "uploading": "上传中...",
+                "uploadingImage": "正在上传图片...",
+                "remove": "移除"
+            },
+            "form": {
+                "title": "活动标题",
+                "titlePlaceholder": "请输入活动标题",
+                "type": "活动类型",
+                "types": {
+                    "tree": "植树造林",
+                    "recycle": "回收利用",
+                    "water": "水资源保护",
+                    "energy": "清洁能源"
+                },
+                "description": "活动描述",
+                "descriptionPlaceholder": "描述活动内容、目标和意义...",
+                "date": "活动日期",
+                "time": "活动时间",
+                "maxParticipants": "最大参与人数",
+                "maxParticipantsPlaceholder": "留空表示不限制",
+                "location": "活动地点",
+                "locationPlaceholder": "请输入详细地址",
+                "requirements": "参与要求",
+                "requirementsPlaceholder": "描述参与者需要准备什么或满足什么条件...",
+                "contact": "联系信息",
+                "contactPlaceholder": "请输入电话号码或微信号",
+                "image": "活动图片",
+                "imageUpload": "点击上传活动图片",
+                "imageSupport": "支持JPG、PNG格式，最大5MB",
+                "publish": "发布活动",
+                "cancel": "取消"
+            }
+        }
     }
 },
 "register": {
@@ -709,7 +745,8 @@
     "defaultLocation": "广东省",
     "pointsUnit": "分",
     "levelTitle": "环保达人",
-    "defaultBio": "热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。"
+    "defaultBio": "热爱环保，致力于可持续生活方式的实践者。通过日常行动为地球环境保护贡献自己的力量。",
+    "defaultNickname": "用户"
 },
 "actions": {
     "editProfile": "编辑资料",
@@ -1307,6 +1344,7 @@
 "points": {
 "title": "积分商城",
 "level": "Lv.3 环保达人",
+"levelName": "环保达人",
 "badge": "积分奖励系统",
 "paradise": "乐园",
 "subtitle": {

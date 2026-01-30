@@ -36,11 +36,11 @@ export default function ProfilePage() {
     const locale = (params?.locale as string) || 'zh';
     const [profile, setProfile] = useState<UserProfile | null>({
         userId: user?.userId || '',
-        nickname: user?.nickname || '环保用户',
+        nickname: user?.nickname || t('info.defaultNickname', '用户'),
         avatarUrl: user?.avatarUrl,
         gender: 1,
-        location: '广东省',
-        bio: '热爱环保，致力于可持续生活方式的实践者。'
+        location: t('info.defaultLocation', '广东省'),
+        bio: t('info.defaultBio', '热爱环保，致力于可持续生活方式的实践者。')
     });
     const [loadingProfile, setLoadingProfile] = useState(false);
 
@@ -145,18 +145,19 @@ export default function ProfilePage() {
                         </div>
 
                         {/* User Details */}
+                        {/* User Details */}
                         <div className="flex-1">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                                 <div>
                                     <h2 className="text-2xl font-semibold text-[#30499B] mb-2">
-                                        {profile?.nickname || user?.nickname || '用户'}
+                                        {profile?.nickname || user?.nickname || t('info.defaultNickname', '用户')}
                                     </h2>
                                     <div className="flex items-center gap-4 text-slate-600">
                                         {profile?.gender && (
                                             <div className="flex items-center gap-1">
                                                 <User className="w-4 h-4" />
                                                 <span>
-                                                    {profile.gender === 1 ? '男' : profile.gender === 2 ? '女' : '其他'}
+                                                    {profile.gender === 1 ? t('info.male', '男') : profile.gender === 2 ? t('info.female', '女') : t('info.other', '其他')}
                                                 </span>
                                             </div>
                                         )}
@@ -188,9 +189,9 @@ export default function ProfilePage() {
                                             <User className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500">性别</p>
+                                            <p className="text-xs text-slate-500">{t('info.gender', '性别')}</p>
                                             <p className="font-medium text-slate-800">
-                                                {profile.gender === 1 ? '男' : profile.gender === 2 ? '女' : '其他'}
+                                                {profile.gender === 1 ? t('info.male', '男') : profile.gender === 2 ? t('info.female', '女') : t('info.other', '其他')}
                                             </p>
                                         </div>
                                     </div>
@@ -203,7 +204,7 @@ export default function ProfilePage() {
                                             <MapPin className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500">位置</p>
+                                            <p className="text-xs text-slate-500">{t('info.location', '位置')}</p>
                                             <p className="font-medium text-slate-800">{profile.location}</p>
                                         </div>
                                     </div>
@@ -239,7 +240,7 @@ export default function ProfilePage() {
                                 <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
                                     <div className="flex items-center gap-2 mb-2">
                                         <FileText className="w-4 h-4 text-[#56B949]" />
-                                        <span className="text-sm font-medium text-[#30499B]">个人简介</span>
+                                        <span className="text-sm font-medium text-[#30499B]">{t('info.bio', '个人简介')}</span>
                                     </div>
                                     <p className="text-sm text-slate-600 leading-relaxed">
                                         {profile.bio}
@@ -316,42 +317,42 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Recent Liked Article */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.articleType', '科普文章')}</span>
                             </div>
                             <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.articleTitle', '环保小贴士分享')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.articleDesc', '分享一些日常生活中的环保小技巧...')}</p>
-                            <div className="flex items-center gap-1 text-[#EE4035]">
+                            <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
                                 <span className="text-xs">{t('recentLikes.likedDaysAgo', '2天前点赞')}</span>
                             </div>
                         </div>
 
                         {/* Recent Liked Activity */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <TreePine className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.activityType', '环保活动')}</span>
                             </div>
                             <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.activityTitle', '城市绿洲种植计划')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.activityDesc', '加入我们在市中心创建绿色角落...')}</p>
-                            <div className="flex items-center gap-1 text-[#EE4035]">
+                            <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
                                 <span className="text-xs">{t('recentLikes.liked5DaysAgo', '5天前点赞')}</span>
                             </div>
                         </div>
 
                         {/* Recent Liked Comment */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <MessageCircle className="w-4 h-4 text-[#F0A32F]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.commentType', '评论互动')}</span>
                             </div>
                             <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.commentTitle', '张小明的评论')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.commentDesc', '非常赞同你的观点！环保确实需要...')}</p>
-                            <div className="flex items-center gap-1 text-[#EE4035]">
+                            <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
                                 <span className="text-xs">{t('recentLikes.liked1WeekAgo', '1周前点赞')}</span>
                             </div>
@@ -380,28 +381,28 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Recent Favorited Article */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentFavorites.articleType', '科普文章')}</span>
                             </div>
                             <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.articleTitle', '节约用水小妙招')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.articleDesc', '洗菜水可以浇花，洗衣水可以拖地，一水多用...')}</p>
-                            <div className="flex items-center gap-1 text-[#56B949]">
+                            <div className="flex items-center gap-1 text-[#56B949] mt-auto">
                                 <Bookmark className="w-3 h-3 fill-current" />
                                 <span className="text-xs">{t('recentFavorites.favorited3DaysAgo', '3天前收藏')}</span>
                             </div>
                         </div>
 
                         {/* Recent Favorited Activity */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Recycle className="w-4 h-4 text-[#F0A32F]" />
                                 <span className="text-xs text-slate-500">{t('recentFavorites.activityType', '环保活动')}</span>
                             </div>
                             <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.activityTitle', '旧物新生DIY工作坊')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.activityDesc', '学习如何将废弃物品变废为宝...')}</p>
-                            <div className="flex items-center gap-1 text-[#56B949]">
+                            <div className="flex items-center gap-1 text-[#56B949] mt-auto">
                                 <Bookmark className="w-3 h-3 fill-current" />
                                 <span className="text-xs">{t('recentFavorites.favorited1WeekAgo', '1周前收藏')}</span>
                             </div>

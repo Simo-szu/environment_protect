@@ -577,6 +577,7 @@
             "getRewards": " to get rewards"
         },
         "level": "Lv.3 Green Apprentice",
+        "levelName": "Green Apprentice",
         "points": "Points",
         "progress": {
             "current": "Current Progress",
@@ -586,7 +587,7 @@
         "exchangeStore": "Exchange Store",
         "pointsHistory": "Points History",
         "signInCalendar": "Sign-in Calendar",
-        "currentMonth": "May 2024",
+        "currentMonth": "{month}",
         "dailyTasks": "Daily Tasks",
         "tasksRemaining": "Remaining today",
         "dailyQuiz": "Daily Quiz",
@@ -667,7 +668,8 @@
             "defaultLocation": "Guangdong Province",
             "pointsUnit": "points",
             "levelTitle": "Eco Expert",
-            "defaultBio": "Environmental enthusiast committed to sustainable living practices. Contributing to environmental protection through daily actions."
+            "defaultBio": "Environmental enthusiast committed to sustainable living practices. Contributing to environmental protection through daily actions.",
+            "defaultNickname": "User"
         },
         "actions": {
             "editProfile": "Edit Profile",
