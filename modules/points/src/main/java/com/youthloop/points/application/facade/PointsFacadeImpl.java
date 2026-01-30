@@ -9,6 +9,7 @@ import com.youthloop.points.application.service.QuizService;
 import com.youthloop.points.application.service.SigninService;
 import com.youthloop.points.application.service.TaskService;
 import com.youthloop.points.application.service.ExchangeService;
+import com.youthloop.points.application.service.LevelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class PointsFacadeImpl implements PointsFacade {
     private final QuizService quizService;
     private final PointsService pointsService;
     private final ExchangeService exchangeService;
+    private final LevelService levelService;
     
 
     public SigninResponse signin(SigninRequest request) {
@@ -63,13 +65,19 @@ public class PointsFacadeImpl implements PointsFacade {
         UUID userId = SecurityUtil.getCurrentUserId();
         Long balance = pointsService.getBalance(userId);
         
+        // 使用LevelService根据badge表动态计算等级
+        int level = levelService.calculateLevel(balance);
+        long pointsToNext = levelService.calculatePointsToNextLevel(balance);
+        long nextLevelMin = levelService.getLevelMinPoints(level + 1);
+        
         return PointsAccountDTO.builder()
             .userId(userId)
             .balance(balance)
             .totalPoints(balance)
             .availablePoints(balance)
-            .level(1)
-            .levelName("默认等级")
+            .level(level)
+            .pointsToNextLevel(pointsToNext)
+            .nextLevelMinPoints(nextLevelMin)
             .build();
     }
     

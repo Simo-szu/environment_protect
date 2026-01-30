@@ -11,7 +11,8 @@ export interface PointsAccount {
   totalPoints: number;
   availablePoints: number;
   level: number;
-  levelName?: string;
+  pointsToNextLevel?: number;      // 距离下一等级还需积分
+  nextLevelMinPoints?: number;     // 下一等级最低积分
 }
 
 // 积分记录
@@ -20,7 +21,9 @@ export interface PointsLedger {
   userId: string;
   amount: number;
   balance: number;
-  reason: string;
+  reason: string;          // 原因描述（中文）
+  reasonCode?: number;     // 原因代码
+  memo?: string;           // 备注
   sourceType: string;
   sourceId?: string;
   createdAt: string;

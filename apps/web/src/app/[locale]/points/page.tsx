@@ -34,7 +34,7 @@ function PointsPageContent() {
         totalPoints: 150,
         availablePoints: 150,
         level: 3,
-        levelName: t('level', 'Lv.3 Green Apprentice')
+        pointsToNextLevel: 150
     });
     const [loadingAccount, setLoadingAccount] = useState(false);
 
@@ -310,7 +310,7 @@ function PointsPageContent() {
                                     )}
                                 </div>
                                 <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
-                                    Lv.{pointsAccount?.level || 1} {t('levelName', 'Green Apprentice')}
+                                    Lv.{pointsAccount?.level || 1}
                                 </span>
                             </div>
 
@@ -328,13 +328,57 @@ function PointsPageContent() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm text-[#30499B]/70 font-medium">
                                         <span>{t('progress.current', '当前进度')}</span>
-                                        <span>{t('progress.nextBadge', '总积分')} <span className="text-[#30499B]">{pointsAccount?.totalPoints || 0}</span></span>
+                                        <span>{t('progress.nextLevel', '距离下一级还需')} <span className="text-[#F0A32F] font-bold">{pointsAccount?.pointsToNextLevel || 0}</span> {t('points', '积分')}</span>
                                     </div>
                                     <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative w-2/3">
-                                            <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50"></div>
-                                            <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] skew-x-12 translate-x-[-100%]"></div>
-                                        </div>
+                                        {(() => {
+                                            const current = pointsAccount?.totalPoints || 0;
+                                            const nextMin = pointsAccount?.nextLevelMinPoints || 100;
+                                            const pointsToNext = pointsAccount?.pointsToNextLevel || 0;
+                                            
+                                            // 如果已是最高级（pointsToNextLevel为0且current > 0）
+                                            if (pointsToNext === 0 && current > 0) {
+                                                return (
+                                                    <div 
+                                                        className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative transition-all duration-500"
+                                                        style={{ width: '100%' }}
+                                                    >
+                                                        <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50"></div>
+                                                        <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] skew-x-12 translate-x-[-100%]"></div>
+                                                    </div>
+                                                );
+                                            }
+                                            
+                                            // 计算当前等级的起始积分（下一级最低积分 - 距离下一级所需积分 = 当前等级起始积分）
+                                            const currentMin = nextMin - pointsToNext - (current - (nextMin - pointsToNext));
+                                            // 简化：当前等级起始积分 = 当前积分 - (下一级所需 - 已有到下一级的进度)
+                                            // 更简单的算法：当前等级范围内的进度 = (当前积分 - 当前等级起始) / (下一级起始 - 当前等级起始)
+                                            // 由于 pointsToNext = nextMin - current，所以 current = nextMin - pointsToNext
+                                            // 当前等级起始 = nextMin - (nextMin - currentMin) = currentMin
+                                            // 实际上我们需要：当前等级最低积分
+                                            // 根据等级规则，如果 level=1 对应 0-99，level=2 对应 100-199
+                                            // 那么 currentMin = (level - 1) * 100
+                                            const level = pointsAccount?.level || 1;
+                                            const actualCurrentMin = (level - 1) * 100;
+                                            
+                                            // 计算进度百分比
+                                            const progress = nextMin > actualCurrentMin 
+                                                ? ((current - actualCurrentMin) / (nextMin - actualCurrentMin)) * 100 
+                                                : 0;
+                                            
+                                            // 设置最小宽度为3%，确保有积分时至少能看到一点进度
+                                            const displayProgress = current > 0 ? Math.max(3, Math.min(100, progress)) : 0;
+                                            
+                                            return (
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative transition-all duration-500"
+                                                    style={{ width: `${displayProgress}%` }}
+                                                >
+                                                    <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50"></div>
+                                                    <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite] skew-x-[-100%]"></div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                     <div className="flex justify-between text-xs text-slate-400">
                                         <span>Lv.{pointsAccount?.level || 1}</span>

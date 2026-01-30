@@ -582,6 +582,7 @@
         "progress": {
             "current": "Current Progress",
             "nextBadge": "Need",
+            "nextLevel": "Need",
             "points": "more points for next badge"
         },
         "exchangeStore": "Exchange Store",

@@ -62,14 +62,23 @@ export default function PointsHistoryPage() {
     };
 
     const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) {
+                console.error('Invalid date:', dateStr);
+                return dateStr;
+            }
+            return date.toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error, dateStr);
+            return dateStr;
+        }
     };
 
     return (
@@ -128,9 +137,8 @@ export default function PointsHistoryPage() {
                             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                                 <div className="divide-y divide-slate-50">
                                     {history.map((record) => (
-                                        <motion.div
+                                        <div
                                             key={record.id}
-                                            variants={staggerItem}
                                             className="p-4 sm:p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between"
                                         >
                                             <div className="flex items-center gap-4">
@@ -139,6 +147,11 @@ export default function PointsHistoryPage() {
                                                     <div className="font-semibold text-[#30499B]">
                                                         {record.reason || t('history.type.other', '其他')}
                                                     </div>
+                                                    {record.memo && (
+                                                        <div className="text-xs text-slate-500 mt-0.5">
+                                                            {record.memo}
+                                                        </div>
+                                                    )}
                                                     <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
                                                         <Calendar className="w-3.5 h-3.5" />
                                                         {formatDate(record.createdAt)}
@@ -150,13 +163,13 @@ export default function PointsHistoryPage() {
                                                     {record.amount > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                                                     {record.amount > 0 ? '+' : ''}{record.amount}
                                                 </div>
-                                                {record.balance !== undefined && (
+                                                {record.balance !== undefined && record.balance !== null && (
                                                     <div className="text-[10px] text-slate-300 mt-1">
                                                         {t('history.balance', '余额')}: {record.balance}
                                                     </div>
                                                 )}
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     ))}
                                 </div>
 

@@ -21,5 +21,6 @@ public class PointsAccountDTO {
     private Long totalPoints;
     private Long availablePoints;
     private Integer level;
-    private String levelName;
+    private Long pointsToNextLevel; // 距离下一级所需积分
+    private Long nextLevelMinPoints; // 下一等级最低积分
 }
