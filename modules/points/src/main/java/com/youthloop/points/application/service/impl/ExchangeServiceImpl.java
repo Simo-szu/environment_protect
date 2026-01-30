@@ -70,18 +70,23 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new IllegalStateException("扣减库存失败，可能库存已变动");
         }
 
-        // 3. 创建订单
+        // 3. 创建订单（包含收货信息）
         OrderEntity order = OrderEntity.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .goodId(good.getId())
                 .pointsCost(good.getPointsCost())
                 .status(1) // 1=placed
+                .recipientName(request.getRecipientName())
+                .recipientPhone(request.getRecipientPhone())
+                .shippingAddress(request.getShippingAddress())
+                .shippingNote(request.getShippingNote())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
         exchangeMapper.insertOrder(order);
 
-        log.info("用户兑换成功: userId={}, goodId={}, title={}", userId, good.getId(), good.getTitle());
+        log.info("用户兑换成功: userId={}, goodId={}, title={}, recipient={}", 
+                userId, good.getId(), good.getTitle(), request.getRecipientName());
     }
 }

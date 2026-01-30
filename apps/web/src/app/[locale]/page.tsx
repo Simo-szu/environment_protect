@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -10,10 +10,12 @@ import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
-import { homeApi, contentApi, activityApi } from '@/lib/api';
+import { useApiCache } from '@/hooks/useApiCache';
+import { contentApi, activityApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
 import type { ActivityItem } from '@/lib/api/activity';
 import AuthPromptModal from '@/components/auth/AuthPromptModal';
+import { CardSkeleton, ActivityCardSkeleton } from '@/components/ui/Skeleton';
 
 interface CardData {
     id: string;
@@ -32,37 +34,25 @@ export default function HomePage() {
     const [activeIndex, setActiveIndex] = useState(1);
     const mounted = useClientMounted();
     const { t } = useSafeTranslation('home');
-
-    // 状态管理
-    const [contents, setContents] = useState<ContentItem[]>([]);
-    const [activities, setActivities] = useState<ActivityItem[]>([]);
-    const [loading, setLoading] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    // 加载首页数据
-    useEffect(() => {
-        const loadHomeData = async () => {
-            try {
-                setLoading(true);
+    // 使用缓存加载科普内容
+    const { data: contentsData, loading: contentsLoading } = useApiCache({
+        key: 'home-contents',
+        fetcher: () => contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
+        cacheTime: 3 * 60 * 1000, // 3分钟缓存
+    });
 
-                // 并行加载科普内容和活动
-                const [contentsRes, activitiesRes] = await Promise.all([
-                    contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
-                    activityApi.getActivities({ page: 1, size: 3, sort: 'hot' })
-                ]);
+    // 使用缓存加载活动
+    const { data: activitiesData, loading: activitiesLoading } = useApiCache({
+        key: 'home-activities',
+        fetcher: () => activityApi.getActivities({ page: 1, size: 3, sort: 'hot' }),
+        cacheTime: 3 * 60 * 1000, // 3分钟缓存
+    });
 
-                setContents(contentsRes.items);
-                setActivities(activitiesRes.items);
-            } catch (error) {
-                console.error('Failed to load home data:', error);
-                // 失败时使用空数组，页面仍可正常显示
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadHomeData();
-    }, []);
+    const contents = contentsData?.items || [];
+    const activities = activitiesData?.items || [];
+    const loading = contentsLoading || activitiesLoading;
 
     const cardsData: CardData[] = [
         {
@@ -278,12 +268,7 @@ export default function HomePage() {
                         {loading ? (
                             // 加载骨架屏
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 animate-pulse">
-                                    <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-lg mb-4"></div>
-                                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
-                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
-                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
-                                </div>
+                                <CardSkeleton key={i} />
                             ))
                         ) : contents.length > 0 ? (
                             // 真实数据
@@ -436,14 +421,7 @@ export default function HomePage() {
                         {loading ? (
                             // 加载骨架屏
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="rounded-xl overflow-hidden shadow-md animate-pulse">
-                                    <div className="h-32 bg-slate-200 dark:bg-slate-700"></div>
-                                    <div className="bg-white dark:bg-slate-800 p-5">
-                                        <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
-                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-4 w-32"></div>
-                                        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded"></div>
-                                    </div>
-                                </div>
+                                <ActivityCardSkeleton key={i} />
                             ))
                         ) : activities.length > 0 ? (
                             // 真实数据

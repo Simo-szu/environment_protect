@@ -21,6 +21,10 @@ public class OrderEntity {
     private UUID goodId;
     private Integer pointsCost;
     private Integer status;
+    private String recipientName;
+    private String recipientPhone;
+    private String shippingAddress;
+    private String shippingNote;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

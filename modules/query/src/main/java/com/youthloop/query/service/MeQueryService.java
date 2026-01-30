@@ -243,8 +243,13 @@ public class MeQueryService {
         }
         
         dto.setActivityStatus((Integer) row.get("activity_status"));
-        dto.setSignupCount((Integer) row.get("signup_count"));
-        dto.setLikeCount((Integer) row.get("like_count"));
+        
+        // 安全转换 Long 到 Integer（数据库聚合函数返回 Long）
+        Object signupCountObj = row.get("signup_count");
+        dto.setSignupCount(signupCountObj != null ? ((Number) signupCountObj).intValue() : 0);
+        
+        Object likeCountObj = row.get("like_count");
+        dto.setLikeCount(likeCountObj != null ? ((Number) likeCountObj).intValue() : 0);
         
         return dto;
     }

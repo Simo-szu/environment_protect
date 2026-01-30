@@ -133,3 +133,18 @@
   --color-plant: #2E8B57;
   --color-accent: #007BFF;
 }
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background-size: 1000px 100%;
+}

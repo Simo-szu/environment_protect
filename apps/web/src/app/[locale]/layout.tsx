@@ -4,6 +4,8 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import NextTopLoader from 'nextjs-toploader';
 import { getTranslations } from 'next-intl/server';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 export async function generateMetadata(
     { params }: { params: Promise<{ locale: string }> }
@@ -71,17 +73,21 @@ export default async function LocaleLayout({
     return (
         <NextIntlClientProvider messages={messages} locale={locale}>
             <GoogleProvider clientId={googleClientId}>
-                <NextTopLoader
-                    color="#56B949"
-                    initialPosition={0.08}
-                    crawlSpeed={200}
-                    height={3}
-                    showSpinner={false}
-                    easing="ease"
-                    speed={200}
-                    shadow="0 0 10px #56B949,0 0 5px #56B949"
-                />
-                {children}
+                <AuthProvider>
+                    <NotificationProvider>
+                        <NextTopLoader
+                            color="#56B949"
+                            initialPosition={0.08}
+                            crawlSpeed={200}
+                            height={3}
+                            showSpinner={false}
+                            easing="ease"
+                            speed={200}
+                            shadow="0 0 10px #56B949,0 0 5px #56B949"
+                        />
+                        {children}
+                    </NotificationProvider>
+                </AuthProvider>
             </GoogleProvider>
         </NextIntlClientProvider>
     );

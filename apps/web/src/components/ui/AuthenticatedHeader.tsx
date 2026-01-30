@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
-import { userApi } from '@/lib/api';
 
 interface AuthenticatedHeaderProps {
     showSearch?: boolean;
@@ -15,33 +15,15 @@ interface AuthenticatedHeaderProps {
 
 export default function AuthenticatedHeader({ showSearch = true }: AuthenticatedHeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
     const pathname = usePathname();
     const params = useParams();
     const router = useRouter();
     const { user, logout, isLoggedIn } = useAuth();
+    const { unreadCount } = useNotifications();
     const { t } = useSafeTranslation('navigation');
 
     // 获取当前语言
     const locale = params?.locale as string || 'zh';
-
-    // 加载未读消息数量
-    useEffect(() => {
-        const loadUnreadCount = async () => {
-            if (!isLoggedIn) return;
-
-            try {
-                const notifications = await userApi.getMyNotifications({ page: 1, size: 20 }).catch(() => ({ items: [], total: 0, page: 1, size: 20 }));
-                // 计算未读数量
-                const unread = notifications.items.filter(n => !n.isRead).length;
-                setUnreadCount(unread);
-            } catch (error) {
-                // 静默处理错误
-            }
-        };
-
-        loadUnreadCount();
-    }, [isLoggedIn]);
 
     // 导航项目
     const navigationItems = [

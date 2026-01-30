@@ -33,9 +33,13 @@
 
     <insert id="insertOrder" parameterType="com.youthloop.points.persistence.entity.OrderEntity">
         INSERT INTO social.exchange_order (
-            id, user_id, good_id, points_cost, status, created_at, updated_at
+            id, user_id, good_id, points_cost, status, 
+            recipient_name, recipient_phone, shipping_address, shipping_note,
+            created_at, updated_at
         ) VALUES (
-            #{id}, #{userId}, #{goodId}, #{pointsCost}, #{status}, #{createdAt}, #{updatedAt}
+            #{id}, #{userId}, #{goodId}, #{pointsCost}, #{status},
+            #{recipientName}, #{recipientPhone}, #{shippingAddress}, #{shippingNote},
+            #{createdAt}, #{updatedAt}
         )
     </insert>
 

@@ -149,6 +149,17 @@ export async function getExchangeGoods(): Promise<any[]> {
 /**
  * 兑换商品
  */
-export async function exchangeGood(goodId: string): Promise<void> {
-  return apiPost<void>('/api/v1/points/exchange/orders', { goodId }, true);
+export async function exchangeGood(
+  goodId: string,
+  shippingInfo: {
+    recipientName: string;
+    recipientPhone: string;
+    shippingAddress: string;
+    shippingNote?: string;
+  }
+): Promise<void> {
+  return apiPost<void>('/api/v1/points/exchange/orders', {
+    goodId,
+    ...shippingInfo
+  }, true);
 }
