@@ -178,16 +178,8 @@ export default function LoginPage() {
     };
 
     return (
-        <Layout showHeader={false} showFooter={false}>
+        <Layout showHeader={true} showFooter={true}>
             <div className="min-h-screen flex items-center justify-center p-4">
-                {/* Back Button */}
-                <Link
-                    href={`/${locale}`}
-                    className="absolute top-6 left-6 p-2 rounded-full bg-white/80 backdrop-blur-sm text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60"
-                >
-                    ←
-                </Link>
-
                 {/* Login Card */}
                 <div className="w-full max-w-[440px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 sm:p-10 border border-white/40">
                     {/* Header */}

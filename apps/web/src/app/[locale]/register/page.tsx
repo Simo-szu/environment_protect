@@ -201,16 +201,8 @@ export default function RegisterPage() {
     };
 
     return (
-        <Layout showHeader={false} showFooter={false}>
+        <Layout showHeader={true} showFooter={true}>
             <div className="min-h-screen flex items-center justify-center p-4">
-                {/* Back Button */}
-                <Link
-                    href={`/${locale}`}
-                    className="absolute top-6 left-6 p-2 rounded-full bg-white/80 backdrop-blur-sm text-slate-400 hover:text-[#30499B] hover:bg-white transition-all shadow-sm border border-white/60"
-                >
-                    ←
-                </Link>
-
                 {/* Register Card */}
                 <div className="w-full max-w-[440px] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 sm:p-10 border border-white/40">
                     {/* Header */}
@@ -305,13 +297,13 @@ export default function RegisterPage() {
                                     disabled={sendingOtp || countdown > 0 || submitting}
                                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] hover:text-[#56B949] disabled:text-slate-400 disabled:cursor-not-allowed"
                                 >
-                                    {sendingOtp ? '发送中...' : countdown > 0 ? `${countdown}秒后重试` : '获取验证码'}
+                                    {sendingOtp ? t('register.sendingOtp', '发送中...') : countdown > 0 ? t('register.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('register.getOtp', '获取验证码')}
                                 </button>
                             </div>
 
                             {/* 密码输入 */}
                             <div className="space-y-2">
-                                <div className="text-xs text-slate-400 px-1">密码需在8位以上,由数字、字母组成</div>
+                                <div className="text-xs text-slate-400 px-1">{t('register.passwordHint', '密码需在8位以上,由数字、字母组成')}</div>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#30499B] transition-colors">
                                         <Lock className="w-4 h-4" />
@@ -399,7 +391,7 @@ export default function RegisterPage() {
                                 <div className="w-full border-t border-slate-200"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-slate-400">或者使用 Google 注册</span>
+                                <span className="px-4 bg-white text-slate-400">{t('register.orGoogleRegister', '或者使用 Google 注册')}</span>
                             </div>
                         </div>
 
@@ -420,7 +412,7 @@ export default function RegisterPage() {
 
                         {/* Quick Register Tip */}
                         <div className="text-center text-sm text-slate-500">
-                            <p>注册需要邮箱验证码和密码</p>
+                            <p>{t('register.registerTip', '注册需要邮箱验证码和密码')}</p>
                         </div>
 
                     </div>

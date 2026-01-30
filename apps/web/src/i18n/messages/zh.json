@@ -25,7 +25,8 @@
         "loginRequired": "请先登录再查看此内容",
         "needLogin": "需要登录访问",
         "backToHome": "返回首页",
-        "loginNow": "立即登录"
+        "loginNow": "立即登录",
+        "noData": "暂无数据"
     },
     "auth": {
         "welcome": "欢迎回来，继续你的环保之旅",
@@ -63,37 +64,40 @@
         },
         "register": {
             "title": "注册",
-            "subtitle": "加入我们，开启绿色生活新篇章",
-            "hasAccount": "已有账号？",
+            "subtitle": "加入我们,开启绿色生活新篇章",
+            "hasAccount": "已有账号?",
             "loginNow": "马上登录",
             "emailPlaceholder": "邮箱地址",
-            "passwordPlaceholder": "设置密码（6-20位字符）",
+            "passwordPlaceholder": "设置密码(8-32位字符)",
             "confirmPasswordPlaceholder": "确认密码",
-            "nicknamePlaceholder": "昵称（选填）",
+            "nicknamePlaceholder": "昵称(选填)",
             "otpPlaceholder": "请输入验证码",
             "sendingOtp": "发送中...",
             "getOtp": "获取验证码",
             "retryAfter": "{seconds}秒后重试",
+            "passwordHint": "密码需在8位以上,由数字、字母组成",
             "registering": "注册中...",
             "registerButton": "立即注册",
             "agreeTerms": "注册即代表同意",
             "userAgreement": "《用户服务协议》",
             "and": "和",
             "privacyPolicy": "《隐私政策》",
+            "orGoogleRegister": "或者使用 Google 注册",
+            "registerTip": "注册需要邮箱验证码和密码",
             "errors": {
                 "emailRequired": "请输入邮箱",
                 "passwordRequired": "请输入密码",
                 "confirmPasswordRequired": "请确认密码",
                 "otpRequired": "请输入验证码",
                 "invalidEmail": "请输入正确的邮箱",
-                "passwordTooShort": "密码至少6位字符",
-                "passwordTooLong": "密码不能超过20位字符",
+                "passwordTooShort": "密码至少8位字符",
+                "passwordTooLong": "密码不能超过32位字符",
                 "passwordMismatch": "两次密码不一致",
-                "registerFailed": "注册失败，请重试",
+                "registerFailed": "注册失败,请重试",
                 "otpSendFailed": "发送验证码失败"
             },
             "otpSent": "验证码已发送",
-            "registerSuccess": "注册成功！正在跳转登录..."
+            "registerSuccess": "注册成功!正在跳转登录..."
         }
     },
     "navigation": {

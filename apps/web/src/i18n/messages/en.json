@@ -31,7 +31,8 @@
         "loginRequired": "Please login first to view this content",
         "needLogin": "Login Required",
         "backToHome": "Back to Home",
-        "loginNow": "Login Now"
+        "loginNow": "Login Now",
+        "noData": "No Data"
     },
     "auth": {
         "welcome": "Welcome back, continue your eco journey",
@@ -73,27 +74,30 @@
             "hasAccount": "Already have an account?",
             "loginNow": "Login Now",
             "emailPlaceholder": "Email address",
-            "passwordPlaceholder": "Set password (6-20 characters)",
+            "passwordPlaceholder": "Set password (8-32 characters)",
             "confirmPasswordPlaceholder": "Confirm password",
             "nicknamePlaceholder": "Nickname (optional)",
             "otpPlaceholder": "Enter verification code",
             "sendingOtp": "Sending...",
             "getOtp": "Get Code",
             "retryAfter": "Retry after {seconds}s",
+            "passwordHint": "Password must be at least 8 characters, consisting of numbers and letters",
             "registering": "Registering...",
             "registerButton": "Register Now",
             "agreeTerms": "Registration implies agreement to",
             "userAgreement": "User Service Agreement",
             "and": "and",
             "privacyPolicy": "Privacy Policy",
+            "orGoogleRegister": "Or register with Google",
+            "registerTip": "Registration requires email verification code and password",
             "errors": {
                 "emailRequired": "Please enter email",
                 "passwordRequired": "Please enter password",
                 "confirmPasswordRequired": "Please confirm password",
                 "otpRequired": "Please enter verification code",
                 "invalidEmail": "Please enter a valid email",
-                "passwordTooShort": "Password must be at least 6 characters",
-                "passwordTooLong": "Password must not exceed 20 characters",
+                "passwordTooShort": "Password must be at least 8 characters",
+                "passwordTooLong": "Password must not exceed 32 characters",
                 "passwordMismatch": "Passwords do not match",
                 "registerFailed": "Registration failed, please try again",
                 "otpSendFailed": "Failed to send verification code"
@@ -138,7 +142,7 @@
         "pending": "Pending",
         "cards": {
             "points": {
-                "title": "Points·Exchange",
+                "title": "Points Exchange",
                 "subtitle": "Accumulate Eco Value"
             },
             "game": {

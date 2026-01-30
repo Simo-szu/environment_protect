@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -25,6 +26,12 @@ export default function AuthPromptModal({
     const router = useRouter();
     const locale = params?.locale || 'zh';
     const { t } = useSafeTranslation('common');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
     const getLocalizedPath = (path: string) => {
         if (path.startsWith(`/${locale}/`)) return path;
@@ -37,12 +44,14 @@ export default function AuthPromptModal({
         onClose?.();
     };
 
-    const handleBackHome = () => {
-        router.push(getLocalizedPath('/'));
+    const handleBack = () => {
+        router.back();
         onClose?.();
     };
 
-    return (
+    if (!mounted) return null;
+
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
@@ -97,10 +106,10 @@ export default function AuthPromptModal({
                         {/* Action Buttons */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button
-                                onClick={handleBackHome}
+                                onClick={handleBack}
                                 className="w-full py-4 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all font-bold text-lg hover:scale-[1.02] active:scale-[0.98]"
                             >
-                                {t('backToHome', '返回首页')}
+                                {t('back', '返回')}
                             </button>
                             <button
                                 onClick={handleLogin}
@@ -114,4 +123,6 @@ export default function AuthPromptModal({
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 }
