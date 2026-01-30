@@ -37,7 +37,7 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                         </Link>
                     </div>
                     <p className="text-slate-400 text-[10px]">
-                        {t('copyright', '© 2024 YouthLoop. 让绿色循环，用行动改变未来')}
+                        {t('copyright', '© 2026 YouthLoop. 让绿色循环，用行动改变未来')}
                     </p>
                 </div>
             </footer>
@@ -201,7 +201,7 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                 {/* 版权信息 */}
                 <div className="border-t border-slate-200/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
                     <div className="flex items-center gap-4">
-                        <span>{t('copyrightFull', '© 2024 YouthLoop. 保留所有权利')}</span>
+                        <span>{t('copyrightFull', '© 2026 YouthLoop. 保留所有权利')}</span>
                         <span className="hidden md:inline">|</span>
                         <span>{t('slogan', '让绿色循环，用行动改变未来')}</span>
                     </div>

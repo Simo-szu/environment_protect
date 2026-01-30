@@ -59,7 +59,7 @@ export default function NotificationsPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>
@@ -71,9 +71,9 @@ export default function NotificationsPage() {
             <Layout>
                 <div className="min-h-screen flex items-center justify-center">
                     <div className="text-center">
-                        <div className="text-lg text-slate-600 mb-4">请先登录查看消息通知</div>
+                        <div className="text-lg text-slate-600 mb-4">{t('loginRequired', '请先登录查看消息通知')}</div>
                         <Link href={`/${locale}/login`} className="px-6 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors">
-                            去登录
+                            {t('goLogin', '去登录')}
                         </Link>
                     </div>
                 </div>
@@ -116,6 +116,22 @@ export default function NotificationsPage() {
         setCurrentPage(1);
     };
 
+    const getNotificationTitle = (notification: NotificationItem) => {
+        const actor = notification.actorNickname || 'User';
+        switch (Number(notification.type)) {
+            case 1:
+                return t('types.comment', `${actor} 评论了你`, { actor });
+            case 2:
+                return t('types.reply', `${actor} 回复了你`, { actor });
+            case 3:
+                return t('types.like', `${actor} 点赞了你`, { actor });
+            case 4:
+                return t('types.system', '系统通知');
+            default:
+                return notification.title;
+        }
+    };
+
     return (
         <Layout>
             <div className="min-h-screen">
@@ -138,11 +154,11 @@ export default function NotificationsPage() {
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#30499B] mb-1">{notifications.length}</div>
-                            <div className="text-sm text-slate-500">总消息数</div>
+                            <div className="text-sm text-slate-500">{t('stats.totalReplies', '总消息数')}</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
                             <div className="text-2xl font-bold text-[#56B949] mb-1">{notifications.filter(n => n.isRead).length}</div>
-                            <div className="text-sm text-slate-500">已读消息</div>
+                            <div className="text-sm text-slate-500">{t('stats.totalRead', '已读消息')}</div>
                         </div>
                     </div>
 
@@ -174,7 +190,7 @@ export default function NotificationsPage() {
                                 onClick={() => handleMarkAsRead()}
                                 className="px-4 py-2 rounded-lg font-medium text-[#56B949] hover:bg-[#56B949]/10 transition-colors"
                             >
-                                全部标记已读
+                                {t('actions.markAsRead', '全部标记已读')}
                             </button>
                         )}
                     </div>
@@ -193,11 +209,11 @@ export default function NotificationsPage() {
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-semibold text-slate-800">{notification.title}</h3>
+                                            <h3 className="font-semibold text-slate-800">{getNotificationTitle(notification)}</h3>
                                             <div className="flex items-center gap-2">
                                                 {!notification.isRead && (
                                                     <span className="px-2 py-1 text-xs rounded-full bg-[#EE4035]/10 text-[#EE4035]">
-                                                        未读
+                                                        {t('badges.unread', '未读')}
                                                     </span>
                                                 )}
                                                 <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -214,7 +230,7 @@ export default function NotificationsPage() {
                                                     className="flex items-center gap-1 text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
-                                                    查看详情
+                                                    {t('actions.viewContent', '查看详情')}
                                                 </a>
                                             )}
                                             {!notification.isRead && (
@@ -223,7 +239,7 @@ export default function NotificationsPage() {
                                                     className="flex items-center gap-1 text-sm text-slate-500 hover:text-[#30499B] transition-colors"
                                                 >
                                                     <Check className="w-4 h-4" />
-                                                    标记已读
+                                                    {t('actions.markAsRead', '标记已读')}
                                                 </button>
                                             )}
                                         </div>

@@ -158,9 +158,9 @@ export default function LoginPage() {
 
             // 优化错误提示
             if (loginMode === 'password' && (error.message?.includes('密码') || error.message?.includes('password'))) {
-                setError('密码错误。如果您是通过Google登录注册的,请使用Google登录或验证码登录。');
+                setError(t('login.errors.wrongPassword', '密码错误。如果您是通过Google登录注册的,请使用Google登录或验证码登录。'));
             } else if (error.message?.includes('不存在') || error.message?.includes('not found')) {
-                setError('该邮箱尚未注册,请先注册账号。');
+                setError(t('login.errors.emailNotFound', '该邮箱尚未注册,请先注册账号。'));
             } else {
                 setError(error.message || t('login.errors.loginFailed', '登录失败,请检查账号密码'));
             }
@@ -348,7 +348,7 @@ export default function LoginPage() {
 
                                 {/* Login Tips */}
                                 <div className="text-center text-xs text-slate-500 leading-relaxed mt-4">
-                                    <p>💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码</p>
+                                    <p>{t('login.googleTip', '💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码')}</p>
                                 </div>
                             </>
                         )}

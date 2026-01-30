@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,6 +40,11 @@ export default function SciencePage() {
     const [totalPages, setTotalPages] = useState(1);
     const pageSize = 10;
 
+    // 使用 ref 跟踪 tips 是否已加载，避免依赖问题
+    const tipsLoadedRef = useRef(false);
+    // 引用 News 部分，用于翻页时滚动
+    const newsRef = useRef<HTMLDivElement>(null);
+
     // 加载科普内容
     useEffect(() => {
         const loadContents = async () => {
@@ -53,15 +58,17 @@ export default function SciencePage() {
                 setContents(result.items);
                 setTotalPages(Math.ceil(result.total / pageSize));
 
-                // 专门获取百科作为小贴士 (如果是第一页且 tips 为空时)
-                if (currentPage === 1 && tips.length === 0) {
+                // 专门获取百科作为小贴士 (只在第一次加载时)
+                if (currentPage === 1 && !tipsLoadedRef.current) {
                     const tipsResult = await contentApi.getContents({
                         type: 'WIKI',
                         size: 3,
                         sort: 'latest'
                     });
                     // 如果有百科内容，优先使用；否则使用普通内容的前三个
-                    setTips(tipsResult.items.length > 0 ? tipsResult.items : result.items.slice(0, 3));
+                    const finalTips = tipsResult.items.length > 0 ? tipsResult.items : result.items.slice(0, 3);
+                    setTips(finalTips);
+                    tipsLoadedRef.current = true; // 标记已加载
                 }
             } catch (error) {
                 console.error('Failed to load contents:', error);
@@ -79,7 +86,17 @@ export default function SciencePage() {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // 滚动到 News 部分的顶部（减去 header 高度）
+        if (newsRef.current) {
+            const headerOffset = 120; // header 高度
+            const elementPosition = newsRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
     };
 
     return (
@@ -134,14 +151,10 @@ export default function SciencePage() {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
                     {/* 环保小贴士 Section */}
-                    <motion.section
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: '-50px' }}
-                        variants={staggerContainer}
+                    <section
                         className="mb-24"
                     >
-                        <motion.div variants={staggerItem} className="flex flex-col items-center text-center mb-12">
+                        <div className="flex flex-col items-center text-center mb-12">
                             <h2 className="text-3xl font-serif font-bold text-[#30499B] dark:text-white mb-3">
                                 {t('tips.title', '环保小贴士')}
                             </h2>
@@ -149,7 +162,7 @@ export default function SciencePage() {
                             <p className="text-sm text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold">
                                 {t('tips.subtitle', 'ECO TIPS FOR DAILY LIFE')}
                             </p>
-                        </motion.div>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {tips.slice(0, 3).map((tip, idx) => {
@@ -161,14 +174,9 @@ export default function SciencePage() {
                                 const config = configs[idx % configs.length];
 
                                 return (
-                                    <motion.div
+                                    <div
                                         key={tip.id}
-                                        variants={staggerItem}
-                                        whileHover={{
-                                            y: -10,
-                                            transition: { duration: 0.2, ease: "easeOut" }
-                                        }}
-                                        className={`group relative bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-300 ${config.borderColor} ${config.shadowColor} flex flex-col h-full`}
+                                        className={`group relative bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-300 ${config.borderColor} ${config.shadowColor} flex flex-col h-full hover:-translate-y-2`}
                                     >
                                         <div className="flex justify-between items-start mb-6">
                                             <div className={`w-14 h-14 rounded-2xl ${config.bgColor} ${config.color} flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
@@ -191,22 +199,16 @@ export default function SciencePage() {
                                             {t('actions.learnMore', '了解更多')}
                                             <ArrowRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
                                         </button>
-                                    </motion.div>
+                                    </div>
                                 );
                             })}
                         </div>
-                    </motion.section>
+                    </section>
 
                     {/* Main Content Grid */}
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: '-50px' }}
-                        variants={staggerContainer}
-                        className="space-y-12"
-                    >
+                    <div ref={newsRef} className="space-y-12">
                         {/* Section Header */}
-                        <motion.div variants={staggerItem} className="flex items-center justify-between px-2">
+                        <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-4">
                                 <div className="p-2.5 bg-[#30499B] rounded-xl shadow-lg shadow-[#30499B]/20">
                                     <BookOpen className="w-6 h-6 text-white" />
@@ -241,7 +243,7 @@ export default function SciencePage() {
                                     </button>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* News List */}
                         <div className="grid grid-cols-1 gap-6">
@@ -261,11 +263,9 @@ export default function SciencePage() {
                                 contents.map((content) => {
                                     const typeConfig = getTypeConfig(content.type);
                                     return (
-                                        <motion.div
+                                        <div
                                             key={content.id}
-                                            variants={staggerItem}
-                                            whileHover={{ y: -4, scale: 1.005 }}
-                                            className="group relative bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition-all duration-500"
+                                            className="group relative bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.005]"
                                         >
                                             <div className="flex flex-col md:flex-row p-4 sm:p-6 gap-6 md:gap-8">
                                                 {/* Image Section */}
@@ -320,13 +320,13 @@ export default function SciencePage() {
                                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 group-hover/stat:bg-[#F0A32F]/10 transition-colors">
                                                                     <Eye className="w-3.5 h-3.5" />
                                                                 </div>
-                                                                <span>{content.viewCount}</span>
+                                                                <span>{content.viewCount || 0}</span>
                                                             </div>
                                                             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#EE4035] transition-colors cursor-pointer group/stat">
                                                                 <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 group-hover/stat:bg-[#EE4035]/10 transition-colors">
                                                                     <Heart className="w-3.5 h-3.5" />
                                                                 </div>
-                                                                <span>{content.likeCount}</span>
+                                                                <span>{content.likeCount || 0}</span>
                                                             </div>
                                                         </div>
                                                         <button
@@ -339,7 +339,7 @@ export default function SciencePage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     );
                                 })
                             ) : (
@@ -395,7 +395,7 @@ export default function SciencePage() {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </Layout>

@@ -25,7 +25,7 @@ import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/ap
 
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
-    const { t } = useSafeTranslation('points');
+    const { t, locale } = useSafeTranslation('points');
 
     // 积分账户数据 - 添加默认模拟数据
     const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>({
@@ -47,7 +47,7 @@ function PointsPageContent() {
     const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([
         {
             id: '1',
-            name: '阅读环保文章',
+            name: 'readArticle',
             code: 'READ_ARTICLE',
             points: 10,
             target: 1,
@@ -56,7 +56,7 @@ function PointsPageContent() {
         },
         {
             id: '2',
-            name: '分享环保知识',
+            name: 'shareKnowledge',
             code: 'SHARE_CONTENT',
             points: 20,
             target: 1,
@@ -171,7 +171,7 @@ function PointsPageContent() {
                 });
             }
 
-            alert(`签到成功！获得 ${result.points} 积分`);
+            alert(t('alerts.signInSuccess', '签到成功！获得 {points} 积分', { points: result.points }));
 
             // 动画结束后重置
             setTimeout(() => {
@@ -179,7 +179,7 @@ function PointsPageContent() {
             }, 1000);
         } catch (error: any) {
             console.error('Failed to signin:', error);
-            alert(error.message || '签到失败');
+            alert(error.message || t('alerts.signInFailed', '签到失败'));
             setShowCheckInAnimation(false);
         } finally {
             setSigningIn(false);
@@ -201,10 +201,10 @@ function PointsPageContent() {
             const account = await pointsApi.getPointsAccount();
             setPointsAccount(account);
 
-            alert('领取成功！');
+            alert(t('alerts.claimSuccess', '领取成功！'));
         } catch (error: any) {
             console.error('Failed to claim task:', error);
-            alert(error.message || '领取失败');
+            alert(error.message || t('alerts.claimFailed', '领取失败'));
         } finally {
             setClaimingTask(null);
         }
@@ -233,7 +233,7 @@ function PointsPageContent() {
             }
         } catch (error: any) {
             console.error('Failed to submit quiz:', error);
-            alert(error.message || '提交失败');
+            alert(error.message || t('alerts.submitFailed', '提交失败'));
         }
     };
 
@@ -299,7 +299,7 @@ function PointsPageContent() {
                                     )}
                                 </div>
                                 <span className="px-3 py-1 rounded-full bg-[#30499B] text-white text-xs font-bold shadow-md shadow-[#30499B]/20">
-                                    Lv.{pointsAccount?.level || 1} {pointsAccount?.levelName || '绿色见习者'}
+                                    Lv.{pointsAccount?.level || 1} {pointsAccount?.levelName || t('level', 'Lv.3 Green Apprentice')}
                                 </span>
                             </div>
 
@@ -358,7 +358,7 @@ function PointsPageContent() {
                                 {t('signInCalendar', '签到日历')}
                             </h3>
                             <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
-                                {t('currentMonth', '2024年5月')}
+                                {t('currentMonth', { month: new Date().toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long' }) }, '2024年5月')}
                             </div>
                         </div>
 
@@ -382,28 +382,28 @@ function PointsPageContent() {
                                 <div className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
                                     <span className="text-[10px] text-slate-400 absolute top-1 left-1">1</span>
                                     <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">已签到 +5</div>
+                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')} +5</div>
                                 </div>
 
                                 {/* 2号：已签到 */}
                                 <div className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
                                     <span className="text-[10px] text-slate-400 absolute top-1 left-1">2</span>
                                     <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" style={{ animationDelay: '0.5s' }} />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">已签到 +5</div>
+                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')} +5</div>
                                 </div>
 
                                 {/* 3号：漏签 (枯萎) */}
                                 <div className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
                                     <span className="text-[10px] text-slate-400 absolute top-1 left-1">3</span>
                                     <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">漏签</div>
+                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
                                 </div>
 
                                 {/* 4号：漏签 */}
                                 <div className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
                                     <span className="text-[10px] text-slate-400 absolute top-1 left-1">4</span>
                                     <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
-                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">漏签</div>
+                                    <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
                                 </div>
 
                                 {/* 5号：今日 (可签到或已签到) */}
@@ -506,7 +506,7 @@ function PointsPageContent() {
                                             <div>
                                                 <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 line-through' : 'text-[#30499B]'
                                                     }`}>
-                                                    {task.name}
+                                                    {task.name === 'readArticle' ? t('mockTasks.readArticle', '阅读环保文章') : task.name === 'shareKnowledge' ? t('mockTasks.shareKnowledge', '分享环保知识') : task.name}
                                                 </div>
                                                 <div className={`text-xs font-medium ${task.status === 3 ? 'text-slate-400' : 'text-[#F0A32F]'
                                                     }`}>
@@ -587,7 +587,7 @@ function PointsPageContent() {
 
                                         {todayQuiz?.answered && (
                                             <span className={`text-xs px-2 py-1 rounded-full font-medium ${todayQuiz?.isCorrect ? 'bg-[#56B949]/10 text-[#56B949]' : 'bg-[#EE4035]/10 text-[#EE4035]'}`}>
-                                                {todayQuiz?.isCorrect ? '已答对' : '已答过'}
+                                                {todayQuiz?.isCorrect ? t('status.correct', '已答对') : t('status.answered', '已答过')}
                                             </span>
                                         )}
                                     </div>
@@ -685,6 +685,7 @@ function PointsPageContent() {
 }
 
 export default function PointsPage() {
+    const { t } = useSafeTranslation('common');
     return (
         <ProtectedRoute>
             <Suspense fallback={
@@ -694,7 +695,7 @@ export default function PointsPage() {
                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#F0A32F] to-[#d9901e] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                                 YL
                             </div>
-                            <p className="text-slate-600">加载中...</p>
+                            <p className="text-slate-600">{t('common.loading', '加载中...')}</p>
                         </div>
                     </div>
                 </Layout>

@@ -3,6 +3,19 @@ import GoogleProvider from '@/components/GoogleProvider';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import NextTopLoader from 'nextjs-toploader';
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata(
+    { params }: { params: Promise<{ locale: string }> }
+) {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'metadata' });
+
+    return {
+        title: t('title'),
+        description: t('description')
+    };
+}
 
 // 支持的语言列表
 const locales = ['zh', 'en'];

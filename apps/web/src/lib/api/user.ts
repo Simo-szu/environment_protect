@@ -47,12 +47,13 @@ interface NotificationItemDTO {
 // 前端通知项（UI 使用）
 export interface NotificationItem {
   id: string;
-  type: string;
+  type: number;
   title: string;
   content: string;
   linkUrl?: string;
   isRead: boolean;
   createdAt: string;
+  actorNickname?: string;
 }
 
 // 标记已读请求
@@ -200,12 +201,13 @@ function mapNotificationDtoToItem(dto: NotificationItemDTO): NotificationItem {
 
   return {
     id: dto.id,
-    type: dto.type.toString(),
+    type: dto.type,
     title,
     content,
     linkUrl,
     isRead: dto.isRead,
     createdAt: dto.createdAt,
+    actorNickname: dto.actorNickname || '用户'
   };
 }
 

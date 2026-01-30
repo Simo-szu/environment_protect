@@ -85,12 +85,12 @@ function CreateActivityContent() {
 
     const uploadPoster = async (file: File) => {
         if (!file.type.startsWith('image/')) {
-            alert('只支持图片文件');
+            alert(t('create.alerts.imageOnly', '只支持图片文件'));
             return;
         }
         const maxBytes = 5 * 1024 * 1024;
         if (file.size > maxBytes) {
-            alert('图片最大支持 5MB');
+            alert(t('create.alerts.imageSizeLimit', '图片最大支持 5MB'));
             return;
         }
 
@@ -117,7 +117,7 @@ function CreateActivityContent() {
             setPosterUrls((prev) => [...prev, presign.fileUrl]);
         } catch (error) {
             console.error('上传图片失败:', error);
-            alert('上传图片失败，请重试');
+            alert(t('create.alerts.uploadFailed', '上传图片失败，请重试'));
         } finally {
             setUploading(false);
             if (fileInputRef.current) {
@@ -151,9 +151,11 @@ function CreateActivityContent() {
         }
     };
 
+
+
     const handleSubmit = async () => {
         if (!formData.title || !formData.date || !formData.time || !formData.location || !formData.description) {
-            alert('请填写所有必填字段');
+            alert(t('create.alerts.fillRequired', '请填写所有必填字段'));
             return;
         }
 
@@ -167,13 +169,13 @@ function CreateActivityContent() {
             // Append extra info to description
             let fullDescription = formData.description;
             if (formData.requirements) {
-                fullDescription += `\n\n【参与要求】\n${formData.requirements}`;
+                fullDescription += `\n\n${t('create.descriptionLabels.requirements', '【参与要求】')}\n${formData.requirements}`;
             }
             if (formData.contactInfo) {
-                fullDescription += `\n\n【联系方式】\n${formData.contactInfo}`;
+                fullDescription += `\n\n${t('create.descriptionLabels.contact', '【联系方式】')}\n${formData.contactInfo}`;
             }
             if (formData.maxParticipants) {
-                fullDescription += `\n\n【人数限制】\n${formData.maxParticipants}人`;
+                fullDescription += `\n\n${t('create.descriptionLabels.maxParticipants', '【人数限制】')}\n${formData.maxParticipants}${t('create.descriptionLabels.personUnit', '人')}`;
             }
 
             await createHostActivity({
@@ -190,7 +192,7 @@ function CreateActivityContent() {
             router.push(`/${locale}/activities`);
         } catch (error) {
             console.error('创建活动失败:', error);
-            alert('创建活动失败，请重试');
+            alert(t('create.alerts.createFailed', '创建活动失败，请重试'));
         } finally {
             setSubmitting(false);
         }
@@ -445,7 +447,7 @@ function CreateActivityContent() {
                             >
                                 <Image className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                                 <p className="text-slate-500">
-                                    {uploading ? '上传中...' : t('create.form.imageUpload', '点击上传活动图片')}
+                                    {uploading ? t('create.status.uploading', '上传中...') : t('create.form.imageUpload', '点击上传活动图片')}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-2">
                                     {t('create.form.imageSupport', '支持JPG、PNG格式，最大5MB')}
@@ -463,7 +465,7 @@ function CreateActivityContent() {
                                                 onClick={() => removePoster(url)}
                                                 className="absolute top-2 right-2 px-2 py-1 text-xs bg-black/60 text-white rounded hover:bg-black/70"
                                             >
-                                                移除
+                                                {t('create.status.remove', '移除')}
                                             </button>
                                         </div>
                                     ))}
@@ -479,7 +481,7 @@ function CreateActivityContent() {
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                             >
                                 <Save className="w-4 h-4" />
-                                {uploading ? '图片上传中...' : t('create.form.publish', '发布活动')}
+                                {uploading ? t('create.status.uploadingImage', '图片上传中...') : t('create.form.publish', '发布活动')}
                             </button>
                             <button
                                 onClick={handleCancel}
@@ -497,6 +499,7 @@ function CreateActivityContent() {
 }
 
 export default function CreateActivityPage() {
+    const { t } = useSafeTranslation('activities');
     return (
         <Suspense fallback={
             <Layout>
@@ -505,7 +508,7 @@ export default function CreateActivityPage() {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-2xl shadow-2xl mx-auto mb-4 animate-pulse">
                             YL
                         </div>
-                        <p className="text-slate-600">加载中...</p>
+                        <p className="text-slate-600">{t('create.loading', '加载中...')}</p>
                     </div>
                 </div>
             </Layout>

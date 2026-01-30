@@ -89,7 +89,8 @@ export function checkLoginAndRedirect(redirectTo: string = '/login') {
 }
 
 // 显示登录提示的工具函数
-export function showLoginPrompt(message: string = '请先登录再查看此内容') {
+// 显示登录提示的工具函数
+export function showLoginPrompt(message?: string) {
   if (typeof window === 'undefined') return;
 
   // 获取当前语言路径
@@ -99,18 +100,39 @@ export function showLoginPrompt(message: string = '请先登录再查看此内�
     return localeMatch ? `/${localeMatch[1]}` : '/zh';
   };
 
+  const localePrefix = getLocalePrefix();
+  const locale = (localePrefix.replace('/', '') || 'zh') as 'zh' | 'en';
+
+  const translations = {
+    zh: {
+      title: '需要登录',
+      cancel: '取消',
+      login: '去登录',
+      defaultMessage: '请先登录再查看此内容'
+    },
+    en: {
+      title: 'Login Required',
+      cancel: 'Cancel',
+      login: 'Login',
+      defaultMessage: 'Please login first to view this content'
+    }
+  };
+
+  const t = translations[locale] || translations.zh;
+  const finalMessage = message || t.defaultMessage;
+
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50';
   modal.innerHTML = `
     <div class="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-2xl">
-      <h3 class="text-lg font-semibold mb-4">需要登录</h3>
-      <p class="text-gray-600 mb-6">${message}</p>
+      <h3 class="text-lg font-semibold mb-4">${t.title}</h3>
+      <p class="text-gray-600 mb-6">${finalMessage}</p>
       <div class="flex space-x-3">
         <button id="cancel-btn" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-          取消
+          ${t.cancel}
         </button>
         <button id="login-btn" class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-          去登录
+          ${t.login}
         </button>
       </div>
     </div>
