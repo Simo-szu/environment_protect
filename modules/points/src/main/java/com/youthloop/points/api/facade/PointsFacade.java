@@ -49,4 +49,14 @@ public interface PointsFacade {
      * 获取积分流水
      */
     PageResponse<PointsLedgerDTO> getLedger(int page, int size);
+
+    /**
+     * 获取可兑换商品列表
+     */
+    List<GoodDTO> getExchangeGoods();
+
+    /**
+     * 兑换商品
+     */
+    void exchange(ExchangeRequestDTO request);
 }

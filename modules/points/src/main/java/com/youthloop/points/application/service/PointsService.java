@@ -59,7 +59,7 @@ public class PointsService {
     }
     
     /**
-     * 扣除积分
+     * 扣除积分（带并发安全保护）
      */
     @Transactional
     public void deductPoints(UUID userId, Integer amount, Integer reason, Integer refType, UUID refId, String memo) {
@@ -67,14 +67,14 @@ public class PointsService {
             throw new IllegalArgumentException("扣除金额必须大于0");
         }
         
-        // 检查余额
-        Long balance = getBalance(userId);
-        if (balance < amount) {
-            throw new IllegalStateException("积分余额不足");
-        }
+        // 确保账户存在
+        ensureAccountExists(userId);
         
-        // 更新账户余额(负数)
-        pointsAccountMapper.updateBalance(userId, -amount);
+        // 原子更新余额（带余额检查，防止并发超扣）
+        int rows = pointsAccountMapper.updateBalanceWithCheck(userId, -amount, amount);
+        if (rows == 0) {
+            throw new IllegalStateException("积分余额不足或账户不存在");
+        }
         
         // 记录账本(负数)
         PointsLedgerEntity ledger = new PointsLedgerEntity();
@@ -154,6 +154,7 @@ public class PointsService {
             case 3 -> "问答";
             case 4 -> "管理员调整";
             case 5 -> "其他";
+            case 6 -> "兑换";
             default -> "未知";
         };
     }
@@ -166,6 +167,7 @@ public class PointsService {
             case 3 -> "QUIZ";
             case 4 -> "ADMIN";
             case 5 -> "OTHER";
+            case 6 -> "EXCHANGE";
             default -> "UNKNOWN";
         };
     }

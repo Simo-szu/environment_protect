@@ -21,11 +21,11 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: false  # 临时禁用校验
     clean-disabled: false  # 允许清理（仅开发环境）
-    # 只使用 social schema 的迁移文件
-    schemas: social
+    # 迁移 shared + social（shared 在前，避免外键依赖失败）
+    schemas: shared,social
     default-schema: social
     table: flyway_schema_history_social
-    locations: classpath:db/migration/social
+    locations: classpath:db/migration/shared,classpath:db/migration/social
     user: ${FLYWAY_USER:social_migrator}
     password: ${FLYWAY_PASSWORD:postgres}
   
@@ -83,4 +83,3 @@ resend:
 # Google 登录配置
 google:
   client-id: ${GOOGLE_CLIENT_ID:717732984928-dvcgf1jrukvjnchu33htvog8lnpb2lm5.apps.googleusercontent.com}
-

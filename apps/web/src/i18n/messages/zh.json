@@ -1407,6 +1407,36 @@
     "missed": "漏签",
     "correct": "已答对",
     "answered": "已答过"
+},
+"history": {
+    "title": "积分记录",
+    "subtitle": "查看您的积分获取与消耗明细",
+    "empty": "暂无记录",
+    "amount": "变动",
+    "balance": "余额",
+    "reason": "原因",
+    "time": "时间",
+    "type": {
+        "signin": "每日签到",
+        "task": "任务奖励",
+        "quiz": "每日问答",
+        "exchange": "礼品兑换",
+        "admin": "管理员调整",
+        "other": "其他"
+    }
+},
+"exchange": {
+    "title": "兑换商城",
+    "subtitle": "用您的积分换取精美环保礼品",
+    "availablePoints": "可用积分",
+    "hot": "热门兑换",
+    "all": "全部商品",
+    "points": "{points} 积分",
+    "stock": "库存: {count}",
+    "exchange": "立即兑换",
+    "success": "兑换成功！",
+    "failed": "兑换失败",
+    "insufficient": "积分不足"
 }
 }
 }

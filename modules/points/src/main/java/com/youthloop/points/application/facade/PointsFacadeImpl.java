@@ -8,6 +8,7 @@ import com.youthloop.points.application.service.PointsService;
 import com.youthloop.points.application.service.QuizService;
 import com.youthloop.points.application.service.SigninService;
 import com.youthloop.points.application.service.TaskService;
+import com.youthloop.points.application.service.ExchangeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class PointsFacadeImpl implements PointsFacade {
     private final TaskService taskService;
     private final QuizService quizService;
     private final PointsService pointsService;
+    private final ExchangeService exchangeService;
     
 
     public SigninResponse signin(SigninRequest request) {
@@ -75,5 +77,15 @@ public class PointsFacadeImpl implements PointsFacade {
     public PageResponse<PointsLedgerDTO> getLedger(int page, int size) {
         UUID userId = SecurityUtil.getCurrentUserId();
         return pointsService.getLedger(userId, page, size);
+    }
+
+    @Override
+    public List<GoodDTO> getExchangeGoods() {
+        return exchangeService.getActiveGoods();
+    }
+
+    @Override
+    public void exchange(ExchangeRequestDTO request) {
+        exchangeService.exchange(request);
     }
 }

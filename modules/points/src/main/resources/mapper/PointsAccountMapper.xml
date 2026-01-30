@@ -30,4 +30,12 @@
         WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
     </update>
     
+    <update id="updateBalanceWithCheck">
+        UPDATE social.points_account
+        SET balance = balance + #{delta, jdbcType=INTEGER},
+            updated_at = now()
+        WHERE user_id = #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
+          AND balance >= #{minBalance, jdbcType=INTEGER}
+    </update>
+    
 </mapper>

@@ -1,5 +1,5 @@
 -- ============================================================================
--- YouthLoop Social Schema Migration V003
+-- YouthLoop Social Schema Migration V103
 -- Schema: social
 -- Purpose: Support and feedback tables
 -- ============================================================================

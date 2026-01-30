@@ -1,5 +1,5 @@
 -- ============================================================================
--- YouthLoop Social Schema Migration V001
+-- YouthLoop Social Schema Migration V101
 -- Schema: social
 -- Purpose: Content, Activity, Interaction, Points, Recommendation, Events
 -- ============================================================================

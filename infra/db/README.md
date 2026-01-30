@@ -2,12 +2,16 @@
 
 ## Overview
 
-This directory contains database initialization scripts and migrations for the YouthLoop project.
+This directory contains database **infrastructure initialization** scripts (roles, schemas, and permissions) for the YouthLoop project. 
+
+**Business migrations** (tables, data) are managed by Flyway within each application's `src/main/resources/db/migration` directory.
 
 **Database Structure:**
 - 1 PostgreSQL instance
-- 3 schemas: `shared`, `social`
-- 2 roles: `social_migrator`, `social_app`
+- 3 schemas: `shared`, `social`, `game`
+- App roles: `social_app`, `game_app`
+- Migration roles: `social_migrator`, `game_migrator`
+
 
 ## Quick Start
 
@@ -38,29 +42,21 @@ psql -U postgres -h localhost -p 5432 -d youthloop -f infra/db/init/db_init_role
 ```
 
 This creates:
-- 2 roles with proper permissions
-- 2 schemas (shared, social)
+- Roles with proper permissions (`social_migrator`, `social_app`, etc.)
+- Schemas (`shared`, `social`, `game`)
 - Default privileges for future tables
 
-### Step 3: Run Migrations
+### Step 3: Run Business Migrations (Automatic)
 
-**Option A: Using PowerShell script**
+Business table structures (Migrations) are now handled **automatically** by Flyway within each application. 
+
+**Do not** manually run migration scripts from this directory. Instead, simply start the application:
+
 ```powershell
-cd infra/db/scripts
-.\run_migrations.ps1
+# Social API (Automatically applies shared + social migrations)
+mvn -pl apps/social-api spring-boot:run
 ```
 
-**Option B: Manual execution**
-```powershell
-# Set password
-$env:PGPASSWORD = "postgres"
-
-# Run shared migration
-psql -U social_migrator -h localhost -p 5432 -d youthloop -f infra/db/migrations/shared/V001__init_shared.sql
-
-# Run social migration
-psql -U social_migrator -h localhost -p 5432 -d youthloop -f infra/db/migrations/social/V001__init_social.sql
-```
 
 ### Step 4: Verify Permissions
 

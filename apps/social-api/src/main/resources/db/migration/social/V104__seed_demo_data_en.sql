@@ -1,5 +1,5 @@
 -- ============================================================================
--- YouthLoop Social Schema Migration V004
+-- YouthLoop Social Schema Migration V104
 -- Schema: social
 -- Purpose: English demo data across social tables for local development
 -- Depends on: shared.V003__seed_demo_users_en.sql (demo users)

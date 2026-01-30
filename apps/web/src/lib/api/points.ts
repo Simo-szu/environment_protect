@@ -135,3 +135,17 @@ export async function submitQuizAnswer(
     true
   );
 }
+
+/**
+ * 获取可兑换商品
+ */
+export async function getExchangeGoods(): Promise<any[]> {
+  return apiGet<any[]>('/api/v1/points/exchange/goods');
+}
+
+/**
+ * 兑换商品
+ */
+export async function exchangeGood(goodId: string): Promise<void> {
+  return apiPost<void>('/api/v1/points/exchange/orders', { goodId }, true);
+}

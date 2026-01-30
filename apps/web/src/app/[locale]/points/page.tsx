@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
     Coins,
@@ -344,8 +345,16 @@ function PointsPageContent() {
 
                             {/* 右侧按钮 */}
                             <div className="flex-shrink-0 flex md:flex-col gap-3">
-                                <button className="px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5">{t('exchangeStore', '兑换商城')}</button>
-                                <button className="px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50">{t('pointsHistory', '积分记录')}</button>
+                                <Link href={`/${locale}/points/exchange`}>
+                                    <button className="w-full px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5 whitespace-nowrap">
+                                        {t('exchangeStore', '兑换商城')}
+                                    </button>
+                                </Link>
+                                <Link href={`/${locale}/points/history`}>
+                                    <button className="w-full px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50 whitespace-nowrap">
+                                        {t('pointsHistory', '积分记录')}
+                                    </button>
+                                </Link>
                             </div>
                         </div>
                     )}

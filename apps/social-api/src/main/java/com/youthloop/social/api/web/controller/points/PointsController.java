@@ -95,4 +95,19 @@ public class PointsController {
         PageResponse<PointsLedgerDTO> response = pointsFacade.getLedger(page, size);
         return BaseResponse.success(response);
     }
+
+    @Operation(summary = "获取可兑换商品列表", description = "获取所有上架的积分商品")
+    @GetMapping("/exchange/goods")
+    public BaseResponse<List<GoodDTO>> getExchangeGoods() {
+        List<GoodDTO> goods = pointsFacade.getExchangeGoods();
+        return BaseResponse.success(goods);
+    }
+
+    @Operation(summary = "兑换商品", description = "使用积分兑换商品")
+    @PostMapping("/exchange/orders")
+    @PreAuthorize("isAuthenticated()")
+    public BaseResponse<Void> exchange(@Valid @RequestBody UnifiedRequest<ExchangeRequestDTO> request) {
+        pointsFacade.exchange(request.getData());
+        return BaseResponse.success(null);
+    }
 }
