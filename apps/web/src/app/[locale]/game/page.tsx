@@ -1,108 +1,213 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import {
+    Zap,
+    ArrowRight,
+    FileText,
+    Leaf,
+    Trophy
+} from 'lucide-react';
+import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 
 export default function GamePage() {
+    const router = useRouter();
     const params = useParams();
-    const locale = params.locale as string || 'zh';
+    const locale = params.locale as string;
     const { t } = useSafeTranslation('game');
 
     return (
         <Layout>
-            <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-green-600 mb-4">
-                            {t('title', '绿色游戏')}
-                        </h1>
-                        <p className="text-gray-600 text-lg">
-                            {t('subtitle', '在虚拟世界中种植树木，为现实世界贡献力量')}
-                        </p>
-                    </div>
+            {/* 全局背景氛围 */}
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '20s' }}></div>
+                <div className="absolute bottom-[-20%] right-[10%] w-[80%] h-[60%] bg-blue-100/40 rounded-full blur-[130px] animate-pulse" style={{ animationDuration: '25s', animationDelay: '-5s' }}></div>
+            </div>
 
-                    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-                        <div className="bg-gradient-to-r from-green-400 to-blue-500 p-8 text-white text-center">
-                            <h2 className="text-3xl font-bold mb-4">
-                                {t('virtualForest.title', '虚拟森林')}
-                            </h2>
-                            <p className="text-lg opacity-90">
-                                {t('virtualForest.description', '每种植一棵虚拟树木，我们就在现实中种下一棵真树')}
+            <div className="relative z-10">
+                {/* 深圳低碳规划师主要区域 */}
+                <motion.section
+                    initial="hidden"
+                    animate="visible"
+                    variants={pageEnter}
+                    className="w-full bg-[#F0F8FF] rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col lg:flex-row min-h-[640px] mb-16"
+                >
+                    {/* 左侧内容面板 */}
+                    <div className="w-full lg:w-1/2 p-8 md:p-14 flex flex-col justify-center relative bg-[#F0F8FF]">
+                        {/* 头部图标和日期 */}
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-10 h-10 rounded-full border border-[#00C087]/30 bg-white flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-[#00C087] fill-current" />
+                            </div>
+                            <span className="text-xs font-mono text-slate-400 tracking-wider">
+                                {new Date().toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                            </span>
+                        </div>
+
+                        {/* 主标题 */}
+                        <div className="space-y-2 mb-8">
+                            <h1 className="text-5xl md:text-6xl font-bold text-[#1E293B] tracking-tight font-sans">
+                                {t('cover.city', '深圳')}
+                            </h1>
+                            <h1 className="text-5xl md:text-6xl font-bold text-[#00C087] tracking-tight font-sans">
+                                {t('cover.title', '低碳规划师')}
+                            </h1>
+                        </div>
+
+                        {/* 描述 */}
+                        <p className="text-slate-500 text-sm md:text-[15px] leading-7 max-w-md mb-12 font-medium">
+                            {t('cover.description', '构建可持续发展的未来。通过科学决策平衡工业增长与环境保护，在这座科创之都谱写绿色篇章。')}
+                        </p>
+
+                        {/* 操作按钮 */}
+                        <div className="flex flex-col gap-4 max-w-xs w-full">
+                            <button
+                                onClick={() => router.push(`/${locale}/game/play`)}
+                                className="group w-full bg-[#0F172A] hover:bg-[#1E293B] text-white py-4 px-6 rounded-xl flex items-center justify-between transition-all duration-300 shadow-xl shadow-slate-900/10"
+                            >
+                                <span className="font-semibold text-sm tracking-wide">
+                                    {t('cover.startPlanning', '开始规划')}
+                                </span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            <button className="group w-full bg-white hover:bg-slate-50 text-[#0F172A] py-4 px-6 rounded-xl border border-slate-200 flex items-center justify-between transition-all duration-300">
+                                <span className="font-bold text-sm tracking-wide">
+                                    {t('cover.tutorial', '新手教程')}
+                                </span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+
+                        {/* 底部注释 */}
+                        <div className="mt-12 lg:absolute lg:bottom-10 lg:left-14">
+                            <p className="text-[10px] text-slate-400 font-medium">
+                                {t('cover.footer', '深圳市低碳办公室 © 2026 基于真实城市数据模拟')}
                             </p>
                         </div>
+                    </div>
 
-                        <div className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* 右侧视觉面板 */}
+                    <div className="w-full lg:w-1/2 relative min-h-[400px] lg:min-h-full overflow-hidden group">
+                        {/* 城市背景图片 */}
+                        <img
+                            src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=80"
+                            alt="Shenzhen City"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+
+                        {/* 绿色叠加渐变 */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#00C087]/60 via-[#00C087]/20 to-transparent mix-blend-overlay"></div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0f172a]/30"></div>
+
+                        {/* 玻璃态统计卡片 */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 backdrop-blur-md bg-white/10 rounded-2xl p-6 text-white border border-white/20 shadow-2xl">
+                            <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                                        {t('features.title', '游戏特色')}
-                                    </h3>
-                                    <ul className="space-y-3 text-gray-600">
-                                        <li className="flex items-center">
-                                            <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                                            {t('features.realImpact', '真实的环保影响')}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                                            {t('features.interactiveLearning', '互动式学习体验')}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                                            {t('features.communityPlanting', '社区协作种植')}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <span className="w-2 h-2 bg-orange-500 rounded-full mr-3"></span>
-                                            {t('features.achievementSystem', '成就系统奖励')}
-                                        </li>
-                                    </ul>
+                                    <p className="text-[10px] text-white/70 mb-0.5">当前目标</p>
+                                    <p className="text-[10px] text-white/50 scale-90 origin-left">碳排放总量目标</p>
                                 </div>
+                                <div className="w-2 h-2 rounded-full bg-[#00C087] shadow-[0_0_10px_#00C087]"></div>
+                            </div>
 
-                                <div>
-                                    <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                                        {t('stats.title', '游戏统计')}
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div className="bg-green-50 p-4 rounded-lg">
-                                            <div className="text-2xl font-bold text-green-600">12,345</div>
-                                            <div className="text-sm text-green-700">
-                                                {t('stats.treesPlanted', '已种植树木')}
-                                            </div>
-                                        </div>
-                                        <div className="bg-blue-50 p-4 rounded-lg">
-                                            <div className="text-2xl font-bold text-blue-600">8,901</div>
-                                            <div className="text-sm text-blue-700">
-                                                {t('stats.activePlayers', '活跃玩家')}
-                                            </div>
-                                        </div>
-                                        <div className="bg-purple-50 p-4 rounded-lg">
-                                            <div className="text-2xl font-bold text-purple-600">156</div>
-                                            <div className="text-sm text-purple-700">
-                                                {t('stats.forestAreas', '森林区域')}
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div className="mb-6">
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-4xl font-bold font-sans tracking-tight">300</span>
+                                    <span className="text-lg font-medium text-white/80">Mt</span>
+                                </div>
+                                {/* 进度条 */}
+                                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-[#00C087] w-[65%] rounded-full shadow-[0_0_10px_rgba(0,192,135,0.5)]"></div>
                                 </div>
                             </div>
 
-                            <div className="mt-8 text-center">
-                                <div className="bg-gray-100 rounded-lg p-12 mb-6">
-                                    <div className="text-6xl mb-4">🎮</div>
-                                    <p className="text-gray-600 mb-4">
-                                        {t('comingSoon.title', '游戏即将上线')}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        {t('comingSoon.description', '我们正在开发中，敬请期待！')}
-                                    </p>
+                            {/* 次要统计网格 */}
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                                <div>
+                                    <div className="text-[20px] font-bold font-sans text-[#00C087]">17.6M</div>
+                                    <div className="text-[9px] text-white/50 uppercase tracking-wider">市民总数</div>
                                 </div>
+                                <div className="text-right">
+                                    <div className="text-[20px] font-bold font-sans text-[#00C087]">45.2%</div>
+                                    <div className="text-[9px] text-white/50 uppercase tracking-wider">绿建覆盖</div>
+                                </div>
+                            </div>
 
-                                <button className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl">
-                                    {t('joinWaitlist', '加入等待列表')}
-                                </button>
+                            {/* 浮动标签 */}
+                            <div className="absolute -top-10 right-0 bg-white/10 backdrop-blur-sm px-3 py-1 rounded text-[10px] text-white/80 border border-white/10">
+                                实时检测
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.section>
+
+                {/* 次要内容（上下文） */}
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: '-50px' }}
+                    variants={staggerContainer}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+                >
+                    {/* 新闻项目 1 */}
+                    <motion.div
+                        variants={staggerItem}
+                        className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                    >
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <span className="text-[10px] text-slate-400">刚刚发布</span>
+                        </div>
+                        <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">
+                            2025年度碳普惠激励机制白皮书
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                            详细解读新一轮个人碳账户积分兑换规则与企业减排奖励政策...
+                        </p>
+                    </motion.div>
+
+                    {/* 新闻项目 2 */}
+                    <motion.div
+                        variants={staggerItem}
+                        className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                    >
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="p-2 bg-green-50 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                <Leaf className="w-5 h-5" />
+                            </div>
+                            <span className="text-[10px] text-slate-400">活动预告</span>
+                        </div>
+                        <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-green-600 transition-colors">
+                            红树林湿地保护志愿者招募
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                            加入我们，共同守护城市绿肺。本次活动将包含生态监测培训...
+                        </p>
+                    </motion.div>
+
+                    {/* 新闻项目 3 */}
+                    <motion.div
+                        variants={staggerItem}
+                        className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                    >
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="p-2 bg-orange-50 text-orange-600 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                <Trophy className="w-5 h-5" />
+                            </div>
+                            <span className="text-[10px] text-slate-400">排行榜</span>
+                        </div>
+                        <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-orange-600 transition-colors">
+                            本月低碳社区英雄榜揭晓
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                            恭喜南山区科技园社区获得本月"零碳示范区"称号，查看完整排名...
+                        </p>
+                    </motion.div>
+                </motion.div>
             </div>
         </Layout>
     );
