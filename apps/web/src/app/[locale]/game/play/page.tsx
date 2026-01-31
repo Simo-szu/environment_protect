@@ -1,32 +1,98 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
     Calendar,
-    BarChart3,
-    Building2,
     Users,
     Lightbulb,
     Leaf,
-    Trees,
-    Settings,
-    HelpCircle,
-    TrendingUp,
-    Plus,
     Factory,
-    FlaskConical,
-    Zap,
-    Trash2,
-    Archive,
-    Network,
-    Globe,
-    ArrowRight,
+    TrendingUp,
     ArrowLeft,
     Cloud,
-    CloudOff
+    Smile,
+    AlertTriangle,
+    RotateCcw,
+    Archive,
+    HelpCircle
 } from 'lucide-react';
+
+// 卡牌类型定义
+interface Card {
+    id: string;
+    name: string;
+    category: 'industry' | 'social' | 'tech' | 'green';
+    cost: {
+        industry?: number;
+        population?: number;
+        tech?: number;
+    };
+    effect: {
+        industry?: number;
+        population?: number;
+        tech?: number;
+        green?: number;
+        satisfaction?: number;
+        carbon?: number;
+    };
+    perTurn?: {
+        industry?: number;
+        carbon?: number;
+    };
+    cooldown: number;
+    unlocked: boolean;
+    description: string;
+}
+
+// 初始卡牌数据
+const INITIAL_CARDS: Card[] = [
+    {
+        id: 'traditional-manufacturing',
+        name: '传统制造业',
+        category: 'industry',
+        cost: {},
+        effect: {},
+        perTurn: { industry: 15, carbon: 20 },
+        cooldown: 0,
+        unlocked: true,
+        description: '深圳龙华工厂版 - 快速积累产业值'
+    },
+    {
+        id: 'talent-introduction',
+        name: '人才引进',
+        category: 'social',
+        cost: { industry: 3 },
+        effect: { population: 2 },
+        perTurn: { industry: 3 },
+        cooldown: 0,
+        unlocked: true,
+        description: '深圳孔雀计划 - 增加市民数'
+    },
+    {
+        id: 'community-covenant',
+        name: '社区低碳公约',
+        category: 'social',
+        cost: { population: 2 },
+        effect: { satisfaction: 2 },
+        perTurn: { carbon: -3 },
+        cooldown: 0,
+        unlocked: true,
+        description: '深圳高桥社区版 - 基础减碳'
+    },
+    {
+        id: 'mangrove-restoration',
+        name: '深圳湾红树林修复',
+        category: 'green',
+        cost: { industry: 4 },
+        effect: { green: 12 },
+        perTurn: {},
+        cooldown: 0,
+        unlocked: true,
+        description: '提升绿建度和抗灾能力'
+    }
+];
 
 export default function GamePlayPage() {
     const router = useRouter();
@@ -34,26 +100,131 @@ export default function GamePlayPage() {
     const locale = params.locale as string;
     const { t } = useSafeTranslation('game');
 
-    const [currentTurn, setCurrentTurn] = useState(12);
-    const [carbonEmission, setCarbonEmission] = useState(420);
-    const [industryValue, setIndustryValue] = useState(12450);
-    const [population, setPopulation] = useState(17.6);
-    const [techPoints, setTechPoints] = useState(890);
-    const [greenBuilding, setGreenBuilding] = useState(45.2);
+    // 游戏状态
+    const [currentTurn, setCurrentTurn] = useState(1);
+    const [resources, setResources] = useState({
+        industry: 0,
+        population: 3,
+        tech: 0,
+        green: 10,
+        satisfaction: 70,
+        carbon: 50
+    });
 
-    const maxTurns = 50;
-    const carbonTarget = 300;
-    const turnProgress = (currentTurn / maxTurns) * 100;
-    const carbonProgress = (carbonEmission / 700) * 100;
+    // 卡牌状态
+    const [handCards, setHandCards] = useState<Card[]>([]);
+    const [deployedCards, setDeployedCards] = useState<Card[]>([]);
+    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
+    // 游戏常量
+    const MAX_TURNS = 15;
+    const CARBON_TARGET = 100;
+    const INDUSTRY_TARGET = 50;
+    const GREEN_TARGET = 30;
+
+    // 初始化手牌
+    useEffect(() => {
+        setHandCards(INITIAL_CARDS.slice(0, 4));
+    }, []);
+
+    // 计算进度
+    const turnProgress = (currentTurn / MAX_TURNS) * 100;
+    const carbonProgress = Math.min((resources.carbon / 300) * 100, 100);
+    const carbonStatus = resources.carbon <= CARBON_TARGET ? 'safe' : resources.carbon <= 200 ? 'warning' : 'danger';
+
+    // 部署卡牌
+    const deployCard = (card: Card) => {
+        // 检查资源是否足够
+        if (card.cost.industry && resources.industry < card.cost.industry) return;
+        if (card.cost.population && resources.population < card.cost.population) return;
+        if (card.cost.tech && resources.tech < card.cost.tech) return;
+
+        // 扣除资源
+        const newResources = { ...resources };
+        if (card.cost.industry) newResources.industry -= card.cost.industry;
+        if (card.cost.population) newResources.population -= card.cost.population;
+        if (card.cost.tech) newResources.tech -= card.cost.tech;
+
+        // 应用即时效果
+        if (card.effect.industry) newResources.industry += card.effect.industry;
+        if (card.effect.population) newResources.population += card.effect.population;
+        if (card.effect.tech) newResources.tech += card.effect.tech;
+        if (card.effect.green) newResources.green += card.effect.green;
+        if (card.effect.satisfaction) newResources.satisfaction += card.effect.satisfaction;
+        if (card.effect.carbon) newResources.carbon += card.effect.carbon;
+
+        setResources(newResources);
+        setDeployedCards([...deployedCards, card]);
+        setHandCards(handCards.filter(c => c.id !== card.id));
+        setSelectedCard(null);
+    };
+
+    // 回收卡牌
+    const recycleCard = (card: Card) => {
+        if (card.category === 'industry') {
+            setResources({ ...resources, industry: resources.industry + 2 });
+            setHandCards(handCards.filter(c => c.id !== card.id));
+        }
+    };
+
+    // 结束回合
+    const endTurn = () => {
+        const newResources = { ...resources };
+
+        // 计算持续效果
+        deployedCards.forEach(card => {
+            if (card.perTurn?.industry) newResources.industry += card.perTurn.industry;
+            if (card.perTurn?.carbon) newResources.carbon += card.perTurn.carbon;
+        });
+
+        // 绿建度减碳效果
+        const greenReduction = Math.floor(newResources.green / 10) * 5;
+        newResources.carbon -= greenReduction;
+
+        // 市民消耗产业值
+        newResources.industry -= newResources.population;
+
+        // 更新满意度
+        if (newResources.carbon <= 50) newResources.satisfaction += 5;
+        if (newResources.carbon > 100) newResources.satisfaction -= Math.floor((newResources.carbon - 100) / 10) * 2;
+        if (newResources.green >= 10) newResources.satisfaction += Math.floor(newResources.green / 10) * 3;
+
+        newResources.satisfaction = Math.max(0, Math.min(100, newResources.satisfaction));
+
+        setResources(newResources);
+        setCurrentTurn(currentTurn + 1);
+
+        // 发放新卡牌（简化版）
+        const newCards = INITIAL_CARDS.filter(() => Math.random() > 0.5).slice(0, 3);
+        setHandCards(newCards);
+
+        // 检查游戏结束
+        if (currentTurn >= MAX_TURNS) {
+            checkGameEnd(newResources);
+        }
+    };
+
+    // 检查游戏结束
+    const checkGameEnd = (finalResources: typeof resources) => {
+        if (finalResources.carbon <= CARBON_TARGET &&
+            finalResources.industry >= INDUSTRY_TARGET &&
+            finalResources.green >= GREEN_TARGET) {
+            alert('恭喜！达成优质结局！');
+        } else if (finalResources.carbon >= 300) {
+            alert('游戏失败：碳排放失控');
+        } else {
+            alert('游戏结束');
+        }
+    };
 
     const handleBack = () => {
         router.push(`/${locale}/game`);
     };
 
     return (
-        <div className="bg-[#FAFAF9] h-screen flex flex-col text-slate-600 overflow-hidden font-sans">
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen flex flex-col text-slate-600 overflow-hidden font-sans">
             {/* 顶部状态栏 */}
-            <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-20 shadow-sm relative">
+            <header className="h-16 bg-white/90 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-20 shadow-sm">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={handleBack}
@@ -63,413 +234,275 @@ export default function GamePlayPage() {
                     </button>
                     <h1 className="text-lg font-semibold tracking-tight text-slate-800">
                         <span className="text-[#30499b]">深圳</span>低碳规划师
-                        <span className="text-xs font-medium text-slate-400 ml-1 px-2 py-0.5 bg-slate-100 rounded-md">
-                            PROTOTYPE v1.0
-                        </span>
                     </h1>
                 </div>
 
-                {/* 中央仪表板指标 */}
-                <div className="flex items-center gap-8 flex-1 justify-center max-w-4xl mx-auto">
-                    {/* 日期/回合 */}
-                    <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                {/* 回合进度 */}
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
-                        <span className="text-xs font-mono font-medium text-slate-600">
-                            {new Date().toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
-                        </span>
+                        <span className="text-sm font-medium">第 {currentTurn} / {MAX_TURNS} 回合</span>
                     </div>
-
-                    {/* 回合进度 */}
-                    <div className="flex flex-col w-48 gap-1.5">
-                        <div className="flex justify-between text-[10px] font-medium text-slate-500">
-                            <span>当前回合: {currentTurn} / {maxTurns}</span>
-                            <span>进度: {turnProgress.toFixed(0)}%</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-100">
-                            <div
-                                className="h-full bg-[#30499b] rounded-full shadow-[0_0_10px_rgba(48,73,155,0.3)]"
-                                style={{ width: `${turnProgress}%` }}
-                            ></div>
-                        </div>
-                    </div>
-
-                    {/* 碳排放目标 */}
-                    <div className="flex flex-col w-64 gap-1.5">
-                        <div className="flex justify-between text-[10px] font-medium text-slate-500">
-                            <span>当前碳排放量: {carbonEmission} Mt</span>
-                            <span className="text-[#56b949]">目标: &lt; {carbonTarget} Mt</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-100 relative">
-                            <div className="h-full bg-slate-800 w-[60%] absolute left-0 top-0 rounded-l-full"></div>
-                            <div className="h-full w-0.5 bg-[#56b949] absolute left-[45%] top-0 z-10 shadow-[0_0_5px_#56b949]"></div>
-                            <div className="h-full bg-[#ee4035] w-[15%] absolute left-[45%] top-0 opacity-50"></div>
-                        </div>
+                    <div className="w-48 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-[#30499b] transition-all duration-500"
+                            style={{ width: `${turnProgress}%` }}
+                        />
                     </div>
                 </div>
 
+                {/* 碳排放指标 */}
                 <div className="flex items-center gap-3">
-                    <button className="p-2 text-slate-400 hover:text-[#30499b] hover:bg-slate-50 rounded-lg transition-colors">
-                        <Settings className="w-5 h-5" />
-                    </button>
-                    <button className="p-2 text-slate-400 hover:text-[#30499b] hover:bg-slate-50 rounded-lg transition-colors">
-                        <HelpCircle className="w-5 h-5" />
-                    </button>
+                    <Cloud className={`w-5 h-5 ${carbonStatus === 'safe' ? 'text-green-500' : carbonStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'}`} />
+                    <div className="flex flex-col">
+                        <span className="text-xs text-slate-500">碳排放</span>
+                        <span className={`text-sm font-bold ${carbonStatus === 'safe' ? 'text-green-600' : carbonStatus === 'warning' ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {resources.carbon} Mt
+                        </span>
+                    </div>
+                    <div className="text-xs text-slate-400">目标: &lt; {CARBON_TARGET}</div>
                 </div>
             </header>
 
-            {/* 主工作区 */}
+            {/* 主游戏区域 */}
             <div className="flex-1 flex overflow-hidden">
-                {/* 左侧边栏：城市资源 */}
-                <aside className="w-72 bg-white border-r border-slate-200 flex flex-col overflow-y-auto shrink-0 z-10">
-                    <div className="p-6 border-b border-slate-100">
-                        <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                            <BarChart3 className="w-4 h-4 text-[#30499b]" />
-                            城市资源状态
-                        </h2>
+                {/* 左侧资源面板 */}
+                <aside className="w-64 bg-white/80 backdrop-blur-sm border-r border-slate-200 p-4 overflow-y-auto">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" />
+                        城市资源
+                    </h2>
+                    <div className="space-y-3">
+                        {/* 产业值 */}
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                    <Factory className="w-4 h-4 text-blue-600" />
+                                    <span className="text-xs font-medium text-blue-900">产业值</span>
+                                </div>
+                                <span className="text-lg font-bold text-blue-600">{resources.industry}</span>
+                            </div>
+                            <div className="text-[10px] text-blue-700">核心货币资源</div>
+                        </div>
+
+                        {/* 市民数 */}
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-purple-600" />
+                                    <span className="text-xs font-medium text-purple-900">市民数</span>
+                                </div>
+                                <span className="text-lg font-bold text-purple-600">{resources.population}M</span>
+                            </div>
+                            <div className="text-[10px] text-purple-700">解锁社会类卡牌</div>
+                        </div>
+
+                        {/* 科创点 */}
+                        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-3 rounded-lg border border-cyan-200">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                    <Lightbulb className="w-4 h-4 text-cyan-600" />
+                                    <span className="text-xs font-medium text-cyan-900">科创点</span>
+                                </div>
+                                <span className="text-lg font-bold text-cyan-600">{resources.tech}</span>
+                            </div>
+                            <div className="text-[10px] text-cyan-700">解锁高端技术</div>
+                        </div>
+
+                        {/* 绿建度 */}
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                    <Leaf className="w-4 h-4 text-green-600" />
+                                    <span className="text-xs font-medium text-green-900">绿建度</span>
+                                </div>
+                                <span className="text-lg font-bold text-green-600">{resources.green.toFixed(1)}</span>
+                            </div>
+                            <div className="text-[10px] text-green-700">每10点减5碳排放</div>
+                        </div>
+
+                        {/* 市民满意度 */}
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-lg border border-amber-200">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                    <Smile className="w-4 h-4 text-amber-600" />
+                                    <span className="text-xs font-medium text-amber-900">市民满意度</span>
+                                </div>
+                                <span className="text-lg font-bold text-amber-600">{resources.satisfaction}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-amber-200 rounded-full overflow-hidden mt-2">
+                                <div
+                                    className="h-full bg-amber-500 transition-all duration-500"
+                                    style={{ width: `${resources.satisfaction}%` }}
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="p-6 space-y-8">
-                        {/* 统计：产业值 */}
-                        <div className="relative group">
-                            <div className="flex items-center gap-2 mb-1 text-slate-500 text-xs font-medium uppercase tracking-wider">
-                                <Building2 className="w-3.5 h-3.5" /> 产业值
+                    {/* 目标提示 */}
+                    <div className="mt-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <h3 className="text-xs font-semibold text-slate-700 mb-2">胜利目标</h3>
+                        <div className="space-y-1 text-[10px] text-slate-600">
+                            <div className="flex justify-between">
+                                <span>碳排放</span>
+                                <span className={resources.carbon <= CARBON_TARGET ? 'text-green-600 font-semibold' : 'text-red-600'}>
+                                    ≤ {CARBON_TARGET}
+                                </span>
                             </div>
-                            <div className="text-3xl font-bold text-slate-800 tracking-tight font-sans">
-                                {industryValue.toLocaleString()}
+                            <div className="flex justify-between">
+                                <span>产业值</span>
+                                <span className={resources.industry >= INDUSTRY_TARGET ? 'text-green-600 font-semibold' : 'text-slate-600'}>
+                                    ≥ {INDUSTRY_TARGET}
+                                </span>
                             </div>
-                            <div className="text-xs font-medium text-[#56b949] mt-1 flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" /> +120/回合
+                            <div className="flex justify-between">
+                                <span>绿建度</span>
+                                <span className={resources.green >= GREEN_TARGET ? 'text-green-600 font-semibold' : 'text-slate-600'}>
+                                    ≥ {GREEN_TARGET}
+                                </span>
                             </div>
-                            <div className="mt-6 border-b border-dashed border-slate-200"></div>
-                        </div>
-
-                        {/* 统计：市民数 */}
-                        <div className="relative group">
-                            <div className="flex items-center gap-2 mb-1 text-slate-500 text-xs font-medium uppercase tracking-wider">
-                                <Users className="w-3.5 h-3.5" /> 市民数
-                            </div>
-                            <div className="text-3xl font-bold text-slate-800 tracking-tight font-sans">
-                                {population}<span className="text-lg text-slate-400 ml-1">M</span>
-                            </div>
-                            <div className="text-xs font-medium text-[#ee4035] mt-1 flex items-center gap-1">
-                                满意度: 78% <span className="text-slate-300 mx-1">|</span> <span className="text-slate-400">稳定</span>
-                            </div>
-                            <div className="mt-6 border-b border-dashed border-slate-200"></div>
-                        </div>
-
-                        {/* 统计：科创点 */}
-                        <div className="relative group">
-                            <div className="flex items-center gap-2 mb-1 text-slate-500 text-xs font-medium uppercase tracking-wider">
-                                <Lightbulb className="w-3.5 h-3.5" /> 科创点
-                            </div>
-                            <div className="text-3xl font-bold text-slate-800 tracking-tight font-sans">
-                                {techPoints}
-                            </div>
-                            <div className="text-xs font-medium text-[#30499b] mt-1 cursor-pointer hover:underline">
-                                可解锁新政策
-                            </div>
-                            <div className="mt-6 border-b border-dashed border-slate-200"></div>
-                        </div>
-
-                        {/* 统计：绿建度 */}
-                        <div className="relative group">
-                            <div className="flex items-center gap-2 mb-1 text-slate-500 text-xs font-medium uppercase tracking-wider">
-                                <Leaf className="w-3.5 h-3.5" /> 绿建度
-                            </div>
-                            <div className="text-3xl font-bold text-slate-800 tracking-tight font-sans">
-                                {greenBuilding}<span className="text-lg text-slate-400 ml-1">%</span>
-                            </div>
-                            <div className="text-xs font-medium text-[#56b949] mt-1">低碳指标: 优</div>
-                            <div className="mt-6 border-b border-dashed border-slate-200"></div>
-                        </div>
-                    </div>
-
-                    <div className="mt-auto p-6">
-                        <div className="bg-slate-100 rounded-xl p-4 border border-slate-200 flex flex-col items-center justify-center text-center gap-2 min-h-[140px] hover:shadow-md transition-shadow cursor-pointer group">
-                            <div className="w-8 h-8 rounded-full bg-[#f0a32f]/10 flex items-center justify-center mb-1 group-hover:bg-[#f0a32f]/20 transition-colors">
-                                <Trees className="w-4 h-4 text-[#f0a32f]" />
-                            </div>
-                            <span className="text-sm font-semibold text-slate-700">溢伐森林</span>
-                            <span className="text-[10px] text-slate-400">特殊生态区域 (已解锁)</span>
                         </div>
                     </div>
                 </aside>
 
-                {/* 中心：游戏板块（4个区域） */}
-                <main className="flex-1 bg-slate-50/50 p-6 md:p-8 overflow-y-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full max-w-6xl mx-auto">
-                        {/* 区域：工业 */}
-                        <SectorCard
-                            title="工业"
-                            sectorId="01"
-                            color="slate-800"
-                            imageUrl="https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&q=80&w=800"
-                            emission={20}
-                            emissionType="positive"
-                            hasBuilding={true}
-                            buildingIcon={<Factory className="w-8 h-8 text-slate-700 mb-2" />}
-                            buildingName="芯片厂"
-                        />
+                {/* 中间游戏区域 */}
+                <main className="flex-1 flex flex-col overflow-hidden">
+                    {/* 深圳地图可视化区 */}
+                    <div className="flex-1 relative bg-gradient-to-br from-blue-100 to-green-100 overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="text-6xl mb-4">🏙️</div>
+                                <h3 className="text-2xl font-bold text-slate-700 mb-2">深圳市</h3>
+                                <p className="text-sm text-slate-600">绿建度: {resources.green.toFixed(1)}%</p>
+                                <div className="mt-4 flex gap-4 justify-center">
+                                    <div className="text-center">
+                                        <div className="text-3xl">🌳</div>
+                                        <div className="text-xs text-slate-600 mt-1">生态保护</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl">🏭</div>
+                                        <div className="text-xs text-slate-600 mt-1">产业发展</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl">💡</div>
+                                        <div className="text-xs text-slate-600 mt-1">科技创新</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        {/* 区域：生态系统 */}
-                        <SectorCard
-                            title="生态系统"
-                            sectorId="02"
-                            color="#56b949"
-                            imageUrl="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-                            emission={-5}
-                            emissionType="negative"
-                        />
+                        {/* 碳排放警示 */}
+                        {carbonStatus === 'danger' && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span className="text-sm font-semibold">碳排放严重超标！</span>
+                            </div>
+                        )}
+                    </div>
 
-                        {/* 区域：科学 */}
-                        <SectorCard
-                            title="科学"
-                            sectorId="03"
-                            color="#30499b"
-                            imageUrl="https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80&w=800"
-                            emission={20}
-                            emissionType="positive"
-                            hasBuilding={true}
-                            buildingIcon={<FlaskConical className="w-8 h-8 text-[#30499b] mb-2" />}
-                            buildingName="研究所"
-                            buildingColor="#f0a32f"
-                        />
+                    {/* 底部操作栏 */}
+                    <div className="h-16 bg-white/90 backdrop-blur-sm border-t border-slate-200 flex items-center justify-between px-6">
+                        <div className="flex gap-2">
+                            <button className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2">
+                                <Archive className="w-4 h-4" />
+                                规划档案
+                            </button>
+                            <button className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4" />
+                                帮助
+                            </button>
+                        </div>
 
-                        {/* 区域：人与社会 */}
-                        <SectorCard
-                            title="人与社会"
-                            sectorId="04"
-                            color="#f0a32f"
-                            imageUrl="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800"
-                            emission={0}
-                            emissionType="neutral"
-                        />
+                        <button
+                            onClick={endTurn}
+                            className="px-6 py-2.5 bg-gradient-to-r from-[#30499b] to-[#4a6bc7] text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                        >
+                            下一回合
+                            <RotateCcw className="w-4 h-4" />
+                        </button>
                     </div>
                 </main>
 
-                {/* 右侧边栏：策略卡牌 */}
-                <aside className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10">
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-800">策略卡牌手卡</h2>
-                        <button className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-[#ee4035]/10 hover:text-[#ee4035] text-xs font-medium text-slate-500 transition-colors">
-                            <Trash2 className="w-3 h-3" /> 弃牌区
-                        </button>
+                {/* 右侧卡牌区 */}
+                <aside className="w-80 bg-white/80 backdrop-blur-sm border-l border-slate-200 flex flex-col">
+                    <div className="p-4 border-b border-slate-200">
+                        <h2 className="text-sm font-semibold text-slate-700">策略卡牌</h2>
+                        <p className="text-xs text-slate-500 mt-1">点击卡牌查看详情并部署</p>
                     </div>
 
-                    <div className="p-4 flex-1 overflow-y-auto space-y-4 bg-slate-50/30">
-                        <StrategyCard
-                            type="产业类"
-                            typeColor="#30499b"
-                            cost={3}
-                            imageUrl="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&q=80&w=400"
-                            title="传统制造业升级"
-                            description="深圳龙华工厂区试点。每回合 +15 产业值，+20 碳排放。"
-                        />
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {handCards.map((card) => (
+                            <div
+                                key={card.id}
+                                onClick={() => setSelectedCard(card)}
+                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${selectedCard?.id === card.id
+                                        ? 'border-[#30499b] bg-blue-50'
+                                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                                    }`}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <h3 className="text-sm font-semibold text-slate-800">{card.name}</h3>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${card.category === 'industry' ? 'bg-blue-100 text-blue-700' :
+                                            card.category === 'social' ? 'bg-purple-100 text-purple-700' :
+                                                card.category === 'tech' ? 'bg-cyan-100 text-cyan-700' :
+                                                    'bg-green-100 text-green-700'
+                                        }`}>
+                                        {card.category === 'industry' ? '产业' :
+                                            card.category === 'social' ? '社会' :
+                                                card.category === 'tech' ? '科创' : '绿建'}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-600 mb-2">{card.description}</p>
 
-                        <StrategyCard
-                            type="绿建类"
-                            typeColor="#56b949"
-                            cost={5}
-                            imageUrl="https://images.unsplash.com/photo-1518005052357-e98470471929?auto=format&fit=crop&q=80&w=400"
-                            title="天台绿化倡议"
-                            description="降低建筑物能耗 5%，提升市民满意度 2 点。"
-                        />
+                                {/* 消耗 */}
+                                {Object.keys(card.cost).length > 0 && (
+                                    <div className="text-xs text-slate-500 mb-1">
+                                        消耗: {Object.entries(card.cost).map(([key, value]) => `${key}:${value}`).join(', ')}
+                                    </div>
+                                )}
 
-                        <StrategyCard
-                            type="产业类"
-                            typeColor="#30499b"
-                            cost={8}
-                            imageUrl="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&q=80&w=400"
-                            title="高新产业集群"
-                            description="华为/腾讯低碳示范项目。大幅提升科创点。"
-                        />
+                                {/* 效果 */}
+                                {card.perTurn && (
+                                    <div className="text-xs text-green-600">
+                                        每回合: {Object.entries(card.perTurn).map(([key, value]) => `${key}:${value > 0 ? '+' : ''}${value}`).join(', ')}
+                                    </div>
+                                )}
 
-                        {/* 锁定槽位 */}
-                        <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 min-h-[140px] flex flex-col items-center justify-center text-slate-300 gap-2">
-                            <i data-lucide="lock" className="w-5 h-5"></i>
-                            <span className="text-xs font-medium">待解锁</span>
-                        </div>
+                                {selectedCard?.id === card.id && (
+                                    <div className="mt-3 flex gap-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deployCard(card);
+                                            }}
+                                            className="flex-1 px-3 py-1.5 bg-[#30499b] text-white text-xs font-semibold rounded hover:bg-[#2a4086] transition-colors"
+                                        >
+                                            部署
+                                        </button>
+                                        {card.category === 'industry' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    recycleCard(card);
+                                                }}
+                                                className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded hover:bg-amber-600 transition-colors"
+                                            >
+                                                回收
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+
+                        {handCards.length === 0 && (
+                            <div className="text-center py-8 text-slate-400">
+                                <p className="text-sm">暂无卡牌</p>
+                                <p className="text-xs mt-1">点击"下一回合"获取新卡牌</p>
+                            </div>
+                        )}
                     </div>
                 </aside>
-            </div>
-
-            {/* 底部操作栏 */}
-            <footer className="h-20 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between px-6 z-30 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
-                <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
-                        <Archive className="w-4 h-4" />
-                        规划档案
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
-                        <Network className="w-4 h-4" />
-                        科技树
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
-                        <Globe className="w-4 h-4" />
-                        世界排名
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-6">
-                    <div className="text-right hidden md:block">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
-                            Next Turn Cost
-                        </div>
-                        <div className="text-xs font-medium text-slate-600">1,200 产业值</div>
-                        <div className="text-[10px] text-[#f0a32f] font-mono animate-pulse">
-                            Awaiting Command...
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setCurrentTurn(currentTurn + 1)}
-                        className="group bg-slate-900 hover:bg-[#30499b] text-white pl-6 pr-4 py-3 rounded-xl shadow-xl shadow-slate-900/10 flex items-center gap-3 transition-all duration-300 transform active:scale-95"
-                    >
-                        <span className="font-bold tracking-wide text-lg">下一回合</span>
-                        <div className="bg-white/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
-                            <ArrowRight className="w-5 h-5" />
-                        </div>
-                    </button>
-                </div>
-            </footer>
-        </div>
-    );
-}
-
-// 区域卡片组件
-function SectorCard({
-    title,
-    sectorId,
-    color,
-    imageUrl,
-    emission,
-    emissionType,
-    hasBuilding = false,
-    buildingIcon,
-    buildingName,
-    buildingColor = '#30499b'
-}: {
-    title: string;
-    sectorId: string;
-    color: string;
-    imageUrl: string;
-    emission: number;
-    emissionType: 'positive' | 'negative' | 'neutral';
-    hasBuilding?: boolean;
-    buildingIcon?: React.ReactNode;
-    buildingName?: string;
-    buildingColor?: string;
-}) {
-    const emissionProgress = emissionType === 'positive' ? 70 : emissionType === 'negative' ? 10 : 10;
-    const emissionColor = emissionType === 'positive' ? '#ee4035' : 'white';
-
-    return (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col h-full min-h-[400px]">
-            <div className="flex justify-between items-center mb-4 px-2">
-                <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}></span>
-                    {title}
-                </h3>
-                <span className="text-[10px] font-mono text-slate-400">SECTOR-{sectorId}</span>
-            </div>
-
-            <div className="bg-slate-100 rounded-xl h-40 w-full mb-3 overflow-hidden relative group">
-                <img
-                    src={imageUrl}
-                    alt={title}
-                    className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
-                />
-                <div
-                    className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t to-transparent flex items-end p-3"
-                    style={{ backgroundColor: `${color}cc` }}
-                >
-                    <div className="flex items-center gap-3 text-white text-xs w-full">
-                        <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                            <div
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: emissionColor, width: `${emissionProgress}%` }}
-                            ></div>
-                        </div>
-                        <span className="font-mono flex items-center gap-1">
-                            {emissionType === 'negative' ? <CloudOff className="w-3 h-3" /> : <Cloud className="w-3 h-3" />}
-                            {emission > 0 ? '+' : ''}{emission}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 flex-1">
-                {hasBuilding ? (
-                    <>
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center hover:border-[#30499b]/30 hover:bg-[#30499b]/5 transition-all cursor-pointer">
-                            <Plus className="w-6 h-6 text-slate-300" />
-                        </div>
-                        <div className="border border-slate-100 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center p-2 relative overflow-hidden group">
-                            <div
-                                className="absolute top-2 right-2 w-2 h-2 rounded-full"
-                                style={{ backgroundColor: buildingColor }}
-                            ></div>
-                            {buildingIcon}
-                            <span className="text-[10px] text-slate-500 font-medium">{buildingName}</span>
-                        </div>
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center hover:border-[#30499b]/30 hover:bg-[#30499b]/5 transition-all cursor-pointer">
-                            <Plus className="w-6 h-6 text-slate-300" />
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center hover:border-[#30499b]/30 hover:bg-[#30499b]/5 transition-all cursor-pointer">
-                            <Plus className="w-6 h-6 text-slate-300" />
-                        </div>
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center hover:border-[#30499b]/30 hover:bg-[#30499b]/5 transition-all cursor-pointer">
-                            <Plus className="w-6 h-6 text-slate-300" />
-                        </div>
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center hover:border-[#30499b]/30 hover:bg-[#30499b]/5 transition-all cursor-pointer">
-                            <Plus className="w-6 h-6 text-slate-300" />
-                        </div>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// 策略卡片组件
-function StrategyCard({
-    type,
-    typeColor,
-    cost,
-    imageUrl,
-    title,
-    description
-}: {
-    type: string;
-    typeColor: string;
-    cost: number;
-    imageUrl: string;
-    title: string;
-    description: string;
-}) {
-    return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-[#30499b]/50 transition-all cursor-pointer group relative overflow-hidden">
-            <div className="h-1 w-full" style={{ backgroundColor: typeColor }}></div>
-            <div className="p-3">
-                <div className="flex justify-between items-start mb-2">
-                    <span
-                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                        style={{ color: typeColor, backgroundColor: `${typeColor}1a` }}
-                    >
-                        {type}
-                    </span>
-                    <div className="flex items-center text-[#f0a32f]">
-                        <Zap className="w-3.5 h-3.5 fill-current" />
-                        <span className="text-xs font-bold ml-0.5">{cost}</span>
-                    </div>
-                </div>
-                <div className="aspect-video bg-slate-100 rounded-lg mb-3 overflow-hidden">
-                    <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-                </div>
-                <h4 className="text-sm font-semibold text-slate-800 mb-1">{title}</h4>
-                <p className="text-[10px] text-slate-500 leading-relaxed">{description}</p>
             </div>
         </div>
     );
