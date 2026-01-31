@@ -73,7 +73,10 @@ export default function GamePage() {
                                 </span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <button className="group w-full bg-white hover:bg-slate-50 text-[#0F172A] py-4 px-6 rounded-xl border border-slate-200 flex items-center justify-between transition-all duration-300">
+                            <button
+                                onClick={() => router.push(`/${locale}/game/tutorial`)}
+                                className="group w-full bg-white hover:bg-slate-50 text-[#0F172A] py-4 px-6 rounded-xl border border-slate-200 flex items-center justify-between transition-all duration-300"
+                            >
                                 <span className="font-bold text-sm tracking-wide">
                                     {t('cover.tutorial', '新手教程')}
                                 </span>
