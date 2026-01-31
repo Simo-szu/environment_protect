@@ -153,15 +153,15 @@
         "cards": {
             "points": {
                 "title": "Points Exchange",
-                "subtitle": "Accumulate Eco Value"
+                "subtitle": "Accumulate Eco Value, Redeem Rewards"
             },
             "game": {
-                "title": "Green Game",
-                "subtitle": "Virtual Planting"
+                "title": "Green Game World",
+                "subtitle": "Explore Now"
             },
             "science": {
                 "title": "Authoritative Science",
-                "subtitle": "Scientific Data"
+                "subtitle": "Scientific Data, Trustworthy"
             },
             "activity": {
                 "title": "Eco Activities",
@@ -233,6 +233,40 @@
         "title": "Environmental Activities",
         "subtitle": "Join Green Actions",
         "description": "Participate in various environmental protection activities and contribute to a sustainable future",
+        "loading": "Loading...",
+        "activityInfo": {
+            "title": "Activity Information",
+            "participants": "people",
+            "organizer": "Organizer"
+        },
+        "form": {
+            "title": "Registration Information",
+            "name": "Name",
+            "namePlaceholder": "Enter your real name",
+            "phone": "Phone Number",
+            "phonePlaceholder": "Enter your phone number",
+            "email": "Email Address",
+            "emailPlaceholder": "Enter your email address",
+            "emailOptional": "Optional",
+            "emailRequired": "Email required for guest registration",
+            "emailNote": "Guests need to provide email to receive activity notifications",
+            "specialRequirements": "Notes",
+            "specialRequirementsPlaceholder": "If you have special requirements or other situations that need explanation, please fill in here...",
+            "agreementText": "I have read and agree to the activity agreement, understand the activity risks, and voluntarily participate in this environmental activity.",
+            "agreementNote": "Please follow the organizer's arrangements and pay attention to personal safety during the activity.",
+            "agreementRequired": "Please agree to the activity agreement first",
+            "submitSuccess": "Registration successful!",
+            "submit": "Confirm Registration",
+            "submitting": "Submitting...",
+            "selectSession": "Select Session",
+            "sessionRequired": "Please select an activity session",
+            "nameRequired": "Please enter your name",
+            "phoneRequired": "Please enter your phone number",
+            "phoneInvalid": "Please enter a valid phone number",
+            "emailRequiredForGuest": "Email is required for guest registration",
+            "loadActivityFailed": "Failed to load activity information",
+            "signupFailed": "Registration failed, please try again"
+        },
         "cards": {
             "popular": {
                 "title": "Popular Activities",
@@ -326,83 +360,9 @@
                 "cancel": "Cancel"
             }
         },
-        "register": {
-            "title": "Activity Registration",
-            "subtitle": "Fill in registration information to participate",
-            "loading": "Loading...",
-            "mockActivity": {
-                "title": "Urban Oasis: Weekend Community Garden Planting Project",
-                "description": "Join us in creating green corners in the city center. We will plant native flowers together, learn about composting, and create a sustainable ecological space for the community.",
-                "date": "May 20, 2024",
-                "location": "Meet at East Gate of Central Park",
-                "organizer": "Green Living Association",
-                "requirements": "Please wear appropriate outdoor clothing, bring your own water bottle and sun protection",
-                "contactInfo": "Contact: Teacher Zhang 13800138000"
-            },
-            "activityInfo": {
-                "title": "Activity Information",
-                "participants": "people",
-                "organizer": "Organizer"
-            },
-            "form": {
-                "title": "Registration Information",
-                "name": "Name",
-                "namePlaceholder": "Enter your real name",
-                "phone": "Phone Number",
-                "phonePlaceholder": "Enter your phone number",
-                "email": "Email Address",
-                "emailPlaceholder": "Enter your email address",
-                "emailOptional": "Optional",
-                "emailRequired": "Email required for guest registration",
-                "emailNote": "Guests need to provide email to receive activity notifications",
-                "emergencyContact": "Emergency Contact",
-                "emergencyContactPlaceholder": "Emergency contact name",
-                "emergencyPhone": "Emergency Phone",
-                "emergencyPhonePlaceholder": "Emergency contact phone",
-                "specialRequirements": "Notes",
-                "specialRequirementsPlaceholder": "If you have special requirements or other situations that need explanation, please fill in here...",
-                "activityRequirements": "Activity Requirements",
-                "agreementText": "I have read and agree to the activity agreement, understand the activity risks, and voluntarily participate in this environmental activity.",
-                "agreementNote": "Please follow the organizer's arrangements and pay attention to personal safety during the activity.",
-                "agreementRequired": "Please agree to the activity agreement first",
-                "submitSuccess": "Registration successful!",
-                "submit": "Confirm Registration",
-                "submitting": "Submitting...",
-                "selectSession": "Select Session",
-                "sessionRequired": "Please select an activity session",
-                "nameRequired": "Please enter your name",
-                "phoneRequired": "Please enter your phone number",
-                "phoneInvalid": "Please enter a valid phone number",
-                "emailRequiredForGuest": "Email is required for guest registration",
-                "loadActivityFailed": "Failed to load activity information",
-                "signupFailed": "Registration failed, please try again"
-            }
-        },
-        "detail": {
-            "title": "Activity Details",
-            "subtitle": "Learn about activity details and register to participate",
-            "date": "Date",
-            "time": "Time",
-            "activityTime": "Activity Time",
-            "location": "Activity Location",
-            "participants": "Participants",
-            "organizer": "Organizer",
-            "sessions": "Activity Sessions",
-            "registered": "Registered",
-            "detailsTitle": "Activity Details",
-            "requirements": "Participation Requirements",
-            "registerNow": "Register Now",
-            "spotsLeft": "{count} spots left",
-            "unlimited": "unlimited",
-            "totalSpots": "Total Spots",
-            "registerButton": "Register Now",
-            "loginToRegister": "Login to Register",
-            "organizerInfo": "Organizer Information",
-            "ecoOrganization": "Environmental Organization",
-            "linkCopied": "Link copied to clipboard",
-            "notFound": "Activity not found",
-            "backToList": "Back to List",
-            "operationFailed": "Operation failed, please try again"
+        "empty": {
+            "title": "No Activities",
+            "subtitle": "Please check back later"
         },
         "status": {
             "registering": "Registering",
@@ -417,10 +377,106 @@
             "viewDetails": "View Details",
             "oneClickRegister": "One-Click Register"
         },
-        "empty": {
-            "title": "No Activities",
-            "subtitle": "Please check back later"
-        }
+        "notFound": "Activity not found",
+        "backToList": "Back to List",
+        "operationFailed": "Operation failed, please try again",
+        "title": "Activity Details",
+        "subtitle": "Learn about activity details and register to participate",
+        "date": "Date",
+        "time": "Time",
+        "activityTime": "Activity Time",
+        "location": "Activity Location",
+        "participants": "Participants",
+        "organizer": "Organizer",
+        "sessions": "Activity Sessions",
+        "registered": "Registered",
+        "detailsTitle": "Activity Details",
+        "requirements": "Participation Requirements",
+        "registerNow": "Register Now",
+        "spotsLeft": "{count} spots left",
+        "unlimited": "unlimited",
+        "totalSpots": "Total Spots",
+        "registerButton": "Register Now",
+        "loginToRegister": "Login to Register",
+        "organizerInfo": "Organizer Information",
+        "ecoOrganization": "Environmental Organization",
+        "linkCopied": "Link copied to clipboard"
+    },
+    "register": {
+        "title": "Activity Registration",
+        "subtitle": "Fill in registration information to participate",
+        "loading": "Loading...",
+        "mockActivity": {
+            "title": "Urban Oasis: Weekend Community Garden Planting Project",
+            "description": "Join us in creating green corners in the city center. We will plant native flowers together, learn about composting, and create a sustainable ecological space for the community.",
+            "date": "May 20, 2024",
+            "location": "Meet at East Gate of Central Park",
+            "organizer": "Green Living Association",
+            "requirements": "Please wear appropriate outdoor clothing, bring your own water bottle and sun protection",
+            "contactInfo": "Contact: Teacher Zhang 13800138000"
+        },
+        "activityInfo": {
+            "title": "Activity Information",
+            "participants": "people",
+            "organizer": "Organizer"
+        },
+        "form": {
+            "title": "Registration Information",
+            "name": "Name",
+            "namePlaceholder": "Enter your real name",
+            "phone": "Phone Number",
+            "phonePlaceholder": "Enter your phone number",
+            "email": "Email Address",
+            "emailPlaceholder": "Enter your email address",
+            "emailOptional": "Optional",
+            "emailRequired": "Email required for guest registration",
+            "emailNote": "Guests need to provide email to receive activity notifications",
+            "emergencyContact": "Emergency Contact",
+            "emergencyContactPlaceholder": "Emergency contact name",
+            "emergencyPhone": "Emergency Phone",
+            "emergencyPhonePlaceholder": "Emergency contact phone",
+            "specialRequirements": "Notes",
+            "specialRequirementsPlaceholder": "If you have special requirements or other situations that need explanation, please fill in here...",
+            "activityRequirements": "Activity Requirements",
+            "agreementText": "I have read and agree to the activity agreement, understand the activity risks, and voluntarily participate in this environmental activity.",
+            "agreementNote": "Please follow the organizer's arrangements and pay attention to personal safety during the activity.",
+            "agreementRequired": "Please agree to the activity agreement first",
+            "submitSuccess": "Registration successful!",
+            "submit": "Confirm Registration",
+            "submitting": "Submitting...",
+            "selectSession": "Select Session",
+            "sessionRequired": "Please select an activity session",
+            "nameRequired": "Please enter your name",
+            "phoneRequired": "Please enter your phone number",
+            "phoneInvalid": "Please enter a valid phone number",
+            "emailRequiredForGuest": "Email is required for guest registration",
+            "loadActivityFailed": "Failed to load activity information",
+            "signupFailed": "Registration failed, please try again"
+        },
+        "title": "Activity Details",
+        "subtitle": "Learn about activity details and register to participate",
+        "date": "Date",
+        "time": "Time",
+        "activityTime": "Activity Time",
+        "location": "Activity Location",
+        "participants": "Participants",
+        "organizer": "Organizer",
+        "sessions": "Activity Sessions",
+        "registered": "Registered",
+        "detailsTitle": "Activity Details",
+        "requirements": "Participation Requirements",
+        "registerNow": "Register Now",
+        "spotsLeft": "{count} spots left",
+        "unlimited": "unlimited",
+        "totalSpots": "Total Spots",
+        "registerButton": "Register Now",
+        "loginToRegister": "Login to Register",
+        "organizerInfo": "Organizer Information",
+        "ecoOrganization": "Environmental Organization",
+        "linkCopied": "Link copied to clipboard",
+        "notFound": "Activity not found",
+        "backToList": "Back to List",
+        "operationFailed": "Operation failed, please try again"
     },
     "science": {
         "title": "Science Hub",
@@ -581,9 +637,8 @@
         "points": "Points",
         "progress": {
             "current": "Current Progress",
-            "nextBadge": "Need",
             "nextLevel": "Need",
-            "points": "more points for next badge"
+            "points": "more points for next level"
         },
         "exchangeStore": "Exchange Store",
         "pointsHistory": "Points History",
@@ -647,6 +702,19 @@
             "missed": "Missed",
             "correct": "Correct",
             "answered": "Answered"
+        },
+        "exchange": {
+            "title": "Exchange Store",
+            "subtitle": "Use your points to redeem eco-friendly gifts",
+            "availablePoints": "Available Points",
+            "hot": "Hot",
+            "all": "All Products",
+            "points": "{points} Points",
+            "stock": "Stock: {count}",
+            "exchange": "Exchange Now",
+            "success": "Exchange Successful!",
+            "failed": "Exchange Failed",
+            "insufficient": "Insufficient Points"
         }
     },
     "profile": {
@@ -1036,7 +1104,15 @@
             "title": "Game Coming Soon",
             "description": "We are developing, stay tuned!"
         },
-        "joinWaitlist": "Join Waitlist"
+        "joinWaitlist": "Join Waitlist",
+        "cover": {
+            "city": "Shenzhen",
+            "title": "Low-Carbon Planner",
+            "description": "Build a sustainable future. Balance industrial growth with environmental protection through scientific decision-making, writing a green chapter in this innovation capital.",
+            "startPlanning": "Start Planning",
+            "tutorial": "Tutorial",
+            "footer": "Shenzhen Low-Carbon Office © 2026 Based on Real City Data Simulation"
+        }
     },
     "contact": {
         "title": "Contact Us",

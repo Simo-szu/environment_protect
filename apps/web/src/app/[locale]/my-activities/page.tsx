@@ -77,30 +77,30 @@ export default function MyActivitiesPage() {
     // 过滤活动
     const filteredActivities = myActivities.filter(activity => {
         if (activeTab === 'all') return true;
-        
+
         const now = new Date();
         const startTime = new Date(activity.startTime);
         const endTime = new Date(activity.endTime);
-        
+
         // 根据状态和时间筛选
         if (activeTab === 'registered') {
             // 已报名：包括待审核和已通过但还未开始的活动
-            return activity.status === 'PENDING' || 
-                   (activity.status === 'APPROVED' && startTime > now);
+            return activity.status === 'PENDING' ||
+                (activity.status === 'APPROVED' && startTime > now);
         }
-        
+
         if (activeTab === 'ongoing') {
             // 进行中：已通过且活动时间在进行中
-            return activity.status === 'APPROVED' && 
-                   startTime <= now && 
-                   endTime >= now;
+            return activity.status === 'APPROVED' &&
+                startTime <= now &&
+                endTime >= now;
         }
-        
+
         if (activeTab === 'completed') {
             // 已完成：已通过且活动已结束
             return activity.status === 'APPROVED' && endTime < now;
         }
-        
+
         return true;
     });
 
@@ -111,17 +111,17 @@ export default function MyActivitiesPage() {
 
     // 统计数据
     const now = new Date();
-    const registeredCount = myActivities.filter(a => 
-        a.status === 'PENDING' || 
+    const registeredCount = myActivities.filter(a =>
+        a.status === 'PENDING' ||
         (a.status === 'APPROVED' && new Date(a.startTime) > now)
     ).length;
-    const ongoingCount = myActivities.filter(a => 
-        a.status === 'APPROVED' && 
-        new Date(a.startTime) <= now && 
+    const ongoingCount = myActivities.filter(a =>
+        a.status === 'APPROVED' &&
+        new Date(a.startTime) <= now &&
         new Date(a.endTime) >= now
     ).length;
-    const completedCount = myActivities.filter(a => 
-        a.status === 'APPROVED' && 
+    const completedCount = myActivities.filter(a =>
+        a.status === 'APPROVED' &&
         new Date(a.endTime) < now
     ).length;
     const totalPoints = 0; // 从积分系统获取

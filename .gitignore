@@ -107,3 +107,4 @@ hs_err_pid*
 
 # Old root Next.js outputs (should not exist after migration, but ignore if present)
 tsconfig.tsbuildinfo
+backups/
