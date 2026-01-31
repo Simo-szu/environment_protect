@@ -582,15 +582,24 @@ export default function GamePlayPage() {
             {/* 底部操作栏 */}
             <footer className="h-20 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between px-6 z-30 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
+                    <button
+                        onClick={() => router.push(`/${locale}/game/archive`)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
+                    >
                         <Archive className="w-4 h-4" />
                         规划档案
                     </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
+                    <button
+                        onClick={() => router.push(`/${locale}/game/tech-tree`)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
+                    >
                         <Network className="w-4 h-4" />
                         科技树
                     </button>
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all">
+                    <button
+                        onClick={() => router.push(`/${locale}/game/leaderboard`)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
+                    >
                         <Globe className="w-4 h-4" />
                         世界排名
                     </button>
