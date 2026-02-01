@@ -591,7 +591,12 @@
         "comments": {
             "title": "评论",
             "placeholder": "写下你的评论...",
+            "replyPlaceholder": "写下你的回复...",
             "submit": "发表评论",
+            "submitting": "发表中...",
+            "success": "评论发表成功",
+            "error": "评论发表失败，请重试",
+            "emptyError": "评论内容不能为空",
             "loginRequired": "登录后可以发表评论",
             "login": "立即登录",
             "reply": "回复",

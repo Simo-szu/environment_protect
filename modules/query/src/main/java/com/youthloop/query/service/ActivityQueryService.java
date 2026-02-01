@@ -58,6 +58,7 @@ public class ActivityQueryService {
         
         // 如果已登录，批量查询用户状态
         Map<UUID, UserState> userStateMap = new HashMap<>();
+        Map<UUID, Boolean> signedUpMap = new HashMap<>();
         if (currentUserId != null && !rows.isEmpty()) {
             List<UUID> activityIds = rows.stream()
                 .map(row -> UUID.fromString(row.get("id").toString()))
@@ -65,18 +66,27 @@ public class ActivityQueryService {
             
             List<Map<String, Object>> userStates = activityQueryMapper.selectUserStates(currentUserId, activityIds);
             for (Map<String, Object> state : userStates) {
-                UUID activityId = UUID.fromString(state.get("activityId").toString());
+                Object activityIdObj = state.get("activity_id");
+                if (activityIdObj == null) {
+                    log.warn("activity_id is null in user state: {}", state);
+                    continue;
+                }
+                UUID activityId = UUID.fromString(activityIdObj.toString());
                 UserState us = new UserState();
                 us.setLiked((Boolean) state.get("liked"));
                 us.setFavorited((Boolean) state.get("favorited"));
                 us.setDownvoted((Boolean) state.get("downvoted"));
                 userStateMap.put(activityId, us);
+                
+                // 存储 signedUp 状态
+                Boolean signedUp = (Boolean) state.get("signed_up");
+                signedUpMap.put(activityId, signedUp != null ? signedUp : false);
             }
         }
         
         // 组装 DTO
         List<ActivityListItemDTO> items = rows.stream()
-            .map(row -> mapToActivityListItem(row, userStateMap))
+            .map(row -> mapToActivityListItem(row, userStateMap, signedUpMap))
             .collect(Collectors.toList());
         
         return PageResponse.of(items, total, validPage, validSize);
@@ -107,12 +117,13 @@ public class ActivityQueryService {
                 us.setFavorited((Boolean) userState.get("favorited"));
                 us.setDownvoted((Boolean) userState.get("downvoted"));
                 dto.setUserState(us);
-                dto.setSignedUp((Boolean) userState.get("signedUp"));
+                Boolean signedUp = (Boolean) userState.get("signed_up");
+                dto.setSignedUp(signedUp != null ? signedUp : false);
             }
         }
         
         // 如果是 HOSTED 类型（sourceType=2），查询场次信息
-        Integer sourceType = (Integer) row.get("sourceType");
+        Integer sourceType = (Integer) row.get("source_type");
         if (sourceType != null && sourceType == 2) {
             List<Map<String, Object>> sessionRows = activityQueryMapper.selectActivitySessions(activityId);
             List<ActivitySessionDTO> sessions = sessionRows.stream()
@@ -194,21 +205,21 @@ public class ActivityQueryService {
         return null;
     }
 
-    private ActivityListItemDTO mapToActivityListItem(Map<String, Object> row, Map<UUID, UserState> userStateMap) {
+    private ActivityListItemDTO mapToActivityListItem(Map<String, Object> row, Map<UUID, UserState> userStateMap, Map<UUID, Boolean> signedUpMap) {
         ActivityListItemDTO dto = new ActivityListItemDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setSourceType((Integer) row.get("sourceType"));
+        dto.setSourceType((Integer) row.get("source_type"));
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
         dto.setTopic((String) row.get("topic"));
-        dto.setStartTime(toLocalDateTime(row.get("startTime")));
-        dto.setEndTime(toLocalDateTime(row.get("endTime")));
+        dto.setStartTime(toLocalDateTime(row.get("start_time")));
+        dto.setEndTime(toLocalDateTime(row.get("end_time")));
         dto.setLocation((String) row.get("location"));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
         
         // 海报（取第一张）- 正确解析JSONB
-        Object posterUrls = row.get("posterUrls");
+        Object posterUrls = row.get("poster_urls");
         if (posterUrls != null) {
             try {
                 List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
@@ -221,16 +232,16 @@ public class ActivityQueryService {
         }
         
         // 统计信息
-        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
-        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
-        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
-        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
         
         // 用户状态
         UserState userState = userStateMap.get(dto.getId());
         if (userState != null) {
             dto.setUserState(userState);
-            dto.setSignedUp(row.get("signedUp") != null ? (Boolean) row.get("signedUp") : false);
+            dto.setSignedUp(signedUpMap.getOrDefault(dto.getId(), false));
         }
         
         return dto;
@@ -239,22 +250,22 @@ public class ActivityQueryService {
     private ActivityDetailDTO mapToActivityDetail(Map<String, Object> row) {
         ActivityDetailDTO dto = new ActivityDetailDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setSourceType((Integer) row.get("sourceType"));
+        dto.setSourceType((Integer) row.get("source_type"));
         dto.setTitle((String) row.get("title"));
         dto.setCategory((Integer) row.get("category"));
         dto.setTopic((String) row.get("topic"));
         dto.setDescription((String) row.get("description"));
-        dto.setStartTime(toLocalDateTime(row.get("startTime")));
-        dto.setEndTime(toLocalDateTime(row.get("endTime")));
+        dto.setStartTime(toLocalDateTime(row.get("start_time")));
+        dto.setEndTime(toLocalDateTime(row.get("end_time")));
         dto.setLocation((String) row.get("location"));
-        dto.setSignupPolicy((Integer) row.get("signupPolicy"));
+        dto.setSignupPolicy((Integer) row.get("signup_policy"));
         dto.setStatus((Integer) row.get("status"));
-        dto.setSourceUrl((String) row.get("sourceUrl"));
-        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
-        dto.setUpdatedAt(toLocalDateTime(row.get("updatedAt")));
+        dto.setSourceUrl((String) row.get("source_url"));
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
+        dto.setUpdatedAt(toLocalDateTime(row.get("updated_at")));
         
         // 海报列表 - 正确解析JSONB
-        Object posterUrls = row.get("posterUrls");
+        Object posterUrls = row.get("poster_urls");
         if (posterUrls != null) {
             try {
                 List<String> urls = objectMapper.readValue(posterUrls.toString(), new TypeReference<List<String>>() {});
@@ -268,10 +279,10 @@ public class ActivityQueryService {
         }
         
         // 统计信息
-        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
-        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
-        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
-        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
         
         return dto;
     }
@@ -279,13 +290,13 @@ public class ActivityQueryService {
     private ActivitySessionDTO mapToActivitySession(Map<String, Object> row) {
         ActivitySessionDTO dto = new ActivitySessionDTO();
         dto.setId(UUID.fromString(row.get("id").toString()));
-        dto.setActivityId(UUID.fromString(row.get("activityId").toString()));
-        dto.setSessionName((String) row.get("sessionName"));
-        dto.setStartTime(toLocalDateTime(row.get("startTime")));
-        dto.setEndTime(toLocalDateTime(row.get("endTime")));
+        dto.setActivityId(UUID.fromString(row.get("activity_id").toString()));
+        dto.setSessionName((String) row.get("session_name"));
+        dto.setStartTime(toLocalDateTime(row.get("start_time")));
+        dto.setEndTime(toLocalDateTime(row.get("end_time")));
         dto.setLocation((String) row.get("location"));
         dto.setCapacity((Integer) row.get("capacity"));
-        dto.setSignupCount(row.get("signupCount") != null ? ((Number) row.get("signupCount")).intValue() : 0);
+        dto.setSignupCount(row.get("signup_count") != null ? ((Number) row.get("signup_count")).intValue() : 0);
         dto.setStatus((Integer) row.get("status"));
         return dto;
     }

@@ -97,23 +97,19 @@ export default function ActivityDetailPage() {
 
         try {
             if (isLiked) {
-                await interactionApi.deleteReaction({
-                    targetType: 'ACTIVITY',
-                    targetId: activityId,
-                    reactionType: 'LIKE'
-                });
+                await interactionApi.deleteReaction(2, activityId, 'LIKE');
                 setLikeCount(prev => prev - 1);
+                setIsLiked(false);
             } else {
-                await interactionApi.createReaction({
-                    targetType: 'ACTIVITY',
-                    targetId: activityId,
-                    reactionType: 'LIKE'
-                });
+                await interactionApi.createReaction(2, activityId, 'LIKE');
                 setLikeCount(prev => prev + 1);
+                setIsLiked(true);
             }
-            setIsLiked(!isLiked);
         } catch (error: any) {
             console.error('Failed to toggle like:', error);
+            // 如果失败，恢复原状态
+            setIsLiked(!isLiked);
+            setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
             alert(error.message || t('operationFailed', '操作失败，请重试'));
         }
     };
@@ -126,21 +122,16 @@ export default function ActivityDetailPage() {
 
         try {
             if (isFavorited) {
-                await interactionApi.deleteReaction({
-                    targetType: 'ACTIVITY',
-                    targetId: activityId,
-                    reactionType: 'FAVORITE'
-                });
+                await interactionApi.deleteReaction(2, activityId, 'FAVORITE');
+                setIsFavorited(false);
             } else {
-                await interactionApi.createReaction({
-                    targetType: 'ACTIVITY',
-                    targetId: activityId,
-                    reactionType: 'FAVORITE'
-                });
+                await interactionApi.createReaction(2, activityId, 'FAVORITE');
+                setIsFavorited(true);
             }
-            setIsFavorited(!isFavorited);
         } catch (error: any) {
             console.error('Failed to toggle favorite:', error);
+            // 如果失败，恢复原状态
+            setIsFavorited(!isFavorited);
             alert(error.message || t('operationFailed', '操作失败，请重试'));
         }
     };

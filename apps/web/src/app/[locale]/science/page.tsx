@@ -24,6 +24,7 @@ import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, hoverLift } from '@/lib/animations';
 import { contentApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
+import { formatDate, formatShortDate } from '@/lib/date-utils';
 
 export default function SciencePage() {
     const params = useParams();
@@ -260,7 +261,7 @@ export default function SciencePage() {
                                                     <div className="flex items-center gap-4 text-xs font-bold text-slate-400 mb-3">
                                                         <div className="flex items-center gap-1.5 uppercase tracking-wider">
                                                             <Calendar className="w-3.5 h-3.5" />
-                                                            {new Date(content.publishedAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                                            {formatShortDate(content.publishedAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
                                                         </div>
                                                         <div className="flex items-center gap-1.5 uppercase tracking-wider">
                                                             <Clock className="w-3.5 h-3.5" />

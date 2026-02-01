@@ -7,15 +7,22 @@ import { apiPost, apiDelete } from '../api-client';
 // 目标类型
 export type TargetType = 'CONTENT' | 'ACTIVITY' | 'COMMENT';
 
+// Reaction 类型映射
+const REACTION_TYPE_MAP = {
+  'LIKE': 1,
+  'FAVORITE': 2,
+  'DISLIKE': 3
+} as const;
+
 // Reaction 类型
 export type ReactionType = 'LIKE' | 'FAVORITE' | 'DISLIKE';
 
 // 创建评论请求
 export interface CreateCommentRequest {
-  targetType: TargetType;
+  targetType: number; // 1=CONTENT, 2=ACTIVITY
   targetId: string;
-  content: string;
-  parentCommentId?: string;
+  body: string;
+  parentId?: string;
 }
 
 // 评论响应
@@ -34,9 +41,9 @@ export interface CommentResponse {
 
 // 创建 Reaction 请求
 export interface CreateReactionRequest {
-  targetType: TargetType;
+  targetType: number; // 1=CONTENT, 2=ACTIVITY, 3=COMMENT
   targetId: string;
-  reactionType: ReactionType;
+  reactionType: number; // 1=LIKE, 2=FAVORITE, 3=DISLIKE
 }
 
 // Reaction 响应
@@ -51,13 +58,14 @@ export interface ReactionResponse {
 
 // 删除 Reaction 请求
 export interface DeleteReactionRequest {
-  targetType: TargetType;
+  targetType: number; // 1=CONTENT, 2=ACTIVITY, 3=COMMENT
   targetId: string;
-  reactionType: ReactionType;
+  reactionType: number; // 1=LIKE, 2=FAVORITE, 3=DISLIKE
 }
 
 /**
  * 创建评论
+ * targetType: 1=CONTENT, 2=ACTIVITY
  */
 export async function createComment(
   data: CreateCommentRequest
@@ -71,20 +79,36 @@ export async function createComment(
 
 /**
  * 创建 Reaction（点赞/收藏/踩）
+ * targetType: 1=CONTENT, 2=ACTIVITY, 3=COMMENT
+ * reactionType: 1=LIKE, 2=FAVORITE, 3=DISLIKE
  * 注意：后端返回 void，操作是幂等的
  */
 export async function createReaction(
-  data: CreateReactionRequest
+  targetType: number,
+  targetId: string,
+  reactionType: ReactionType
 ): Promise<void> {
-  return apiPost<void>('/api/v1/reactions', data, true);
+  return apiPost<void>('/api/v1/reactions', {
+    targetType,
+    targetId,
+    reactionType: REACTION_TYPE_MAP[reactionType]
+  }, true);
 }
 
 /**
  * 删除 Reaction（取消点赞/收藏/踩）
+ * targetType: 1=CONTENT, 2=ACTIVITY, 3=COMMENT
+ * reactionType: 1=LIKE, 2=FAVORITE, 3=DISLIKE
  * 注意：后端使用 DELETE /api/v1/reactions（带 body）
  */
 export async function deleteReaction(
-  data: DeleteReactionRequest
+  targetType: number,
+  targetId: string,
+  reactionType: ReactionType
 ): Promise<void> {
-  return apiPost<void>('/api/v1/reactions/delete', data, true);
+  return apiPost<void>('/api/v1/reactions/delete', {
+    targetType,
+    targetId,
+    reactionType: REACTION_TYPE_MAP[reactionType]
+  }, true);
 }

@@ -28,15 +28,13 @@ function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t, locale } = useSafeTranslation('points');
 
-    // 积分账户数据 - 添加默认模拟数据
-    const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>({
-        userId: user?.userId || '',
-        totalPoints: 150,
-        availablePoints: 150,
-        level: 3,
-        pointsToNextLevel: 150
-    });
+    // 积分账户数据
+    const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
     const [loadingAccount, setLoadingAccount] = useState(false);
+    
+    // 积分动画状态
+    const [displayPoints, setDisplayPoints] = useState(0);
+    const [pointsIncrement, setPointsIncrement] = useState<number | null>(null);
 
     // 签到数据
     const [todaySignin, setTodaySignin] = useState<SigninRecord | null>(null);
@@ -100,6 +98,7 @@ function PointsPageContent() {
             try {
                 const account = await pointsApi.getPointsAccount();
                 setPointsAccount(account);
+                setDisplayPoints(account.availablePoints);
             } catch (error) {
                 console.error('Failed to load points account:', error);
                 // 失败时不设置 loading 状态，让页面继续显示
@@ -110,6 +109,33 @@ function PointsPageContent() {
             loadPointsAccount();
         }
     }, [isLoggedIn]);
+    
+    // 积分数字动画效果
+    useEffect(() => {
+        if (!pointsAccount) return;
+        
+        const targetPoints = pointsAccount.availablePoints;
+        if (displayPoints === targetPoints) return;
+        
+        const diff = targetPoints - displayPoints;
+        const duration = 1000; // 1秒动画
+        const steps = 30;
+        const increment = diff / steps;
+        const stepDuration = duration / steps;
+        
+        let currentStep = 0;
+        const timer = setInterval(() => {
+            currentStep++;
+            if (currentStep >= steps) {
+                setDisplayPoints(targetPoints);
+                clearInterval(timer);
+            } else {
+                setDisplayPoints(prev => Math.round(prev + increment));
+            }
+        }, stepDuration);
+        
+        return () => clearInterval(timer);
+    }, [pointsAccount?.availablePoints]);
 
     // 加载签到状态
     useEffect(() => {
@@ -173,14 +199,13 @@ function PointsPageContent() {
             const result = await pointsApi.signin();
             setTodaySignin(result);
 
-            // 更新积分账户
-            if (pointsAccount) {
-                setPointsAccount({
-                    ...pointsAccount,
-                    totalPoints: pointsAccount.totalPoints + result.points,
-                    availablePoints: pointsAccount.availablePoints + result.points
-                });
-            }
+            // 显示增加的积分动画
+            setPointsIncrement(result.points);
+            setTimeout(() => setPointsIncrement(null), 2000);
+
+            // 重新加载积分账户以获取最新的等级和进度信息
+            const updatedAccount = await pointsApi.getPointsAccount();
+            setPointsAccount(updatedAccount);
 
             alert(t('alerts.signInSuccess', '签到成功！获得 {points} 积分', { points: result.points }));
 
@@ -201,12 +226,21 @@ function PointsPageContent() {
     const handleClaimTask = async (taskId: string) => {
         try {
             setClaimingTask(taskId);
+            
+            // 找到任务的积分奖励
+            const task = dailyTasks.find(t => t.id === taskId);
+            const taskPoints = task?.points || 0;
+            
             await pointsApi.claimTaskReward(taskId);
 
             // 更新任务列表
             setDailyTasks(prev => prev.map(task =>
                 task.id === taskId ? { ...task, status: 3 } : task
             ));
+
+            // 显示增加的积分动画
+            setPointsIncrement(taskPoints);
+            setTimeout(() => setPointsIncrement(null), 2000);
 
             // 重新加载积分账户
             const account = await pointsApi.getPointsAccount();
@@ -234,13 +268,15 @@ function PointsPageContent() {
             setQuizResult(result);
             setQuizSubmitted(true);
 
-            // 更新积分账户
-            if (result.correct && pointsAccount) {
-                setPointsAccount({
-                    ...pointsAccount,
-                    totalPoints: pointsAccount.totalPoints + result.earnedPoints,
-                    availablePoints: pointsAccount.availablePoints + result.earnedPoints
-                });
+            // 如果答对了，重新加载积分账户
+            if (result.correct) {
+                // 显示增加的积分动画
+                setPointsIncrement(result.earnedPoints);
+                setTimeout(() => setPointsIncrement(null), 2000);
+                
+                // 重新加载积分账户以获取最新数据
+                const updatedAccount = await pointsApi.getPointsAccount();
+                setPointsAccount(updatedAccount);
             }
         } catch (error: any) {
             console.error('Failed to submit quiz:', error);
@@ -316,13 +352,23 @@ function PointsPageContent() {
 
                             {/* 积分与进度 */}
                             <div className="flex-1 w-full space-y-4">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B]">
-                                        {pointsAccount?.availablePoints || 0}
+                                <div className="flex items-baseline gap-2 relative">
+                                    <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B] transition-all duration-300">
+                                        {displayPoints}
                                     </span>
                                     <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
                                         <Coins className="w-3 h-3" /> {t('points', '积分')}
                                     </div>
+                                    {pointsIncrement && (
+                                        <motion.span
+                                            initial={{ opacity: 0, y: 0, scale: 1 }}
+                                            animate={{ opacity: [0, 1, 1, 0], y: -30, scale: [1, 1.2, 1] }}
+                                            transition={{ duration: 2 }}
+                                            className="absolute left-0 top-0 text-2xl font-bold text-[#56B949]"
+                                        >
+                                            +{pointsIncrement}
+                                        </motion.span>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">

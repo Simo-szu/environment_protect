@@ -26,6 +26,7 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animatio
 import { contentApi, interactionApi } from '@/lib/api';
 import type { ContentDetail, ContentItem, Comment } from '@/lib/api/content';
 import AuthPromptModal from '@/components/auth/AuthPromptModal';
+import { formatDate, formatShortDate } from '@/lib/date-utils';
 
 export default function ScienceArticleDetailPage() {
     const router = useRouter();
@@ -45,6 +46,10 @@ export default function ScienceArticleDetailPage() {
     const [likeCount, setLikeCount] = useState(0);
     const [favoriteCount, setFavoriteCount] = useState(0);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [commentText, setCommentText] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [replyingTo, setReplyingTo] = useState<string | null>(null);
+    const [replyText, setReplyText] = useState('');
 
     // 加载文章数据
     useEffect(() => {
@@ -101,23 +106,19 @@ export default function ScienceArticleDetailPage() {
 
         try {
             if (isLiked) {
-                await interactionApi.deleteReaction({
-                    targetType: 'CONTENT',
-                    targetId: articleId,
-                    reactionType: 'LIKE'
-                });
+                await interactionApi.deleteReaction(1, articleId, 'LIKE');
                 setLikeCount(prev => prev - 1);
+                setIsLiked(false);
             } else {
-                await interactionApi.createReaction({
-                    targetType: 'CONTENT',
-                    targetId: articleId,
-                    reactionType: 'LIKE'
-                });
+                await interactionApi.createReaction(1, articleId, 'LIKE');
                 setLikeCount(prev => prev + 1);
+                setIsLiked(true);
             }
-            setIsLiked(!isLiked);
         } catch (error: any) {
             console.error('Failed to toggle like:', error);
+            // 如果失败，恢复原状态
+            setIsLiked(!isLiked);
+            setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
             alert(error.message || t('error.operationFailed', '操作失败，请重试'));
         }
     };
@@ -130,23 +131,19 @@ export default function ScienceArticleDetailPage() {
 
         try {
             if (isFavorited) {
-                await interactionApi.deleteReaction({
-                    targetType: 'CONTENT',
-                    targetId: articleId,
-                    reactionType: 'FAVORITE'
-                });
+                await interactionApi.deleteReaction(1, articleId, 'FAVORITE');
                 setFavoriteCount(prev => prev - 1);
+                setIsFavorited(false);
             } else {
-                await interactionApi.createReaction({
-                    targetType: 'CONTENT',
-                    targetId: articleId,
-                    reactionType: 'FAVORITE'
-                });
+                await interactionApi.createReaction(1, articleId, 'FAVORITE');
                 setFavoriteCount(prev => prev + 1);
+                setIsFavorited(true);
             }
-            setIsFavorited(!isFavorited);
         } catch (error: any) {
             console.error('Failed to toggle favorite:', error);
+            // 如果失败，恢复原状态
+            setIsFavorited(!isFavorited);
+            setFavoriteCount(prev => isFavorited ? prev + 1 : prev - 1);
             alert(error.message || t('error.operationFailed', '操作失败，请重试'));
         }
     };
@@ -163,6 +160,96 @@ export default function ScienceArticleDetailPage() {
         } else {
             navigator.clipboard.writeText(window.location.href);
             alert(t('content.linkCopied', '链接已复制到剪贴板'));
+        }
+    };
+
+    const handleSubmitComment = async () => {
+        if (!commentText.trim()) {
+            alert(t('comments.emptyError', '评论内容不能为空'));
+            return;
+        }
+
+        try {
+            setIsSubmittingComment(true);
+            await interactionApi.createComment({
+                targetType: 1, // 1=CONTENT
+                targetId: articleId,
+                body: commentText.trim()
+            });
+
+            // 清空输入框
+            setCommentText('');
+
+            // 重新加载评论列表
+            const commentsData = await contentApi.getContentComments(articleId, { page: 1, size: 10, sort: 'latest' });
+            setComments(commentsData.items);
+
+            alert(t('comments.success', '评论发表成功'));
+        } catch (error: any) {
+            console.error('Failed to submit comment:', error);
+            alert(error.message || t('comments.error', '评论发表失败，请重试'));
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleLikeComment = async (commentId: string, isLiked: boolean) => {
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+
+        try {
+            if (isLiked) {
+                await interactionApi.deleteReaction(3, commentId, 'LIKE');
+            } else {
+                await interactionApi.createReaction(3, commentId, 'LIKE');
+            }
+
+            // 重新加载评论列表以更新点赞数
+            const commentsData = await contentApi.getContentComments(articleId, { page: 1, size: 10, sort: 'latest' });
+            setComments(commentsData.items);
+        } catch (error: any) {
+            console.error('Failed to toggle comment like:', error);
+            alert(error.message || t('error.operationFailed', '操作失败，请重试'));
+        }
+    };
+
+    const handleReplyComment = (commentId: string) => {
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+        setReplyingTo(commentId);
+        setReplyText('');
+    };
+
+    const handleSubmitReply = async (parentId: string) => {
+        if (!replyText.trim()) {
+            alert(t('comments.emptyError', '回复内容不能为空'));
+            return;
+        }
+
+        try {
+            await interactionApi.createComment({
+                targetType: 1, // 1=CONTENT
+                targetId: articleId,
+                body: replyText.trim(),
+                parentId: parentId
+            });
+
+            // 清空回复状态
+            setReplyingTo(null);
+            setReplyText('');
+
+            // 重新加载评论列表
+            const commentsData = await contentApi.getContentComments(articleId, { page: 1, size: 10, sort: 'latest' });
+            setComments(commentsData.items);
+
+            alert(t('comments.success', '回复发表成功'));
+        } catch (error: any) {
+            console.error('Failed to submit reply:', error);
+            alert(error.message || t('comments.error', '回复发表失败，请重试'));
         }
     };
 
@@ -257,7 +344,7 @@ export default function ScienceArticleDetailPage() {
                         </div>
                         <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            <span>{new Date(article.publishedAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                            <span>{formatDate(article.publishedAt, locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <Eye className="w-4 h-4" />
@@ -275,7 +362,7 @@ export default function ScienceArticleDetailPage() {
                                 }`}
                         >
                             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                            <span>{article.likeCount}</span>
+                            <span>{likeCount}</span>
                         </button>
                         <button
                             onClick={handleFavorite}
@@ -371,13 +458,19 @@ export default function ScienceArticleDetailPage() {
                                 </div>
                                 <div className="flex-1">
                                     <textarea
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
                                         placeholder={t('comments.placeholder', '写下你的评论...')}
                                         className="w-full p-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none resize-none"
                                         rows={3}
                                     />
                                     <div className="flex justify-end mt-2">
-                                        <button className="px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm font-medium">
-                                            {t('comments.submit', '发表评论')}
+                                        <button 
+                                            onClick={handleSubmitComment}
+                                            disabled={isSubmittingComment || !commentText.trim()}
+                                            className="px-4 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmittingComment ? t('comments.submitting', '发表中...') : t('comments.submit', '发表评论')}
                                         </button>
                                     </div>
                                 </div>
@@ -407,19 +500,59 @@ export default function ScienceArticleDetailPage() {
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="font-medium text-slate-800">{comment.userName}</span>
                                             <span className="text-xs text-slate-400">
-                                                {new Date(comment.createdAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                                {formatShortDate(comment.createdAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
                                             </span>
                                         </div>
                                         <p className="text-slate-700 mb-2">{comment.content}</p>
                                         <div className="flex items-center gap-4 text-sm">
-                                            <button className="flex items-center gap-1 text-slate-500 hover:text-[#EE4035] transition-colors">
-                                                <Heart className="w-4 h-4" />
+                                            <button 
+                                                onClick={() => handleLikeComment(comment.id, comment.liked || false)}
+                                                className={`flex items-center gap-1 transition-colors ${
+                                                    comment.liked 
+                                                        ? 'text-[#EE4035]' 
+                                                        : 'text-slate-500 hover:text-[#EE4035]'
+                                                }`}
+                                            >
+                                                <Heart className={`w-4 h-4 ${comment.liked ? 'fill-current' : ''}`} />
                                                 <span>{comment.likeCount || 0}</span>
                                             </button>
-                                            <button className="text-slate-500 hover:text-[#30499B] transition-colors">
+                                            <button 
+                                                onClick={() => handleReplyComment(comment.id)}
+                                                className="text-slate-500 hover:text-[#30499B] transition-colors"
+                                            >
                                                 {t('comments.reply', '回复')}
                                             </button>
                                         </div>
+
+                                        {/* Reply Input */}
+                                        {replyingTo === comment.id && (
+                                            <div className="mt-3 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={replyText}
+                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                    placeholder={t('comments.replyPlaceholder', '写下你的回复...')}
+                                                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none text-sm"
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            handleSubmitReply(comment.id);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={() => handleSubmitReply(comment.id)}
+                                                    className="px-3 py-2 bg-[#56B949] text-white rounded-lg hover:bg-[#4aa840] transition-colors text-sm"
+                                                >
+                                                    {t('comments.submit', '发表')}
+                                                </button>
+                                                <button
+                                                    onClick={() => setReplyingTo(null)}
+                                                    className="px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-sm"
+                                                >
+                                                    {t('common.cancel', '取消')}
+                                                </button>
+                                            </div>
+                                        )}
 
                                         {/* Replies */}
                                         {comment.replies && comment.replies.length > 0 && (
@@ -433,7 +566,7 @@ export default function ScienceArticleDetailPage() {
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="font-medium text-slate-800 text-sm">{reply.userName}</span>
                                                                 <span className="text-xs text-slate-400">
-                                                                    {new Date(reply.createdAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                                                    {formatShortDate(reply.createdAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
                                                                 </span>
                                                             </div>
                                                             <p className="text-slate-700 text-sm">{reply.content}</p>
