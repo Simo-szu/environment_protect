@@ -321,37 +321,33 @@ export default function LoginPage() {
                         </form>
 
                         {/* Divider & Social Login */}
-                        {config.googleClientId && (
-                            <>
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-slate-200"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-sm">
-                                        <span className="px-4 bg-white text-slate-400">
-                                            {t('login.or', '或者使用 Google 登录')}
-                                        </span>
-                                    </div>
-                                </div>
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-slate-200"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-4 bg-white text-slate-400">
+                                    {t('login.or', '或者使用 Google 登录')}
+                                </span>
+                            </div>
+                        </div>
 
-                                <div className="flex justify-center w-full">
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleError}
-                                        width="100%"
-                                        theme="outline"
-                                        shape="rectangular"
-                                        auto_select={false}
-                                        cancel_on_tap_outside={true}
-                                    />
-                                </div>
+                        <div className="flex justify-center w-full">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={handleGoogleError}
+                                width="100%"
+                                theme="outline"
+                                shape="rectangular"
+                                auto_select={false}
+                                cancel_on_tap_outside={true}
+                            />
+                        </div>
 
-                                {/* Login Tips */}
-                                <div className="text-center text-xs text-slate-500 leading-relaxed mt-4">
-                                    <p>{t('login.googleTip', '💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码')}</p>
-                                </div>
-                            </>
-                        )}
+                        {/* Login Tips */}
+                        <div className="text-center text-xs text-slate-500 leading-relaxed mt-4">
+                            <p>{t('login.googleTip', '💡 提示:Google登录账号如需使用密码登录,请使用验证码登录或"忘记密码"功能设置密码')}</p>
+                        </div>
 
                     </div>
                 </div>

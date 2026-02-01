@@ -395,20 +395,18 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {config.googleClientId && (
-                            <div className="flex justify-center w-full -mt-2">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={handleGoogleError}
-                                    text="signup_with"
-                                    width="100%"
-                                    theme="outline"
-                                    shape="rectangular"
-                                    auto_select={false}
-                                    cancel_on_tap_outside={true}
-                                />
-                            </div>
-                        )}
+                        <div className="flex justify-center w-full -mt-2">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={handleGoogleError}
+                                text="signup_with"
+                                width="100%"
+                                theme="outline"
+                                shape="rectangular"
+                                auto_select={false}
+                                cancel_on_tap_outside={true}
+                            />
+                        </div>
 
                         {/* Quick Register Tip */}
                         <div className="text-center text-sm text-slate-500">
