@@ -89,7 +89,7 @@ public class QueryFacadeImpl implements QueryFacade {
     }
 
     @Override
-    public List<ActivityCategoryCountDTO> getPopularActivityCategories(String month, int limit) {
-        return activityQueryService.getPopularActivityCategories(month, limit);
+    public PageResponse<ActivityCategoryCountDTO> getPopularActivityCategories(String month, Integer page, Integer size) {
+        return activityQueryService.getPopularActivityCategories(month, page, size);
     }
 }

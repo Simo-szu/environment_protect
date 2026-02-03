@@ -177,7 +177,16 @@
     AND sig.status IN (1, 2, 3)
   </select>
 
-  <!-- Popular Categories -->
+  <!-- Count Popular Categories -->
+  <select id="countPopularCategories" resultType="long">
+    SELECT COUNT(DISTINCT a.category)
+    FROM social.activity a
+    WHERE a.start_time &gt;= #{startTime}
+      AND a.start_time &lt; #{endTime}
+      AND a.status IN (1, 3)
+  </select>
+
+  <!-- Popular Categories with Pagination -->
   <select id="selectPopularCategories" resultType="com.youthloop.query.dto.ActivityCategoryCountDTO">
     SELECT 
       a.category,
@@ -188,6 +197,6 @@
       AND a.status IN (1, 3)
     GROUP BY a.category
     ORDER BY activityCount DESC, a.category ASC
-    LIMIT #{limit}
+    LIMIT #{limit} OFFSET #{offset}
   </select>
 </mapper>

@@ -478,7 +478,15 @@ export async function getActivitySummary(month?: string): Promise<ActivitySummar
 /**
  * Get popular activity categories
  */
-export async function getPopularActivityCategories(month?: string, limit: number = 3): Promise<ActivityCategoryCountDTO[]> {
+export async function getPopularActivityCategories(
+  month?: string, 
+  page: number = 1, 
+  size: number = 10
+): Promise<PageResponse<ActivityCategoryCountDTO>> {
   const m = month || new Date().toISOString().slice(0, 7);
-  return apiGet<ActivityCategoryCountDTO[]>('/api/v1/activities/categories/popular', { month: m, limit });
+  return apiGet<PageResponse<ActivityCategoryCountDTO>>('/api/v1/activities/categories/popular', { 
+    month: m, 
+    page, 
+    size 
+  });
 }

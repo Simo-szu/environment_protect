@@ -87,11 +87,20 @@ public interface ActivityQueryMapper {
     );
 
     /**
-     * Get popular categories
+     * Count popular categories
+     */
+    Long countPopularCategories(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
+
+    /**
+     * Get popular categories with pagination
      */
     List<ActivityCategoryCountDTO> selectPopularCategories(
         @Param("startTime") LocalDateTime startTime,
         @Param("endTime") LocalDateTime endTime,
+        @Param("offset") int offset,
         @Param("limit") int limit
     );
 }

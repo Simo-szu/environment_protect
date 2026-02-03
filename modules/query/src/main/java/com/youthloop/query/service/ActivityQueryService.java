@@ -179,13 +179,29 @@ public class ActivityQueryService {
      * Get popular activity categories
      */
     @Transactional(readOnly = true)
-    public List<com.youthloop.query.dto.ActivityCategoryCountDTO> getPopularActivityCategories(String month, int limit) {
+    public PageResponse<com.youthloop.query.dto.ActivityCategoryCountDTO> getPopularActivityCategories(String month, Integer page, Integer size) {
         try {
+            // 参数校验与默认值
+            int validPage = Math.max(1, page);
+            int validSize = Math.min(100, Math.max(1, size));
+            int offset = (validPage - 1) * validSize;
+            
             java.time.YearMonth ym = java.time.YearMonth.parse(month);
             java.time.LocalDateTime start = ym.atDay(1).atStartOfDay();
             java.time.LocalDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay();
             
-            return activityQueryMapper.selectPopularCategories(start, end, limit);
+            // 查询总数
+            Long total = activityQueryMapper.countPopularCategories(start, end);
+            
+            if (total == 0) {
+                return PageResponse.of(Collections.emptyList(), total, validPage, validSize);
+            }
+            
+            // 查询分页数据
+            List<com.youthloop.query.dto.ActivityCategoryCountDTO> items = 
+                activityQueryMapper.selectPopularCategories(start, end, offset, validSize);
+            
+            return PageResponse.of(items, total, validPage, validSize);
         } catch (Exception e) {
             log.error("Failed to get popular categories for month: {}", month, e);
             throw new BizException(400, "Invalid month format");

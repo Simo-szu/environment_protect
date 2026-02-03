@@ -70,7 +70,8 @@ public class SecurityConfig {
                 
                 // 放行：Swagger UI
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api-docs", "/api-docs/**").permitAll()
+                .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 
                 // 放行：系统公开配置
                 .requestMatchers("/api/v1/system/**").permitAll()

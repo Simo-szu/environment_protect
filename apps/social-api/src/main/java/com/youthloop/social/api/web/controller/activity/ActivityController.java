@@ -46,24 +46,25 @@ public class ActivityController {
     }
     
 
-    @Operation(summary = "Get activity summary", description = "Get statistics for a specific month (server time)")
+    @Operation(summary = "获取活动统计摘要", description = "获取指定月份的活动统计数据（服务器时间）")
     @GetMapping("/summary")
     public BaseResponse<ActivitySummaryDTO> getActivitySummary(
-        @Parameter(description = "Month (YYYY-MM)") @RequestParam("month") String month
+        @Parameter(description = "月份（YYYY-MM）") @RequestParam("month") String month
     ) {
         UUID currentUserId = SecurityUtil.getCurrentUserIdOptional();
         ActivitySummaryDTO summary = queryFacade.getActivitySummary(month, currentUserId);
         return BaseResponse.success(summary);
     }
 
-    @Operation(summary = "Get popular categories", description = "Get top categories by activity count for a specific month")
+    @Operation(summary = "获取热门活动分类", description = "分页查询指定月份活动数量最多的分类排行")
     @GetMapping("/categories/popular")
-    public BaseResponse<List<ActivityCategoryCountDTO>> getPopularActivityCategories(
-        @Parameter(description = "Month (YYYY-MM)") @RequestParam("month") String month,
-        @Parameter(description = "Limit (default 3)") @RequestParam(value = "limit", defaultValue = "3") Integer limit
+    public BaseResponse<PageResponse<ActivityCategoryCountDTO>> getPopularActivityCategories(
+        @Parameter(description = "月份（YYYY-MM）") @RequestParam("month") String month,
+        @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
-        List<ActivityCategoryCountDTO> stats = queryFacade.getPopularActivityCategories(month, limit);
-        return BaseResponse.success(stats);
+        PageResponse<ActivityCategoryCountDTO> result = queryFacade.getPopularActivityCategories(month, page, size);
+        return BaseResponse.success(result);
     }
     
     @Operation(summary = "获取活动详情", description = "根据 ID 查询活动详情,含统计、用户状态和场次信息")

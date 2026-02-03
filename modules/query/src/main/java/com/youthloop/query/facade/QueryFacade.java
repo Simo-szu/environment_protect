@@ -70,5 +70,5 @@ public interface QueryFacade {
     /**
      * Get popular categories
      */
-    List<ActivityCategoryCountDTO> getPopularActivityCategories(String month, int limit);
+    PageResponse<ActivityCategoryCountDTO> getPopularActivityCategories(String month, Integer page, Integer size);
 }

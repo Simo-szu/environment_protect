@@ -10,6 +10,9 @@
     "build": "pnpm -C apps/web build",
     "start": "pnpm -C apps/web start",
     "lint": "pnpm -C apps/web lint",
-    "type-check": "pnpm -C apps/web type-check"
+    "type-check": "pnpm -C apps/web type-check",
+    "export:openapi": "node scripts/export-openapi-from-running.mjs",
+    "export:openapi:running": "node scripts/export-openapi-from-running.mjs",
+    "export:openapi:running:ps1": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-openapi-from-running.ps1"
   }
 }
