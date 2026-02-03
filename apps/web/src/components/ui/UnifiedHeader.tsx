@@ -92,24 +92,29 @@ export default function UnifiedHeader({
                     })}
 
                     {/* 移动端显示的额外操作 */}
-                    {showAuth && (
-                        <div className="md:hidden mobile-auth-section flex flex-col gap-2">
-                            <Link
-                                href={`/${locale}/login`}
-                                className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] text-left transition-colors duration-300"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                {t('login', '登录')}
-                            </Link>
-                            <Link
-                                href={`/${locale}/register`}
-                                className="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                {t('register', '注册')}
-                            </Link>
-                        </div>
-                    )}
+                    <div className="md:hidden flex flex-col gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        {/* 语言切换器 - 移动端 */}
+                        <LanguageSwitcher />
+                        
+                        {showAuth && (
+                            <div className="mobile-auth-section flex flex-col gap-2">
+                                <Link
+                                    href={`/${locale}/login`}
+                                    className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] text-left transition-colors duration-300"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {t('login', '登录')}
+                                </Link>
+                                <Link
+                                    href={`/${locale}/register`}
+                                    className="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {t('register', '注册')}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 桌面端右侧操作 */}

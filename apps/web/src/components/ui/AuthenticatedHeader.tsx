@@ -94,6 +94,79 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                             </Link>
                         );
                     })}
+                    
+                    {/* 移动端显示的额外操作 */}
+                    <div className="md:hidden flex flex-col gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        {/* 语言切换器 - 移动端 */}
+                        <LanguageSwitcher />
+                        
+                        {/* 用户菜单 - 移动端 */}
+                        {user && isLoggedIn ? (
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold">
+                                        <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}</span>
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold text-slate-800 dark:text-white">{user.nickname || '用户'}</div>
+                                        <div className="text-xs text-slate-500">ID: {user.userId || '12345678'}</div>
+                                    </div>
+                                </div>
+                                <Link href={`/${locale}/profile`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    👤 {t('profile', '个人资料')}
+                                </Link>
+                                <Link href={`/${locale}/my-activities`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    📅 {t('myActivities', '我的活动')}
+                                </Link>
+                                
+                                {/* 管理入口 - 根据用户角色显示 */}
+                                <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                                
+                                <Link href={`/${locale}/host/activities`} className="text-sm text-blue-600 hover:text-blue-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    📋 {t('hostManagement', '活动管理')}
+                                </Link>
+                                
+                                <Link href={`/${locale}/admin`} className="text-sm text-purple-600 hover:text-purple-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    🛡️ {t('adminPanel', '开发者后台')}
+                                </Link>
+                                
+                                <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                                
+                                <Link href={`/${locale}/points`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    🪙 {t('points', '积分')}
+                                </Link>
+                                <Link href={`/${locale}/notifications`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2 flex items-center justify-between" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <span>🔔 {t('notifications', '消息通知')}</span>
+                                    {unreadCount > 0 && (
+                                        <span className="bg-[#EE4035] text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                                    )}
+                                </Link>
+                                <button
+                                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                                    className="text-sm text-[#EE4035] hover:text-red-600 py-2 text-left"
+                                >
+                                    🚪 {t('logout', '退出登录')}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <Link
+                                    href={`/${locale}/login`}
+                                    className="text-sm font-semibold text-[#30499B] text-left"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {t('login', '登录')}
+                                </Link>
+                                <Link
+                                    href={`/${locale}/register`}
+                                    className="text-center text-sm px-4 py-2 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {t('register', '注册')}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 桌面端右侧操作 */}
@@ -149,6 +222,25 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                         <div className="w-5 h-5 flex items-center justify-center">📅</div>
                                         <span className="font-medium">{t('myActivities', '我的活动')}</span>
                                     </Link>
+                                    
+                                    {/* 管理入口 - 根据用户角色显示 */}
+                                    {/* TODO: 后端需要提供用户角色信息，这里暂时显示给所有用户 */}
+                                    <div className="border-t border-slate-100 my-2"></div>
+                                    
+                                    {/* 活动发布者管理 - 当用户发布过活动时显示 */}
+                                    <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 hover:bg-blue-50 transition-colors">
+                                        <div className="w-5 h-5 flex items-center justify-center">📋</div>
+                                        <span className="font-medium">{t('hostManagement', '活动管理')}</span>
+                                    </Link>
+                                    
+                                    {/* 开发者后台 - 仅开发者可见 */}
+                                    <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 hover:bg-purple-50 transition-colors">
+                                        <div className="w-5 h-5 flex items-center justify-center">🛡️</div>
+                                        <span className="font-medium">{t('adminPanel', '开发者后台')}</span>
+                                    </Link>
+                                    
+                                    <div className="border-t border-slate-100 my-2"></div>
+                                    
                                     <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">
                                         <div className="w-5 h-5 flex items-center justify-center">🪙</div>
                                         <span className="font-medium">{t('points', '积分')}</span>

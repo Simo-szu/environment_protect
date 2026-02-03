@@ -76,6 +76,9 @@ public class ActivityDetailDTO {
     @Schema(description = "评论数")
     private Integer commentCount;
     
+    @Schema(description = "预计阅读时间（分钟）")
+    private Integer readingTime;
+    
     // === 用户状态（登录时返回）===
     @Schema(description = "用户状态（未登录时为 null）")
     private UserState userState;

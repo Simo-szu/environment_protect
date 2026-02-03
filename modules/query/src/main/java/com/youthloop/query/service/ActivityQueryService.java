@@ -257,8 +257,10 @@ public class ActivityQueryService {
         UserState userState = userStateMap.get(dto.getId());
         if (userState != null) {
             dto.setUserState(userState);
-            dto.setSignedUp(signedUpMap.getOrDefault(dto.getId(), false));
         }
+        
+        // 报名状态（独立于用户状态）
+        dto.setSignedUp(signedUpMap.getOrDefault(dto.getId(), false));
         
         return dto;
     }
@@ -299,6 +301,15 @@ public class ActivityQueryService {
         dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
         dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
         dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        
+        // 计算阅读时间（基于描述长度，假设每分钟阅读200个字符）
+        String description = (String) row.get("description");
+        if (description != null && !description.isEmpty()) {
+            int readingTime = Math.max(1, (int) Math.ceil(description.length() / 200.0));
+            dto.setReadingTime(readingTime);
+        } else {
+            dto.setReadingTime(1); // 默认1分钟
+        }
         
         return dto;
     }

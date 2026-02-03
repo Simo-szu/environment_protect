@@ -17,7 +17,7 @@ spring:
   
   # Flyway 配置
   flyway:
-    enabled: true
+    enabled: false  # 临时禁用，表已存在
     baseline-on-migrate: true
     validate-on-migrate: false  # 临时禁用校验
     clean-disabled: false  # 允许清理（仅开发环境）

@@ -59,6 +59,7 @@ interface ActivityDetailDTO {
   likeCount: number;
   favCount: number;
   commentCount: number;
+  readingTime?: number;
   userState?: {
     liked: boolean;
     favorited: boolean;
@@ -124,6 +125,7 @@ export interface ActivityDetail extends ActivityItem {
   contactInfo?: string;
   tags?: string[];
   externalUrl?: string;
+  readingTime?: number;
 }
 
 // 活动场次
@@ -277,6 +279,7 @@ function mapActivityDetailDtoToDetail(dto: ActivityDetailDTO): ActivityDetail {
     description: dto.description || '',
     contactInfo: dto.contactInfo,
     externalUrl: dto.externalUrl,
+    readingTime: dto.readingTime,
     userState: dto.userState ? {
       liked: dto.userState.liked,
       favorited: dto.userState.favorited,
@@ -482,11 +485,12 @@ export async function getPopularActivityCategories(
   month?: string, 
   page: number = 1, 
   size: number = 10
-): Promise<PageResponse<ActivityCategoryCountDTO>> {
+): Promise<ActivityCategoryCountDTO[]> {
   const m = month || new Date().toISOString().slice(0, 7);
-  return apiGet<PageResponse<ActivityCategoryCountDTO>>('/api/v1/activities/categories/popular', { 
+  const response = await apiGet<PageResponse<ActivityCategoryCountDTO>>('/api/v1/activities/categories/popular', { 
     month: m, 
     page, 
     size 
   });
+  return response.items;
 }

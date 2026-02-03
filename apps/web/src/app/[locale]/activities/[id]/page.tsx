@@ -444,7 +444,7 @@ export default function ActivityDetailPage() {
                             </button>
 
                             <div className="mt-4 pt-4 border-t border-slate-200">
-                                <div className="flex items-center justify-between text-sm text-slate-600">
+                                <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
                                     <span className="flex items-center gap-1">
                                         <Heart className="w-4 h-4" />
                                         {activity.likeCount}
@@ -454,6 +454,12 @@ export default function ActivityDetailPage() {
                                         {activity.commentCount}
                                     </span>
                                 </div>
+                                {activity.readingTime && (
+                                    <div className="flex items-center justify-center text-xs text-slate-500 mt-2">
+                                        <Clock className="w-3 h-3 mr-1" />
+                                        {t('readingTime', '预计阅读时间')}: {activity.readingTime} {t('minutes', '分钟')}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

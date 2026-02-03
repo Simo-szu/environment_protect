@@ -24,7 +24,7 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
                 const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                 const [s, c] = await Promise.all([
                     activityApi.getActivitySummary(month),
-                    activityApi.getPopularActivityCategories(month, 3)
+                    activityApi.getPopularActivityCategories(month, 1, 3)
                 ]);
                 setSummary(s);
                 setCategories(c);

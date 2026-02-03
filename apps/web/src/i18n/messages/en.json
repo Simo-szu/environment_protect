@@ -132,7 +132,9 @@
         "logout": "Logout",
         "toggleMenu": "Toggle Menu",
         "searchPlaceholder": "Search...",
-        "userId": "ID"
+        "userId": "ID",
+        "hostManagement": "Activity Management",
+        "adminPanel": "Admin Panel"
     },
     "home": {
         "title": "YOUTHLOOP",
@@ -1623,5 +1625,45 @@
                 "schedule": "Weekdays 9:00-18:00"
             }
         }
+    },
+    "admin": {
+        "title": "Admin Panel",
+        "subtitle": "Review and manage platform content",
+        "pendingActivities": "Pending Activities",
+        "pendingContents": "Pending Articles",
+        "pendingComments": "Pending Comments",
+        "activities": "Activity Review",
+        "contents": "Article Review",
+        "comments": "Comment Review",
+        "noActivities": "No pending activities",
+        "noContents": "No pending articles",
+        "noComments": "No pending comments",
+        "view": "View Details",
+        "approve": "Approve",
+        "reject": "Reject"
+    },
+    "host": {
+        "title": "Activity Management",
+        "subtitle": "Manage my published activities and registrations",
+        "createActivity": "Create New Activity",
+        "totalActivities": "Published Activities",
+        "totalSignups": "Total Registrations",
+        "pendingSignups": "Pending Registrations",
+        "myActivities": "My Activities",
+        "signupManagement": "Registration Management",
+        "noActivities": "No activities published yet",
+        "createFirst": "Create First Activity",
+        "noSignups": "No registrations yet",
+        "allActivities": "All Activities",
+        "published": "Published",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "approved": "Approved",
+        "view": "View",
+        "edit": "Edit",
+        "delete": "Delete",
+        "approve": "Approve",
+        "reject": "Reject",
+        "confirmDelete": "Are you sure you want to delete this activity?"
     }
 }

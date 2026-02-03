@@ -126,7 +126,9 @@
         "logout": "退出登录",
         "toggleMenu": "切换菜单",
         "searchPlaceholder": "搜索...",
-        "userId": "用户ID"
+        "userId": "用户ID",
+        "hostManagement": "活动管理",
+        "adminPanel": "开发者后台"
     },
     "home": {
         "title": "YOUTHLOOP",
@@ -1570,5 +1572,45 @@
             "failed": "兑换失败",
             "insufficient": "积分不足"
         }
+    },
+    "admin": {
+        "title": "开发者后台管理",
+        "subtitle": "审核和管理平台内容",
+        "pendingActivities": "待审核活动",
+        "pendingContents": "待审核文章",
+        "pendingComments": "待审核评论",
+        "activities": "活动审核",
+        "contents": "文章审核",
+        "comments": "评论审核",
+        "noActivities": "暂无待审核活动",
+        "noContents": "暂无待审核文章",
+        "noComments": "暂无待审核评论",
+        "view": "查看详情",
+        "approve": "通过",
+        "reject": "拒绝"
+    },
+    "host": {
+        "title": "活动管理",
+        "subtitle": "管理我发布的活动和报名审批",
+        "createActivity": "发布新活动",
+        "totalActivities": "发布的活动",
+        "totalSignups": "总报名人数",
+        "pendingSignups": "待审核报名",
+        "myActivities": "我的活动",
+        "signupManagement": "报名管理",
+        "noActivities": "还没有发布活动",
+        "createFirst": "发布第一个活动",
+        "noSignups": "暂无报名记录",
+        "allActivities": "全部活动",
+        "published": "已发布",
+        "pending": "审核中",
+        "rejected": "已拒绝",
+        "approved": "已通过",
+        "view": "查看",
+        "edit": "编辑",
+        "delete": "删除",
+        "approve": "通过",
+        "reject": "拒绝",
+        "confirmDelete": "确定要删除这个活动吗？"
     }
 }
