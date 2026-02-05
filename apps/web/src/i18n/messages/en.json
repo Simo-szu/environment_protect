@@ -297,6 +297,9 @@
             "participants": "Participants",
             "myRegistrations": "My Registrations"
         },
+        "readingTime": "Reading Time",
+        "minutes": "minutes",
+        "currentParticipants": "{count} people registered",
         "categories": {
             "title": "Popular Categories",
             "planting": "Tree Planting",

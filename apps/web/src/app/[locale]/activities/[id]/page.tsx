@@ -255,21 +255,9 @@ export default function ActivityDetailPage() {
                                 <div className="flex items-center gap-3">
                                     {getTypeIcon(activity.type || 'tree')}
                                     <div>
-                                        <h2 className="text-2xl font-serif font-semibold text-[#30499B] mb-2">
+                                        <h2 className="text-2xl font-serif font-semibold text-[#30499B]">
                                             {activity.title}
                                         </h2>
-                                        {activity.tags && activity.tags.length > 0 && (
-                                            <div className="flex flex-wrap gap-2">
-                                                {activity.tags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full"
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
 
@@ -322,28 +310,6 @@ export default function ActivityDetailPage() {
                                         <div>
                                             <p className="text-xs text-slate-500">{t('location', '活动地点')}</p>
                                             <p className="text-sm font-medium text-slate-800">{activity.location}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activity.maxParticipants && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                        <Users className="w-5 h-5 text-[#30499B]" />
-                                        <div>
-                                            <p className="text-xs text-slate-500">{t('participants', '参与人数')}</p>
-                                            <p className="text-sm font-medium text-slate-800">
-                                                {activity.currentParticipants} / {activity.maxParticipants}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activity.organizerName && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                        <User className="w-5 h-5 text-[#30499B]" />
-                                        <div>
-                                            <p className="text-xs text-slate-500">{t('organizer', '主办方')}</p>
-                                            <p className="text-sm font-medium text-slate-800">{activity.organizerName}</p>
                                         </div>
                                     </div>
                                 )}
@@ -409,8 +375,8 @@ export default function ActivityDetailPage() {
                                 </div>
                                 <h4 className="font-semibold text-[#30499B] mb-2">{t('registerNow', '立即报名参与')}</h4>
                                 <p className="text-sm text-slate-600">
-                                    {t('spotsLeft', '还有 {count} 个名额', {
-                                        count: activity.maxParticipants ? activity.maxParticipants - activity.currentParticipants : t('unlimited', '不限')
+                                    {t('currentParticipants', '已有 {count} 人报名', {
+                                        count: activity.currentParticipants
                                     })}
                                 </p>
                             </div>
@@ -420,20 +386,6 @@ export default function ActivityDetailPage() {
                                     <span className="text-slate-600">{t('registered', '已报名')}</span>
                                     <span className="font-medium">{activity.currentParticipants} {locale === 'zh' ? '人' : 'people'}</span>
                                 </div>
-                                {activity.maxParticipants && (
-                                    <>
-                                        <div className="w-full bg-slate-200 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full bg-gradient-to-r ${getTypeColor(activity.type)}`}
-                                                style={{ width: `${(activity.currentParticipants / activity.maxParticipants) * 100}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-slate-600">{t('totalSpots', '总名额')}</span>
-                                            <span className="font-medium">{activity.maxParticipants} {locale === 'zh' ? '人' : 'people'}</span>
-                                        </div>
-                                    </>
-                                )}
                             </div>
 
                             <button
@@ -465,31 +417,6 @@ export default function ActivityDetailPage() {
 
                         {/* Stats Sidebar */}
                         <ActivityStatsSidebar />
-
-                        {/* Organizer Info */}
-                        {activity.organizerName && (
-                            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg">
-                                <h4 className="font-semibold text-[#30499B] mb-4">{t('organizerInfo', '主办方信息')}</h4>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                        <User className="w-6 h-6 text-slate-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-slate-800">{activity.organizerName}</p>
-                                        <p className="text-sm text-slate-600">{t('ecoOrganization', '环保组织')}</p>
-                                    </div>
-                                </div>
-
-                                {activity.contactInfo && (
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex items-center gap-2 text-slate-600">
-                                            <Phone className="w-4 h-4" />
-                                            <span>{activity.contactInfo}</span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </motion.div>
                 </div>
             </motion.div>

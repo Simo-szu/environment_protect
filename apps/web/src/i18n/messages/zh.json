@@ -255,6 +255,7 @@
         "title": "环保活动",
         "subtitle": "参与绿色行动",
         "description": "参与各种环保活动，为可持续未来贡献力量",
+        "loading": "加载中...",
         "activityInfo": {
             "title": "活动信息",
             "participants": "人",
@@ -316,6 +317,9 @@
             "participants": "参与人数",
             "myRegistrations": "我的报名"
         },
+        "readingTime": "阅读时间",
+        "minutes": "分钟",
+        "currentParticipants": "已有 {count} 人报名",
         "categories": {
             "title": "热门分类",
             "planting": "植树造林",
