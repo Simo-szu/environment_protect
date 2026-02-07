@@ -111,7 +111,7 @@ public class ContentQueryService {
         // 构建 contentId -> UserState 的映射
         Map<UUID, UserState> stateMap = reactions.stream()
             .collect(Collectors.toMap(
-                row -> (UUID) row.get("contentId"),
+                row -> (UUID) row.get("content_id"),
                 this::buildUserState
             ));
         
