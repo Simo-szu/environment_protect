@@ -68,7 +68,7 @@ repo-root/
 │  │     │  │  │  ├─ search/            # /api/v1/search*
 │  │     │  │  │  ├─ recommendation/    # /api/v1/recommendations/*
 │  │     │  │  │  └─ files/             # /api/v1/files/*
-│  │     │  │  ├─ advice/               # 统一异常与响应包装（BaseResponse）
+│  │     │  │  ├─ advice/               # 统一异常与响应包装
 │  │     │  │  ├─ filter/               # traceId、日志、限流（轻量）
 │  │     │  │  └─ security/             # 认证鉴权（JWT/Session/ACL）
 │  │     │  ├─ query/                   # Query/BFF 入口：只读聚合
@@ -104,7 +104,7 @@ repo-root/
 │  ├─ ingestion/
 │  └─ query/
 ├─ packages/                            # 跨服务共享（可选：只放“真正通用”的东西）
-│  ├─ api-contracts/                    # API 契约：OpenAPI 源文件、错误码表、DTO 约束（供前后端生成/校验）
+│  ├─ api-contracts/                    # API 契约：请求响应规范、OpenAPI 源文件、DTO 约束（供前后端生成/校验）
 │  └─ tooling/                          # 代码生成、lint 规则、CI 复用脚本等
 ├─ infra/
 │  ├─ db/
@@ -226,7 +226,7 @@ Mapper XML 放置位置（强约束）：
 - 业务字段全部放在 `data` 内，便于后续统一日志与网关策略
 
 ### 5.2 响应结构（统一）
-- `BaseResponse<T>`：`code` / `message` / `data` / `traceId`
+- 响应结构以 `packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md` 为准
 - `PageResponse<T>`：`page` / `size` / `total` / `items`
 
 ### 5.3 字段命名与时间格式（统一）
@@ -411,8 +411,8 @@ Query 层职责：面向页面，一次性把 “主数据 + stats + userState +
 ## 9. 幂等/去重策略（按接口落地）
 
 - Reaction：DB 唯一约束 `(user_id, target_type, target_id, reaction_type)`，重复创建返回 OK
-- Signin：DB 主键 `(user_id, signin_date)`，重复签到返回明确错误码
-- Quiz：DB 主键 `(user_id, quiz_date)`，重复提交返回明确错误码
+- Signin：DB 主键 `(user_id, signin_date)`，重复签到返回明确错误响应
+- Quiz：DB 主键 `(user_id, quiz_date)`，重复提交返回明确错误响应
 - Activity Signup：同一活动只能报一次（登录按 user_id，游客按 email；DB 用 dedup_key 统一约束）
 
 ---
@@ -603,8 +603,7 @@ JDBC 常见做法：
 ## 14. 与前端的契约
 
 - API 风格：REST
-- 统一响应格式：code / message / data / traceId
-- 统一错误码：Auth / Validation / Business / System
+- 请求响应结构：以 `packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md` 为唯一规范来源
 
 ---
 

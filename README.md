@@ -98,7 +98,7 @@ youthloop/
 │   ├── event/               # 事件处理（Outbox）
 │   └── common/              # 通用工具
 ├── packages/                # 跨服务共享
-│   └── api-contracts/       # API 契约（错误码、OpenAPI 规范）
+│   └── api-contracts/       # API 契约（请求响应规范、OpenAPI 规范）
 └── infra/                   # 基础设施
     ├── db/                  # 数据库迁移脚本
     ├── docker/              # Docker Compose 配置
@@ -111,7 +111,7 @@ youthloop/
 
 - **[Project-Structure.md](./Project-Structure.md)** - 项目架构与开发规范（必读）
 - **[Schema-V0.1.dsl.md](./Schema-V0.1.dsl.md)** - 数据库模型定义
-- **[packages/api-contracts/ERROR_CODES.md](./packages/api-contracts/ERROR_CODES.md)** - 错误码规范
+- **[packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md](./packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md)** - API 请求响应结构规范
 
 ### 模块开发规范
 
@@ -130,14 +130,14 @@ youthloop/
 - 模块间只能通过 `api/facade` 交互，禁止直接依赖其他模块的 `persistence` 或 `application`
 - Controller 只依赖 Facade，不直接依赖 Service
 - 所有写入接口使用 `UnifiedRequest<T>` 包装请求体
-- 所有响应使用 `BaseResponse<T>` 统一格式
+- 所有接口请求/响应结构统一遵循 `packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md`
 
 ### API 规范
 
 - 统一请求格式：`{ requestId, data }`
-- 统一响应格式：`{ code, message, data, traceId }`
+- 统一响应格式：`{ success, message, data, errors, traceId }`
 - 分页响应格式：`{ page, size, total, items }`
-- 错误码遵循 5 位数字格式：模块代码 + 错误类型 + 序号
+- 错误返回结构遵循 `success/message/errors/traceId` 规范
 
 ## 数据库
 
@@ -169,7 +169,7 @@ FLYWAY_PASSWORD=postgres
 
 1. 所有开发必须遵循 [Project-Structure.md](./Project-Structure.md) 中的规范
 2. 新增 API 端点必须先在文档中定义
-3. 新增错误码必须先在 [ERROR_CODES.md](./packages/api-contracts/ERROR_CODES.md) 中定义
+3. 接口响应结构与错误返回约定必须先在 [API_REQUEST_RESPONSE_SPEC.md](./packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md) 中定义
 4. 提交前确保代码通过编译和测试
 
 ## 许可证

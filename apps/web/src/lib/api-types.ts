@@ -8,6 +8,18 @@ export interface BaseResponse<T = any> {
   message: string;
   data: T;
   traceId?: string;
+  error?: ApiErrorInfo;
+}
+
+export interface ApiErrorInfo {
+  type: string;
+  httpStatus: number;
+  details: ApiErrorDetail[];
+}
+
+export interface ApiErrorDetail {
+  field: string;
+  reason: string;
 }
 
 // 后端统一请求格式
