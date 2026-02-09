@@ -9,28 +9,28 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 新版 API 响应结构（与 API_REQUEST_RESPONSE_SPEC.md 对齐）
+ * API response envelope aligned with API_REQUEST_RESPONSE_SPEC.md.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "统一 API 响应结构")
+@Schema(description = "Unified API response envelope")
 public class ApiSpecResponse<T> {
 
-    @Schema(description = "是否成功", example = "true")
+    @Schema(description = "Whether request succeeded", example = "true")
     private Boolean success;
 
-    @Schema(description = "提示消息（失败时建议必填）", example = "参数校验失败")
+    @Schema(description = "Failure message, optional on success", example = "Validation failed")
     private String message;
 
-    @Schema(description = "业务数据")
+    @Schema(description = "Business payload")
     private T data;
 
-    @Schema(description = "字段级错误明细")
+    @Schema(description = "Field-level errors")
     private List<ApiFieldError> errors;
 
-    @Schema(description = "链路追踪 ID", example = "a1b2c3d4e5f6g7h8")
+    @Schema(description = "Trace ID for log correlation", example = "a1b2c3d4e5f6g7h8")
     private String traceId;
 
     public static <T> ApiSpecResponse<T> ok(T data) {

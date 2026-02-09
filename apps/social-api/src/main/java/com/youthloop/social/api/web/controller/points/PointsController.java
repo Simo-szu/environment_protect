@@ -1,113 +1,146 @@
 package com.youthloop.social.api.web.controller.points;
 
-import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.api.UnifiedRequest;
-import com.youthloop.points.api.dto.*;
+import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
+import com.youthloop.common.api.contract.ApiResponseContract;
+import com.youthloop.common.api.contract.ApiSpecResponse;
+import com.youthloop.points.api.dto.ExchangeRequestDTO;
+import com.youthloop.points.api.dto.GoodDTO;
+import com.youthloop.points.api.dto.PointsAccountDTO;
+import com.youthloop.points.api.dto.PointsLedgerDTO;
+import com.youthloop.points.api.dto.QuizDTO;
+import com.youthloop.points.api.dto.QuizSubmitRequest;
+import com.youthloop.points.api.dto.QuizSubmitResponse;
+import com.youthloop.points.api.dto.SigninRecordDTO;
+import com.youthloop.points.api.dto.SigninRequest;
+import com.youthloop.points.api.dto.SigninResponse;
+import com.youthloop.points.api.dto.TaskDTO;
 import com.youthloop.points.api.facade.PointsFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-/**
- * 积分系统 Controller
- */
 @Tag(name = "积分系统", description = "签到、任务、问答、积分账户")
 @RestController
 @RequestMapping("/api/v1/points")
 @RequiredArgsConstructor
 public class PointsController {
-    
+
     private final PointsFacade pointsFacade;
-    
+
     @Operation(summary = "签到", description = "用户每日签到或补签")
     @PostMapping("/signins")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<SigninResponse> signin(@Valid @RequestBody UnifiedRequest<SigninRequest> request) {
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<SigninResponse> signin(@Valid @RequestBody UnifiedRequest<SigninRequest> request) {
         SigninResponse response = pointsFacade.signin(request.getData());
-        return BaseResponse.success(response);
+        return ApiSpecResponse.ok(response);
     }
-    
+
     @Operation(summary = "获取今日签到状态", description = "检查今日是否已签到")
     @GetMapping("/signins/today")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<SigninRecordDTO> getTodaySignin() {
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<SigninRecordDTO> getTodaySignin() {
         SigninRecordDTO response = pointsFacade.getTodaySignin();
-        return BaseResponse.success(response);
+        return ApiSpecResponse.ok(response);
     }
-    
-    @Operation(summary = "获取今日任务列表", description = "获取所有启用的每日任务及用户进度")
+
+    @Operation(summary = "获取今日任务列表", description = "获取所有启用每日任务及用户进度")
     @GetMapping("/tasks")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<List<TaskDTO>> getTodayTasks() {
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<List<TaskDTO>> getTodayTasks() {
         List<TaskDTO> tasks = pointsFacade.getTodayTasks();
-        return BaseResponse.success(tasks);
+        return ApiSpecResponse.ok(tasks);
     }
-    
+
     @Operation(summary = "领取任务奖励", description = "任务完成后领取积分奖励")
     @PostMapping("/tasks/{taskId}/claim")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<Void> claimTaskReward(
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<Map<String, Object>> claimTaskReward(
         @Parameter(description = "任务 ID") @PathVariable UUID taskId
     ) {
         pointsFacade.claimTaskReward(taskId);
-        return BaseResponse.success(null);
+        return ApiSpecResponse.ok(Map.of());
     }
-    
+
     @Operation(summary = "获取今日问答", description = "获取今日问答题目")
     @GetMapping("/quiz/today")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<QuizDTO> getTodayQuiz() {
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<QuizDTO> getTodayQuiz() {
         QuizDTO quiz = pointsFacade.getTodayQuiz();
-        return BaseResponse.success(quiz);
+        return ApiSpecResponse.ok(quiz);
     }
-    
-    @Operation(summary = "提交问答答案", description = "提交答案并获得积分（答对才有）")
+
+    @Operation(summary = "提交问答答案", description = "提交答案并获得积分")
     @PostMapping("/quiz/submissions")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<QuizSubmitResponse> submitQuiz(@Valid @RequestBody UnifiedRequest<QuizSubmitRequest> request) {
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<QuizSubmitResponse> submitQuiz(@Valid @RequestBody UnifiedRequest<QuizSubmitRequest> request) {
         QuizSubmitResponse response = pointsFacade.submitQuiz(request.getData());
-        return BaseResponse.success(response);
+        return ApiSpecResponse.ok(response);
     }
-    
-    @Operation(summary = "获取积分账户", description = "获取当前用户的积分余额")
+
+    @Operation(summary = "获取积分账户", description = "获取当前用户积分余额")
     @GetMapping("/account")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<PointsAccountDTO> getAccount() {
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<PointsAccountDTO> getAccount() {
         PointsAccountDTO account = pointsFacade.getAccount();
-        return BaseResponse.success(account);
+        return ApiSpecResponse.ok(account);
     }
-    
+
     @Operation(summary = "获取积分明细", description = "分页获取积分变动记录")
     @GetMapping("/ledger")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<PageResponse<PointsLedgerDTO>> getLedger(
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<PointsLedgerDTO>> getLedger(
         @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
         @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size
     ) {
         PageResponse<PointsLedgerDTO> response = pointsFacade.getLedger(page, size);
-        return BaseResponse.success(response);
+        ApiPageData<PointsLedgerDTO> pageData = new ApiPageData<>(
+            response.getPage(),
+            response.getSize(),
+            response.getTotal(),
+            response.getItems()
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 
-    @Operation(summary = "获取可兑换商品列表", description = "获取所有上架的积分商品")
+    @Operation(summary = "获取可兑换商品列表", description = "获取所有上架积分商品")
     @GetMapping("/exchange/goods")
-    public BaseResponse<List<GoodDTO>> getExchangeGoods() {
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<List<GoodDTO>> getExchangeGoods() {
         List<GoodDTO> goods = pointsFacade.getExchangeGoods();
-        return BaseResponse.success(goods);
+        return ApiSpecResponse.ok(goods);
     }
 
     @Operation(summary = "兑换商品", description = "使用积分兑换商品")
     @PostMapping("/exchange/orders")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<Void> exchange(@Valid @RequestBody UnifiedRequest<ExchangeRequestDTO> request) {
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<Map<String, Object>> exchange(@Valid @RequestBody UnifiedRequest<ExchangeRequestDTO> request) {
         pointsFacade.exchange(request.getData());
-        return BaseResponse.success(null);
+        return ApiSpecResponse.ok(Map.of());
     }
 }

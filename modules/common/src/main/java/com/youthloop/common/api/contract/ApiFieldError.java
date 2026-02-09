@@ -6,17 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 字段级错误信息
+ * Field-level error detail.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "字段级错误信息")
+@Schema(description = "Field-level error detail")
 public class ApiFieldError {
 
-    @Schema(description = "字段名", example = "email")
+    @Schema(description = "Field name", example = "email")
     private String field;
 
-    @Schema(description = "错误信息", example = "邮箱格式不正确")
+    @Schema(description = "Error message", example = "Invalid email format")
     private String message;
 }

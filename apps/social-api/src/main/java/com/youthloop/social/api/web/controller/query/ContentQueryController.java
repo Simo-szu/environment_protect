@@ -1,7 +1,10 @@
 package com.youthloop.social.api.web.controller.query;
 
-import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.PageResponse;
+import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
+import com.youthloop.common.api.contract.ApiResponseContract;
+import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.security.OptionalAuth;
 import com.youthloop.query.dto.CommentTreeDTO;
 import com.youthloop.query.dto.ContentDetailDTO;
@@ -11,54 +14,63 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-/**
- * 内容查询 Controller（聚合查询）
- * 包含：主数据 + 统计 + 用户状态
- */
-@Tag(name = "内容查询", description = "内容聚合查询（含统计和用户状态）")
+@Tag(name = "内容查询", description = "内容聚合查询")
 @RestController
 @RequestMapping("/api/v1/contents")
 @RequiredArgsConstructor
 @OptionalAuth
 public class ContentQueryController {
-    
+
     private final QueryFacade queryFacade;
-    
-    @Operation(summary = "查询内容列表", description = "聚合查询:主数据 + 统计 + 用户状态(登录时)")
+
+    @Operation(summary = "查询内容列表", description = "聚合查询内容列表")
     @GetMapping
-    public BaseResponse<PageResponse<ContentListItemDTO>> getContentList(
-        @Parameter(description = "内容类型:1=新闻 2=动态 3=政策 4=百科") @RequestParam(value = "type", required = false) Integer type,
-        @Parameter(description = "状态:1=已发布 2=草稿 3=隐藏") @RequestParam(value = "status", required = false) Integer status,
-        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
-        @Parameter(description = "页码(从 1 开始)") @RequestParam(value = "page", defaultValue = "1") Integer page,
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<ContentListItemDTO>> getContentList(
+        @Parameter(description = "内容类型") @RequestParam(value = "type", required = false) Integer type,
+        @Parameter(description = "状态") @RequestParam(value = "status", required = false) Integer status,
+        @Parameter(description = "排序") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
         @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "20") Integer size
     ) {
         PageResponse<ContentListItemDTO> result = queryFacade.getContentList(type, status, sort, page, size);
-        return BaseResponse.success(result);
+        ApiPageData<ContentListItemDTO> pageData = new ApiPageData<>(
+            result.getPage(),
+            result.getSize(),
+            result.getTotal(),
+            result.getItems()
+        );
+        return ApiSpecResponse.ok(pageData);
     }
-    
-    @Operation(summary = "查询内容详情", description = "聚合查询:主数据 + 统计 + 用户状态(登录时)")
+
+    @Operation(summary = "查询内容详情", description = "聚合查询内容详情")
     @GetMapping("/{id}")
-    public BaseResponse<ContentDetailDTO> getContentDetail(
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<ContentDetailDTO> getContentDetail(
         @Parameter(description = "内容 ID") @PathVariable("id") UUID id
     ) {
         ContentDetailDTO detail = queryFacade.getContentDetail(id);
-        return BaseResponse.success(detail);
+        return ApiSpecResponse.ok(detail);
     }
-    
-    @Operation(summary = "查询内容评论树", description = "根评论分页 + 每个根评论的最新回复")
+
+    @Operation(summary = "查询内容评论树", description = "根评论分页 + 最新回复")
     @GetMapping("/{id}/comments")
-    public BaseResponse<CommentTreeDTO> getContentComments(
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<CommentTreeDTO> getContentComments(
         @Parameter(description = "内容 ID") @PathVariable("id") UUID id,
-        @Parameter(description = "排序：latest=最新 hot=热门") @RequestParam(value = "sort", defaultValue = "latest") String sort,
-        @Parameter(description = "页码（从 1 开始）") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "排序") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
         @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
         CommentTreeDTO tree = queryFacade.getCommentTree(1, id, sort, page, size);
-        return BaseResponse.success(tree);
+        return ApiSpecResponse.ok(tree);
     }
 }

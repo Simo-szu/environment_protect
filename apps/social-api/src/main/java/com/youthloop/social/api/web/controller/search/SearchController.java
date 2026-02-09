@@ -1,29 +1,35 @@
 package com.youthloop.social.api.web.controller.search;
 
-import com.youthloop.common.api.BaseResponse;
 import com.youthloop.common.api.PageResponse;
+import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
+import com.youthloop.common.api.contract.ApiResponseContract;
+import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.search.api.dto.SearchRequest;
 import com.youthloop.search.api.dto.SearchResultDTO;
 import com.youthloop.search.api.facade.SearchFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 搜索 Controller
- */
+import java.util.List;
+
 @Tag(name = "搜索", description = "全文搜索内容和活动")
 @RestController
 @RequestMapping("/api/v1/search")
 @RequiredArgsConstructor
 public class SearchController {
-    
+
     private final SearchFacade searchFacade;
-    
+
     @Operation(summary = "搜索", description = "搜索内容和活动")
     @GetMapping
-    public BaseResponse<PageResponse<SearchResultDTO>> search(
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<SearchResultDTO>> search(
         @RequestParam(name = "keyword") String keyword,
         @RequestParam(name = "type", required = false) Integer type,
         @RequestParam(name = "page", defaultValue = "1") Integer page,
@@ -34,17 +40,24 @@ public class SearchController {
         request.setType(type);
         request.setPage(page);
         request.setPageSize(size);
-        
+
         PageResponse<SearchResultDTO> response = searchFacade.search(request);
-        return BaseResponse.success(response);
+        ApiPageData<SearchResultDTO> pageData = new ApiPageData<>(
+            response.getPage(),
+            response.getSize(),
+            response.getTotal(),
+            response.getItems()
+        );
+        return ApiSpecResponse.ok(pageData);
     }
-    
-    @Operation(summary = "搜索建议", description = "获取搜索建议词（热门搜索/搜索历史）")
+
+    @Operation(summary = "搜索建议", description = "获取搜索建议词")
     @GetMapping("/suggest")
-    public BaseResponse<java.util.List<String>> suggest(
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<List<String>> suggest(
         @RequestParam(required = false) String prefix
     ) {
-        java.util.List<String> suggestions = searchFacade.getSuggestions(prefix);
-        return BaseResponse.success(suggestions);
+        List<String> suggestions = searchFacade.getSuggestions(prefix);
+        return ApiSpecResponse.ok(suggestions);
     }
 }

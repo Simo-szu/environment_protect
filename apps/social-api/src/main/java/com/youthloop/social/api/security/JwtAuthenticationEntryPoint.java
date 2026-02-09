@@ -1,8 +1,7 @@
 package com.youthloop.social.api.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.youthloop.common.api.BaseResponse;
-import com.youthloop.common.api.ErrorCode;
+import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.util.TraceIdUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,38 +17,27 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * JWT 认证入口点
- * 处理未认证或 token 无效的请求，返回统一的 401 响应
+ * Handles unauthenticated requests and returns a unified 401 response.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    
+
     private final ObjectMapper objectMapper;
-    
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
-                        AuthenticationException authException) throws IOException, ServletException {
-        
-        log.warn("未认证访问: uri={}, message={}", request.getRequestURI(), authException.getMessage());
-        
-        // 获取当前 traceId
+                         AuthenticationException authException) throws IOException, ServletException {
+        log.warn("Unauthenticated access: uri={}, message={}", request.getRequestURI(), authException.getMessage());
+
         String traceId = TraceIdUtil.getTraceId();
-        
-        // 构建统一响应
-        BaseResponse<Void> baseResponse = BaseResponse.<Void>error(
-            ErrorCode.UNAUTHORIZED,
-            "未登录或 token 无效"
-        ).withTraceId(traceId);
-        
-        // 设置响应
+        ApiSpecResponse<Void> apiResponse = ApiSpecResponse.<Void>fail("Unauthorized").withTraceId(traceId);
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setHeader("X-Trace-Id", traceId);
-        
-        // 写入响应体
-        response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

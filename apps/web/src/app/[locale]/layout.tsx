@@ -62,7 +62,7 @@ export default async function LocaleLayout({
         });
         if (configRes.ok) {
             const configData = await configRes.json();
-            if (configData.code === 0 && configData.data?.googleClientId) {
+            if (configData.success && configData.data?.googleClientId) {
                 googleClientId = configData.data.googleClientId;
             }
         }

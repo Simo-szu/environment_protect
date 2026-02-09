@@ -1,6 +1,5 @@
 package com.youthloop.social.api.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Content;
@@ -16,8 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * OpenAPI 全局配置
- * 统一补齐业务响应示例与错误响应示例。
+ * OpenAPI global response examples aligned with API_REQUEST_RESPONSE_SPEC.md.
  */
 @Configuration
 public class GlobalOpenApiConfig {
@@ -50,22 +48,10 @@ public class GlobalOpenApiConfig {
             }
 
             ensureSuccessExample(responses);
-            addResponseIfAbsent(responses, "400", buildResponse(
-                "请求参数错误",
-                errorExample(1001, "参数校验失败", 400, "validation_error")
-            ));
-            addResponseIfAbsent(responses, "401", buildResponse(
-                "未认证",
-                errorExample(2000, "未登录或登录已过期", 401, "unauthorized")
-            ));
-            addResponseIfAbsent(responses, "403", buildResponse(
-                "无权限访问",
-                errorExample(2003, "无权限访问", 403, "forbidden")
-            ));
-            addResponseIfAbsent(responses, "500", buildResponse(
-                "服务器内部错误",
-                errorExample(500, "系统错误", 500, "system_error")
-            ));
+            addResponseIfAbsent(responses, "400", buildResponse("Bad request", errorExample("Validation failed")));
+            addResponseIfAbsent(responses, "401", buildResponse("Unauthorized", errorExample("Unauthorized")));
+            addResponseIfAbsent(responses, "403", buildResponse("Forbidden", errorExample("Forbidden")));
+            addResponseIfAbsent(responses, "500", buildResponse("Internal server error", errorExample("Internal server error")));
         }
     }
 
@@ -78,7 +64,7 @@ public class GlobalOpenApiConfig {
     private void ensureSuccessExample(ApiResponses responses) {
         ApiResponse success = firstSuccessResponse(responses);
         if (success == null) {
-            success = new ApiResponse().description("请求成功");
+            success = new ApiResponse().description("Success");
             responses.addApiResponse("200", success);
         }
 
@@ -116,32 +102,25 @@ public class GlobalOpenApiConfig {
     private Map<String, Object> successExample() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("id", "123e4567-e89b-12d3-a456-426614174000");
-        data.put("name", "示例数据");
+        data.put("name", "example");
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("code", 0);
-        result.put("message", "操作成功");
+        result.put("success", true);
         result.put("data", data);
         result.put("traceId", "a1b2c3d4e5f6g7h8");
         return result;
     }
 
-    private Map<String, Object> errorExample(int code, String message, int httpStatus, String type) {
+    private Map<String, Object> errorExample(String message) {
         Map<String, Object> detail = new LinkedHashMap<>();
         detail.put("field", "data.exampleField");
-        detail.put("reason", "示例错误原因");
-
-        Map<String, Object> error = new LinkedHashMap<>();
-        error.put("type", "https://api.youthloop.com/errors/" + type);
-        error.put("httpStatus", httpStatus);
-        error.put("details", Collections.singletonList(detail));
+        detail.put("message", "example error detail");
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("code", code);
+        result.put("success", false);
         result.put("message", message);
-        result.put("data", null);
+        result.put("errors", Collections.singletonList(detail));
         result.put("traceId", "a1b2c3d4e5f6g7h8");
-        result.put("error", error);
         return result;
     }
 }
