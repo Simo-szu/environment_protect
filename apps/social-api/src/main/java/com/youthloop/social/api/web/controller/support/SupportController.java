@@ -12,9 +12,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -31,6 +33,7 @@ public class SupportController {
     @PostMapping("/contact")
     @AllowGuest
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<Map<String, Object>> submitContact(@Valid @RequestBody UnifiedRequest<SupportContactDTO> request) {
         supportService.submitContact(request.getData());
         return ApiSpecResponse.ok(Map.of());
@@ -40,6 +43,7 @@ public class SupportController {
     @PostMapping("/feedback")
     @AllowGuest
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<Map<String, Object>> submitFeedback(@Valid @RequestBody UnifiedRequest<UserFeedbackDTO> request) {
         supportService.submitFeedback(request.getData());
         return ApiSpecResponse.ok(Map.of());

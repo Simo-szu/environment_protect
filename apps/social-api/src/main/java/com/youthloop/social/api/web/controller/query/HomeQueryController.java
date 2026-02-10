@@ -1,6 +1,7 @@
 package com.youthloop.social.api.web.controller.query;
 
 import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
 import com.youthloop.common.api.contract.ApiResponseContract;
 import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.security.OptionalAuth;
@@ -37,9 +38,15 @@ public class HomeQueryController {
 
     @Operation(summary = "获取轮播列表", description = "查询启用且有效期内轮播配置")
     @GetMapping("/banners")
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<HomeBannerDTO>> getActiveBanners() {
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<HomeBannerDTO>> getActiveBanners() {
         List<HomeBannerDTO> banners = homeBannerFacade.getActiveBanners();
-        return ApiSpecResponse.ok(banners);
+        ApiPageData<HomeBannerDTO> pageData = new ApiPageData<>(
+            1,
+            banners.size(),
+            (long) banners.size(),
+            banners
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 }

@@ -97,12 +97,18 @@ public class ActivityController {
 
     @Operation(summary = "获取活动场次列表", description = "查询活动所有场次")
     @GetMapping("/{id}/sessions")
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<ActivitySessionDTO>> getActivitySessions(
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<ActivitySessionDTO>> getActivitySessions(
         @Parameter(description = "活动 ID") @PathVariable("id") UUID id
     ) {
         List<ActivitySessionDTO> sessions = queryFacade.getActivitySessions(id);
-        return ApiSpecResponse.ok(sessions);
+        ApiPageData<ActivitySessionDTO> pageData = new ApiPageData<>(
+            1,
+            sessions.size(),
+            (long) sessions.size(),
+            sessions
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 
     @Operation(summary = "获取活动评论", description = "查询活动评论树")

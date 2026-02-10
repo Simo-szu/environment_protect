@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -49,6 +51,7 @@ public class HostController {
     @PostMapping("/verification/submit")
     @PreAuthorize("isAuthenticated()")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<Map<String, Object>> submitVerification(@Valid @RequestBody UnifiedRequest<HostVerificationRequest> request) {
         hostFacade.submitVerification(request.getData());
         return ApiSpecResponse.ok(Map.of());
@@ -67,6 +70,7 @@ public class HostController {
     @PostMapping("/activities")
     @PreAuthorize("isAuthenticated()")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<UUID> createActivity(@Valid @RequestBody UnifiedRequest<CreateHostActivityRequest> request) {
         UUID activityId = activityFacade.createHostActivity(request.getData());
         return ApiSpecResponse.ok(activityId);

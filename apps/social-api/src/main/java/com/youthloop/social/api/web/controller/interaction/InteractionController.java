@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -34,6 +36,7 @@ public class InteractionController {
     @Operation(summary = "创建评论", description = "对内容或活动发表评论/回复")
     @PostMapping("/comments")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<UUID> createComment(@Valid @RequestBody UnifiedRequest<CreateCommentRequest> request) {
         UUID commentId = commentFacade.createComment(request.getData());
         return ApiSpecResponse.ok(commentId);
@@ -42,6 +45,7 @@ public class InteractionController {
     @Operation(summary = "添加反应", description = "点赞/收藏/踩（幂等创建）")
     @PostMapping("/reactions")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<Map<String, Object>> addReaction(@Valid @RequestBody UnifiedRequest<ToggleReactionRequest> request) {
         reactionFacade.createReaction(request.getData());
         return ApiSpecResponse.ok(Map.of());

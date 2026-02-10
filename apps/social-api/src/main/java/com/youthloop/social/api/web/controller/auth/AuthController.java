@@ -17,9 +17,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -43,6 +45,7 @@ public class AuthController {
     @Operation(summary = "邮箱注册", description = "使用邮箱+验证码+密码注册")
     @PostMapping("/register/email")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<AuthResponse> registerByEmail(@Valid @RequestBody UnifiedRequest<EmailRegisterRequest> request) {
         AuthResponse response = authFacade.registerByEmail(request.getData());
         return ApiSpecResponse.ok(response);

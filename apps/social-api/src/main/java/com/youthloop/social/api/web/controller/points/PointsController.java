@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -48,6 +50,7 @@ public class PointsController {
     @PostMapping("/signins")
     @PreAuthorize("isAuthenticated()")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<SigninResponse> signin(@Valid @RequestBody UnifiedRequest<SigninRequest> request) {
         SigninResponse response = pointsFacade.signin(request.getData());
         return ApiSpecResponse.ok(response);
@@ -65,10 +68,16 @@ public class PointsController {
     @Operation(summary = "获取今日任务列表", description = "获取所有启用每日任务及用户进度")
     @GetMapping("/tasks")
     @PreAuthorize("isAuthenticated()")
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<TaskDTO>> getTodayTasks() {
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<TaskDTO>> getTodayTasks() {
         List<TaskDTO> tasks = pointsFacade.getTodayTasks();
-        return ApiSpecResponse.ok(tasks);
+        ApiPageData<TaskDTO> pageData = new ApiPageData<>(
+            1,
+            tasks.size(),
+            (long) tasks.size(),
+            tasks
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 
     @Operation(summary = "领取任务奖励", description = "任务完成后领取积分奖励")
@@ -95,6 +104,7 @@ public class PointsController {
     @PostMapping("/quiz/submissions")
     @PreAuthorize("isAuthenticated()")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<QuizSubmitResponse> submitQuiz(@Valid @RequestBody UnifiedRequest<QuizSubmitRequest> request) {
         QuizSubmitResponse response = pointsFacade.submitQuiz(request.getData());
         return ApiSpecResponse.ok(response);
@@ -129,16 +139,23 @@ public class PointsController {
 
     @Operation(summary = "获取可兑换商品列表", description = "获取所有上架积分商品")
     @GetMapping("/exchange/goods")
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<GoodDTO>> getExchangeGoods() {
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<GoodDTO>> getExchangeGoods() {
         List<GoodDTO> goods = pointsFacade.getExchangeGoods();
-        return ApiSpecResponse.ok(goods);
+        ApiPageData<GoodDTO> pageData = new ApiPageData<>(
+            1,
+            goods.size(),
+            (long) goods.size(),
+            goods
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 
     @Operation(summary = "兑换商品", description = "使用积分兑换商品")
     @PostMapping("/exchange/orders")
     @PreAuthorize("isAuthenticated()")
     @ApiResponseContract(ApiEndpointKind.COMMAND)
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiSpecResponse<Map<String, Object>> exchange(@Valid @RequestBody UnifiedRequest<ExchangeRequestDTO> request) {
         pointsFacade.exchange(request.getData());
         return ApiSpecResponse.ok(Map.of());

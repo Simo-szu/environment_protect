@@ -53,11 +53,17 @@ public class SearchController {
 
     @Operation(summary = "搜索建议", description = "获取搜索建议词")
     @GetMapping("/suggest")
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<String>> suggest(
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<String>> suggest(
         @RequestParam(required = false) String prefix
     ) {
         List<String> suggestions = searchFacade.getSuggestions(prefix);
-        return ApiSpecResponse.ok(suggestions);
+        ApiPageData<String> pageData = new ApiPageData<>(
+            1,
+            suggestions.size(),
+            (long) suggestions.size(),
+            suggestions
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 }

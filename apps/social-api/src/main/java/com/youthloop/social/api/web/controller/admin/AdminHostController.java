@@ -2,6 +2,7 @@ package com.youthloop.social.api.web.controller.admin;
 
 import com.youthloop.common.api.UnifiedRequest;
 import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
 import com.youthloop.common.api.contract.ApiResponseContract;
 import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.security.RequireAdmin;
@@ -36,12 +37,18 @@ public class AdminHostController {
 
     @Operation(summary = "获取认证申请列表", description = "查询所有主办方认证申请")
     @GetMapping
-    @ApiResponseContract(ApiEndpointKind.DETAIL)
-    public ApiSpecResponse<List<HostVerificationResponse>> getVerifications(
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<HostVerificationResponse>> getVerifications(
         @Parameter(description = "状态") @RequestParam(required = false) Integer status
     ) {
         List<HostVerificationResponse> verifications = hostFacade.getAllVerifications(status);
-        return ApiSpecResponse.ok(verifications);
+        ApiPageData<HostVerificationResponse> pageData = new ApiPageData<>(
+            1,
+            verifications.size(),
+            (long) verifications.size(),
+            verifications
+        );
+        return ApiSpecResponse.ok(pageData);
     }
 
     @Operation(summary = "审核认证申请", description = "管理员审核主办方认证申请")
