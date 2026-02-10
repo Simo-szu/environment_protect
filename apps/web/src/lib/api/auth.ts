@@ -37,6 +37,12 @@ export interface LoginRequest {
   otpCode?: string;
 }
 
+export interface ResetPasswordRequest {
+  account: string;
+  otp: string;
+  newPassword: string;
+}
+
 /**
  * 发送邮箱 OTP
  */
@@ -108,9 +114,21 @@ export async function loginWithEmailOtp(data: LoginRequest): Promise<AuthRespons
  * 登出
  */
 export async function logout(): Promise<void> {
+  const refreshToken = authStore.getRefreshToken();
+  if (refreshToken) {
+    try {
+      await apiPost<void>('/api/v1/auth/logout', { refreshToken });
+    } catch (error) {
+      console.error('Failed to notify logout endpoint:', error);
+    }
+  }
   authStore.clear();
   if (typeof window !== 'undefined') {
     const locale = getCurrentLocale();
     window.location.href = `/${locale}/login`;
   }
+}
+
+export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
+  return apiPost<void>('/api/v1/auth/password/reset', data);
 }

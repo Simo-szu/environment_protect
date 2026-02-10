@@ -125,6 +125,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                 <Link href={`/${locale}/host/activities`} className="text-sm text-blue-600 hover:text-blue-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     📋 {t('hostManagement', '活动管理')}
                                 </Link>
+                                <Link href={`/${locale}/host/verification`} className="text-sm text-indigo-600 hover:text-indigo-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    🧾 {t('hostVerification', '主办方认证')}
+                                </Link>
                                 
                                 <Link href={`/${locale}/admin`} className="text-sm text-purple-600 hover:text-purple-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     🛡️ {t('adminPanel', '开发者后台')}
@@ -231,6 +234,10 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                     <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 hover:bg-blue-50 transition-colors">
                                         <div className="w-5 h-5 flex items-center justify-center">📋</div>
                                         <span className="font-medium">{t('hostManagement', '活动管理')}</span>
+                                    </Link>
+                                    <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                        <div className="w-5 h-5 flex items-center justify-center">🧾</div>
+                                        <span className="font-medium">{t('hostVerification', '主办方认证')}</span>
                                     </Link>
                                     
                                     {/* 开发者后台 - 仅开发者可见 */}

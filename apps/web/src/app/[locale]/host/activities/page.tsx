@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { activityApi } from '@/lib/api';
+import type { HostActivityItem, HostActivitySignupItem } from '@/lib/api/activity';
 import {
     Calendar,
     Users,
@@ -21,118 +23,163 @@ import {
 } from 'lucide-react';
 import { fadeUp, staggerContainer, staggerItem } from '@/lib/animations';
 
+type ActivityTab = 'activities' | 'signups';
+type ActivityUiStatus = 'published' | 'hidden' | 'completed';
+type SignupUiStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+interface SignupViewItem extends HostActivitySignupItem {
+    activityId: string;
+    activityTitle: string;
+}
+
+function mapActivityStatus(status: number): ActivityUiStatus {
+    if (status === 1) return 'published';
+    if (status === 2) return 'hidden';
+    return 'completed';
+}
+
+function mapSignupStatus(status: number): SignupUiStatus {
+    if (status === 1) return 'pending';
+    if (status === 2) return 'approved';
+    if (status === 3) return 'rejected';
+    return 'cancelled';
+}
+
 export default function HostActivitiesPage() {
     const router = useRouter();
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('host');
 
-    const [activeTab, setActiveTab] = useState<'activities' | 'signups'>('activities');
+    const [activeTab, setActiveTab] = useState<ActivityTab>('activities');
     const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+    const [signupStatusFilter, setSignupStatusFilter] = useState<number | undefined>(undefined);
+    const [myActivities, setMyActivities] = useState<HostActivityItem[]>([]);
+    const [signups, setSignups] = useState<SignupViewItem[]>([]);
+    const [loadingActivities, setLoadingActivities] = useState(false);
+    const [loadingSignups, setLoadingSignups] = useState(false);
+    const [processingSignupId, setProcessingSignupId] = useState<string | null>(null);
 
-    // 模拟我发布的活动数据
-    const myActivities = [
-        {
-            id: '1',
-            title: '深圳湾红树林生态保护志愿活动',
-            startTime: '2026-02-10 09:00',
-            location: '深圳湾公园',
-            status: 'published',
-            signupCount: 15,
-            maxParticipants: 30,
-            pendingSignups: 5
-        },
-        {
-            id: '2',
-            title: '社区垃圾分类宣传活动',
-            startTime: '2026-02-15 14:00',
-            location: '南山区科技园社区',
-            status: 'pending',
-            signupCount: 0,
-            maxParticipants: 20,
-            pendingSignups: 0
+    const loadActivities = useCallback(async () => {
+        setLoadingActivities(true);
+        try {
+            const result = await activityApi.getMyHostActivities({ page: 1, size: 100 });
+            setMyActivities(result.items);
+            if (!selectedActivity && result.items.length > 0) {
+                setSelectedActivity(result.items[0].id);
+            }
+        } catch (error) {
+            console.error('Failed to load host activities:', error);
+            alert(t('loadActivitiesFailed', 'Failed to load your activities'));
+        } finally {
+            setLoadingActivities(false);
         }
-    ];
+    }, [selectedActivity, t]);
 
-    // 模拟报名数据
-    const signups = [
-        {
-            id: '1',
-            activityId: '1',
-            activityTitle: '深圳湾红树林生态保护志愿活动',
-            userName: '张三',
-            userId: 'user123',
-            phone: '138****5678',
-            email: 'zhang***@example.com',
-            appliedAt: '2026-02-03 10:30',
-            status: 'pending',
-            note: '我对环保很感兴趣，希望能参加这次活动'
-        },
-        {
-            id: '2',
-            activityId: '1',
-            activityTitle: '深圳湾红树林生态保护志愿活动',
-            userName: '李四',
-            userId: 'user456',
-            phone: '139****1234',
-            email: 'li***@example.com',
-            appliedAt: '2026-02-03 11:15',
-            status: 'pending',
-            note: ''
-        },
-        {
-            id: '3',
-            activityId: '1',
-            activityTitle: '深圳湾红树林生态保护志愿活动',
-            userName: '王五',
-            userId: 'user789',
-            phone: '136****9876',
-            email: 'wang***@example.com',
-            appliedAt: '2026-02-03 09:45',
-            status: 'approved',
-            note: '有过类似活动经验'
+    const loadSignups = useCallback(async (activityId: string, status?: number) => {
+        setLoadingSignups(true);
+        try {
+            const result = await activityApi.getHostActivitySignups(activityId, { status, page: 1, size: 100 });
+            const activityTitle = myActivities.find((item) => item.id === activityId)?.title || '';
+            setSignups(result.items.map((item) => ({
+                ...item,
+                activityId,
+                activityTitle,
+            })));
+        } catch (error) {
+            console.error('Failed to load host signups:', error);
+            alert(t('loadSignupsFailed', 'Failed to load signup list'));
+            setSignups([]);
+        } finally {
+            setLoadingSignups(false);
         }
-    ];
+    }, [myActivities, t]);
 
-    const getStatusBadge = (status: string) => {
+    useEffect(() => {
+        loadActivities();
+    }, [loadActivities]);
+
+    useEffect(() => {
+        if (activeTab !== 'signups') return;
+        if (!selectedActivity) {
+            setSignups([]);
+            return;
+        }
+        loadSignups(selectedActivity, signupStatusFilter);
+    }, [activeTab, selectedActivity, signupStatusFilter, loadSignups]);
+
+    const totalSignupCount = useMemo(
+        () => myActivities.reduce((sum, activity) => sum + (activity.signupCount || 0), 0),
+        [myActivities]
+    );
+
+    const pendingSignupCount = useMemo(
+        () => signups.filter((signup) => mapSignupStatus(signup.status) === 'pending').length,
+        [signups]
+    );
+
+    const getActivityStatusBadge = (status: number) => {
+        const key = mapActivityStatus(status);
         const statusConfig = {
-            published: { text: t('published', '已发布'), color: 'bg-green-50 text-green-600' },
-            pending: { text: t('pending', '审核中'), color: 'bg-yellow-50 text-yellow-600' },
-            rejected: { text: t('rejected', '已拒绝'), color: 'bg-red-50 text-red-600' },
-            approved: { text: t('approved', '已通过'), color: 'bg-blue-50 text-blue-600' }
+            published: { text: t('published', 'Published'), color: 'bg-green-50 text-green-600' },
+            hidden: { text: t('hidden', 'Hidden'), color: 'bg-slate-100 text-slate-600' },
+            completed: { text: t('completed', 'Completed'), color: 'bg-blue-50 text-blue-600' },
         };
-        const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+        const config = statusConfig[key];
         return <span className={`px-2 py-1 rounded-full text-xs ${config.color}`}>{config.text}</span>;
     };
 
-    const handleApproveSignup = (signupId: string) => {
-        console.log(`Approving signup: ${signupId}`);
-        // TODO: 调用后端 API 审核通过报名
+    const getSignupStatusBadge = (status: number) => {
+        const key = mapSignupStatus(status);
+        const statusConfig = {
+            pending: { text: t('pending', 'Pending'), color: 'bg-yellow-50 text-yellow-600' },
+            approved: { text: t('approved', 'Approved'), color: 'bg-green-50 text-green-600' },
+            rejected: { text: t('rejected', 'Rejected'), color: 'bg-red-50 text-red-600' },
+            cancelled: { text: t('cancelled', 'Cancelled'), color: 'bg-slate-100 text-slate-600' },
+        };
+        const config = statusConfig[key];
+        return <span className={`px-2 py-1 rounded-full text-xs ${config.color}`}>{config.text}</span>;
     };
 
-    const handleRejectSignup = (signupId: string) => {
-        console.log(`Rejecting signup: ${signupId}`);
-        // TODO: 调用后端 API 拒绝报名
+    const handleApproveSignup = async (signup: SignupViewItem) => {
+        try {
+            setProcessingSignupId(signup.id);
+            const auditNote = window.prompt(t('approveNotePrompt', 'Optional approval note:'), '') || undefined;
+            await activityApi.approveHostSignup(signup.activityId, signup.id, { auditNote });
+            await loadSignups(signup.activityId, signupStatusFilter);
+        } catch (error) {
+            console.error('Failed to approve signup:', error);
+            alert(t('approveFailed', 'Failed to approve signup'));
+        } finally {
+            setProcessingSignupId(null);
+        }
+    };
+
+    const handleRejectSignup = async (signup: SignupViewItem) => {
+        try {
+            setProcessingSignupId(signup.id);
+            const auditNote = window.prompt(t('rejectNotePrompt', 'Optional reject reason:'), '') || undefined;
+            await activityApi.rejectHostSignup(signup.activityId, signup.id, { auditNote });
+            await loadSignups(signup.activityId, signupStatusFilter);
+        } catch (error) {
+            console.error('Failed to reject signup:', error);
+            alert(t('rejectFailed', 'Failed to reject signup'));
+        } finally {
+            setProcessingSignupId(null);
+        }
     };
 
     const handleEditActivity = (activityId: string) => {
         router.push(`/${locale}/activities/${activityId}/edit`);
     };
 
-    const handleDeleteActivity = (activityId: string) => {
-        if (confirm(t('confirmDelete', '确定要删除这个活动吗？'))) {
-            console.log(`Deleting activity: ${activityId}`);
-            // TODO: 调用后端 API 删除活动
-        }
+    const handleDeleteActivity = () => {
+        alert(t('deleteNotSupported', 'Delete activity is not supported by backend yet'));
     };
 
     const handleViewActivity = (activityId: string) => {
         router.push(`/${locale}/activities/${activityId}`);
     };
-
-    const filteredSignups = selectedActivity
-        ? signups.filter(s => s.activityId === selectedActivity)
-        : signups;
 
     return (
         <Layout>
@@ -142,7 +189,6 @@ export default function HostActivitiesPage() {
                 variants={fadeUp}
                 className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
             >
-                {/* 页面头部 */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                         <button
@@ -157,10 +203,10 @@ export default function HostActivitiesPage() {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-serif font-bold text-[#30499B]">
-                                    {t('title', '活动管理')}
+                                    {t('title', 'Activity Management')}
                                 </h1>
                                 <p className="text-slate-600">
-                                    {t('subtitle', '管理我发布的活动和报名审批')}
+                                    {t('subtitle', 'Manage your hosted activities and signup reviews')}
                                 </p>
                             </div>
                         </div>
@@ -170,11 +216,10 @@ export default function HostActivitiesPage() {
                         className="px-4 py-2 bg-[#30499B] hover:bg-[#253a7a] text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
-                        {t('createActivity', '发布新活动')}
+                        {t('createActivity', 'Create Activity')}
                     </button>
                 </div>
 
-                {/* 统计卡片 */}
                 <motion.div
                     variants={staggerContainer}
                     className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
@@ -186,7 +231,7 @@ export default function HostActivitiesPage() {
                             </div>
                             <span className="text-2xl font-bold text-blue-600">{myActivities.length}</span>
                         </div>
-                        <h3 className="text-sm font-medium text-slate-600">{t('totalActivities', '发布的活动')}</h3>
+                        <h3 className="text-sm font-medium text-slate-600">{t('totalActivities', 'Hosted Activities')}</h3>
                     </motion.div>
 
                     <motion.div variants={staggerItem} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
@@ -194,11 +239,9 @@ export default function HostActivitiesPage() {
                             <div className="p-2 bg-green-50 rounded-lg">
                                 <Users className="w-5 h-5 text-green-600" />
                             </div>
-                            <span className="text-2xl font-bold text-green-600">
-                                {myActivities.reduce((sum, a) => sum + a.signupCount, 0)}
-                            </span>
+                            <span className="text-2xl font-bold text-green-600">{totalSignupCount}</span>
                         </div>
-                        <h3 className="text-sm font-medium text-slate-600">{t('totalSignups', '总报名人数')}</h3>
+                        <h3 className="text-sm font-medium text-slate-600">{t('totalSignups', 'Total Signups')}</h3>
                     </motion.div>
 
                     <motion.div variants={staggerItem} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
@@ -206,15 +249,12 @@ export default function HostActivitiesPage() {
                             <div className="p-2 bg-orange-50 rounded-lg">
                                 <Clock className="w-5 h-5 text-orange-600" />
                             </div>
-                            <span className="text-2xl font-bold text-orange-600">
-                                {signups.filter(s => s.status === 'pending').length}
-                            </span>
+                            <span className="text-2xl font-bold text-orange-600">{pendingSignupCount}</span>
                         </div>
-                        <h3 className="text-sm font-medium text-slate-600">{t('pendingSignups', '待审核报名')}</h3>
+                        <h3 className="text-sm font-medium text-slate-600">{t('pendingSignups', 'Pending Signups')}</h3>
                     </motion.div>
                 </motion.div>
 
-                {/* 标签切换 */}
                 <div className="bg-white rounded-xl p-2 border border-slate-200 shadow-sm mb-6 flex gap-2">
                     <button
                         onClick={() => setActiveTab('activities')}
@@ -225,7 +265,7 @@ export default function HostActivitiesPage() {
                         }`}
                     >
                         <Calendar className="w-4 h-4 inline mr-2" />
-                        {t('myActivities', '我的活动')}
+                        {t('myActivities', 'My Activities')}
                     </button>
                     <button
                         onClick={() => setActiveTab('signups')}
@@ -236,24 +276,26 @@ export default function HostActivitiesPage() {
                         }`}
                     >
                         <UserCheck className="w-4 h-4 inline mr-2" />
-                        {t('signupManagement', '报名管理')}
+                        {t('signupManagement', 'Signup Management')}
                     </button>
                 </div>
 
-                {/* 内容区域 */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-                    {/* 我的活动 */}
                     {activeTab === 'activities' && (
                         <div className="divide-y divide-slate-200">
-                            {myActivities.length === 0 ? (
+                            {loadingActivities ? (
+                                <div className="p-12 text-center text-slate-400">
+                                    <p>{t('loading', 'Loading...')}</p>
+                                </div>
+                            ) : myActivities.length === 0 ? (
                                 <div className="p-12 text-center text-slate-400">
                                     <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p>{t('noActivities', '还没有发布活动')}</p>
+                                    <p>{t('noActivities', 'No hosted activities yet')}</p>
                                     <button
                                         onClick={() => router.push(`/${locale}/activities/create`)}
                                         className="mt-4 px-4 py-2 bg-[#30499B] text-white rounded-lg hover:bg-[#253a7a] transition-colors"
                                     >
-                                        {t('createFirst', '发布第一个活动')}
+                                        {t('createFirst', 'Create your first activity')}
                                     </button>
                                 </div>
                             ) : (
@@ -265,7 +307,7 @@ export default function HostActivitiesPage() {
                                                     <h3 className="text-lg font-semibold text-slate-800">
                                                         {activity.title}
                                                     </h3>
-                                                    {getStatusBadge(activity.status)}
+                                                    {getActivityStatusBadge(activity.status)}
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-3">
                                                     <span className="flex items-center gap-1">
@@ -274,38 +316,33 @@ export default function HostActivitiesPage() {
                                                     </span>
                                                     <span className="flex items-center gap-1">
                                                         <MapPin className="w-4 h-4" />
-                                                        {activity.location}
+                                                        {activity.location || t('locationUnknown', 'No location')}
                                                     </span>
                                                     <span className="flex items-center gap-1">
                                                         <Users className="w-4 h-4" />
-                                                        {activity.signupCount} / {activity.maxParticipants}
+                                                        {activity.signupCount}
                                                     </span>
-                                                    {activity.pendingSignups > 0 && (
-                                                        <span className="px-2 py-1 bg-orange-50 text-orange-600 rounded-full text-xs">
-                                                            {activity.pendingSignups} 人待审核
-                                                        </span>
-                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleViewActivity(activity.id)}
                                                     className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                                    title={t('view', '查看')}
+                                                    title={t('view', 'View')}
                                                 >
                                                     <Eye className="w-5 h-5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleEditActivity(activity.id)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title={t('edit', '编辑')}
+                                                    title={t('edit', 'Edit')}
                                                 >
                                                     <Edit className="w-5 h-5" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteActivity(activity.id)}
+                                                    onClick={handleDeleteActivity}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title={t('delete', '删除')}
+                                                    title={t('delete', 'Delete')}
                                                 >
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>
@@ -317,64 +354,89 @@ export default function HostActivitiesPage() {
                         </div>
                     )}
 
-                    {/* 报名管理 */}
                     {activeTab === 'signups' && (
                         <div>
-                            {/* 活动筛选 */}
                             <div className="p-4 border-b border-slate-200">
-                                <select
-                                    value={selectedActivity || ''}
-                                    onChange={(e) => setSelectedActivity(e.target.value || null)}
-                                    className="w-full md:w-auto px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#30499B]/20"
-                                >
-                                    <option value="">{t('allActivities', '全部活动')}</option>
-                                    {myActivities.map((activity) => (
-                                        <option key={activity.id} value={activity.id}>
-                                            {activity.title}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="flex flex-col md:flex-row gap-3">
+                                    <select
+                                        value={selectedActivity || ''}
+                                        onChange={(e) => setSelectedActivity(e.target.value || null)}
+                                        className="w-full md:w-auto px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#30499B]/20"
+                                    >
+                                        <option value="">{t('selectActivity', 'Select an activity')}</option>
+                                        {myActivities.map((activity) => (
+                                            <option key={activity.id} value={activity.id}>
+                                                {activity.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={signupStatusFilter ?? ''}
+                                        onChange={(e) => setSignupStatusFilter(e.target.value ? Number(e.target.value) : undefined)}
+                                        className="w-full md:w-auto px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#30499B]/20"
+                                    >
+                                        <option value="">{t('allStatus', 'All status')}</option>
+                                        <option value="1">{t('pending', 'Pending')}</option>
+                                        <option value="2">{t('approved', 'Approved')}</option>
+                                        <option value="3">{t('rejected', 'Rejected')}</option>
+                                        <option value="4">{t('cancelled', 'Cancelled')}</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="divide-y divide-slate-200">
-                                {filteredSignups.length === 0 ? (
+                                {!selectedActivity ? (
                                     <div className="p-12 text-center text-slate-400">
                                         <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                        <p>{t('noSignups', '暂无报名记录')}</p>
+                                        <p>{t('selectActivityHint', 'Select one activity to view signups')}</p>
+                                    </div>
+                                ) : loadingSignups ? (
+                                    <div className="p-12 text-center text-slate-400">
+                                        <p>{t('loading', 'Loading...')}</p>
+                                    </div>
+                                ) : signups.length === 0 ? (
+                                    <div className="p-12 text-center text-slate-400">
+                                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                        <p>{t('noSignups', 'No signup records')}</p>
                                     </div>
                                 ) : (
-                                    filteredSignups.map((signup) => (
+                                    signups.map((signup) => (
                                         <div key={signup.id} className="p-6 hover:bg-slate-50 transition-colors">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
-                                                        <h4 className="font-semibold text-slate-800">{signup.userName}</h4>
-                                                        {getStatusBadge(signup.status)}
+                                                        <h4 className="font-semibold text-slate-800">
+                                                            {signup.realName || signup.nickname || t('anonymous', 'User')}
+                                                        </h4>
+                                                        {getSignupStatusBadge(signup.status)}
                                                     </div>
                                                     <div className="text-sm text-slate-600 space-y-1 mb-2">
-                                                        <p>活动: {signup.activityTitle}</p>
-                                                        <p>联系方式: {signup.phone} / {signup.email}</p>
-                                                        <p>申请时间: {signup.appliedAt}</p>
-                                                        {signup.note && (
-                                                            <p className="text-slate-500">备注: {signup.note}</p>
+                                                        <p>{t('activity', 'Activity')}: {signup.activityTitle}</p>
+                                                        {signup.sessionTitle && <p>{t('session', 'Session')}: {signup.sessionTitle}</p>}
+                                                        <p>{t('contact', 'Contact')}: {signup.phone || '-'} / {signup.email || '-'}</p>
+                                                        <p>{t('appliedAt', 'Applied At')}: {signup.createdAt}</p>
+                                                        {signup.auditNote && (
+                                                            <p className="text-slate-500">{t('note', 'Note')}: {signup.auditNote}</p>
                                                         )}
                                                     </div>
                                                 </div>
-                                                {signup.status === 'pending' && (
+                                                {mapSignupStatus(signup.status) === 'pending' && (
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => handleApproveSignup(signup.id)}
-                                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                                                            onClick={() => handleApproveSignup(signup)}
+                                                            disabled={processingSignupId === signup.id}
+                                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60"
                                                         >
                                                             <CheckCircle className="w-4 h-4" />
-                                                            {t('approve', '通过')}
+                                                            {t('approve', 'Approve')}
                                                         </button>
                                                         <button
-                                                            onClick={() => handleRejectSignup(signup.id)}
-                                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                                                            onClick={() => handleRejectSignup(signup)}
+                                                            disabled={processingSignupId === signup.id}
+                                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60"
                                                         >
                                                             <XCircle className="w-4 h-4" />
-                                                            {t('reject', '拒绝')}
+                                                            {t('reject', 'Reject')}
                                                         </button>
                                                     </div>
                                                 )}

@@ -26,6 +26,7 @@ import {
 import { fadeUp, staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 import { activityApi, interactionApi } from '@/lib/api';
 import type { ActivityDetail, ActivitySession } from '@/lib/api/activity';
+import type { Comment } from '@/lib/api/content';
 import ActivityStatsSidebar from '@/components/activity/ActivityStatsSidebar';
 import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
@@ -40,6 +41,9 @@ export default function ActivityDetailPage() {
     // 状态管理
     const [activity, setActivity] = useState<ActivityDetail | null>(null);
     const [sessions, setSessions] = useState<ActivitySession[]>([]);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [commentText, setCommentText] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
@@ -53,13 +57,18 @@ export default function ActivityDetailPage() {
                 setLoading(true);
 
                 // 并行加载活动详情和场次
-                const [activityData, sessionsData] = await Promise.all([
+                const [activityData, sessionsData, commentsData] = await Promise.all([
                     activityApi.getActivityDetail(activityId),
-                    activityApi.getActivitySessions(activityId).catch(() => []) // 场次可能为空
+                    activityApi.getActivitySessions(activityId).catch(() => []),
+                    activityApi
+                        .getActivityComments(activityId, { page: 1, size: 10, sort: 'latest' })
+                        .then((response) => response.items)
+                        .catch(() => [])
                 ]);
 
                 setActivity(activityData);
                 setSessions(sessionsData);
+                setComments(commentsData);
 
                 // 设置用户状态
                 if (activityData.userState) {
@@ -87,6 +96,38 @@ export default function ActivityDetailPage() {
             return;
         }
         router.push(`/${locale}/activities/register?id=${activityId}`);
+    };
+
+
+    const handleSubmitComment = async () => {
+        if (!commentText.trim()) {
+            alert(t('comments.emptyError', 'Comment cannot be empty'));
+            return;
+        }
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+        try {
+            setIsSubmittingComment(true);
+            await interactionApi.createComment({
+                targetType: 2,
+                targetId: activityId,
+                body: commentText.trim(),
+            });
+            const latestComments = await activityApi.getActivityComments(activityId, {
+                page: 1,
+                size: 10,
+                sort: 'latest',
+            });
+            setComments(latestComments.items);
+            setCommentText('');
+        } catch (error: any) {
+            console.error('Failed to submit activity comment:', error);
+            alert(error.message || t('comments.error', 'Failed to submit comment'));
+        } finally {
+            setIsSubmittingComment(false);
+        }
     };
 
     const handleLike = async () => {
@@ -359,6 +400,60 @@ export default function ActivityDetailPage() {
                                     <div dangerouslySetInnerHTML={{ __html: activity.description }} />
                                 </div>
                             )}
+
+
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
+                            <h3 className="text-lg font-semibold text-[#30499B] mb-4">
+                                {t('comments.title', 'Comments')} ({comments.length})
+                            </h3>
+
+                            {isLoggedIn ? (
+                                <div className="mb-6">
+                                    <textarea
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
+                                        placeholder={t('comments.placeholder', 'Write your comment...')}
+                                    />
+                                    <div className="mt-3 flex justify-end">
+                                        <button
+                                            onClick={handleSubmitComment}
+                                            disabled={isSubmittingComment || !commentText.trim()}
+                                            className="px-4 py-2 bg-[#56B949] text-white rounded-lg disabled:opacity-50"
+                                        >
+                                            {isSubmittingComment
+                                                ? t('comments.submitting', 'Submitting...')
+                                                : t('comments.submit', 'Submit')}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mb-6 p-4 bg-slate-50 rounded-lg text-sm text-slate-600">
+                                    {t('comments.loginRequired', 'Log in to post a comment')}
+                                </div>
+                            )}
+
+                            {comments.length > 0 ? (
+                                <div className="space-y-4">
+                                    {comments.map((comment) => (
+                                        <div key={comment.id} className="p-4 border border-slate-200 rounded-lg bg-white">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-sm font-medium text-slate-800">{comment.userName}</p>
+                                                <p className="text-xs text-slate-500">
+                                                    {new Date(comment.createdAt).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                                                </p>
+                                            </div>
+                                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{comment.content}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-slate-500">
+                                    {t('comments.empty', 'No comments yet. Be the first to comment.')}
+                                </p>
+                            )}
+                        </div>
                         </div>
                     </motion.div>
 

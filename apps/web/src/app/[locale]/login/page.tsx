@@ -285,7 +285,7 @@ export default function LoginPage() {
                                 >
                                     {loginMode === 'password' ? t('login.otpLogin', '验证码登录') : t('login.passwordLogin', '密码登录')}
                                 </button>
-                                <a href="#" className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">{t('login.forgotPassword', '忘记密码?')}</a>
+                                <Link href={`/${locale}/forgot-password`} className="text-sm text-slate-400 hover:text-[#30499B] transition-colors">{t('login.forgotPassword', 'Forgot password?')}</Link>
                             </div>
 
                             <button

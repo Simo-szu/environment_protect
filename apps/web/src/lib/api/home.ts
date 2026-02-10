@@ -3,6 +3,7 @@
  */
 
 import { apiGet } from '../api-client';
+import { PageResponse } from '../api-types';
 
 // 首页数据
 export interface HomeData {
@@ -40,7 +41,8 @@ export async function getHomeData(): Promise<HomeData> {
  * 获取首页轮播图
  */
 export async function getHomeBanners(): Promise<HomeBanner[]> {
-  const dtos = await apiGet<HomeBannerDTO[]>('/api/v1/home/banners');
+  const response = await apiGet<PageResponse<HomeBannerDTO>>('/api/v1/home/banners');
+  const dtos = response.items || [];
 
   const mapLinkUrl = (dto: HomeBannerDTO): string | undefined => {
     if (!dto.linkTarget) return undefined;

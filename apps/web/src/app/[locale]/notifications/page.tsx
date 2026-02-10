@@ -8,7 +8,7 @@ import { MessageCircle, Clock, Heart, UserPlus, Reply, Check, ExternalLink, User
 import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import Pagination from '@/components/ui/Pagination';
-import { userApi } from '@/lib/api';
+import { userApi, notificationApi } from '@/lib/api';
 import type { NotificationItem } from '@/lib/api/user';
 
 
@@ -90,10 +90,11 @@ export default function NotificationsPage() {
 
     const handleMarkAsRead = async (notificationIds?: string[]) => {
         try {
-            await userApi.markNotificationsRead({
-                notificationIds,
-                markAllAsRead: !notificationIds
-            });
+            if (!notificationIds || notificationIds.length === 0) {
+                await notificationApi.markAllNotificationsRead();
+            } else {
+                await Promise.all(notificationIds.map((id) => notificationApi.markNotificationRead(id)));
+            }
 
             // 重新加载通知
             const result = await userApi.getMyNotifications({

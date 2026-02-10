@@ -38,8 +38,10 @@ function CreateActivityContent() {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [formData, setFormData] = useState({
         title: '',
+        topic: '',
         description: '',
         type: 'tree',
+        signupPolicy: '1',
         date: '',
         time: '',
         location: '',
@@ -181,7 +183,8 @@ function CreateActivityContent() {
             await createHostActivity({
                 title: formData.title,
                 category: mapTypeToCategory(formData.type),
-                signupPolicy: 1, // 默认自动通过
+                topic: formData.topic || undefined,
+                signupPolicy: Number(formData.signupPolicy),
                 startTime,
                 endTime,
                 location: formData.location,
@@ -311,6 +314,35 @@ function CreateActivityContent() {
                         </div>
 
                         {/* 活动描述 */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                {t('create.form.topic', 'Topic')}
+                            </label>
+                            <input
+                                type="text"
+                                name="topic"
+                                value={formData.topic}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                placeholder={t('create.form.topicPlaceholder', 'Optional topic for this activity')}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                {t('create.form.signupPolicy', 'Signup Policy')} *
+                            </label>
+                            <select
+                                name="signupPolicy"
+                                value={formData.signupPolicy}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors bg-white"
+                            >
+                                <option value="1">{t('create.form.signupPolicyAuto', 'Auto approve')}</option>
+                                <option value="2">{t('create.form.signupPolicyReview', 'Approval required')}</option>
+                            </select>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 <FileText className="w-4 h-4 inline mr-2" />

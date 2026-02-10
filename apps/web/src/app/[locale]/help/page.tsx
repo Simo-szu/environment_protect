@@ -5,12 +5,32 @@ import Link from 'next/link';
 import BackButton from '@/components/ui/BackButton';
 import { useParams } from 'next/navigation';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { searchApi } from '@/lib/api';
 import { HelpCircle, Search, MessageCircle, Phone, Mail, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function HelpPage() {
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('help');
+    const [query, setQuery] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (!query.trim()) {
+                setSuggestions([]);
+                return;
+            }
+            try {
+                const words = await searchApi.suggestKeywords(query.trim());
+                setSuggestions(words.slice(0, 6));
+            } catch {
+                setSuggestions([]);
+            }
+        }, 250);
+        return () => clearTimeout(timer);
+    }, [query]);
 
     const faqData = [
         {
@@ -143,10 +163,30 @@ export default function HelpPage() {
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
                                     type="text"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && query.trim()) {
+                                            window.location.href = `/${locale}/search?q=${encodeURIComponent(query.trim())}`;
+                                        }
+                                    }}
                                     placeholder={t('search.placeholder')}
                                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                 />
                             </div>
+                            {suggestions.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {suggestions.map((item) => (
+                                        <Link
+                                            key={item}
+                                            href={`/${locale}/search?q=${encodeURIComponent(item)}`}
+                                            className="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                        >
+                                            {item}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* FAQ列表 */}

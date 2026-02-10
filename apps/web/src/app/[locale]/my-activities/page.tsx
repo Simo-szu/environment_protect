@@ -148,6 +148,20 @@ export default function MyActivitiesPage() {
         }
     };
 
+
+    const updateRegistrationPhone = async (signupId: string, activityId: string) => {
+        const phone = prompt(t('updatePhonePrompt', 'Please enter a new phone number'));
+        if (!phone || !phone.trim()) return;
+        try {
+            await activityApi.updateSignup(activityId, signupId, {
+                phone: phone.trim()
+            });
+            alert(t('updatePhoneSuccess', 'Registration updated successfully'));
+        } catch (error: any) {
+            alert(error?.message || t('updatePhoneFailed', 'Failed to update registration'));
+        }
+    };
+
     if (loading || loadingActivities) {
         return (
             <Layout>
@@ -326,6 +340,14 @@ export default function MyActivitiesPage() {
                                                         >
                                                             {t('viewDetails', '查看详情')}
                                                         </button>
+                                                        {activity.status === 'PENDING' && (
+                                                            <button
+                                                                onClick={() => updateRegistrationPhone(activity.signupId, activity.activityId)}
+                                                                className="px-4 py-2 text-[#30499B] border border-[#30499B] rounded-lg hover:bg-[#30499B] hover:text-white transition-colors text-sm"
+                                                            >
+                                                                {t('updateRegistration', 'Update registration')}
+                                                            </button>
+                                                        )}
                                                         {activity.status === 'PENDING' && (
                                                             <button
                                                                 onClick={() => cancelRegistration(activity.signupId, activity.activityId)}

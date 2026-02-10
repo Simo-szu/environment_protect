@@ -2,7 +2,7 @@
  * 活动相关 API
  */
 
-import { apiGet, apiPost, apiPatch, apiDelete } from '../api-client';
+import { apiGet, apiPost, apiPatch, apiDelete, apiPut } from '../api-client';
 import { PageResponse } from '../api-types';
 import { Comment } from './content';
 
@@ -121,6 +121,7 @@ export interface ActivityItem {
 // 活动详情
 export interface ActivityDetail extends ActivityItem {
   description: string;
+  posterUrls?: string[];
   organizerName?: string;
   contactInfo?: string;
   tags?: string[];
@@ -138,6 +139,7 @@ export interface ActivitySession {
   location?: string;
   maxParticipants?: number;
   currentParticipants: number;
+  status?: number;
 }
 
 // 报名请求
@@ -180,6 +182,28 @@ export interface CreateHostActivityRequest {
   posterUrls?: string[];
 }
 
+export interface UpdateHostActivityRequest {
+  title?: string;
+  category?: number;
+  topic?: string;
+  signupPolicy?: number;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  description?: string;
+  posterUrls?: string[];
+  status?: number;
+}
+
+export interface CreateOrUpdateActivitySessionRequest {
+  id?: string;
+  title?: string;
+  startTime: string;
+  endTime?: string;
+  capacity?: number;
+  status?: number;
+}
+
 export interface ActivitySummaryDTO {
   month: string;
   monthlyActivityCount: number;
@@ -190,6 +214,84 @@ export interface ActivitySummaryDTO {
 export interface ActivityCategoryCountDTO {
   category: number;
   activityCount: number;
+}
+
+interface HostActivityListItemDTO {
+  id: string;
+  title: string;
+  category: number;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  status: number;
+  createdAt: string;
+  signupCount: number;
+}
+
+interface HostActivitySignupListItemDTO {
+  id: string;
+  sessionId?: string;
+  sessionTitle?: string;
+  userId?: string;
+  email?: string;
+  nickname?: string;
+  realName?: string;
+  phone?: string;
+  joinTime?: string;
+  status: number;
+  auditedBy?: string;
+  auditedAt?: string;
+  auditNote?: string;
+  canceledAt?: string;
+  cancelNote?: string;
+  createdAt: string;
+}
+
+interface HostAuditSignupRequest {
+  auditNote?: string;
+}
+
+interface ActivitySessionDTO {
+  id: string;
+  activityId: string;
+  sessionName: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  capacity?: number;
+  signupCount?: number;
+  status?: number;
+}
+
+export interface HostActivityItem {
+  id: string;
+  title: string;
+  category: number;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  status: number;
+  createdAt: string;
+  signupCount: number;
+}
+
+export interface HostActivitySignupItem {
+  id: string;
+  sessionId?: string;
+  sessionTitle?: string;
+  userId?: string;
+  email?: string;
+  nickname?: string;
+  realName?: string;
+  phone?: string;
+  joinTime?: string;
+  status: number;
+  auditedBy?: string;
+  auditedAt?: string;
+  auditNote?: string;
+  canceledAt?: string;
+  cancelNote?: string;
+  createdAt: string;
 }
 
 /**
@@ -277,6 +379,7 @@ function mapActivityDetailDtoToDetail(dto: ActivityDetailDTO): ActivityDetail {
     likeCount: dto.likeCount,
     commentCount: dto.commentCount,
     description: dto.description || '',
+    posterUrls: dto.posterUrls || [],
     contactInfo: dto.contactInfo,
     externalUrl: dto.externalUrl,
     readingTime: dto.readingTime,
@@ -355,7 +458,18 @@ export async function getActivityDetail(id: string): Promise<ActivityDetail> {
 export async function getActivitySessions(
   id: string
 ): Promise<ActivitySession[]> {
-  return apiGet<ActivitySession[]>(`/api/v1/activities/${id}/sessions`);
+  const response = await apiGet<PageResponse<ActivitySessionDTO>>(`/api/v1/activities/${id}/sessions`);
+  return response.items.map((session) => ({
+    id: session.id,
+    activityId: session.activityId,
+    sessionName: session.sessionName,
+    startTime: session.startTime,
+    endTime: session.endTime,
+    location: session.location,
+    maxParticipants: session.capacity,
+    currentParticipants: session.signupCount || 0,
+    status: session.status,
+  }));
 }
 
 /**
@@ -468,6 +582,105 @@ export async function createHostActivity(
     data
   );
   return activityId;
+}
+
+export async function updateHostActivity(
+  activityId: string,
+  data: UpdateHostActivityRequest
+): Promise<void> {
+  return apiPut<void>(`/api/v1/host/activities/${activityId}`, data);
+}
+
+export async function createOrUpdateHostActivitySessions(
+  activityId: string,
+  sessions: CreateOrUpdateActivitySessionRequest[]
+): Promise<void> {
+  return apiPost<void>(`/api/v1/host/activities/${activityId}/sessions`, sessions);
+}
+
+export async function getMyHostActivities(params: {
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<HostActivityItem>> {
+  const response = await apiGet<PageResponse<HostActivityListItemDTO>>('/api/v1/host/activities', {
+    page: params.page || 1,
+    size: params.size || 10,
+  });
+  return {
+    ...response,
+    items: response.items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      location: item.location,
+      status: item.status,
+      createdAt: item.createdAt,
+      signupCount: item.signupCount || 0,
+    })),
+  };
+}
+
+export async function getHostActivitySignups(
+  activityId: string,
+  params: {
+    status?: number;
+    page?: number;
+    size?: number;
+  } = {}
+): Promise<PageResponse<HostActivitySignupItem>> {
+  const response = await apiGet<PageResponse<HostActivitySignupListItemDTO>>(
+    `/api/v1/host/activities/${activityId}/signups`,
+    {
+      status: params.status,
+      page: params.page || 1,
+      size: params.size || 20,
+    }
+  );
+  return {
+    ...response,
+    items: response.items.map((item) => ({
+      id: item.id,
+      sessionId: item.sessionId,
+      sessionTitle: item.sessionTitle,
+      userId: item.userId,
+      email: item.email,
+      nickname: item.nickname,
+      realName: item.realName,
+      phone: item.phone,
+      joinTime: item.joinTime,
+      status: item.status,
+      auditedBy: item.auditedBy,
+      auditedAt: item.auditedAt,
+      auditNote: item.auditNote,
+      canceledAt: item.canceledAt,
+      cancelNote: item.cancelNote,
+      createdAt: item.createdAt,
+    })),
+  };
+}
+
+export async function approveHostSignup(
+  activityId: string,
+  signupId: string,
+  data?: HostAuditSignupRequest
+): Promise<void> {
+  return apiPatch<void>(
+    `/api/v1/host/activities/${activityId}/signups/${signupId}/approve`,
+    data || {}
+  );
+}
+
+export async function rejectHostSignup(
+  activityId: string,
+  signupId: string,
+  data?: HostAuditSignupRequest
+): Promise<void> {
+  return apiPatch<void>(
+    `/api/v1/host/activities/${activityId}/signups/${signupId}/reject`,
+    data || {}
+  );
 }
 
 /**

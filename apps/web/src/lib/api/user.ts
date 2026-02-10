@@ -4,6 +4,7 @@
 
 import { apiGet, apiPost } from '../api-client';
 import { PageResponse } from '../api-types';
+import type { PointsAccount } from './points';
 
 // 用户资料（后端返回格式）
 export interface UserProfile {
@@ -129,6 +130,10 @@ export interface MyActivityItem {
  */
 export async function getMyProfile(): Promise<UserProfile> {
   return apiGet<UserProfile>('/api/v1/me/profile');
+}
+
+export async function getMyPoints(): Promise<PointsAccount> {
+  return apiGet<PointsAccount>('/api/v1/me/points');
 }
 
 /**

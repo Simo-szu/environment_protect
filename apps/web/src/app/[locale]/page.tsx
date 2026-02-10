@@ -10,9 +10,10 @@ import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { useClientMounted } from '@/hooks/useClientMounted';
-import { homeApi, contentApi, activityApi } from '@/lib/api';
+import { homeApi, contentApi, activityApi, recommendationApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
 import type { ActivityItem } from '@/lib/api/activity';
+import type { HomeBanner } from '@/lib/api/home';
 import AuthPromptModal from '@/components/auth/AuthPromptModal';
 
 interface CardData {
@@ -36,6 +37,10 @@ export default function HomePage() {
     // 状态管理
     const [contents, setContents] = useState<ContentItem[]>([]);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [homeBanners, setHomeBanners] = useState<HomeBanner[]>([]);
+    const [homeDataAvailable, setHomeDataAvailable] = useState(false);
+    const [latestRecommendationSource, setLatestRecommendationSource] = useState<string | null>(null);
+    const [weeklyRecommendationSource, setWeeklyRecommendationSource] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -46,13 +51,21 @@ export default function HomePage() {
                 setLoading(true);
 
                 // 并行加载科普内容和活动
-                const [contentsRes, activitiesRes] = await Promise.all([
+                const [homeData, banners, contentsRes, activitiesRes, latestRecommendation, weeklyRecommendation] = await Promise.all([
+                    homeApi.getHomeData().catch(() => null),
+                    homeApi.getHomeBanners().catch(() => []),
                     contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
-                    activityApi.getActivities({ page: 1, size: 3, sort: 'hot' })
+                    activityApi.getActivities({ page: 1, size: 3, sort: 'hot' }),
+                    recommendationApi.getLatestRecommendation().catch(() => null),
+                    recommendationApi.getWeeklyRecommendation().catch(() => null)
                 ]);
 
+                setHomeDataAvailable(!!homeData);
+                setHomeBanners(banners);
                 setContents(contentsRes.items);
                 setActivities(activitiesRes.items);
+                setLatestRecommendationSource(latestRecommendation?.source || null);
+                setWeeklyRecommendationSource(weeklyRecommendation?.source || null);
             } catch (error) {
                 console.error('Failed to load home data:', error);
                 // 失败时使用空数组，页面仍可正常显示
@@ -255,6 +268,68 @@ export default function HomePage() {
 
             {/* Main Content Grid */}
             <div className="bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
+                <AnimatedSection delay={0.02}>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/50 p-4 md:p-5">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <h2 className="text-base md:text-lg font-semibold text-[#30499B] dark:text-[#56B949]">
+                                {t('sections.homeBanners.title', 'Home Banners')}
+                            </h2>
+                            <span className="text-xs text-slate-500">
+                                {homeDataAvailable
+                                    ? t('sections.homeData.available', 'Home aggregate API connected')
+                                    : t('sections.homeData.unavailable', 'Home aggregate API unavailable')}
+                            </span>
+                        </div>
+                        {homeBanners.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {homeBanners.slice(0, 3).map((banner) => (
+                                    <Link
+                                        key={banner.id}
+                                        href={banner.linkUrl ? (banner.linkUrl.startsWith('/') ? `/${locale}${banner.linkUrl}` : banner.linkUrl) : `/${locale}`}
+                                        className="relative block h-24 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity"
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={banner.imageUrl} alt={banner.title || 'banner'} className="w-full h-full object-cover" />
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-slate-500">
+                                {t('sections.homeBanners.empty', 'No active banners at the moment')}
+                            </p>
+                        )}
+                    </div>
+                </AnimatedSection>
+
+                {/* Section: Science Materials */}
+                <AnimatedSection delay={0.05}>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/50 p-4 md:p-5">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-base md:text-lg font-semibold text-[#30499B] dark:text-[#56B949]">
+                                    {t('sections.recommendation.title', 'Latest Recommendation')}
+                                </h2>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {latestRecommendationSource
+                                        ? t('sections.recommendation.source', 'Source: {source}', { source: latestRecommendationSource })
+                                        : t('sections.recommendation.unavailable', 'Recommendation service is temporarily unavailable')}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {weeklyRecommendationSource
+                                        ? t('sections.recommendation.weeklySource', 'Weekly source: {source}', { source: weeklyRecommendationSource })
+                                        : t('sections.recommendation.weeklyUnavailable', 'Weekly recommendation is temporarily unavailable')}
+                                </p>
+                            </div>
+                            <Link
+                                href={`/${locale}/search`}
+                                className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline underline-offset-4"
+                            >
+                                {t('sections.recommendation.explore', 'Explore')}
+                            </Link>
+                        </div>
+                    </div>
+                </AnimatedSection>
+
                 {/* Section: Science Materials */}
                 <AnimatedSection delay={0.1}>
                     <div className="flex items-center justify-between mb-6">

@@ -21,7 +21,7 @@ import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/lib/animations';
-import { pointsApi } from '@/lib/api';
+import { pointsApi, userApi } from '@/lib/api';
 import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/api/points';
 
 function PointsPageContent() {
@@ -96,7 +96,7 @@ function PointsPageContent() {
     useEffect(() => {
         const loadPointsAccount = async () => {
             try {
-                const account = await pointsApi.getPointsAccount();
+                const account = await userApi.getMyPoints();
                 setPointsAccount(account);
                 setDisplayPoints(account.availablePoints);
             } catch (error) {
@@ -204,7 +204,7 @@ function PointsPageContent() {
             setTimeout(() => setPointsIncrement(null), 2000);
 
             // 重新加载积分账户以获取最新的等级和进度信息
-            const updatedAccount = await pointsApi.getPointsAccount();
+            const updatedAccount = await userApi.getMyPoints();
             setPointsAccount(updatedAccount);
 
             alert(t('alerts.signInSuccess', '签到成功！获得 {points} 积分', { points: result.points }));
@@ -243,7 +243,7 @@ function PointsPageContent() {
             setTimeout(() => setPointsIncrement(null), 2000);
 
             // 重新加载积分账户
-            const account = await pointsApi.getPointsAccount();
+            const account = await userApi.getMyPoints();
             setPointsAccount(account);
 
             alert(t('alerts.claimSuccess', '领取成功！'));
@@ -275,7 +275,7 @@ function PointsPageContent() {
                 setTimeout(() => setPointsIncrement(null), 2000);
                 
                 // 重新加载积分账户以获取最新数据
-                const updatedAccount = await pointsApi.getPointsAccount();
+                const updatedAccount = await userApi.getMyPoints();
                 setPointsAccount(updatedAccount);
             }
         } catch (error: any) {
