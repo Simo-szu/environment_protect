@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import {
@@ -128,7 +128,10 @@ export default function GamePlayPage() {
     const [satisfaction, setSatisfaction] = useState(70);
 
     // 卡牌状态
-    const [handCards, setHandCards] = useState<Card[]>([]);
+    const [handCards, setHandCards] = useState<Card[]>(() => {
+        const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 4);
+    });
     const [deployedCards, setDeployedCards] = useState<Card[]>([]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
@@ -142,14 +145,15 @@ export default function GamePlayPage() {
 
     // 初始化手牌
     useEffect(() => {
-        dealCards();
+        const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
+        void shuffled;
     }, []);
 
     // 发牌
-    const dealCards = () => {
+    function dealCards() {
         const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
         setHandCards(shuffled.slice(0, 4));
-    };
+    }
 
     // 部署卡牌
     const deployCard = (card: Card) => {
@@ -563,7 +567,7 @@ export default function GamePlayPage() {
                             {handCards.length === 0 && (
                                 <div className="col-span-2 text-center py-8 text-slate-400">
                                     <p className="text-xs">暂无卡牌</p>
-                                    <p className="text-[10px] mt-0.5">点击"下一回合"获取新卡牌</p>
+                                    <p className="text-[10px] mt-0.5">点击&quot;下一回合&quot;获取新卡牌</p>
                                 </div>
                             )}
                         </div>

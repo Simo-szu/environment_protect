@@ -173,27 +173,28 @@ function mapNotificationDtoToItem(dto: NotificationItemDTO): NotificationItem {
   let linkUrl: string | undefined;
 
   // 根据类型生成 title 和 content
+  const resolveTargetLink = (): string | undefined => {
+    if (!dto.targetId) return undefined;
+    if (dto.targetType === 1) return `/science/${dto.targetId}`;
+    if (dto.targetType === 2) return `/activities/${dto.targetId}`;
+    return undefined;
+  };
+
   switch (dto.type) {
     case 1: // 评论
       title = `${dto.actorNickname || '用户'} 评论了你`;
       content = dto.commentContent || '';
-      linkUrl = dto.targetType === 1
-        ? `/science/${dto.targetId}`
-        : `/activities/${dto.targetId}`;
+      linkUrl = resolveTargetLink();
       break;
     case 2: // 回复
       title = `${dto.actorNickname || '用户'} 回复了你`;
       content = dto.commentContent || '';
-      linkUrl = dto.targetType === 1
-        ? `/science/${dto.targetId}`
-        : `/activities/${dto.targetId}`;
+      linkUrl = resolveTargetLink();
       break;
     case 3: // 点赞
       title = `${dto.actorNickname || '用户'} 点赞了你`;
       content = dto.targetPreview || '';
-      linkUrl = dto.targetType === 1
-        ? `/science/${dto.targetId}`
-        : `/activities/${dto.targetId}`;
+      linkUrl = resolveTargetLink();
       break;
     case 4: // 系统通知
       title = '系统通知';

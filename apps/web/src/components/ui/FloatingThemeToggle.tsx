@@ -2,18 +2,15 @@
 
 import { useTheme } from 'next-themes';
 import { Sun, Moon, Monitor } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useClientMounted } from '@/hooks/useClientMounted';
 
 export function FloatingThemeToggle() {
     const { theme, setTheme } = useTheme();
     // 使用函数初始化来避免 hydration 问题
-    const [mounted, setMounted] = useState(false);
+    const mounted = useClientMounted();
     const [isExpanded, setIsExpanded] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     if (!mounted) {
         return null;

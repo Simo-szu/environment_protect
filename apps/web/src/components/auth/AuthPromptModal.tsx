@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { useClientMounted } from '@/hooks/useClientMounted';
 
 interface AuthPromptModalProps {
     isOpen: boolean;
@@ -26,12 +27,7 @@ export default function AuthPromptModal({
     const router = useRouter();
     const locale = params?.locale || 'zh';
     const { t } = useSafeTranslation('common');
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
+    const mounted = useClientMounted();
 
     const getLocalizedPath = (path: string) => {
         if (path.startsWith(`/${locale}/`)) return path;

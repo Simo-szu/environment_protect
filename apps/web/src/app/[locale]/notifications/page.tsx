@@ -88,6 +88,14 @@ export default function NotificationsPage() {
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
+    const getLocalizedLink = (linkUrl?: string): string | undefined => {
+        if (!linkUrl) return undefined;
+        if (/^https?:\/\//i.test(linkUrl)) return linkUrl;
+        if (!linkUrl.startsWith('/')) return linkUrl;
+        if (linkUrl.startsWith(`/${locale}/`)) return linkUrl;
+        return `/${locale}${linkUrl}`;
+    };
+
     const handleMarkAsRead = async (notificationIds?: string[]) => {
         try {
             if (!notificationIds || notificationIds.length === 0) {
@@ -225,9 +233,9 @@ export default function NotificationsPage() {
                                         </div>
                                         <p className="text-sm text-slate-600 mb-3">{notification.content}</p>
                                         <div className="flex items-center gap-3">
-                                            {notification.linkUrl && (
+                                            {getLocalizedLink(notification.linkUrl) && (
                                                 <a
-                                                    href={notification.linkUrl}
+                                                    href={getLocalizedLink(notification.linkUrl)}
                                                     className="flex items-center gap-1 text-sm text-[#30499B] hover:text-[#56B949] transition-colors"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
