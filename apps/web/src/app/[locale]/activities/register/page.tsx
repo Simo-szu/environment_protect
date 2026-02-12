@@ -80,7 +80,7 @@ function RegisterActivityContent() {
         };
 
         loadActivityData();
-    }, [activityId, router, locale]);
+    }, [activityId, router, locale, t]);
 
     // 自动填充用户信息
     useEffect(() => {

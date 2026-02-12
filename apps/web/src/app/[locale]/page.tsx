@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -288,7 +289,6 @@ export default function HomePage() {
                                         href={banner.linkUrl ? (banner.linkUrl.startsWith('/') ? `/${locale}${banner.linkUrl}` : banner.linkUrl) : `/${locale}`}
                                         className="relative block h-24 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity"
                                     >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={banner.imageUrl} alt={banner.title || 'banner'} className="w-full h-full object-cover" />
                                     </Link>
                                 ))}

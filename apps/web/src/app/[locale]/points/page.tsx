@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
@@ -135,7 +136,7 @@ function PointsPageContent() {
         }, stepDuration);
         
         return () => clearInterval(timer);
-    }, [pointsAccount?.availablePoints]);
+    }, [displayPoints, pointsAccount]);
 
     // 加载签到状态
     useEffect(() => {

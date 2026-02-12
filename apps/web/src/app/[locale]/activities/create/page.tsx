@@ -12,7 +12,7 @@ import {
     MapPin,
     Users,
     FileText,
-    Image,
+    ImageIcon,
     Save,
     TreePine,
     Recycle,
@@ -456,7 +456,7 @@ function CreateActivityContent() {
                         {/* 活动图片 */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                <Image className="w-4 h-4 inline mr-2" />
+                                <ImageIcon className="w-4 h-4 inline mr-2" />
                                 {t('create.form.image', '活动图片')}
                             </label>
 
@@ -477,7 +477,7 @@ function CreateActivityContent() {
                                 }}
                                 className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-[#56B949] transition-colors cursor-pointer"
                             >
-                                <Image className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                                <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                                 <p className="text-slate-500">
                                     {uploading ? t('create.status.uploading', '上传中...') : t('create.form.imageUpload', '点击上传活动图片')}
                                 </p>
