@@ -11,10 +11,10 @@
     <result column="payload" property="payload" jdbcType="VARCHAR"/>
     <result column="status" property="status" jdbcType="INTEGER"/>
     <result column="retry_count" property="retryCount" jdbcType="INTEGER"/>
-    <result column="next_retry_at" property="nextRetryAt" jdbcType="TIMESTAMP"/>
+    <result column="next_retry_at" property="nextRetryAt" typeHandler="com.youthloop.common.mybatis.TimestamptzTypeHandler"/>
     <result column="last_error" property="lastError" jdbcType="VARCHAR"/>
-    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
-    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    <result column="created_at" property="createdAt" typeHandler="com.youthloop.common.mybatis.TimestamptzTypeHandler"/>
+    <result column="updated_at" property="updatedAt" typeHandler="com.youthloop.common.mybatis.TimestamptzTypeHandler"/>
   </resultMap>
 
   <!-- Base Column List -->

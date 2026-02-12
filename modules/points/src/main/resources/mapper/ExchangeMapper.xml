@@ -3,7 +3,7 @@
 <mapper namespace="com.youthloop.points.persistence.mapper.ExchangeMapper">
 
     <resultMap id="GoodResultMap" type="com.youthloop.points.persistence.entity.GoodEntity">
-        <id column="id" property="id"/>
+        <id column="id" property="id" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.UuidTypeHandler"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
         <result column="image_url" property="imageUrl"/>
@@ -22,13 +22,13 @@
 
     <select id="selectGoodById" resultMap="GoodResultMap">
         SELECT * FROM social.exchange_good
-        WHERE id = #{id}
+        WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
     </select>
 
     <update id="decreaseStock">
         UPDATE social.exchange_good
         SET stock = stock - #{amount}, updated_at = now()
-        WHERE id = #{id} AND stock >= #{amount}
+        WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler} AND stock >= #{amount}
     </update>
 
     <insert id="insertOrder" parameterType="com.youthloop.points.persistence.entity.OrderEntity">
@@ -37,7 +37,10 @@
             recipient_name, recipient_phone, shipping_address, shipping_note,
             created_at, updated_at
         ) VALUES (
-            #{id}, #{userId}, #{goodId}, #{pointsCost}, #{status},
+            #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}, 
+            #{userId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}, 
+            #{goodId, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}, 
+            #{pointsCost}, #{status},
             #{recipientName}, #{recipientPhone}, #{shippingAddress}, #{shippingNote},
             #{createdAt}, #{updatedAt}
         )
