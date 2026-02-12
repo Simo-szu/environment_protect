@@ -134,7 +134,8 @@
         "searchPlaceholder": "Search...",
         "userId": "ID",
         "hostManagement": "Activity Management",
-        "adminPanel": "Admin Panel"
+        "adminPanel": "Admin Panel",
+        "hostVerification": "Host Verification"
     },
     "home": {
         "title": "YOUTHLOOP",

@@ -128,7 +128,8 @@
         "searchPlaceholder": "搜索...",
         "userId": "用户ID",
         "hostManagement": "活动管理",
-        "adminPanel": "开发者后台"
+        "adminPanel": "开发者后台",
+        "hostVerification": "主办方认证"
     },
     "home": {
         "title": "YOUTHLOOP",
@@ -241,11 +242,6 @@
                     "sorting": "垃圾分类",
                     "sortingPoints": "+20 积分"
                 }
-            },
-            "recommendation": {
-                "title": "推荐内容",
-                "subtitle": "RECOMMENDED FOR YOU",
-                "empty": "暂无推荐内容"
             }
         },
         "game": {
