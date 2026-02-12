@@ -47,14 +47,14 @@ interface Card {
 const CARD_POOL: Card[] = [
     {
         id: 'traditional-manufacturing',
-        name: '传统制造业升级',
+        name: '传统制造业',
         category: 'industry',
         cost: {},
         effect: {},
         perTurn: { industry: 15, carbon: 20 },
         cooldown: 0,
-        description: '深圳龙华工厂区试点。每回合 +15 产业值，+20 碳排放。',
-        imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&q=80&w=400'
+        description: '产业值+15 碳排放+20',
+        imageUrl: '/assets/cards/traditional-manufacturing.jpg'
     },
     {
         id: 'talent-introduction',
@@ -129,12 +129,15 @@ export default function GamePlayPage() {
     const [satisfaction, setSatisfaction] = useState(70);
 
     // 卡牌状态
-    const [handCards, setHandCards] = useState<Card[]>(() => {
-        const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 4);
-    });
+    const [handCards, setHandCards] = useState<Card[]>([]);
     const [deployedCards, setDeployedCards] = useState<Card[]>([]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
+    // 初始化手牌 - 只在客户端执行
+    useEffect(() => {
+        const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
+        setHandCards(shuffled.slice(0, 4));
+    }, []);
 
     const maxTurns = 15; // 根据文档改为15回合
     const carbonTarget = 100; // 根据文档改为100
@@ -143,12 +146,6 @@ export default function GamePlayPage() {
 
     const turnProgress = (currentTurn / maxTurns) * 100;
     const carbonProgress = (carbonEmission / 300) * 100;
-
-    // 初始化手牌
-    useEffect(() => {
-        const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
-        void shuffled;
-    }, []);
 
     // 发牌
     function dealCards() {
@@ -437,7 +434,7 @@ export default function GamePlayPage() {
                 </aside>
 
                 {/* 中心：游戏板块（4个区域） - 缩小宽度 */}
-                <main className="flex-1 bg-slate-50/50 p-3 overflow-hidden max-w-[55%]">
+                <main className="w-[40%] bg-slate-50/50 p-3 overflow-hidden shrink-0">
                     <div className="grid grid-cols-2 gap-2.5 h-full">
                         {/* 区域：工业 */}
                         <SectorCard
@@ -488,20 +485,20 @@ export default function GamePlayPage() {
                     </div>
                 </main>
 
-                {/* 右侧边栏：策略卡牌 - 扩大宽度并使用网格布局 */}
-                <aside className="flex-1 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 overflow-hidden">
-                    <div className="p-3 border-b border-slate-100 flex items-center justify-between">
-                        <h2 className="text-xs font-semibold text-slate-800">策略卡牌手卡</h2>
-                        <span className="text-[10px] text-slate-500">{handCards.length} 张</span>
+                {/* 右侧边栏：策略卡牌 - 3列布局 */}
+                <aside className="w-[420px] bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 overflow-hidden">
+                    <div className="p-2 border-b border-slate-100 flex items-center justify-between">
+                        <h2 className="text-[11px] font-semibold text-slate-800">策略卡牌手卡</h2>
+                        <span className="text-[9px] text-slate-500">{handCards.length} 张</span>
                     </div>
 
-                    <div className="p-3 flex-1 overflow-hidden">
-                        <div className="grid grid-cols-2 gap-2.5 h-full overflow-y-auto">
+                    <div className="p-2 flex-1 overflow-hidden">
+                        <div className="grid grid-cols-3 gap-1.5 h-full content-start">
                             {handCards.map((card) => (
                                 <div
                                     key={card.id}
                                     onClick={() => setSelectedCard(selectedCard?.id === card.id ? null : card)}
-                                    className={`bg-white rounded-lg border-2 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden h-fit ${selectedCard?.id === card.id ? 'border-[#30499b] ring-2 ring-[#30499b]/20' : 'border-slate-200 hover:border-[#30499b]/50'
+                                    className={`bg-white rounded-md border shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${selectedCard?.id === card.id ? 'border-[#30499b] ring-1 ring-[#30499b]/20' : 'border-slate-200 hover:border-[#30499b]/50'
                                         }`}
                                 >
                                     <div className="h-0.5 w-full" style={{
@@ -509,9 +506,9 @@ export default function GamePlayPage() {
                                             card.category === 'social' ? '#f0a32f' :
                                                 card.category === 'tech' ? '#00C087' : '#56b949'
                                     }}></div>
-                                    <div className="p-2">
-                                        <div className="flex justify-between items-start mb-1.5">
-                                            <span className="text-[9px] font-semibold px-1 py-0.5 rounded" style={{
+                                    <div className="p-1.5">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[8px] font-semibold px-1 py-0.5 rounded" style={{
                                                 color: card.category === 'industry' ? '#30499b' :
                                                     card.category === 'social' ? '#f0a32f' :
                                                         card.category === 'tech' ? '#00C087' : '#56b949',
@@ -524,27 +521,27 @@ export default function GamePlayPage() {
                                                         card.category === 'tech' ? '科创' : '绿建'}
                                             </span>
                                             {Object.keys(card.cost).length > 0 && (
-                                                <div className="flex items-center gap-0.5 text-[10px] text-slate-600">
+                                                <div className="flex items-center gap-0.5 text-[8px] text-slate-600">
                                                     {card.cost.industry && <span>💰{card.cost.industry}</span>}
                                                     {card.cost.population && <span>👥{card.cost.population}</span>}
                                                     {card.cost.tech && <span>💡{card.cost.tech}</span>}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="aspect-video bg-slate-100 rounded-md mb-1.5 overflow-hidden">
-                                            <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+                                        <div className="w-full rounded-md mb-1 overflow-hidden bg-slate-100" style={{ width: '100%', paddingBottom: '177.78%', position: 'relative' }}>
+                                            <img src={card.imageUrl} alt={card.name} className="absolute top-0 left-0 w-full h-full object-cover" />
                                         </div>
-                                        <h4 className="text-[11px] font-semibold text-slate-800 mb-0.5 leading-tight">{card.name}</h4>
-                                        <p className="text-[9px] text-slate-500 leading-snug line-clamp-2">{card.description}</p>
+                                        <h4 className="text-[9px] font-semibold text-slate-800 mb-0.5 leading-tight line-clamp-1">{card.name}</h4>
+                                        <p className="text-[8px] text-slate-500 leading-snug line-clamp-1">{card.description}</p>
 
                                         {selectedCard?.id === card.id && (
-                                            <div className="mt-1.5 flex gap-1">
+                                            <div className="mt-1 flex gap-1">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         deployCard(card);
                                                     }}
-                                                    className="flex-1 px-2 py-1 bg-[#30499b] text-white text-[9px] font-semibold rounded hover:bg-[#2a4086] transition-colors"
+                                                    className="flex-1 px-1.5 py-0.5 bg-[#30499b] text-white text-[8px] font-semibold rounded hover:bg-[#2a4086] transition-colors"
                                                 >
                                                     部署
                                                 </button>
@@ -554,9 +551,9 @@ export default function GamePlayPage() {
                                                             e.stopPropagation();
                                                             recycleCard(card);
                                                         }}
-                                                        className="px-2 py-1 bg-amber-500 text-white text-[9px] font-semibold rounded hover:bg-amber-600 transition-colors flex items-center gap-0.5"
+                                                        className="px-1.5 py-0.5 bg-amber-500 text-white text-[8px] font-semibold rounded hover:bg-amber-600 transition-colors flex items-center gap-0.5"
                                                     >
-                                                        <Trash2 className="w-2.5 h-2.5" />
+                                                        <Trash2 className="w-2 h-2" />
                                                     </button>
                                                 )}
                                             </div>
@@ -566,7 +563,7 @@ export default function GamePlayPage() {
                             ))}
 
                             {handCards.length === 0 && (
-                                <div className="col-span-2 text-center py-8 text-slate-400">
+                                <div className="col-span-4 text-center py-8 text-slate-400">
                                     <p className="text-xs">暂无卡牌</p>
                                     <p className="text-[10px] mt-0.5">点击&quot;下一回合&quot;获取新卡牌</p>
                                 </div>

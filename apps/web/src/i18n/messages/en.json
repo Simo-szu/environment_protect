@@ -171,6 +171,25 @@
             }
         },
         "sections": {
+            "homeBanners": {
+                "title": "Home Banners",
+                "subtitle": "HOME BANNERS",
+                "empty": "No banner data available"
+            },
+            "homeData": {
+                "available": "Home aggregate API connected",
+                "unavailable": "Home aggregate API not connected"
+            },
+            "recommendation": {
+                "title": "Latest Recommendation",
+                "subtitle": "RECOMMENDED FOR YOU",
+                "empty": "No recommendations available",
+                "source": "Source: {source}",
+                "unavailable": "Recommendation service is temporarily unavailable",
+                "weeklySource": "Weekly source: {source}",
+                "weeklyUnavailable": "Weekly recommendation is temporarily unavailable",
+                "explore": "Explore"
+            },
             "science": {
                 "title": "Science Materials",
                 "subtitle": "TRUSTWORTHY KNOWLEDGE",
