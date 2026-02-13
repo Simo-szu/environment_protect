@@ -53,7 +53,7 @@
   <update id="updateStatus">
     UPDATE social.outbox_event
     SET status = #{status},
-        retry_count = #{retryCount},
+        retry_count = COALESCE(#{retryCount}, retry_count),
         next_retry_at = #{nextRetryAt},
         last_error = #{lastError},
         updated_at = #{updatedAt}

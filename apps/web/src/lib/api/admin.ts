@@ -53,6 +53,50 @@ export interface AdminUpdateHomeBannerRequest {
   endAt?: string;
 }
 
+export interface AdminContentItem {
+  id: string;
+  type: number;
+  title: string;
+  summary?: string;
+  coverUrl?: string;
+  publishedAt?: string;
+  status: number;
+  createdAt: string;
+  likeCount?: number;
+  favCount?: number;
+  commentCount?: number;
+  hotScore?: number;
+}
+
+export interface AdminContentDetail extends AdminContentItem {
+  body?: string;
+  sourceType?: number;
+  sourceUrl?: string;
+  updatedAt?: string;
+  downCount?: number;
+}
+
+export interface AdminCreateContentRequest {
+  type: number;
+  title: string;
+  summary?: string;
+  coverUrl?: string;
+  body: string;
+  sourceType: number;
+  sourceUrl?: string;
+  publishedAt?: string;
+  status?: number;
+}
+
+export interface AdminUpdateContentRequest {
+  type?: number;
+  title?: string;
+  summary?: string;
+  coverUrl?: string;
+  body?: string;
+  status?: number;
+}
+
 export async function getAdminHostVerifications(status?: number): Promise<PageResponse<AdminHostVerificationItem>> {
   return apiGet<PageResponse<AdminHostVerificationItem>>('/api/v1/admin/host/verifications', { status });
 }
@@ -84,3 +128,50 @@ export async function deleteAdminHomeBanner(id: string): Promise<void> {
   return apiDelete<void>(`/api/v1/admin/home/banners/${id}`);
 }
 
+export async function getAdminContents(params: {
+  type?: number;
+  status?: number;
+  keyword?: string;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<AdminContentItem>> {
+  return apiGet<PageResponse<AdminContentItem>>('/api/v1/admin/contents', params);
+}
+
+export async function getAdminContentById(id: string): Promise<AdminContentDetail> {
+  return apiGet<AdminContentDetail>(`/api/v1/admin/contents/${id}`);
+}
+
+export async function createAdminContent(data: AdminCreateContentRequest): Promise<string> {
+  return apiPost<string>('/api/v1/admin/contents', data);
+}
+
+export async function updateAdminContent(id: string, data: AdminUpdateContentRequest): Promise<void> {
+  return apiPatch<void>(`/api/v1/admin/contents/${id}`, data);
+}
+
+export async function publishAdminContent(id: string): Promise<void> {
+  return apiPost<void>(`/api/v1/admin/contents/${id}/publish`, {});
+}
+
+export async function deleteAdminContent(id: string): Promise<void> {
+  return apiDelete<void>(`/api/v1/admin/contents/${id}`);
+}
+
+export interface AdminIngestionReport {
+  sourceKey: string;
+  fetched: number;
+  created: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface AdminDailyIngestionSummary {
+  startedAt: string;
+  finishedAt: string;
+  reports: AdminIngestionReport[];
+}
+
+export async function triggerAdminIngestion(): Promise<AdminDailyIngestionSummary> {
+  return apiPost<AdminDailyIngestionSummary>('/api/v1/admin/contents/ingestion/trigger', {});
+}

@@ -44,8 +44,15 @@
       <if test="status != null">
         AND status = #{status}
       </if>
+      <if test="keyword != null and keyword != ''">
+        AND (
+          title ILIKE CONCAT('%', #{keyword}, '%')
+          OR summary ILIKE CONCAT('%', #{keyword}, '%')
+          OR body ILIKE CONCAT('%', #{keyword}, '%')
+        )
+      </if>
     </where>
-    ORDER BY published_at DESC NULLS LAST, created_at DESC
+    ORDER BY created_at DESC, published_at DESC NULLS LAST
     LIMIT #{limit} OFFSET #{offset}
   </select>
 
@@ -59,6 +66,13 @@
       </if>
       <if test="status != null">
         AND status = #{status}
+      </if>
+      <if test="keyword != null and keyword != ''">
+        AND (
+          title ILIKE CONCAT('%', #{keyword}, '%')
+          OR summary ILIKE CONCAT('%', #{keyword}, '%')
+          OR body ILIKE CONCAT('%', #{keyword}, '%')
+        )
       </if>
     </where>
   </select>
@@ -101,6 +115,13 @@
   <!-- 根据来源 URL 查询 -->
   <select id="selectBySourceUrl" resultMap="BaseResultMap">
     SELECT <include refid="Base_Column_List"/>
+    FROM social.content
+    WHERE source_url = #{sourceUrl}
+    LIMIT 1
+  </select>
+
+  <select id="selectIdBySourceUrl" resultType="java.lang.String">
+    SELECT id::text
     FROM social.content
     WHERE source_url = #{sourceUrl}
     LIMIT 1

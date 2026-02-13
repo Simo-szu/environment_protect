@@ -33,7 +33,10 @@ public class ContentQueryService {
      */
     public PageResponse<ContentListDTO> getContentList(ContentQueryRequest request) {
         // 默认只查询已发布的内容
-        Integer status = request.getStatus() != null ? request.getStatus() : 1;
+        Integer status = request.getStatus();
+        if (status == null && !Boolean.TRUE.equals(request.getIncludeAllStatus())) {
+            status = 1;
+        }
         
         // 计算分页参数
         int page = Math.max(1, request.getPage());
@@ -41,12 +44,18 @@ public class ContentQueryService {
         int offset = (page - 1) * size;
         
         // 查询总数
-        Long total = contentMapper.countList(request.getType(), status);
+        String keyword = request.getKeyword() == null ? null : request.getKeyword().trim();
+        if (keyword != null && keyword.isEmpty()) {
+            keyword = null;
+        }
+
+        Long total = contentMapper.countList(request.getType(), status, keyword);
         
         // 查询列表
         List<ContentEntity> entities = contentMapper.selectList(
             request.getType(),
             status,
+            keyword,
             offset,
             size
         );

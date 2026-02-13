@@ -82,6 +82,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Ingestion Module -->
+        <dependency>
+            <groupId>com.youthloop</groupId>
+            <artifactId>youthloop-ingestion</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

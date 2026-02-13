@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 /**
  * 创建内容请求
@@ -36,6 +37,9 @@ public class CreateContentRequest {
     
     @Schema(description = "来源 URL（爬取时必填）")
     private String sourceUrl;
+
+    @Schema(description = "来源发布时间（爬取时可传）")
+    private LocalDateTime publishedAt;
     
     @Schema(description = "状态：1=已发布 2=草稿 3=隐藏", example = "2")
     private Integer status = 2; // 默认草稿

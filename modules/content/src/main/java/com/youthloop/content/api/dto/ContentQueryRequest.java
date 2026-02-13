@@ -4,21 +4,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * 内容查询请求
+ * Content list query request.
  */
 @Data
-@Schema(description = "内容查询请求")
+@Schema(description = "Content list query request")
 public class ContentQueryRequest {
-    
-    @Schema(description = "内容类型：1=新闻 2=动态 3=政策 4=百科（可选）")
+
+    @Schema(description = "Content type: 1=news 2=feed 3=policy 4=wiki")
     private Integer type;
-    
-    @Schema(description = "状态：1=已发布 2=草稿 3=隐藏（可选，默认只查已发布）")
+
+    @Schema(description = "Status: 1=published 2=draft 3=hidden")
     private Integer status;
-    
-    @Schema(description = "页码（从 1 开始）", example = "1")
+
+    @Schema(description = "Page number", example = "1")
     private Integer page = 1;
-    
-    @Schema(description = "每页数量", example = "20")
+
+    @Schema(description = "Page size", example = "20")
     private Integer size = 20;
+
+    @Schema(description = "Keyword for fuzzy search in title/summary/body")
+    private String keyword;
+
+    @Schema(description = "Whether to ignore default published-only filter")
+    private Boolean includeAllStatus = false;
 }

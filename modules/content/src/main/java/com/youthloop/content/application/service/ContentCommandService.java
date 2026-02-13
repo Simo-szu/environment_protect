@@ -43,12 +43,13 @@ public class ContentCommandService {
         
         // 校验来源 URL 唯一性（如果提供）
         if (request.getSourceUrl() != null && !request.getSourceUrl().isEmpty()) {
-            ContentEntity existing = contentMapper.selectBySourceUrl(request.getSourceUrl());
-            if (existing != null) {
+            String existingIdText = contentMapper.selectIdBySourceUrl(request.getSourceUrl());
+            if (existingIdText != null && !existingIdText.isBlank()) {
+                UUID existingId = UUID.fromString(existingIdText);
                 log.warn("来源 URL 已存在: sourceUrl={}, existingId={}", 
-                    request.getSourceUrl(), existing.getId());
+                    request.getSourceUrl(), existingId);
                 throw new BizException(ErrorCode.RESOURCE_ALREADY_EXISTS, 
-                    "该来源 URL 已存在，内容 ID: " + existing.getId());
+                    "该来源 URL 已存在，内容 ID: " + existingId);
             }
         }
         
@@ -64,9 +65,11 @@ public class ContentCommandService {
         entity.setSourceUrl(request.getSourceUrl());
         entity.setStatus(request.getStatus() != null ? request.getStatus() : 2); // 默认草稿
         
-        // 如果状态是已发布，设置发布时间
+        // If status is published, use external publish time when available.
         if (entity.getStatus() == 1) {
-            entity.setPublishedAt(LocalDateTime.now());
+            entity.setPublishedAt(
+                request.getPublishedAt() != null ? request.getPublishedAt() : LocalDateTime.now()
+            );
         }
         
         LocalDateTime now = LocalDateTime.now();

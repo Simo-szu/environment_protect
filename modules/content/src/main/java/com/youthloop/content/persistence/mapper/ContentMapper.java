@@ -24,6 +24,7 @@ public interface ContentMapper {
     List<ContentEntity> selectList(
         @Param("type") Integer type,
         @Param("status") Integer status,
+        @Param("keyword") String keyword,
         @Param("offset") Integer offset,
         @Param("limit") Integer limit
     );
@@ -33,7 +34,8 @@ public interface ContentMapper {
      */
     Long countList(
         @Param("type") Integer type,
-        @Param("status") Integer status
+        @Param("status") Integer status,
+        @Param("keyword") String keyword
     );
     
     /**
@@ -55,4 +57,9 @@ public interface ContentMapper {
      * 根据来源 URL 查询内容
      */
     ContentEntity selectBySourceUrl(@Param("sourceUrl") String sourceUrl);
+
+    /**
+     * Query only id text by source url to keep dedupe checks lightweight.
+     */
+    String selectIdBySourceUrl(@Param("sourceUrl") String sourceUrl);
 }

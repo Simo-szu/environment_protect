@@ -34,7 +34,7 @@
           s.hot_score DESC NULLS LAST, c.published_at DESC NULLS LAST
         </when>
         <otherwise>
-          c.published_at DESC NULLS LAST, c.created_at DESC
+          c.created_at DESC, c.published_at DESC NULLS LAST
         </otherwise>
       </choose>
     LIMIT #{limit} OFFSET #{offset}
@@ -113,7 +113,7 @@
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
     WHERE c.status = 1
-    ORDER BY c.published_at DESC NULLS LAST, c.created_at DESC
+    ORDER BY c.created_at DESC, c.published_at DESC NULLS LAST
     LIMIT #{limit}
   </select>
 

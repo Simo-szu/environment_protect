@@ -52,3 +52,20 @@ logging:
     com.youthloop: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+
+ingestion:
+  content:
+    cron: ${INGESTION_CRON:0 30 3 * * ?}
+    zone: ${INGESTION_ZONE:Asia/Shanghai}
+    enabled: ${INGESTION_ENABLED:true}
+    publish-status: ${INGESTION_PUBLISH_STATUS:1}
+    request-timeout-ms: ${INGESTION_TIMEOUT_MS:10000}
+    request-interval-ms: ${INGESTION_INTERVAL_MS:300}
+    earth:
+      enabled: ${INGESTION_EARTH_ENABLED:true}
+      max-pages: ${INGESTION_EARTH_MAX_PAGES:2}
+      max-articles: ${INGESTION_EARTH_MAX_ARTICLES:30}
+    ecoepn:
+      enabled: ${INGESTION_ECOEPN_ENABLED:true}
+      max-pages: ${INGESTION_ECOEPN_MAX_PAGES:2}
+      max-articles: ${INGESTION_ECOEPN_MAX_ARTICLES:30}
