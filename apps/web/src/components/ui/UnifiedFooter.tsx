@@ -107,11 +107,15 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                                 </Link>
                             </li>
                             <li>
+                                <Link href={`/${locale}/game`} className="text-slate-500 hover:text-[#56B949] transition-colors">
+                                    {t('game', '环保游戏')}
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href={`/${locale}/points`} className="text-slate-500 hover:text-[#56B949] transition-colors">
                                     {t('points', '积分中心')}
                                 </Link>
                             </li>
-
                         </ul>
                     </div>
 
