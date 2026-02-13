@@ -592,7 +592,7 @@ function PointsPageContent() {
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-[#30499B] font-serif">{t('dailyTasks', '每日任务')}</h3>
                             <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
-                                {t('tasksRemaining', '今日剩余')} {dailyTasks.filter(t => t.status !== 3).length}
+                                {t('tasksRemaining', '今日剩余')} {Array.isArray(dailyTasks) ? dailyTasks.filter(t => t.status !== 3).length : 0}
                             </span>
                         </div>
 
@@ -600,7 +600,7 @@ function PointsPageContent() {
                             <div className="flex items-center justify-center py-12">
                                 <div className="w-8 h-8 border-4 border-[#30499B]/20 border-t-[#30499B] rounded-full animate-spin"></div>
                             </div>
-                        ) : dailyTasks.length === 0 ? (
+                        ) : !Array.isArray(dailyTasks) || dailyTasks.length === 0 ? (
                             <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
                                 {t('tasks.noTasks', '暂无任务')}
                             </div>
