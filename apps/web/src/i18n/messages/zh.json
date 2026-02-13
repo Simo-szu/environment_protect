@@ -128,7 +128,8 @@
         "searchPlaceholder": "搜索...",
         "userId": "用户ID",
         "hostManagement": "活动管理",
-        "adminPanel": "开发者后台"
+        "adminPanel": "开发者后台",
+        "hostVerification": "主办方认证"
     },
     "home": {
         "title": "YOUTHLOOP",
@@ -165,6 +166,25 @@
             }
         },
         "sections": {
+            "homeBanners": {
+                "title": "首页横幅",
+                "subtitle": "HOME BANNERS",
+                "empty": "暂无横幅数据"
+            },
+            "homeData": {
+                "available": "首页数据已连接",
+                "unavailable": "首页数据未连接"
+            },
+            "recommendation": {
+                "title": "推荐内容",
+                "subtitle": "RECOMMENDED FOR YOU",
+                "empty": "暂无推荐内容",
+                "source": "来源: {source}",
+                "unavailable": "推荐服务暂时不可用",
+                "weeklySource": "每周推荐来源: {source}",
+                "weeklyUnavailable": "每周推荐暂时不可用",
+                "explore": "探索更多"
+            },
             "science": {
                 "title": "科普资料",
                 "subtitle": "TRUSTWORTHY KNOWLEDGE",

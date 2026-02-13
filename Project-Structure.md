@@ -18,12 +18,6 @@
 
 ---
 
-## Changelog
-
-- v0.4.2（2026-01-25）：修正架构边界，移除“手机号验证”（尚未支持），新增“Google 登录”；移除“游戏服务”具体规范（标记为未来规划），清理历史遗留的生态小游戏逻辑。
-
----
-
 ## 1. Monorepo 仓库结构（全局规划）
 
 说明：下面是“目标结构”。当前 Next.js 已迁移到 `apps/web`，后续请保持前后端资产不要混放到仓库根目录。
@@ -606,11 +600,3 @@ JDBC 常见做法：
 - 请求响应结构：以 `packages/api-contracts/API_REQUEST_RESPONSE_SPEC.md` 为唯一规范来源
 
 ---
-
-## 15. 本文档的“合并与替代”说明
-
-为减少文档分散，本文档已吸收并覆盖以下内容（后续以本文档为准）：
-- Query 层规范（原 `架构设计/01-Architecture/Query-Layer.md`）
-- API Surface/端点约定（原 `架构设计/01-Architecture/API-Surface.md`、`架构设计/04-API/API-Endpoints-Index.md`）
-- DTO 字段与通用结构（原 `架构设计/04-API/DTO-Glossary.md`）
-- Stats/Outbox 策略与幂等要点（原 `架构设计/01-Architecture/Stats-Strategy.md` 等）
