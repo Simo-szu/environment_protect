@@ -445,7 +445,17 @@
         "loginToRegister": "登录后报名",
         "organizerInfo": "主办方信息",
         "ecoOrganization": "环保组织",
-        "linkCopied": "链接已复制到剪贴板"
+        "linkCopied": "链接已复制到剪贴板",
+        "comments": {
+            "title": "评论",
+            "placeholder": "写下你的评论...",
+            "post": "发表",
+            "posting": "发表中...",
+            "empty": "暂无评论",
+            "loginToComment": "登录后评论",
+            "postSuccess": "评论成功",
+            "postFailed": "评论失败，请重试"
+        }
     },
     "register": {
         "title": "活动报名",

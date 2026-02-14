@@ -425,7 +425,17 @@
         "loginToRegister": "Login to Register",
         "organizerInfo": "Organizer Information",
         "ecoOrganization": "Environmental Organization",
-        "linkCopied": "Link copied to clipboard"
+        "linkCopied": "Link copied to clipboard",
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write your comment...",
+            "post": "Post",
+            "posting": "Posting...",
+            "empty": "No comments yet",
+            "loginToComment": "Login to comment",
+            "postSuccess": "Comment posted successfully",
+            "postFailed": "Failed to post comment, please try again"
+        }
     },
     "register": {
         "title": "Activity Registration",
