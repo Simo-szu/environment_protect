@@ -50,6 +50,11 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
         router.push(`/${locale}`);
     };
 
+    // 检查用户角色
+    const userRole = user?.role || 1; // 默认为普通用户
+    const isHost = userRole >= 2; // HOST(2) 或 ADMIN(3)
+    const isAdmin = userRole === 3; // ADMIN(3)
+
     return (
         <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-b border-white/20 dark:border-slate-700/20 px-8 py-4 rounded-b-[2rem] shadow-2xl shadow-black/5 transition-all duration-500 ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -118,21 +123,28 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                 <Link href={`/${locale}/my-activities`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     📅 {t('myActivities', '我的活动')}
                                 </Link>
-                                
-                                {/* 管理入口 - 根据用户角色显示 */}
-                                <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
-                                
-                                <Link href={`/${locale}/host/activities`} className="text-sm text-blue-600 hover:text-blue-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    📋 {t('hostManagement', '活动管理')}
-                                </Link>
-                                <Link href={`/${locale}/host/verification`} className="text-sm text-indigo-600 hover:text-indigo-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    🧾 {t('hostVerification', '主办方认证')}
-                                </Link>
-                                
-                                <Link href={`/${locale}/admin`} className="text-sm text-purple-600 hover:text-purple-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    🛡️ {t('adminPanel', '开发者后台')}
-                                </Link>
-                                
+
+                                {/* 主办方/管理员入口 - 根据用户角色显示 */}
+                                {(isHost || isAdmin) && (
+                                    <>
+                                        <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
+
+                                        <Link href={`/${locale}/host/activities`} className="text-sm text-blue-600 hover:text-blue-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            📋 {t('hostManagement', '活动管理')}
+                                        </Link>
+                                        <Link href={`/${locale}/host/verification`} className="text-sm text-indigo-600 hover:text-indigo-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            🧾 {t('hostVerification', '主办方认证')}
+                                        </Link>
+                                    </>
+                                )}
+
+                                {/* 管理员后台 - 仅管理员可见 */}
+                                {isAdmin && (
+                                    <Link href={`/${locale}/admin`} className="text-sm text-purple-600 hover:text-purple-700 py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                        🛡️ {t('adminPanel', '开发者后台')}
+                                    </Link>
+                                )}
+
                                 <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
                                 
                                 <Link href={`/${locale}/points`} className="text-sm text-slate-600 dark:text-slate-400 hover:text-[#30499B] py-2" onClick={() => setIsMobileMenuOpen(false)}>
@@ -225,27 +237,31 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                         <div className="w-5 h-5 flex items-center justify-center">📅</div>
                                         <span className="font-medium">{t('myActivities', '我的活动')}</span>
                                     </Link>
-                                    
-                                    {/* 管理入口 - 根据用户角色显示 */}
-                                    {/* TODO: 后端需要提供用户角色信息，这里暂时显示给所有用户 */}
-                                    <div className="border-t border-slate-100 my-2"></div>
-                                    
-                                    {/* 活动发布者管理 - 当用户发布过活动时显示 */}
-                                    <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 hover:bg-blue-50 transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">📋</div>
-                                        <span className="font-medium">{t('hostManagement', '活动管理')}</span>
-                                    </Link>
-                                    <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">🧾</div>
-                                        <span className="font-medium">{t('hostVerification', '主办方认证')}</span>
-                                    </Link>
-                                    
-                                    {/* 开发者后台 - 仅开发者可见 */}
-                                    <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 hover:bg-purple-50 transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">🛡️</div>
-                                        <span className="font-medium">{t('adminPanel', '开发者后台')}</span>
-                                    </Link>
-                                    
+
+                                    {/* 主办方/管理员入口 - 根据用户角色显示 */}
+                                    {(isHost || isAdmin) && (
+                                        <>
+                                            <div className="border-t border-slate-100 my-2"></div>
+
+                                            <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 hover:bg-blue-50 transition-colors">
+                                                <div className="w-5 h-5 flex items-center justify-center">📋</div>
+                                                <span className="font-medium">{t('hostManagement', '活动管理')}</span>
+                                            </Link>
+                                            <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                                <div className="w-5 h-5 flex items-center justify-center">🧾</div>
+                                                <span className="font-medium">{t('hostVerification', '主办方认证')}</span>
+                                            </Link>
+                                        </>
+                                    )}
+
+                                    {/* 管理员后台 - 仅管理员可见 */}
+                                    {isAdmin && (
+                                        <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 hover:bg-purple-50 transition-colors">
+                                            <div className="w-5 h-5 flex items-center justify-center">🛡️</div>
+                                            <span className="font-medium">{t('adminPanel', '开发者后台')}</span>
+                                        </Link>
+                                    )}
+
                                     <div className="border-t border-slate-100 my-2"></div>
                                     
                                     <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-[#30499B] transition-colors">

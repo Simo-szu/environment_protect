@@ -57,9 +57,12 @@ public class UserProfileRepositoryImpl implements UserProfileRepository {
         model.setUserId(entity.getUserId());
         model.setNickname(entity.getNickname());
         model.setAvatarUrl(entity.getAvatarUrl());
+        model.setRole(entity.getRole());
         model.setGender(entity.getGender());
         model.setBirthday(entity.getBirthday());
         model.setHometown(entity.getHometown());
+        model.setBio(entity.getBio());
+        model.setLocation(entity.getLocation());
         model.setCreatedAt(entity.getCreatedAt());
         model.setUpdatedAt(entity.getUpdatedAt());
         return model;

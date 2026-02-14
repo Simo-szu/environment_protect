@@ -11,6 +11,7 @@ export interface UserProfile {
   userId: string;
   nickname: string;
   avatarUrl?: string;
+  role?: number; // 1=USER 2=HOST 3=ADMIN
   gender?: number; // 0=未知 1=男 2=女
   birthday?: string; // yyyy-MM-dd
   hometown?: string;

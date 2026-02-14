@@ -28,7 +28,12 @@ public class UserProfileEntity extends BaseEntity {
      * 头像 URL
      */
     private String avatarUrl;
-    
+
+    /**
+     * 角色：1=普通用户 2=主办方 3=管理员 (from shared.user table)
+     */
+    private Integer role;
+
     /**
      * 性别：0/null=未知 1=男 2=女
      */

@@ -26,7 +26,10 @@ public class UserProfileDTO {
     
     @Schema(description = "头像 URL")
     private String avatarUrl;
-    
+
+    @Schema(description = "角色：1=普通用户 2=主办方 3=管理员")
+    private Integer role;
+
     @Schema(description = "性别：0=未知 1=男 2=女")
     @Min(value = 0, message = "性别值无效")
     @Max(value = 2, message = "性别值无效")

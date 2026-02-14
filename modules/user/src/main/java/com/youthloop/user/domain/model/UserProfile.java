@@ -11,10 +11,11 @@ import java.util.UUID;
  */
 @Data
 public class UserProfile {
-    
+
     private UUID userId;
     private String nickname;
     private String avatarUrl;
+    private Integer role; // 1=USER 2=HOST 3=ADMIN
     private Integer gender;
     private LocalDate birthday;
     private String hometown;

@@ -9,6 +9,7 @@
     <id column="user_id" property="userId" jdbcType="OTHER"/>
     <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
     <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
+    <result column="role" property="role" jdbcType="INTEGER"/>
     <result column="gender" property="gender" jdbcType="INTEGER"/>
     <result column="birthday" property="birthday" jdbcType="DATE"/>
     <result column="hometown" property="hometown" jdbcType="VARCHAR"/>
@@ -25,9 +26,21 @@
 
   <!-- 鏍规嵁鐢ㄦ埛 ID 鏌ヨ -->
   <select id="selectByUserId" resultMap="BaseResultMap">
-    SELECT <include refid="Base_Column_List"/>
-    FROM shared.user_profile
-    WHERE user_id = #{userId}::uuid
+    SELECT
+      p.user_id,
+      p.nickname,
+      p.avatar_url,
+      u.role,
+      p.gender,
+      p.birthday,
+      p.hometown,
+      p.bio,
+      p.location,
+      p.created_at,
+      p.updated_at
+    FROM shared.user_profile p
+    INNER JOIN shared.user u ON p.user_id = u.id
+    WHERE p.user_id = #{userId}::uuid
   </select>
 
   <!-- 鎻掑叆 -->

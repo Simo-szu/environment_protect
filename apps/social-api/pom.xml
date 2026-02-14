@@ -222,6 +222,38 @@
                     <mainClass>com.youthloop.social.api.SocialApiApplication</mainClass>
                 </configuration>
             </plugin>
+
+            <!-- Flyway Maven Plugin -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>10.4.1</version>
+                <configuration>
+                    <url>jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared</url>
+                    <user>social_migrator</user>
+                    <password>postgres</password>
+                    <schemas>
+                        <schema>shared</schema>
+                        <schema>social</schema>
+                    </schemas>
+                    <defaultSchema>social</defaultSchema>
+                    <table>flyway_schema_history_social</table>
+                    <locations>
+                        <location>filesystem:src/main/resources/db/migration/shared</location>
+                        <location>filesystem:src/main/resources/db/migration/social</location>
+                    </locations>
+                    <baselineOnMigrate>true</baselineOnMigrate>
+                    <validateOnMigrate>false</validateOnMigrate>
+                    <cleanDisabled>false</cleanDisabled>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.7.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 </project>

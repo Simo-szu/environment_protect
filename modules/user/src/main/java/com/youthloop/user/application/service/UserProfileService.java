@@ -86,6 +86,7 @@ public class UserProfileService {
         dto.setUserId(model.getUserId());
         dto.setNickname(model.getNickname());
         dto.setAvatarUrl(model.getAvatarUrl());
+        dto.setRole(model.getRole());
         dto.setGender(model.getGender());
         dto.setBirthday(model.getBirthday());
         dto.setHometown(model.getHometown());
