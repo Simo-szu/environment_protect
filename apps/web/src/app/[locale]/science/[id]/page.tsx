@@ -414,9 +414,17 @@ export default function ScienceArticleDetailPage() {
 
                     {/* 文章正文 */}
                     {article.content && (
-                        <div className="prose prose-slate max-w-none mb-8">
+                        <div className="prose prose-slate prose-lg max-w-none mb-8
+                            prose-headings:text-[#30499B] prose-headings:font-serif
+                            prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+                            prose-p:text-slate-700 prose-p:leading-relaxed prose-p:my-4
+                            prose-a:text-[#56B949] prose-a:no-underline hover:prose-a:underline
+                            prose-strong:text-slate-800 prose-strong:font-semibold
+                            prose-img:rounded-xl prose-img:shadow-lg prose-img:my-6
+                            prose-blockquote:border-l-4 prose-blockquote:border-[#56B949] prose-blockquote:pl-4 prose-blockquote:italic
+                            prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
+                            prose-li:text-slate-700 prose-li:my-1">
                             <div
-                                className="text-slate-700 leading-relaxed whitespace-pre-wrap"
                                 dangerouslySetInnerHTML={{ __html: article.content }}
                             />
                         </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import { adminApi } from '@/lib/api';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import type {
     AdminContentDetail,
     AdminContentItem,
@@ -47,6 +48,7 @@ export default function AdminPage() {
     const params = useParams();
     const router = useRouter();
     const locale = params.locale as string;
+    const { t } = useSafeTranslation('admin');
 
     const [activeTab, setActiveTab] = useState<AdminTab>('verifications');
     const [verificationStatus, setVerificationStatus] = useState<number | undefined>(1);
@@ -104,7 +106,7 @@ export default function AdminPage() {
             setContentTotal(r.total);
         } catch (error) {
             console.error('Failed to load contents:', error);
-            setContentError('Failed to load contents');
+            setContentError(t('contents.loadFailed'));
         } finally {
             setLoadingContents(false);
         }
@@ -117,7 +119,7 @@ export default function AdminPage() {
                 await Promise.all([loadVerifications(), loadBanners()]);
             } catch (error) {
                 console.error('Failed to load admin data:', error);
-                alert('Failed to load admin data');
+                alert(t('loadFailed', 'Failed to load admin data'));
             } finally {
                 setLoading(false);
             }
@@ -146,7 +148,7 @@ export default function AdminPage() {
     };
 
     const createContent = async () => {
-        if (!newContent.title.trim() || !newContent.body.trim()) return setMessage('', 'Title and body are required');
+        if (!newContent.title.trim() || !newContent.body.trim()) return setMessage('', t('contents.titleAndBodyRequired'));
         try {
             setCreatingContent(true);
             await adminApi.createAdminContent({
@@ -161,11 +163,11 @@ export default function AdminPage() {
             });
             setNewContent(defaultContentForm);
             setContentPage(1);
-            setMessage('Content created');
+            setMessage(t('contents.contentCreated'));
             await loadContents();
         } catch (error) {
             console.error('Failed to create content:', error);
-            setMessage('', 'Failed to create content');
+            setMessage('', t('contents.createFailed'));
         } finally {
             setCreatingContent(false);
         }
@@ -179,13 +181,13 @@ export default function AdminPage() {
             setMessage('');
         } catch (error) {
             console.error('Failed to load content detail:', error);
-            setMessage('', 'Failed to load content detail');
+            setMessage('', t('contents.loadDetailFailed'));
         }
     };
 
     const saveEditContent = async () => {
         if (!editingContentId) return;
-        if (!editContent.title.trim() || !editContent.body.trim()) return setMessage('', 'Title and body are required');
+        if (!editContent.title.trim() || !editContent.body.trim()) return setMessage('', t('contents.titleAndBodyRequired'));
         try {
             setUpdatingContent(true);
             await adminApi.updateAdminContent(editingContentId, {
@@ -198,11 +200,11 @@ export default function AdminPage() {
             });
             setEditingContentId(null);
             setEditContent(defaultContentForm);
-            setMessage('Content updated');
+            setMessage(t('contents.contentUpdated'));
             await loadContents();
         } catch (error) {
             console.error('Failed to update content:', error);
-            setMessage('', 'Failed to update content');
+            setMessage('', t('contents.updateFailed'));
         } finally {
             setUpdatingContent(false);
         }
@@ -211,24 +213,24 @@ export default function AdminPage() {
     const publishContent = async (id: string) => {
         try {
             await adminApi.publishAdminContent(id);
-            setMessage('Content published');
+            setMessage(t('contents.contentPublished'));
             await loadContents();
         } catch (error) {
             console.error('Failed to publish content:', error);
-            setMessage('', 'Failed to publish content');
+            setMessage('', t('contents.publishFailed'));
         }
     };
 
     const deleteContent = async (id: string) => {
-        if (!window.confirm('Delete this content?')) return;
+        if (!window.confirm(t('contents.confirmDelete'))) return;
         try {
             await adminApi.deleteAdminContent(id);
             if (editingContentId === id) setEditingContentId(null);
-            setMessage('Content deleted');
+            setMessage(t('contents.contentDeleted'));
             await loadContents();
         } catch (error) {
             console.error('Failed to delete content:', error);
-            setMessage('', 'Failed to delete content');
+            setMessage('', t('contents.deleteFailed'));
         }
     };
 
@@ -237,11 +239,11 @@ export default function AdminPage() {
             setTriggeringIngestion(true);
             const s = await adminApi.triggerAdminIngestion();
             setIngestionSummary(s);
-            setMessage('Ingestion completed');
+            setMessage(t('contents.ingestionCompleted'));
             await loadContents();
         } catch (error) {
             console.error('Failed to trigger ingestion:', error);
-            setMessage('', 'Failed to trigger ingestion');
+            setMessage('', t('contents.ingestionFailed'));
         } finally {
             setTriggeringIngestion(false);
         }
@@ -249,17 +251,17 @@ export default function AdminPage() {
 
     const reviewHost = async (userId: string, status: 2 | 3) => {
         try {
-            const note = window.prompt(status === 2 ? 'Approval note (optional)' : 'Reject reason (optional)', '') || undefined;
+            const note = window.prompt(status === 2 ? t('verifications.approvalNote') : t('verifications.rejectReason'), '') || undefined;
             await adminApi.reviewAdminHostVerification(userId, { status, reviewNote: note });
             await loadVerifications();
         } catch (error) {
             console.error('Failed to submit review:', error);
-            alert('Failed to submit review');
+            alert(t('verifications.reviewFailed'));
         }
     };
 
     const createBanner = async () => {
-        if (!newBanner.imageUrl.trim()) return alert('Image URL is required');
+        if (!newBanner.imageUrl.trim()) return alert(t('banners.imageUrlRequired'));
         try {
             setCreatingBanner(true);
             await adminApi.createAdminHomeBanner({
@@ -274,7 +276,7 @@ export default function AdminPage() {
             await loadBanners();
         } catch (error) {
             console.error('Failed to create banner:', error);
-            alert('Failed to create banner');
+            alert(t('banners.createFailed'));
         } finally {
             setCreatingBanner(false);
         }
@@ -284,25 +286,25 @@ export default function AdminPage() {
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-semibold text-[#30499B]">Admin Console</h1>
-                    <button onClick={() => router.push(`/${locale}/profile`)} className="px-3 py-2 border border-slate-200 rounded-lg">Back</button>
+                    <h1 className="text-2xl font-semibold text-[#30499B]">{t('console')}</h1>
+                    <button onClick={() => router.push(`/${locale}/profile`)} className="px-3 py-2 border border-slate-200 rounded-lg">{t('back')}</button>
                 </div>
                 <div className="flex gap-2 mb-6">
-                    <button onClick={() => setActiveTab('verifications')} className={`px-4 py-2 rounded-lg ${activeTab === 'verifications' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>Host Verifications</button>
-                    <button onClick={() => setActiveTab('banners')} className={`px-4 py-2 rounded-lg ${activeTab === 'banners' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>Home Banners</button>
-                    <button onClick={() => setActiveTab('contents')} className={`px-4 py-2 rounded-lg ${activeTab === 'contents' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>Contents</button>
+                    <button onClick={() => setActiveTab('verifications')} className={`px-4 py-2 rounded-lg ${activeTab === 'verifications' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.verifications')}</button>
+                    <button onClick={() => setActiveTab('banners')} className={`px-4 py-2 rounded-lg ${activeTab === 'banners' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.banners')}</button>
+                    <button onClick={() => setActiveTab('contents')} className={`px-4 py-2 rounded-lg ${activeTab === 'contents' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.contents')}</button>
                 </div>
 
-                {loading && <div className="text-slate-500">Loading...</div>}
+                {loading && <div className="text-slate-500">{t('loading')}</div>}
 
                 {!loading && activeTab === 'verifications' && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm text-slate-600">Status</span>
+                            <span className="text-sm text-slate-600">{t('verifications.status')}</span>
                             <select value={verificationStatus ?? ''} onChange={(e) => setVerificationStatus(e.target.value ? Number(e.target.value) : undefined)} className="px-3 py-2 border border-slate-200 rounded-lg">
-                                <option value="">All</option><option value={1}>Pending</option><option value={2}>Approved</option><option value={3}>Rejected</option><option value={4}>Revoked</option>
+                                <option value="">{t('verifications.all')}</option><option value={1}>{t('verifications.pending')}</option><option value={2}>{t('verifications.approved')}</option><option value={3}>{t('verifications.rejected')}</option><option value={4}>{t('verifications.revoked')}</option>
                             </select>
-                            <button onClick={loadVerifications} className="px-3 py-2 border border-slate-200 rounded-lg">Refresh</button>
+                            <button onClick={loadVerifications} className="px-3 py-2 border border-slate-200 rounded-lg">{t('refresh')}</button>
                         </div>
                         {verifications.map((item) => (
                             <div key={item.userId} className="p-4 border border-slate-200 rounded-xl">
@@ -310,53 +312,53 @@ export default function AdminPage() {
                                 <div className="text-sm text-slate-600 mt-1">{item.contactName} / {item.contactPhone}</div>
                                 <div className="text-xs text-slate-500 mt-1">status={item.status} submittedAt={item.submittedAt || '-'}</div>
                                 <div className="flex gap-2 mt-3">
-                                    <button onClick={() => reviewHost(item.userId, 2)} className="px-3 py-1.5 bg-green-600 text-white rounded-lg disabled:opacity-60" disabled={item.status !== 1}>Approve</button>
-                                    <button onClick={() => reviewHost(item.userId, 3)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg disabled:opacity-60" disabled={item.status !== 1}>Reject</button>
+                                    <button onClick={() => reviewHost(item.userId, 2)} className="px-3 py-1.5 bg-green-600 text-white rounded-lg disabled:opacity-60" disabled={item.status !== 1}>{t('approve')}</button>
+                                    <button onClick={() => reviewHost(item.userId, 3)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg disabled:opacity-60" disabled={item.status !== 1}>{t('reject')}</button>
                                 </div>
                             </div>
                         ))}
-                        {verifications.length === 0 && <div className="text-slate-500">No records.</div>}
+                        {verifications.length === 0 && <div className="text-slate-500">{t('noRecords')}</div>}
                     </div>
                 )}
 
                 {!loading && activeTab === 'banners' && (
                     <div className="space-y-4">
                         <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-                            <div className="text-sm font-medium text-slate-700 mb-3">Create Banner</div>
+                            <div className="text-sm font-medium text-slate-700 mb-3">{t('banners.createBanner')}</div>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                <input value={newBanner.title} onChange={(e) => setNewBanner((p) => ({ ...p, title: e.target.value }))} placeholder="Title" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                <input value={newBanner.imageUrl} onChange={(e) => setNewBanner((p) => ({ ...p, imageUrl: e.target.value }))} placeholder="Image URL *" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newBanner.title} onChange={(e) => setNewBanner((p) => ({ ...p, title: e.target.value }))} placeholder={t('banners.title')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newBanner.imageUrl} onChange={(e) => setNewBanner((p) => ({ ...p, imageUrl: e.target.value }))} placeholder={t('banners.imageUrl') + ' *'} className="px-3 py-2 border border-slate-200 rounded-lg" />
                                 <select value={newBanner.linkType} onChange={(e) => setNewBanner((p) => ({ ...p, linkType: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg">
-                                    <option value={1}>None</option><option value={2}>Content</option><option value={3}>Activity</option><option value={4}>External URL</option>
+                                    <option value={1}>{t('banners.none')}</option><option value={2}>{t('banners.content')}</option><option value={3}>{t('banners.activity')}</option><option value={4}>{t('banners.externalUrl')}</option>
                                 </select>
-                                <input value={newBanner.linkTarget} onChange={(e) => setNewBanner((p) => ({ ...p, linkTarget: e.target.value }))} placeholder="Link target" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newBanner.linkTarget} onChange={(e) => setNewBanner((p) => ({ ...p, linkTarget: e.target.value }))} placeholder={t('banners.linkTarget')} className="px-3 py-2 border border-slate-200 rounded-lg" />
                             </div>
-                            <button onClick={createBanner} disabled={creatingBanner} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{creatingBanner ? 'Creating...' : 'Create'}</button>
+                            <button onClick={createBanner} disabled={creatingBanner} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{creatingBanner ? t('banners.creating') : t('banners.create')}</button>
                         </div>
                         {banners.map((banner) => (
                             <div key={banner.id} className="p-4 border border-slate-200 rounded-xl">
-                                <div className="font-medium text-slate-800">{banner.title || '(untitled)'}</div>
+                                <div className="font-medium text-slate-800">{banner.title || t('banners.untitled')}</div>
                                 <div className="text-sm text-slate-600 break-all mt-1">{banner.imageUrl}</div>
                                 <div className="text-xs text-slate-500 mt-1">linkType={banner.linkType} target={banner.linkTarget || '-'}</div>
                                 <div className="flex gap-2 mt-3">
-                                    <button onClick={async () => window.alert(JSON.stringify(await adminApi.getAdminHomeBannerById(banner.id), null, 2))} className="px-3 py-1.5 border border-slate-200 rounded-lg">View</button>
-                                    <button onClick={async () => { const t = window.prompt('Update title', banner.title || ''); if (t !== null) { await adminApi.updateAdminHomeBanner(banner.id, { title: t }); await loadBanners(); } }} className="px-3 py-1.5 border border-slate-200 rounded-lg">Edit Title</button>
-                                    <button onClick={async () => { if (window.confirm('Delete this banner?')) { await adminApi.deleteAdminHomeBanner(banner.id); await loadBanners(); } }} className="px-3 py-1.5 bg-red-600 text-white rounded-lg">Delete</button>
+                                    <button onClick={async () => window.alert(JSON.stringify(await adminApi.getAdminHomeBannerById(banner.id), null, 2))} className="px-3 py-1.5 border border-slate-200 rounded-lg">{t('banners.viewDetails')}</button>
+                                    <button onClick={async () => { const title = window.prompt(t('banners.updateTitle'), banner.title || ''); if (title !== null) { await adminApi.updateAdminHomeBanner(banner.id, { title }); await loadBanners(); } }} className="px-3 py-1.5 border border-slate-200 rounded-lg">{t('banners.editTitle')}</button>
+                                    <button onClick={async () => { if (window.confirm(t('banners.confirmDelete'))) { await adminApi.deleteAdminHomeBanner(banner.id); await loadBanners(); } }} className="px-3 py-1.5 bg-red-600 text-white rounded-lg">{t('banners.delete')}</button>
                                 </div>
                             </div>
                         ))}
-                        {banners.length === 0 && <div className="text-slate-500">No banners.</div>}
+                        {banners.length === 0 && <div className="text-slate-500">{t('banners.noBanners')}</div>}
                     </div>
                 )}
 
                 {!loading && activeTab === 'contents' && (
                     <div className="space-y-4">
                         <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-                            <div className="text-sm font-medium text-slate-700 mb-3">Ingestion Control</div>
-                            <button onClick={triggerIngestion} disabled={triggeringIngestion} className="px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{triggeringIngestion ? 'Triggering...' : 'Trigger Daily Ingestion'}</button>
+                            <div className="text-sm font-medium text-slate-700 mb-3">{t('contents.ingestionControl')}</div>
+                            <button onClick={triggerIngestion} disabled={triggeringIngestion} className="px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{triggeringIngestion ? t('contents.triggering') : t('contents.triggerIngestion')}</button>
                             {ingestionSummary && (
                                 <div className="mt-3 text-xs text-slate-700 space-y-1">
-                                    <div>startedAt={ingestionSummary.startedAt} finishedAt={ingestionSummary.finishedAt}</div>
+                                    <div>{t('contents.startedAt')}={ingestionSummary.startedAt} {t('contents.finishedAt')}={ingestionSummary.finishedAt}</div>
                                     {ingestionSummary.reports.map((r) => <div key={r.sourceKey}>{r.sourceKey}: fetched={r.fetched} created={r.created} skipped={r.skipped} failed={r.failed}</div>)}
                                 </div>
                             )}
@@ -366,43 +368,43 @@ export default function AdminPage() {
 
                         {editingContentId && (
                             <div className="p-4 border border-slate-200 rounded-xl">
-                                <div className="flex items-center justify-between mb-3"><div className="text-sm font-medium text-slate-700">Edit Content</div><button onClick={() => setEditingContentId(null)} className="px-3 py-1.5 border border-slate-200 rounded-lg">Cancel</button></div>
+                                <div className="flex items-center justify-between mb-3"><div className="text-sm font-medium text-slate-700">{t('contents.editContent')}</div><button onClick={() => setEditingContentId(null)} className="px-3 py-1.5 border border-slate-200 rounded-lg">{t('contents.cancel')}</button></div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <select value={editContent.type} onChange={(e) => setEditContent((p) => ({ ...p, type: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>News</option><option value={2}>Policy</option><option value={3}>Encyclopedia</option></select>
-                                    <select value={editContent.status} onChange={(e) => setEditContent((p) => ({ ...p, status: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>Draft</option><option value={2}>Published</option><option value={3}>Archived</option></select>
-                                    <input value={editContent.coverUrl} onChange={(e) => setEditContent((p) => ({ ...p, coverUrl: e.target.value }))} placeholder="Cover URL" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                    <input value={editContent.title} onChange={(e) => setEditContent((p) => ({ ...p, title: e.target.value }))} placeholder="Title *" className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-2" />
-                                    <input value={editContent.summary} onChange={(e) => setEditContent((p) => ({ ...p, summary: e.target.value }))} placeholder="Summary" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                    <textarea value={editContent.body} onChange={(e) => setEditContent((p) => ({ ...p, body: e.target.value }))} placeholder="Body *" className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-3 min-h-32" />
+                                    <select value={editContent.type} onChange={(e) => setEditContent((p) => ({ ...p, type: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>{t('contents.news')}</option><option value={2}>{t('contents.policy')}</option><option value={3}>{t('contents.encyclopedia')}</option></select>
+                                    <select value={editContent.status} onChange={(e) => setEditContent((p) => ({ ...p, status: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>{t('contents.draft')}</option><option value={2}>{t('contents.published')}</option><option value={3}>{t('contents.archived')}</option></select>
+                                    <input value={editContent.coverUrl} onChange={(e) => setEditContent((p) => ({ ...p, coverUrl: e.target.value }))} placeholder={t('contents.coverUrl')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                    <input value={editContent.title} onChange={(e) => setEditContent((p) => ({ ...p, title: e.target.value }))} placeholder={t('contents.titleRequired')} className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-2" />
+                                    <input value={editContent.summary} onChange={(e) => setEditContent((p) => ({ ...p, summary: e.target.value }))} placeholder={t('contents.summary')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                    <textarea value={editContent.body} onChange={(e) => setEditContent((p) => ({ ...p, body: e.target.value }))} placeholder={t('contents.bodyRequired')} className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-3 min-h-32" />
                                 </div>
-                                <button onClick={saveEditContent} disabled={updatingContent} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{updatingContent ? 'Saving...' : 'Save Changes'}</button>
+                                <button onClick={saveEditContent} disabled={updatingContent} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{updatingContent ? t('contents.saving') : t('contents.saveChanges')}</button>
                             </div>
                         )}
 
                         <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-                            <div className="text-sm font-medium text-slate-700 mb-3">Create Content</div>
+                            <div className="text-sm font-medium text-slate-700 mb-3">{t('contents.createContent')}</div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <select value={newContent.type} onChange={(e) => setNewContent((p) => ({ ...p, type: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>News</option><option value={2}>Policy</option><option value={3}>Encyclopedia</option></select>
-                                <input value={newContent.title} onChange={(e) => setNewContent((p) => ({ ...p, title: e.target.value }))} placeholder="Title *" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                <input value={newContent.coverUrl} onChange={(e) => setNewContent((p) => ({ ...p, coverUrl: e.target.value }))} placeholder="Cover URL" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                <input value={newContent.summary} onChange={(e) => setNewContent((p) => ({ ...p, summary: e.target.value }))} placeholder="Summary" className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-2" />
-                                <input value={newContent.sourceUrl} onChange={(e) => setNewContent((p) => ({ ...p, sourceUrl: e.target.value }))} placeholder="Source URL" className="px-3 py-2 border border-slate-200 rounded-lg" />
-                                <select value={newContent.sourceType} onChange={(e) => setNewContent((p) => ({ ...p, sourceType: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>Original</option><option value={2}>Crawled</option></select>
-                                <select value={newContent.status} onChange={(e) => setNewContent((p) => ({ ...p, status: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>Draft</option><option value={2}>Published</option></select>
-                                <textarea value={newContent.body} onChange={(e) => setNewContent((p) => ({ ...p, body: e.target.value }))} placeholder="Body *" className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-3 min-h-28" />
+                                <select value={newContent.type} onChange={(e) => setNewContent((p) => ({ ...p, type: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>{t('contents.news')}</option><option value={2}>{t('contents.policy')}</option><option value={3}>{t('contents.encyclopedia')}</option></select>
+                                <input value={newContent.title} onChange={(e) => setNewContent((p) => ({ ...p, title: e.target.value }))} placeholder={t('contents.titleRequired')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newContent.coverUrl} onChange={(e) => setNewContent((p) => ({ ...p, coverUrl: e.target.value }))} placeholder={t('contents.coverUrl')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newContent.summary} onChange={(e) => setNewContent((p) => ({ ...p, summary: e.target.value }))} placeholder={t('contents.summary')} className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-2" />
+                                <input value={newContent.sourceUrl} onChange={(e) => setNewContent((p) => ({ ...p, sourceUrl: e.target.value }))} placeholder={t('contents.sourceUrl')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <select value={newContent.sourceType} onChange={(e) => setNewContent((p) => ({ ...p, sourceType: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>{t('contents.original')}</option><option value={2}>{t('contents.crawled')}</option></select>
+                                <select value={newContent.status} onChange={(e) => setNewContent((p) => ({ ...p, status: Number(e.target.value) }))} className="px-3 py-2 border border-slate-200 rounded-lg"><option value={1}>{t('contents.draft')}</option><option value={2}>{t('contents.published')}</option></select>
+                                <textarea value={newContent.body} onChange={(e) => setNewContent((p) => ({ ...p, body: e.target.value }))} placeholder={t('contents.bodyRequired')} className="px-3 py-2 border border-slate-200 rounded-lg md:col-span-3 min-h-28" />
                             </div>
-                            <button onClick={createContent} disabled={creatingContent} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{creatingContent ? 'Creating...' : 'Create Content'}</button>
+                            <button onClick={createContent} disabled={creatingContent} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{creatingContent ? t('contents.creating') : t('contents.createContent')}</button>
                         </div>
 
                         <div className="p-4 border border-slate-200 rounded-xl">
                             <div className="flex flex-wrap gap-3 items-center mb-3">
-                                <span className="text-sm text-slate-600">Filter</span>
-                                <select value={contentTypeFilter ?? ''} onChange={(e) => setContentTypeFilter(e.target.value ? Number(e.target.value) : undefined)} className="px-3 py-2 border border-slate-200 rounded-lg"><option value="">All Types</option><option value={1}>News</option><option value={2}>Policy</option><option value={3}>Encyclopedia</option></select>
-                                <select value={contentStatusFilter ?? ''} onChange={(e) => setContentStatusFilter(e.target.value ? Number(e.target.value) : undefined)} className="px-3 py-2 border border-slate-200 rounded-lg"><option value="">All Status</option><option value={1}>Draft</option><option value={2}>Published</option><option value={3}>Archived</option></select>
-                                <input value={contentKeywordInput} onChange={(e) => setContentKeywordInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { setContentPage(1); setContentKeyword(contentKeywordInput.trim()); } }} placeholder="Search title/summary/body" className="px-3 py-2 border border-slate-200 rounded-lg min-w-64" />
-                                <button onClick={() => { setContentPage(1); setContentKeyword(contentKeywordInput.trim()); }} className="px-3 py-2 border border-slate-200 rounded-lg">Apply</button>
+                                <span className="text-sm text-slate-600">{t('contents.filter')}</span>
+                                <select value={contentTypeFilter ?? ''} onChange={(e) => setContentTypeFilter(e.target.value ? Number(e.target.value) : undefined)} className="px-3 py-2 border border-slate-200 rounded-lg"><option value="">{t('contents.allTypes')}</option><option value={1}>{t('contents.news')}</option><option value={2}>{t('contents.policy')}</option><option value={3}>{t('contents.encyclopedia')}</option></select>
+                                <select value={contentStatusFilter ?? ''} onChange={(e) => setContentStatusFilter(e.target.value ? Number(e.target.value) : undefined)} className="px-3 py-2 border border-slate-200 rounded-lg"><option value="">{t('contents.allStatus')}</option><option value={1}>{t('contents.draft')}</option><option value={2}>{t('contents.published')}</option><option value={3}>{t('contents.archived')}</option></select>
+                                <input value={contentKeywordInput} onChange={(e) => setContentKeywordInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { setContentPage(1); setContentKeyword(contentKeywordInput.trim()); } }} placeholder={t('contents.searchPlaceholder')} className="px-3 py-2 border border-slate-200 rounded-lg min-w-64" />
+                                <button onClick={() => { setContentPage(1); setContentKeyword(contentKeywordInput.trim()); }} className="px-3 py-2 border border-slate-200 rounded-lg">{t('contents.apply')}</button>
                             </div>
-                            {loadingContents ? <div className="text-slate-500">Loading contents...</div> : (
+                            {loadingContents ? <div className="text-slate-500">{t('contents.loadingContents')}</div> : (
                                 <div className="space-y-3">
                                     {contents.map((item) => (
                                         <div key={item.id} className="p-4 border border-slate-200 rounded-xl">
@@ -410,21 +412,21 @@ export default function AdminPage() {
                                             <div className="text-xs text-slate-500 mt-1">id={item.id} type={item.type} status={item.status} publishedAt={item.publishedAt || '-'}</div>
                                             <div className="text-sm text-slate-600 mt-1 line-clamp-2">{item.summary || '-'}</div>
                                             <div className="flex flex-wrap gap-2 mt-3">
-                                                <button onClick={() => startEditContent(item.id)} className="px-3 py-1.5 border border-slate-200 rounded-lg">Edit</button>
-                                                <button onClick={() => publishContent(item.id)} disabled={item.status === 2} className="px-3 py-1.5 bg-green-600 text-white rounded-lg disabled:opacity-60">Publish</button>
-                                                <button onClick={() => deleteContent(item.id)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg">Delete</button>
+                                                <button onClick={() => startEditContent(item.id)} className="px-3 py-1.5 border border-slate-200 rounded-lg">{t('contents.edit')}</button>
+                                                <button onClick={() => publishContent(item.id)} disabled={item.status === 2} className="px-3 py-1.5 bg-green-600 text-white rounded-lg disabled:opacity-60">{t('contents.publish')}</button>
+                                                <button onClick={() => deleteContent(item.id)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg">{t('contents.delete')}</button>
                                             </div>
                                         </div>
                                     ))}
-                                    {contents.length === 0 && <div className="text-slate-500">No contents.</div>}
+                                    {contents.length === 0 && <div className="text-slate-500">{t('contents.noContents')}</div>}
                                 </div>
                             )}
                             <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-                                <div className="text-sm text-slate-500">Total {contentTotal} records, page {contentPage} / {totalPages}</div>
+                                <div className="text-sm text-slate-500">{t('contents.totalRecords', '', { total: contentTotal })}, {t('contents.pageInfo', '', { page: contentPage, totalPages })}</div>
                                 <div className="flex gap-2 items-center">
-                                    <button onClick={() => setContentPage((p) => Math.max(1, p - 1))} disabled={contentPage <= 1} className="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-50">Prev</button>
+                                    <button onClick={() => setContentPage((p) => Math.max(1, p - 1))} disabled={contentPage <= 1} className="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-50">{t('contents.prev')}</button>
                                     {visiblePages.map((n) => <button key={n} onClick={() => setContentPage(n)} className={`px-3 py-1.5 rounded-lg border ${n === contentPage ? 'bg-[#30499B] text-white border-[#30499B]' : 'border-slate-200'}`}>{n}</button>)}
-                                    <button onClick={() => setContentPage((p) => Math.min(totalPages, p + 1))} disabled={contentPage >= totalPages} className="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-50">Next</button>
+                                    <button onClick={() => setContentPage((p) => Math.min(totalPages, p + 1))} disabled={contentPage >= totalPages} className="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-50">{t('contents.next')}</button>
                                 </div>
                             </div>
                         </div>

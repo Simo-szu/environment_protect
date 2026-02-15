@@ -2,6 +2,7 @@ package com.youthloop.ingestion.infrastructure.client;
 
 import com.youthloop.ingestion.application.dto.ExternalArticle;
 import com.youthloop.ingestion.application.service.ContentSourceClient;
+import com.youthloop.ingestion.application.service.HtmlSanitizerService;
 import com.youthloop.ingestion.config.IngestionProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -27,8 +28,11 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
         "https://www.ecoepn.com/?special=%e7%8e%af%e4%bf%9d%e7%99%be%e7%a7%91";
     private static final int CONTENT_TYPE_WIKI = 4;
 
-    public EcoepnWikiSourceClient(IngestionProperties properties) {
+    private final HtmlSanitizerService htmlSanitizerService;
+
+    public EcoepnWikiSourceClient(IngestionProperties properties, HtmlSanitizerService htmlSanitizerService) {
         super(properties);
+        this.htmlSanitizerService = htmlSanitizerService;
     }
 
     @Override
@@ -76,7 +80,10 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
     private ExternalArticle fetchDetail(String detailUrl) throws IOException {
         Document document = fetchDocument(detailUrl);
         String title = firstText(document, "h1.entry-title, h1");
-        Element bodyNode = document.selectFirst("article .entry-content, .post-content, article");
+
+        // Try to select .entry-content first, then fallback to .post-content
+        // Do NOT fallback to entire article element to avoid grabbing headers/footers
+        Element bodyNode = document.selectFirst(".entry-content, .post-content");
         if (title == null || bodyNode == null) {
             return null;
         }
@@ -84,6 +91,13 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
         bodyNode.select("script, style, noscript").remove();
         String bodyHtml = bodyNode.html();
         if (bodyHtml == null || bodyHtml.isBlank()) {
+            return null;
+        }
+
+        // Sanitize HTML content to remove ads, share buttons, and unwanted elements
+        String cleanedBodyHtml = htmlSanitizerService.sanitize(bodyHtml);
+        if (cleanedBodyHtml.isBlank()) {
+            log.warn("Sanitized body is empty for url={}", detailUrl);
             return null;
         }
 
@@ -113,7 +127,7 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
             .title(title)
             .summary(truncateText(summary, 220))
             .coverUrl(coverUrl)
-            .body(bodyHtml)
+            .body(cleanedBodyHtml)
             .publishedAt(publishedAt)
             .build();
     }

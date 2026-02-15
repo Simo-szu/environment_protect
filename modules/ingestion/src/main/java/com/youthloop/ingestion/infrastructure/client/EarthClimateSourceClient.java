@@ -2,6 +2,7 @@ package com.youthloop.ingestion.infrastructure.client;
 
 import com.youthloop.ingestion.application.dto.ExternalArticle;
 import com.youthloop.ingestion.application.service.ContentSourceClient;
+import com.youthloop.ingestion.application.service.HtmlSanitizerService;
 import com.youthloop.ingestion.config.IngestionProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -26,8 +27,11 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
     private static final String BASE_URL = "https://earth.org/climate-change/";
     private static final int CONTENT_TYPE_NEWS = 1;
 
-    public EarthClimateSourceClient(IngestionProperties properties) {
+    private final HtmlSanitizerService htmlSanitizerService;
+
+    public EarthClimateSourceClient(IngestionProperties properties, HtmlSanitizerService htmlSanitizerService) {
         super(properties);
+        this.htmlSanitizerService = htmlSanitizerService;
     }
 
     @Override
@@ -104,9 +108,10 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
 
     private ExternalArticle mapDetailDocument(Document document, String detailUrl) {
         String title = firstText(document, "h1.entry-title, h1");
-        Element bodyNode = document.selectFirst(
-            "article .entry-content, .entry-content, .post-content, .single-content, article, main"
-        );
+
+        // Try to select content container, prioritize specific content divs
+        // Do NOT fallback to entire article/main elements to avoid grabbing headers/footers
+        Element bodyNode = document.selectFirst(".entry-content, .post-content, .single-content");
         if (title == null || bodyNode == null) {
             return null;
         }
@@ -114,6 +119,13 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
         bodyNode.select("script, style, noscript").remove();
         String bodyHtml = bodyNode.html();
         if (bodyHtml == null || bodyHtml.isBlank()) {
+            return null;
+        }
+
+        // Sanitize HTML content to remove ads, share buttons, and unwanted elements
+        String cleanedBodyHtml = htmlSanitizerService.sanitize(bodyHtml);
+        if (cleanedBodyHtml.isBlank()) {
+            log.warn("Sanitized body is empty for url={}", detailUrl);
             return null;
         }
 
@@ -143,7 +155,7 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
             .title(title)
             .summary(truncateText(summary, 220))
             .coverUrl(coverUrl)
-            .body(bodyHtml)
+            .body(cleanedBodyHtml)
             .publishedAt(publishedAt)
             .build();
     }
