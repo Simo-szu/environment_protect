@@ -1,0 +1,54 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: game-api
+  config:
+    import: "optional:file:.env[.properties],optional:file:../.env[.properties],optional:file:../../.env[.properties]"
+
+  datasource:
+    url: ${GAME_DATABASE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:youthloop}?currentSchema=game,shared&stringtype=unspecified&user=game_app&password=postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    clean-disabled: false
+    url: ${GAME_FLYWAY_URL:jdbc:postgresql://localhost:5432/youthloop?currentSchema=game,shared&stringtype=unspecified}
+    schemas: game
+    default-schema: game
+    table: flyway_schema_history_game
+    locations: classpath:db/migration/game
+    user: ${GAME_FLYWAY_USER:game_migrator}
+    password: ${GAME_FLYWAY_PASSWORD:postgres}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  server:
+    port: 8082
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+
+logging:
+  level:
+    root: INFO
+    com.youthloop: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"

@@ -4,11 +4,11 @@ server:
 spring:
   application:
     name: social-worker
+  config:
+    import: "optional:file:.env[.properties],optional:file:../.env[.properties],optional:file:../../.env[.properties]"
   
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:youthloop}?currentSchema=social,shared
-    username: ${DB_USER:social_app}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DATABASE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:youthloop}?currentSchema=social,shared}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -17,16 +17,17 @@ spring:
   
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      url: ${REDIS_URL:redis://localhost:6379}
       database: 0
   
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USER:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    addresses: ${RABBITMQ_URL:amqp://guest:guest@localhost:5672}
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:${S3_ENDPOINT:http://localhost:9000}}
+  access-key: ${MINIO_ACCESS_KEY:${S3_ACCESS_KEY:minioadmin}}
+  secret-key: ${MINIO_SECRET_KEY:${S3_SECRET_KEY:minioadmin}}
+  bucket-name: ${MINIO_BUCKET_NAME:${S3_BUCKET:youthloop}}
 
 management:
   endpoints:

@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Read(//d/Personal Develop/environment/**)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Read(//c/Users/11948/.claude/**)",
+      "Skill(augment-mcp-max)",
+      "Skill(augment-mcp-max:*)",
+      "Read(//c/Users/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\11948\\.claude"
     ]
   }
 }

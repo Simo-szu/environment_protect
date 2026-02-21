@@ -75,16 +75,18 @@ SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto';
 **Check roles and schemas exist:**
 ```sql
 SELECT rolname FROM pg_roles
-WHERE rolname IN ('social_migrator','social_app');
+WHERE rolname IN ('social_migrator','social_app','game_migrator','game_app');
 
 SELECT nspname FROM pg_namespace
-WHERE nspname IN ('shared','social');
+WHERE nspname IN ('shared','social','game');
 ```
 
 **Permission expectations:**
 - ✅ `social_migrator` can create/drop tables in `shared` + `social`
 - ✅ `social_app` cannot create tables (DDL blocked)
 - ✅ `social_app` can read/write `shared` + `social` (DML only)
+- ✅ `game_migrator` can create/drop tables in `game`
+- ✅ `game_app` can read/write `game`, and read `shared`
 
 ## Schema Organization
 
@@ -125,6 +127,8 @@ v0.1 Social schema table count: **26** (as listed above).
 |------|--------|-------------|
 | social_migrator | shared, social | DDL (CREATE/ALTER/DROP) + DML |
 | social_app | shared, social | DML only (SELECT/INSERT/UPDATE/DELETE) |
+| game_migrator | game | DDL (CREATE/ALTER/DROP) + DML |
+| game_app | game, shared | DML on `game`, SELECT on `shared` |
 
 ## Connection Strings
 
@@ -138,6 +142,16 @@ postgresql://social_app:postgres@localhost:5432/youthloop
 **For Migrations (Social):**
 ```
 postgresql://social_migrator:postgres@localhost:5432/youthloop
+```
+
+**For Game Service (API):**
+```
+postgresql://game_app:postgres@localhost:5432/youthloop
+```
+
+**For Migrations (Game):**
+```
+postgresql://game_migrator:postgres@localhost:5432/youthloop
 ```
 
 ## Flyway (Current)
@@ -157,6 +171,14 @@ This follows `Project-Structure.md` requirements:
   - `apps/social-api/src/main/resources/db/migration/shared`
   - `apps/social-api/src/main/resources/db/migration/social`
 
+**Game Service:**
+- schemas: `game`
+- defaultSchema: `game`
+- table: `flyway_schema_history_game`
+- user: `game_migrator` (DDL via Flyway)
+- locations (classpath):
+  - `apps/game-api/src/main/resources/db/migration/game`
+
 
 
 ### How to run migrations (recommended)
@@ -167,12 +189,16 @@ Start each service once; Flyway runs automatically on startup using the configur
 # Social API (runs shared + social migrations)
 mvn -pl apps/social-api spring-boot:run
 
+# Game API (runs game migrations)
+mvn -pl apps/game-api spring-boot:run
+
 
 ```
 
 Notes:
 - Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` (defaults are `social_migrator`).
-- Apps still use `DB_USER` / `DB_PASSWORD` for normal runtime DML.
+- Configure `GAME_FLYWAY_USER` / `GAME_FLYWAY_PASSWORD` (defaults are `game_migrator`).
+- Runtime apps use `DATABASE_URL` (social) and `GAME_DATABASE_URL` (game) for normal DML.
 
 ## Troubleshooting
 
@@ -186,6 +212,8 @@ $env:PATH += ";C:\Program Files\PostgreSQL\16\bin"
 Ensure you're using the correct role:
 - Migrations: use `social_migrator`
 - Application: use `social_app`
+- Migrations (game): use `game_migrator`
+- Application (game): use `game_app`
 
 ### Connection refused
 Check PostgreSQL service is running:
