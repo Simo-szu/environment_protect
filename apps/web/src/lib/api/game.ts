@@ -17,7 +17,7 @@ export interface GameCardMeta {
   chineseName: string;
   englishName: string;
   cardType: 'core' | 'policy';
-  domain: 'industry' | 'ecology' | 'science' | 'society';
+  domain: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
   star: number;
   phaseBucket: 'early' | 'mid' | 'late' | 'policy';
   unlockCost: GameCardUnlockCost;
@@ -74,6 +74,21 @@ export async function performAction(payload: {
   actionData?: Record<string, unknown>;
 }): Promise<GameActionResponse> {
   return apiPost<GameActionResponse>('/api/v1/game/actions', payload, true);
+}
+
+export async function tradeCarbon(payload: {
+  sessionId: string;
+  tradeType: 'buy' | 'sell';
+  amount: number;
+}): Promise<GameActionResponse> {
+  return performAction({
+    sessionId: payload.sessionId,
+    actionType: 4,
+    actionData: {
+      tradeType: payload.tradeType,
+      amount: payload.amount,
+    },
+  });
 }
 
 export async function endSession(sessionId: string): Promise<GameActionResponse> {

@@ -11,6 +11,6 @@ import java.util.UUID;
 @Data
 public class GameActionRequest {
     private UUID sessionId;
-    private Integer actionType; // 1=place_core_card, 2=end_turn, 3=use_policy_card
-    private JsonNode actionData; // Action payload, e.g. {"cardId":"card001"}
+    private Integer actionType; // 1=place_core_card, 2=end_turn, 3=use_policy_card, 4=trade_carbon
+    private JsonNode actionData; // Payload examples: {"cardId":"card001"} or {"tradeType":"buy","amount":10}
 }

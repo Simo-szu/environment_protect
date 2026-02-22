@@ -9,7 +9,8 @@ import {
   getSessionById,
   listCards,
   performAction,
-  startSession
+  startSession,
+  tradeCarbon
 } from '@/lib/api/game';
 
 type PondState = Record<string, any>;
@@ -22,6 +23,19 @@ interface EndingView {
   turn: number;
 }
 
+function resolvePolicyHintByEvent(eventType: string): string {
+  if (eventType === 'flood') {
+    return 'Use card063 or card064 to resolve';
+  }
+  if (eventType === 'sea_level_rise') {
+    return 'Use card062 or card066 to resolve';
+  }
+  if (eventType === 'citizen_protest') {
+    return 'Use card067 or card068 to resolve';
+  }
+  return 'No policy mapping';
+}
+
 const DEFAULT_STORAGE_BASE = process.env.NEXT_PUBLIC_MINIO_PUBLIC_BASE_URL || 'http://127.0.0.1:9000/youthloop';
 
 export default function GamePlayPage() {
@@ -32,29 +46,41 @@ export default function GamePlayPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastMessage, setLastMessage] = useState('');
 
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId, setSessionId] = useState('');
   const [pondState, setPondState] = useState<PondState | null>(null);
   const [catalog, setCatalog] = useState<Map<string, GameCardMeta>>(new Map());
-  const [selectedCoreId, setSelectedCoreId] = useState<string>('');
-  const [selectedPolicyId, setSelectedPolicyId] = useState<string>('');
+  const [selectedCoreId, setSelectedCoreId] = useState('');
+  const [selectedPolicyId, setSelectedPolicyId] = useState('');
   const [ending, setEnding] = useState<EndingView | null>(null);
-  const [lastMessage, setLastMessage] = useState<string>('');
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  const [tradeAmount, setTradeAmount] = useState(1);
 
-  const metrics = pondState?.metrics || {};
   const resources = pondState?.resources || {};
+  const metrics = pondState?.metrics || {};
   const handCore: string[] = pondState?.handCore || [];
   const handPolicy: string[] = pondState?.handPolicy || [];
   const placedCore: string[] = pondState?.placedCore || [];
   const turn = pondState?.turn || 1;
   const maxTurn = pondState?.maxTurn || 30;
+  const carbonTrade = pondState?.carbonTrade || {};
+  const activeNegativeEvents: Array<Record<string, unknown>> = pondState?.activeNegativeEvents || [];
+
+  const tradeWindowOpened = Boolean(carbonTrade.windowOpened);
+  const tradeLastPrice = Number(carbonTrade.lastPrice || 2);
+  const tradeQuota = Number(carbonTrade.quota || 0);
+  const tradeProfit = Number(carbonTrade.profit || 0);
+  const tradeHistory: Array<Record<string, unknown>> = carbonTrade.history || [];
+  const latestTradeRecord = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1] : null;
 
   const handCoreCards = useMemo(
-    () => handCore.map(id => catalog.get(id)).filter(Boolean) as GameCardMeta[],
+    () => handCore.map((id) => catalog.get(id)).filter(Boolean) as GameCardMeta[],
     [handCore, catalog]
   );
+
   const handPolicyCards = useMemo(
-    () => handPolicy.map(id => catalog.get(id)).filter(Boolean) as GameCardMeta[],
+    () => handPolicy.map((id) => catalog.get(id)).filter(Boolean) as GameCardMeta[],
     [handPolicy, catalog]
   );
 
@@ -69,16 +95,16 @@ export default function GamePlayPage() {
           return;
         }
         const nextMap = new Map<string, GameCardMeta>();
-        cardsRes.items.forEach(card => nextMap.set(card.cardId, card));
+        cardsRes.items.forEach((card) => nextMap.set(card.cardId, card));
         setCatalog(nextMap);
         setSessionId(sessionRes.id);
         setPondState((sessionRes.pondState || {}) as PondState);
         const endingState = ((sessionRes.pondState as PondState)?.ending || null) as EndingView | null;
-        if (endingState && endingState.endingId) {
+        if (endingState?.endingId) {
           setEnding(endingState);
         }
       } catch (e: any) {
-        setError(e?.message || '加载游戏失败');
+        setError(e?.message || 'Failed to initialize game');
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -101,6 +127,29 @@ export default function GamePlayPage() {
     return `${DEFAULT_STORAGE_BASE}/${imageKey}`;
   }
 
+  function applyActionResult(response: GameActionResponse) {
+    const nextState = (response.newPondState || {}) as PondState;
+    setPondState(nextState);
+    setLastMessage(response.message || '');
+    setSelectedCoreId('');
+    setSelectedPolicyId('');
+
+    const endingState = (nextState.ending || null) as EndingView | null;
+    if (endingState?.endingId) {
+      setEnding(endingState);
+      return;
+    }
+    if (response.sessionEnded && response.endingId) {
+      setEnding({
+        endingId: response.endingId,
+        endingName: response.endingName || response.endingId,
+        imageKey: response.endingImageKey || '',
+        reason: response.message || '',
+        turn: nextState.turn || turn
+      });
+    }
+  }
+
   async function runAction(actionType: number, actionData?: Record<string, unknown>) {
     if (!sessionId) {
       return;
@@ -108,33 +157,31 @@ export default function GamePlayPage() {
     setActionLoading(true);
     setError(null);
     try {
-      const response: GameActionResponse = await performAction({
-        sessionId,
-        actionType,
-        actionData
-      });
-      const nextState = (response.newPondState || {}) as PondState;
-      setPondState(nextState);
-      setLastMessage(response.message || '');
-      setSelectedCoreId('');
-      setSelectedPolicyId('');
-
-      const endingState = (nextState.ending || null) as EndingView | null;
-      if (endingState?.endingId) {
-        setEnding(endingState);
-        return;
-      }
-      if (response.sessionEnded && response.endingId) {
-        setEnding({
-          endingId: response.endingId,
-          endingName: response.endingName || response.endingId,
-          imageKey: response.endingImageKey || '',
-          reason: response.message || '',
-          turn: nextState.turn || turn
-        });
-      }
+      const response = await performAction({ sessionId, actionType, actionData });
+      applyActionResult(response);
     } catch (e: any) {
-      setError(e?.message || '操作失败');
+      setError(e?.message || 'Action failed');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function runTradeAction() {
+    if (!sessionId) {
+      return;
+    }
+    setActionLoading(true);
+    setError(null);
+    try {
+      const amount = Math.max(1, Math.floor(tradeAmount || 1));
+      const response = await tradeCarbon({
+        sessionId,
+        tradeType,
+        amount
+      });
+      applyActionResult(response);
+    } catch (e: any) {
+      setError(e?.message || 'Carbon trade failed');
     } finally {
       setActionLoading(false);
     }
@@ -149,7 +196,7 @@ export default function GamePlayPage() {
       setSessionId(current.id);
       setPondState((current.pondState || {}) as PondState);
     } catch (e: any) {
-      setError(e?.message || '刷新会话失败');
+      setError(e?.message || 'Refresh failed');
     }
   }
 
@@ -161,14 +208,14 @@ export default function GamePlayPage() {
     try {
       await endSession(sessionId);
     } catch {
-      // ignore on exit
+      // no-op
     } finally {
       router.push(`/${locale}/game`);
     }
   }
 
   if (loading) {
-    return <div className="p-6 text-sm text-slate-600">正在加载游戏...</div>;
+    return <div className="p-6 text-sm text-slate-600">Loading game...</div>;
   }
 
   return (
@@ -176,43 +223,67 @@ export default function GamePlayPage() {
       <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={handleBack} className="px-3 py-1.5 rounded border border-slate-300 text-sm">
-            返回
+            Back
           </button>
-          <div className="font-semibold">低碳城市卡牌</div>
-          <div className="text-xs text-slate-500">回合 {turn}/{maxTurn}</div>
+          <div className="font-semibold">Low Carbon City Card Game</div>
+          <div className="text-xs text-slate-500">Turn {turn}/{maxTurn}</div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={refreshSession} className="px-3 py-1.5 rounded border border-slate-300 text-sm">
-            刷新
+            Refresh
           </button>
           <button
             onClick={() => runAction(2)}
             disabled={actionLoading || !!ending}
             className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm disabled:opacity-50"
           >
-            结束回合
+            End Turn
           </button>
         </div>
       </header>
 
       <main className="p-6 grid grid-cols-12 gap-4">
         <section className="col-span-3 bg-white rounded border p-4 space-y-2">
-          <div className="font-semibold">资源</div>
-          <div className="text-sm">产业值: {resources.industry ?? 0}</div>
-          <div className="text-sm">科创点: {resources.tech ?? 0}</div>
-          <div className="text-sm">人口: {resources.population ?? 0}</div>
-          <div className="pt-3 font-semibold">指标</div>
-          <div className="text-sm">绿建度: {metrics.green ?? 0}</div>
-          <div className="text-sm">碳排放: {metrics.carbon ?? 0}</div>
-          <div className="text-sm">满意度: {metrics.satisfaction ?? 0}</div>
-          <div className="text-sm">低碳总分: {metrics.lowCarbonScore ?? 0}</div>
-          <div className="pt-2 text-xs text-slate-500">已放置核心卡: {placedCore.length}</div>
+          <div className="font-semibold">Resources</div>
+          <div className="text-sm">Industry: {resources.industry ?? 0}</div>
+          <div className="text-sm">Tech: {resources.tech ?? 0}</div>
+          <div className="text-sm">Population: {resources.population ?? 0}</div>
+          <div className="pt-3 font-semibold">Metrics</div>
+          <div className="text-sm">Green: {metrics.green ?? 0}</div>
+          <div className="text-sm">Carbon: {metrics.carbon ?? 0}</div>
+          <div className="text-sm">Satisfaction: {metrics.satisfaction ?? 0}</div>
+          <div className="text-sm">Low-Carbon Score: {metrics.lowCarbonScore ?? 0}</div>
+          <div className="pt-2 text-xs text-slate-500">Placed core cards: {placedCore.length}</div>
+          <div className="pt-3 border-t border-slate-200 mt-3">
+            <div className="font-semibold mb-1">Carbon Trade</div>
+            <div className="text-sm">Quota: {tradeQuota}</div>
+            <div className="text-sm">Current Price: {tradeLastPrice.toFixed(1)}</div>
+            <div className="text-sm">Profit: {tradeProfit.toFixed(1)}</div>
+            {latestTradeRecord && (
+              <div className="text-xs text-slate-500 mt-1">
+                Last: {String(latestTradeRecord.action)} / amount {Number(latestTradeRecord.amount || 0)}
+              </div>
+            )}
+            <div className={`text-xs mt-1 ${tradeWindowOpened ? 'text-emerald-600' : 'text-slate-500'}`}>
+              {tradeWindowOpened ? 'Window Open (this turn)' : 'Window Closed'}
+            </div>
+          </div>
+          <div className="pt-3 border-t border-slate-200 mt-3">
+            <div className="font-semibold mb-1">Active Negative Events</div>
+            {activeNegativeEvents.length === 0 && <div className="text-xs text-slate-500">None</div>}
+            {activeNegativeEvents.map((event, idx) => (
+              <div key={`${String(event.eventType)}-${idx}`} className="text-xs text-slate-600">
+                <div>{String(event.eventType)} (remaining: {Number(event.remainingTurns || 0)})</div>
+                <div className="text-slate-500">{resolvePolicyHintByEvent(String(event.eventType || ''))}</div>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="col-span-6 bg-white rounded border p-4">
-          <div className="font-semibold mb-3">核心手牌</div>
+          <div className="font-semibold mb-3">Core Cards in Hand</div>
           <div className="grid grid-cols-3 gap-3">
-            {handCoreCards.map(card => (
+            {handCoreCards.map((card) => (
               <button
                 key={card.cardId}
                 onClick={() => setSelectedCoreId(card.cardId)}
@@ -230,15 +301,15 @@ export default function GamePlayPage() {
               disabled={actionLoading || !selectedCoreId || !!ending}
               className="px-3 py-1.5 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
             >
-              放置核心卡
+              Place Core Card
             </button>
           </div>
         </section>
 
         <section className="col-span-3 bg-white rounded border p-4">
-          <div className="font-semibold mb-3">政策手牌</div>
+          <div className="font-semibold mb-3">Policy Cards in Hand</div>
           <div className="space-y-2">
-            {handPolicyCards.map(card => (
+            {handPolicyCards.map((card) => (
               <button
                 key={card.cardId}
                 onClick={() => setSelectedPolicyId(card.cardId)}
@@ -254,8 +325,35 @@ export default function GamePlayPage() {
             disabled={actionLoading || !selectedPolicyId || !!ending}
             className="mt-3 px-3 py-1.5 rounded bg-emerald-600 text-white text-sm disabled:opacity-50"
           >
-            使用政策卡
+            Use Policy Card
           </button>
+
+          <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+            <div className="font-semibold text-sm">Trade Action</div>
+            <select
+              value={tradeType}
+              onChange={(e) => setTradeType(e.target.value as 'buy' | 'sell')}
+              className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+            >
+              <option value="buy">Buy Quota</option>
+              <option value="sell">Sell Quota</option>
+            </select>
+            <input
+              type="number"
+              min={1}
+              value={tradeAmount}
+              onChange={(e) => setTradeAmount(Number(e.target.value) || 1)}
+              className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+              placeholder="Amount"
+            />
+            <button
+              onClick={runTradeAction}
+              disabled={actionLoading || !tradeWindowOpened || !!ending}
+              className="w-full px-3 py-1.5 rounded bg-amber-600 text-white text-sm disabled:opacity-50"
+            >
+              Execute Trade
+            </button>
+          </div>
         </section>
       </main>
 
@@ -275,19 +373,19 @@ export default function GamePlayPage() {
             <div className="p-5 space-y-2">
               <div className="text-xl font-semibold">{ending.endingName}</div>
               <div className="text-sm text-slate-600">{ending.reason}</div>
-              <div className="text-xs text-slate-500">达成回合: {ending.turn}</div>
+              <div className="text-xs text-slate-500">Reached at turn: {ending.turn}</div>
               <div className="pt-2 flex gap-2">
                 <button
                   onClick={() => window.location.reload()}
                   className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm"
                 >
-                  重新开始
+                  Restart
                 </button>
                 <button
                   onClick={() => router.push(`/${locale}/game`)}
                   className="px-3 py-1.5 rounded border border-slate-300 text-sm"
                 >
-                  返回游戏主页
+                  Back to Game Home
                 </button>
               </div>
             </div>

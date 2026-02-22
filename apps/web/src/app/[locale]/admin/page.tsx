@@ -9,12 +9,13 @@ import type {
     AdminContentDetail,
     AdminContentItem,
     AdminDailyIngestionSummary,
+    AdminGameCardItem,
     AdminIngestionSettings,
     AdminHomeBannerItem,
     AdminHostVerificationItem,
 } from '@/lib/api/admin';
 
-type AdminTab = 'verifications' | 'banners' | 'contents';
+type AdminTab = 'verifications' | 'banners' | 'gameCards' | 'contents';
 
 type ContentFormState = {
     type: number;
@@ -44,6 +45,24 @@ type IngestionSettingsFormState = {
 
 type IngestionSettingsFormErrors = Partial<Record<keyof IngestionSettingsFormState, string>>;
 
+type GameCardFormState = {
+    cardId: string;
+    cardNo: number;
+    chineseName: string;
+    englishName: string;
+    cardType: 'core' | 'policy';
+    domain: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
+    star: number;
+    phaseBucket: 'early' | 'mid' | 'late' | 'policy';
+    unlockCostIndustry: number;
+    unlockCostTech: number;
+    unlockCostPopulation: number;
+    unlockCostGreen: number;
+    imageKey: string;
+    advancedImageKey: string;
+    isEnabled: boolean;
+};
+
 const defaultContentForm: ContentFormState = {
     type: 1,
     title: '',
@@ -68,6 +87,24 @@ const defaultIngestionSettingsForm: IngestionSettingsFormState = {
     ecoepnEnabled: true,
     ecoepnMaxPages: 2,
     ecoepnMaxArticles: 30,
+};
+
+const defaultGameCardForm: GameCardFormState = {
+    cardId: '',
+    cardNo: 1,
+    chineseName: '',
+    englishName: '',
+    cardType: 'core',
+    domain: 'industry',
+    star: 1,
+    phaseBucket: 'early',
+    unlockCostIndustry: 0,
+    unlockCostTech: 0,
+    unlockCostPopulation: 0,
+    unlockCostGreen: 0,
+    imageKey: '',
+    advancedImageKey: '',
+    isEnabled: true,
 };
 
 const validateIngestionSettings = (
@@ -111,6 +148,12 @@ export default function AdminPage() {
     const [verifications, setVerifications] = useState<AdminHostVerificationItem[]>([]);
     const [banners, setBanners] = useState<AdminHomeBannerItem[]>([]);
     const [newBanner, setNewBanner] = useState({ title: '', imageUrl: '', linkType: 1, linkTarget: '' });
+    const [gameCards, setGameCards] = useState<AdminGameCardItem[]>([]);
+    const [newGameCard, setNewGameCard] = useState<GameCardFormState>(defaultGameCardForm);
+    const [editingGameCardId, setEditingGameCardId] = useState<string | null>(null);
+    const [editingGameCard, setEditingGameCard] = useState<GameCardFormState>(defaultGameCardForm);
+    const [creatingGameCard, setCreatingGameCard] = useState(false);
+    const [updatingGameCard, setUpdatingGameCard] = useState(false);
 
     const [contents, setContents] = useState<AdminContentItem[]>([]);
     const [contentTotal, setContentTotal] = useState(0);
@@ -154,6 +197,29 @@ export default function AdminPage() {
     const loadBanners = useCallback(async () => {
         const r = await adminApi.getAdminHomeBanners();
         setBanners(r.items);
+    }, []);
+
+    const mapGameCardToForm = useCallback((card: AdminGameCardItem): GameCardFormState => ({
+        cardId: card.cardId,
+        cardNo: card.cardNo,
+        chineseName: card.chineseName,
+        englishName: card.englishName,
+        cardType: card.cardType,
+        domain: card.domain,
+        star: card.star,
+        phaseBucket: card.phaseBucket,
+        unlockCostIndustry: card.unlockCost?.industry ?? 0,
+        unlockCostTech: card.unlockCost?.tech ?? 0,
+        unlockCostPopulation: card.unlockCost?.population ?? 0,
+        unlockCostGreen: card.unlockCost?.green ?? 0,
+        imageKey: card.imageKey || '',
+        advancedImageKey: card.advancedImageKey || '',
+        isEnabled: true,
+    }), []);
+
+    const loadGameCards = useCallback(async () => {
+        const r = await adminApi.getAdminGameCards();
+        setGameCards(r.items);
     }, []);
 
     const loadContents = useCallback(async () => {
@@ -227,6 +293,11 @@ export default function AdminPage() {
         };
         run();
     }, [activeTab, loadContents, loadIngestionSettings]);
+
+    useEffect(() => {
+        if (activeTab !== 'gameCards') return;
+        loadGameCards();
+    }, [activeTab, loadGameCards]);
 
     const mapDetailToForm = (d: AdminContentDetail): ContentFormState => ({
         type: d.type,
@@ -416,6 +487,88 @@ export default function AdminPage() {
         }
     };
 
+    const createGameCard = async () => {
+        if (!newGameCard.cardId.trim() || !newGameCard.chineseName.trim() || !newGameCard.englishName.trim()) {
+            alert(t('gameCards.required', 'Card ID/Chinese Name/English Name are required'));
+            return;
+        }
+        try {
+            setCreatingGameCard(true);
+            await adminApi.createAdminGameCard({
+                ...newGameCard,
+                cardId: newGameCard.cardId.trim(),
+                chineseName: newGameCard.chineseName.trim(),
+                englishName: newGameCard.englishName.trim(),
+                imageKey: newGameCard.imageKey.trim() || undefined,
+                advancedImageKey: newGameCard.advancedImageKey.trim() || undefined,
+            });
+            setNewGameCard(defaultGameCardForm);
+            await loadGameCards();
+        } catch (error) {
+            console.error('Failed to create game card:', error);
+            alert(t('gameCards.createFailed', 'Failed to create game card'));
+        } finally {
+            setCreatingGameCard(false);
+        }
+    };
+
+    const startEditGameCard = async (cardId: string) => {
+        try {
+            const card = await adminApi.getAdminGameCardById(cardId);
+            setEditingGameCardId(cardId);
+            setEditingGameCard(mapGameCardToForm(card));
+        } catch (error) {
+            console.error('Failed to load game card detail:', error);
+            alert(t('gameCards.loadDetailFailed', 'Failed to load game card detail'));
+        }
+    };
+
+    const saveGameCard = async () => {
+        if (!editingGameCardId) return;
+        try {
+            setUpdatingGameCard(true);
+            await adminApi.updateAdminGameCard(editingGameCardId, {
+                cardNo: editingGameCard.cardNo,
+                chineseName: editingGameCard.chineseName,
+                englishName: editingGameCard.englishName,
+                cardType: editingGameCard.cardType,
+                domain: editingGameCard.domain,
+                star: editingGameCard.star,
+                phaseBucket: editingGameCard.phaseBucket,
+                unlockCostIndustry: editingGameCard.unlockCostIndustry,
+                unlockCostTech: editingGameCard.unlockCostTech,
+                unlockCostPopulation: editingGameCard.unlockCostPopulation,
+                unlockCostGreen: editingGameCard.unlockCostGreen,
+                imageKey: editingGameCard.imageKey.trim() || undefined,
+                advancedImageKey: editingGameCard.advancedImageKey.trim() || undefined,
+                isEnabled: editingGameCard.isEnabled,
+            });
+            setEditingGameCardId(null);
+            setEditingGameCard(defaultGameCardForm);
+            await loadGameCards();
+        } catch (error) {
+            console.error('Failed to update game card:', error);
+            alert(t('gameCards.updateFailed', 'Failed to update game card'));
+        } finally {
+            setUpdatingGameCard(false);
+        }
+    };
+
+    const deleteGameCard = async (cardId: string) => {
+        if (!window.confirm(t('gameCards.confirmDelete', 'Delete this game card?'))) return;
+        try {
+            await adminApi.deleteAdminGameCard(cardId);
+            if (editingGameCardId === cardId) {
+                setEditingGameCardId(null);
+                setEditingGameCard(defaultGameCardForm);
+            }
+            await loadGameCards();
+        } catch (error) {
+            console.error('Failed to delete game card:', error);
+            alert(t('gameCards.deleteFailed', 'Failed to delete game card'));
+        }
+    };
+
     return (
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-8">
@@ -426,6 +579,7 @@ export default function AdminPage() {
                 <div className="flex gap-2 mb-6">
                     <button onClick={() => setActiveTab('verifications')} className={`px-4 py-2 rounded-lg ${activeTab === 'verifications' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.verifications')}</button>
                     <button onClick={() => setActiveTab('banners')} className={`px-4 py-2 rounded-lg ${activeTab === 'banners' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.banners')}</button>
+                    <button onClick={() => setActiveTab('gameCards')} className={`px-4 py-2 rounded-lg ${activeTab === 'gameCards' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.gameCards', 'Game Cards')}</button>
                     <button onClick={() => setActiveTab('contents')} className={`px-4 py-2 rounded-lg ${activeTab === 'contents' ? 'bg-[#30499B] text-white' : 'border border-slate-200'}`}>{t('tabs.contents')}</button>
                 </div>
 
@@ -482,6 +636,84 @@ export default function AdminPage() {
                             </div>
                         ))}
                         {banners.length === 0 && <div className="text-slate-500">{t('banners.noBanners')}</div>}
+                    </div>
+                )}
+
+                {!loading && activeTab === 'gameCards' && (
+                    <div className="space-y-4">
+                        <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
+                            <div className="text-sm font-medium text-slate-700 mb-3">{t('gameCards.create', 'Create Game Card')}</div>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <input value={newGameCard.cardId} onChange={(e) => setNewGameCard((p) => ({ ...p, cardId: e.target.value }))} placeholder="card069" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input type="number" value={newGameCard.cardNo} onChange={(e) => setNewGameCard((p) => ({ ...p, cardNo: Number(e.target.value) || 1 }))} placeholder="cardNo" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newGameCard.chineseName} onChange={(e) => setNewGameCard((p) => ({ ...p, chineseName: e.target.value }))} placeholder={t('gameCards.chineseName', 'Chinese Name')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newGameCard.englishName} onChange={(e) => setNewGameCard((p) => ({ ...p, englishName: e.target.value }))} placeholder={t('gameCards.englishName', 'English Name')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <select value={newGameCard.cardType} onChange={(e) => setNewGameCard((p) => ({ ...p, cardType: e.target.value as GameCardFormState['cardType'] }))} className="px-3 py-2 border border-slate-200 rounded-lg">
+                                    <option value="core">core</option>
+                                    <option value="policy">policy</option>
+                                </select>
+                                <select value={newGameCard.domain} onChange={(e) => setNewGameCard((p) => ({ ...p, domain: e.target.value as GameCardFormState['domain'] }))} className="px-3 py-2 border border-slate-200 rounded-lg">
+                                    <option value="industry">industry</option>
+                                    <option value="ecology">ecology</option>
+                                    <option value="science">science</option>
+                                    <option value="society">society</option>
+                                    <option value="policy">policy</option>
+                                </select>
+                                <select value={newGameCard.phaseBucket} onChange={(e) => setNewGameCard((p) => ({ ...p, phaseBucket: e.target.value as GameCardFormState['phaseBucket'] }))} className="px-3 py-2 border border-slate-200 rounded-lg">
+                                    <option value="early">early</option>
+                                    <option value="mid">mid</option>
+                                    <option value="late">late</option>
+                                    <option value="policy">policy</option>
+                                </select>
+                                <input type="number" value={newGameCard.star} onChange={(e) => setNewGameCard((p) => ({ ...p, star: Number(e.target.value) || 1 }))} placeholder="star" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input type="number" value={newGameCard.unlockCostIndustry} onChange={(e) => setNewGameCard((p) => ({ ...p, unlockCostIndustry: Number(e.target.value) || 0 }))} placeholder="industry cost" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input type="number" value={newGameCard.unlockCostTech} onChange={(e) => setNewGameCard((p) => ({ ...p, unlockCostTech: Number(e.target.value) || 0 }))} placeholder="tech cost" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input type="number" value={newGameCard.unlockCostPopulation} onChange={(e) => setNewGameCard((p) => ({ ...p, unlockCostPopulation: Number(e.target.value) || 0 }))} placeholder="population cost" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input type="number" value={newGameCard.unlockCostGreen} onChange={(e) => setNewGameCard((p) => ({ ...p, unlockCostGreen: Number(e.target.value) || 0 }))} placeholder="green cost" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newGameCard.imageKey} onChange={(e) => setNewGameCard((p) => ({ ...p, imageKey: e.target.value }))} placeholder="image key" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                <input value={newGameCard.advancedImageKey} onChange={(e) => setNewGameCard((p) => ({ ...p, advancedImageKey: e.target.value }))} placeholder="advanced image key" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                            </div>
+                            <button onClick={createGameCard} disabled={creatingGameCard} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">
+                                {creatingGameCard ? t('gameCards.creating', 'Creating...') : t('gameCards.createSubmit', 'Create')}
+                            </button>
+                        </div>
+
+                        {editingGameCardId && (
+                            <div className="p-4 border border-slate-200 rounded-xl bg-white">
+                                <div className="text-sm font-medium text-slate-700 mb-3">
+                                    {t('gameCards.editing', 'Editing')} {editingGameCardId}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <input type="number" value={editingGameCard.cardNo} onChange={(e) => setEditingGameCard((p) => ({ ...p, cardNo: Number(e.target.value) || 1 }))} placeholder="cardNo" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                    <input value={editingGameCard.chineseName} onChange={(e) => setEditingGameCard((p) => ({ ...p, chineseName: e.target.value }))} placeholder={t('gameCards.chineseName', 'Chinese Name')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                    <input value={editingGameCard.englishName} onChange={(e) => setEditingGameCard((p) => ({ ...p, englishName: e.target.value }))} placeholder={t('gameCards.englishName', 'English Name')} className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                    <input type="number" value={editingGameCard.star} onChange={(e) => setEditingGameCard((p) => ({ ...p, star: Number(e.target.value) || 1 }))} placeholder="star" className="px-3 py-2 border border-slate-200 rounded-lg" />
+                                </div>
+                                <div className="flex gap-2 mt-3">
+                                    <button onClick={saveGameCard} disabled={updatingGameCard} className="px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">
+                                        {updatingGameCard ? t('gameCards.saving', 'Saving...') : t('save', 'Save')}
+                                    </button>
+                                    <button onClick={() => setEditingGameCardId(null)} className="px-3 py-2 border border-slate-200 rounded-lg">{t('cancel', 'Cancel')}</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {gameCards.map((card) => (
+                            <div key={card.cardId} className="p-4 border border-slate-200 rounded-xl">
+                                <div className="font-medium text-slate-800">{card.cardId} / {card.chineseName}</div>
+                                <div className="text-sm text-slate-600 mt-1">
+                                    #{card.cardNo} {card.cardType} {card.domain} {card.phaseBucket} star={card.star}
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">
+                                    cost(i/t/p/g)={card.unlockCost.industry}/{card.unlockCost.tech}/{card.unlockCost.population}/{card.unlockCost.green}
+                                </div>
+                                <div className="flex gap-2 mt-3">
+                                    <button onClick={() => startEditGameCard(card.cardId)} className="px-3 py-1.5 border border-slate-200 rounded-lg">{t('edit', 'Edit')}</button>
+                                    <button onClick={() => deleteGameCard(card.cardId)} className="px-3 py-1.5 bg-red-600 text-white rounded-lg">{t('delete', 'Delete')}</button>
+                                </div>
+                            </div>
+                        ))}
+                        {gameCards.length === 0 && <div className="text-slate-500">{t('gameCards.empty', 'No game cards')}</div>}
                     </div>
                 )}
 

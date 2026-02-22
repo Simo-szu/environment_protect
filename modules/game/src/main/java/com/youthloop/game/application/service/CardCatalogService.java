@@ -1,46 +1,45 @@
 package com.youthloop.game.application.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.game.api.dto.GameCardMetaDTO;
+import com.youthloop.game.persistence.entity.GameCardEntity;
+import com.youthloop.game.persistence.mapper.GameCardMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Loads immutable card metadata from classpath resource.
+ * Loads card metadata from database.
  */
 @Service
 @RequiredArgsConstructor
 public class CardCatalogService {
 
-    private static final String RESOURCE_PATH = "game/card-config.json";
+    private final GameCardMapper gameCardMapper;
 
-    private final ObjectMapper objectMapper;
-
-    private List<GameCardMetaDTO> cards = List.of();
-    private Map<String, GameCardMetaDTO> cardMap = Map.of();
+    private volatile List<GameCardMetaDTO> cards = List.of();
+    private volatile Map<String, GameCardMetaDTO> cardMap = Map.of();
 
     @PostConstruct
     void init() {
-        try (InputStream inputStream = new ClassPathResource(RESOURCE_PATH).getInputStream()) {
-            List<GameCardMetaDTO> loaded = objectMapper.readValue(
-                inputStream,
-                new TypeReference<List<GameCardMetaDTO>>() {}
-            );
+        reloadFromDatabase();
+    }
+
+    public synchronized void reloadFromDatabase() {
+        try {
+            List<GameCardEntity> dbCards = gameCardMapper.selectAllEnabled();
+            List<GameCardMetaDTO> loaded = new ArrayList<>(dbCards.stream()
+                .map(this::toDTO)
+                .toList());
             loaded.sort(Comparator.comparing(GameCardMetaDTO::getCardNo));
             this.cards = Collections.unmodifiableList(new ArrayList<>(loaded));
             this.cardMap = Collections.unmodifiableMap(
@@ -52,7 +51,10 @@ public class CardCatalogService {
                 ))
             );
         } catch (Exception e) {
-            throw new BizException(ErrorCode.SYSTEM_ERROR, "Failed to load card catalog: " + e.getMessage());
+            throw new BizException(
+                ErrorCode.SYSTEM_ERROR,
+                "Failed to load card catalog: " + e.getClass().getSimpleName() + ": " + e.getMessage()
+            );
         }
     }
 
@@ -74,10 +76,29 @@ public class CardCatalogService {
     }
 
     public List<String> listCoreCardsByPhase(String phaseBucket) {
-        return cards.stream()
-            .filter(card -> "core".equals(card.getCardType()))
-            .filter(card -> Objects.equals(phaseBucket, card.getPhaseBucket()))
-            .map(GameCardMetaDTO::getCardId)
-            .toList();
+        return gameCardMapper.selectCoreCardIdsByPhase(phaseBucket);
+    }
+
+    private GameCardMetaDTO toDTO(GameCardEntity entity) {
+        return GameCardMetaDTO.builder()
+            .cardId(entity.getCardId())
+            .cardNo(entity.getCardNo())
+            .chineseName(entity.getNameZh())
+            .englishName(entity.getNameEn())
+            .cardType(entity.getCardType())
+            .domain(entity.getDomain())
+            .star(entity.getStar())
+            .phaseBucket(entity.getPhaseBucket())
+            .unlockCost(
+                GameCardMetaDTO.UnlockCost.builder()
+                    .industry(entity.getUnlockCostIndustry())
+                    .tech(entity.getUnlockCostTech())
+                    .population(entity.getUnlockCostPopulation())
+                    .green(entity.getUnlockCostGreen())
+                    .build()
+            )
+            .imageKey(entity.getImageKey())
+            .advancedImageKey(entity.getAdvancedImageKey())
+            .build();
     }
 }

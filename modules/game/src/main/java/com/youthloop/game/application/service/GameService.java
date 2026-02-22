@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,13 +37,19 @@ public class GameService {
     private static final int ACTION_PLACE_CORE_CARD = 1;
     private static final int ACTION_END_TURN = 2;
     private static final int ACTION_USE_POLICY_CARD = 3;
+    private static final int ACTION_TRADE_CARBON = 4;
 
     private static final int SESSION_ACTIVE = 1;
     private static final int SESSION_ENDED = 3;
 
+    private static final int CORE_HAND_LIMIT = 6;
     private static final int POLICY_HAND_LIMIT = 2;
     private static final int MAX_COMBO_PER_TURN = 2;
     private static final int MAX_TURN = 30;
+    private static final int HAND_DISCARD_DECISION_SECONDS = 10;
+    private static final int TRADE_WINDOW_INTERVAL = 2;
+    private static final double BASE_CARBON_PRICE = 2.0D;
+    private static final int MAX_CARBON_QUOTA = 200;
 
     private static final String ENDING_FAILURE = "failure";
     private static final String ENDING_INNOVATION = "innovation_technology";
@@ -141,6 +148,9 @@ public class GameService {
         } else if (request.getActionType() == ACTION_USE_POLICY_CARD) {
             pointsEarned = handleUsePolicyCard(state, request.getActionData());
             summary = "Policy card used";
+        } else if (request.getActionType() == ACTION_TRADE_CARBON) {
+            pointsEarned = handleCarbonTrade(state, request.getActionData());
+            summary = "Carbon trade executed";
         } else if (request.getActionType() == ACTION_END_TURN) {
             pointsEarned = handleEndTurn(state);
             summary = "Turn ended";
@@ -243,6 +253,7 @@ public class GameService {
         root.put("eventCooldown", 0);
         root.put("maxTurn", MAX_TURN);
         root.put("highCarbonStreak", 0);
+        root.put("highCarbonOverLimitStreak", 0);
         root.put("sessionEnded", false);
         root.putNull("ending");
 
@@ -257,6 +268,18 @@ public class GameService {
         metrics.put("satisfaction", 60);
         metrics.put("lowCarbonScore", 0);
 
+        ObjectNode carbonTrade = root.putObject("carbonTrade");
+        carbonTrade.put("quota", 50);
+        carbonTrade.put("buyAmountTotal", 0D);
+        carbonTrade.put("sellAmountTotal", 0D);
+        carbonTrade.put("profit", 0D);
+        carbonTrade.put("lastPrice", BASE_CARBON_PRICE);
+        carbonTrade.put("lastWindowTurn", 0);
+        carbonTrade.put("windowOpened", false);
+        carbonTrade.put("quotaExhaustedCount", 0);
+        carbonTrade.put("invalidOperationCount", 0);
+        carbonTrade.set("history", objectMapper.createArrayNode());
+
         ObjectNode pools = root.putObject("remainingPools");
         pools.set("early", toShuffledArray(cardCatalogService.listCoreCardsByPhase("early")));
         pools.set("mid", toShuffledArray(cardCatalogService.listCoreCardsByPhase("mid")));
@@ -266,13 +289,20 @@ public class GameService {
         root.set("handPolicy", objectMapper.createArrayNode());
         root.set("placedCore", objectMapper.createArrayNode());
         root.set("discardCore", objectMapper.createArrayNode());
+        root.set("discardPolicy", objectMapper.createArrayNode());
         root.set("policyUnlocked", objectMapper.createArrayNode());
         root.set("activePolicies", objectMapper.createArrayNode());
         root.set("eventHistory", objectMapper.createArrayNode());
+        root.set("activeNegativeEvents", objectMapper.createArrayNode());
         root.set("comboHistory", objectMapper.createArrayNode());
         root.set("policyHistory", objectMapper.createArrayNode());
         root.put("policyUsedThisTurn", false);
         root.putNull("lastPolicyUsed");
+        root.set("handOverflowHistory", objectMapper.createArrayNode());
+
+        ObjectNode eventStats = root.putObject("eventStats");
+        eventStats.put("negativeTriggered", 0);
+        eventStats.put("negativeResolved", 0);
 
         drawCoreCards(root, "early", 4);
         return root;
@@ -342,6 +372,7 @@ public class GameService {
 
         handPolicy.remove(handIndex);
         applyPolicyEffectNow(state, cardId);
+        resolveNegativeEventsByPolicy(state, cardId);
         state.put("policyUsedThisTurn", true);
         state.put("lastPolicyUsed", cardId);
 
@@ -353,6 +384,8 @@ public class GameService {
     }
 
     private int handleEndTurn(ObjectNode state) {
+        settlePendingTradeWindowAsSkip(state);
+
         DomainCounts counts = countPlacedDomains(state);
         resolvePolicyUnlocks(state, counts);
 
@@ -360,6 +393,7 @@ public class GameService {
         putAllBonusFields(settlementBonus, 0);
         int comboTriggered = applyTurnCombos(state, counts, settlementBonus);
         applyActivePolicyEffects(state, settlementBonus);
+        applyActiveNegativeEventEffects(state, settlementBonus);
 
         ObjectNode resources = state.with("resources");
         ObjectNode metrics = state.with("metrics");
@@ -383,6 +417,8 @@ public class GameService {
                 200
             )
         );
+        applyCarbonQuotaSettlement(state);
+        updateCarbonOverLimitStreak(state);
 
         int lowCarbonScore = calculateLowCarbonScore(state, counts.late);
         metrics.put("lowCarbonScore", lowCarbonScore);
@@ -394,13 +430,15 @@ public class GameService {
             default -> 2;
         };
 
+        tickActiveNegativeEvents(state);
         applyEventCheck(state);
+        processCarbonTradeWindow(state);
         drawCoreCards(state, phase, drawCount);
         drawPolicyCards(state);
         state.put("policyUsedThisTurn", false);
         state.putNull("lastPolicyUsed");
         updateFailureStreak(state);
-        applyEndingEvaluation(state, counts, lowCarbonScore);
+        applyEndingEvaluationByDocument(state, counts, lowCarbonScore);
 
         if (!state.path("sessionEnded").asBoolean(false)) {
             state.put("turn", state.path("turn").asInt() + 1);
@@ -612,25 +650,221 @@ public class GameService {
         }
     }
 
-    private void drawPolicyCards(ObjectNode state) {
-        ArrayNode handPolicy = state.withArray("handPolicy");
-        if (handPolicy.size() >= POLICY_HAND_LIMIT) {
+    private void applyActiveNegativeEventEffects(ObjectNode state, ObjectNode settlementBonus) {
+        ArrayNode activeEvents = state.withArray("activeNegativeEvents");
+        for (JsonNode node : activeEvents) {
+            ObjectNode event = (ObjectNode) node;
+            if (event.path("remainingTurns").asInt(0) <= 1) {
+                continue;
+            }
+            addBonus(settlementBonus, "green", event.path("greenDelta").asInt(0));
+            addBonus(settlementBonus, "carbon", event.path("carbonDelta").asInt(0));
+            addBonus(settlementBonus, "satisfaction", event.path("satisfactionDelta").asInt(0));
+        }
+    }
+
+    private void resolveNegativeEventsByPolicy(ObjectNode state, String policyId) {
+        ArrayNode activeEvents = state.withArray("activeNegativeEvents");
+        if (activeEvents.isEmpty()) {
             return;
         }
 
-        ArrayNode unlocked = state.withArray("policyUnlocked");
-        List<String> candidates = new ArrayList<>();
-        for (JsonNode node : unlocked) {
-            String policyId = node.asText();
-            if (indexOf(handPolicy, policyId) < 0) {
-                candidates.add(policyId);
-            }
-        }
-        if (candidates.isEmpty()) {
+        List<String> resolvableTypes = resolvableEventTypes(policyId);
+        if (resolvableTypes.isEmpty()) {
             return;
         }
-        String selected = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+
+        ObjectNode metrics = state.with("metrics");
+        int resolvedCount = 0;
+        for (int i = activeEvents.size() - 1; i >= 0; i--) {
+            ObjectNode event = (ObjectNode) activeEvents.get(i);
+            String eventType = event.path("eventType").asText();
+            if (!resolvableTypes.contains(eventType)) {
+                continue;
+            }
+
+            metrics.put("green", clamp(metrics.path("green").asInt() - event.path("greenDelta").asInt(), 0, 200));
+            metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() - event.path("carbonDelta").asInt()));
+            metrics.put("satisfaction", clamp(metrics.path("satisfaction").asInt() - event.path("satisfactionDelta").asInt(), 0, 200));
+            activeEvents.remove(i);
+            resolvedCount++;
+
+            ObjectNode record = objectMapper.createObjectNode();
+            record.put("turn", state.path("turn").asInt());
+            record.put("eventType", "event_resolved");
+            record.put("resolvedEvent", eventType);
+            record.put("policyId", policyId);
+            state.withArray("eventHistory").add(record);
+        }
+
+        if (resolvedCount > 0) {
+            ObjectNode stats = state.with("eventStats");
+            stats.put("negativeResolved", stats.path("negativeResolved").asInt(0) + resolvedCount);
+        }
+    }
+
+    private List<String> resolvableEventTypes(String policyId) {
+        return switch (policyId) {
+            case "card062", "card066" -> List.of("sea_level_rise");
+            case "card063", "card064" -> List.of("flood");
+            case "card067", "card068" -> List.of("citizen_protest");
+            default -> List.of();
+        };
+    }
+
+    private void drawPolicyCards(ObjectNode state) {
+        ArrayNode unlocked = state.withArray("policyUnlocked");
+        if (unlocked.isEmpty()) {
+            return;
+        }
+
+        ArrayNode handPolicy = state.withArray("handPolicy");
+        String selected = unlocked.get(ThreadLocalRandom.current().nextInt(unlocked.size())).asText();
         handPolicy.add(selected);
+        enforcePolicyHandLimit(state);
+    }
+
+    private void applyCarbonQuotaSettlement(ObjectNode state) {
+        int carbon = state.with("metrics").path("carbon").asInt();
+        int requiredQuota = Math.max(0, (carbon - 80) / 10);
+        ObjectNode trade = state.with("carbonTrade");
+        int quota = trade.path("quota").asInt(50);
+        int consumed = Math.min(requiredQuota, quota);
+        int shortage = Math.max(0, requiredQuota - consumed);
+
+        trade.put("quota", Math.max(0, quota - consumed));
+        trade.put("lastQuotaConsumed", consumed);
+        if (shortage > 0) {
+            trade.put("quotaExhaustedCount", trade.path("quotaExhaustedCount").asInt(0) + 1);
+            ObjectNode record = objectMapper.createObjectNode();
+            record.put("turn", state.path("turn").asInt());
+            record.put("eventType", "quota_shortage");
+            record.put("shortage", shortage);
+            state.withArray("eventHistory").add(record);
+        }
+    }
+
+    private void processCarbonTradeWindow(ObjectNode state) {
+        int turn = state.path("turn").asInt();
+        ObjectNode trade = state.with("carbonTrade");
+        trade.put("windowOpened", false);
+        if (turn % TRADE_WINDOW_INTERVAL != 0) {
+            return;
+        }
+
+        int carbon = state.with("metrics").path("carbon").asInt();
+        double price = calculateCarbonTradePrice(carbon);
+        trade.put("windowOpened", true);
+        trade.put("lastWindowTurn", turn);
+        trade.put("lastPrice", price);
+    }
+
+    private int handleCarbonTrade(ObjectNode state, JsonNode actionData) {
+        ObjectNode trade = state.with("carbonTrade");
+        if (!trade.path("windowOpened").asBoolean(false)) {
+            markTradeViolation(state, "window_not_open");
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Carbon trade window is not open");
+        }
+
+        String tradeType = readRequiredText(actionData, "tradeType").toLowerCase();
+        int amount = readRequiredInt(actionData, "amount");
+        if (amount <= 0) {
+            markTradeViolation(state, "invalid_amount");
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "amount must be greater than 0");
+        }
+
+        ObjectNode resources = state.with("resources");
+        int currentQuota = trade.path("quota").asInt(0);
+        double price = trade.path("lastPrice").asDouble(BASE_CARBON_PRICE);
+        double tradeValue = roundToOneDecimal(amount * price);
+        double buyTotal = trade.path("buyAmountTotal").asDouble(0D);
+        double sellTotal = trade.path("sellAmountTotal").asDouble(0D);
+        int industryBefore = resources.path("industry").asInt();
+
+        if ("buy".equals(tradeType)) {
+            if (currentQuota + amount > MAX_CARBON_QUOTA) {
+                markTradeViolation(state, "quota_overflow");
+                throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Quota exceeds maximum capacity");
+            }
+            int industryCost = (int) Math.ceil(tradeValue);
+            if (industryBefore < industryCost) {
+                markTradeViolation(state, "insufficient_industry");
+                throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Insufficient industry value for trade");
+            }
+            resources.put("industry", industryBefore - industryCost);
+            trade.put("quota", currentQuota + amount);
+            buyTotal = roundToOneDecimal(buyTotal + tradeValue);
+            trade.put("buyAmountTotal", buyTotal);
+        } else if ("sell".equals(tradeType)) {
+            if (currentQuota < amount) {
+                markTradeViolation(state, "insufficient_quota");
+                throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Insufficient quota for selling");
+            }
+            int industryGain = (int) Math.floor(tradeValue);
+            resources.put("industry", industryBefore + industryGain);
+            trade.put("quota", currentQuota - amount);
+            sellTotal = roundToOneDecimal(sellTotal + tradeValue);
+            trade.put("sellAmountTotal", sellTotal);
+        } else {
+            markTradeViolation(state, "invalid_trade_type");
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "tradeType must be buy or sell");
+        }
+
+        double profitAfter = roundToOneDecimal(sellTotal - buyTotal);
+        trade.put("profit", profitAfter);
+        trade.put("windowOpened", false);
+
+        ObjectNode history = objectMapper.createObjectNode();
+        history.put("turn", trade.path("lastWindowTurn").asInt(state.path("turn").asInt()));
+        history.put("price", price);
+        history.put("action", tradeType);
+        history.put("amount", amount);
+        history.put("industryDelta", resources.path("industry").asInt() - industryBefore);
+        history.put("profitAfter", profitAfter);
+        trade.withArray("history").add(history);
+        return 1;
+    }
+
+    private void markTradeViolation(ObjectNode state, String reason) {
+        ObjectNode trade = state.with("carbonTrade");
+        trade.put("invalidOperationCount", trade.path("invalidOperationCount").asInt(0) + 1);
+
+        ObjectNode history = objectMapper.createObjectNode();
+        history.put("turn", state.path("turn").asInt());
+        history.put("action", "violation");
+        history.put("reason", reason);
+        history.put("profitAfter", roundToOneDecimal(trade.path("profit").asDouble(0D)));
+        trade.withArray("history").add(history);
+    }
+
+    private void settlePendingTradeWindowAsSkip(ObjectNode state) {
+        ObjectNode trade = state.with("carbonTrade");
+        if (!trade.path("windowOpened").asBoolean(false)) {
+            return;
+        }
+
+        ObjectNode history = objectMapper.createObjectNode();
+        history.put("turn", trade.path("lastWindowTurn").asInt(state.path("turn").asInt()));
+        history.put("price", trade.path("lastPrice").asDouble(BASE_CARBON_PRICE));
+        history.put("action", "skip");
+        history.put("amount", 0);
+        history.put("industryDelta", 0);
+        history.put("profitAfter", roundToOneDecimal(trade.path("profit").asDouble(0D)));
+        trade.withArray("history").add(history);
+        trade.put("windowOpened", false);
+    }
+
+    private double calculateCarbonTradePrice(int carbon) {
+        double randomFactor = 0.8D + ThreadLocalRandom.current().nextDouble() * 0.4D;
+        double carbonFactor;
+        if (carbon > 100) {
+            carbonFactor = 1.1D;
+        } else if (carbon < 60) {
+            carbonFactor = 0.9D;
+        } else {
+            carbonFactor = 1.0D;
+        }
+        return roundToOneDecimal(BASE_CARBON_PRICE * randomFactor * carbonFactor);
     }
 
     private void updateFailureStreak(ObjectNode state) {
@@ -642,7 +876,16 @@ public class GameService {
         }
     }
 
-    private void applyEndingEvaluation(ObjectNode state, DomainCounts counts, int lowCarbonScore) {
+    private void updateCarbonOverLimitStreak(ObjectNode state) {
+        int carbon = state.path("metrics").path("carbon").asInt();
+        if (carbon > 80) {
+            state.put("highCarbonOverLimitStreak", state.path("highCarbonOverLimitStreak").asInt(0) + 1);
+        } else {
+            state.put("highCarbonOverLimitStreak", 0);
+        }
+    }
+
+    private void applyEndingEvaluationByDocument(ObjectNode state, DomainCounts counts, int lowCarbonScore) {
         if (state.path("sessionEnded").asBoolean(false)) {
             return;
         }
@@ -656,6 +899,8 @@ public class GameService {
             + state.with("remainingPools").withArray("late").size();
         boolean boundaryReached = remainingCoreCards == 0 || turn >= MAX_TURN;
         boolean immediateFailure = state.path("highCarbonStreak").asInt() >= 5;
+        boolean tradeFailure = state.with("carbonTrade").path("quotaExhaustedCount").asInt(0) >= 4
+            && state.with("carbonTrade").path("profit").asDouble(0D) < 0D;
 
         if (immediateFailure) {
             setEnding(
@@ -664,6 +909,16 @@ public class GameService {
                 "失败结局",
                 "endings/失败结局.jpg",
                 "碳排放连续5回合高于130，系统进入失控状态。"
+            );
+            return;
+        }
+        if (tradeFailure) {
+            setEnding(
+                state,
+                ENDING_FAILURE,
+                "失败结局",
+                "endings/失败结局.jpg",
+                "配额耗尽记录达到4次且碳交易盈利为负。"
             );
             return;
         }
@@ -677,7 +932,7 @@ public class GameService {
                 ENDING_FAILURE,
                 "失败结局",
                 "endings/失败结局.jpg",
-                "终局时低碳总分未达到120。"
+                "终局时低碳总分低于120。"
             );
             return;
         }
@@ -685,18 +940,24 @@ public class GameService {
         int maxDomain = Math.max(Math.max(counts.industry, counts.ecology), Math.max(counts.science, counts.society));
         int minDomain = Math.min(Math.min(counts.industry, counts.ecology), Math.min(counts.science, counts.society));
         int usage6768 = countPolicyUsage(state, "card067") + countPolicyUsage(state, "card068");
+        double eventResolveRate = calculateNegativeEventResolveRate(state);
+        ObjectNode trade = state.with("carbonTrade");
 
         boolean innovation = counts.science == maxDomain
             && counts.science >= 14
             && resources.path("tech").asInt() >= 220
             && lowCarbonScore >= 170
-            && metrics.path("carbon").asInt() <= 95;
+            && metrics.path("carbon").asInt() <= 95
+            && trade.path("profit").asDouble(0D) >= 120D
+            && eventResolveRate >= 70D;
 
         boolean ecology = counts.ecology == maxDomain
             && counts.ecology >= 14
             && metrics.path("green").asInt() >= 140
             && metrics.path("carbon").asInt() <= 70
-            && lowCarbonScore >= 170;
+            && lowCarbonScore >= 170
+            && trade.path("quota").asInt(0) >= 30
+            && eventResolveRate >= 70D;
 
         boolean doughnut = counts.society == maxDomain
             && counts.society >= 12
@@ -757,6 +1018,16 @@ public class GameService {
         return count;
     }
 
+    private double calculateNegativeEventResolveRate(ObjectNode state) {
+        ObjectNode stats = state.with("eventStats");
+        int triggered = stats.path("negativeTriggered").asInt(0);
+        int resolved = stats.path("negativeResolved").asInt(0);
+        if (triggered <= 0) {
+            return 100D;
+        }
+        return (resolved * 100.0D) / triggered;
+    }
+
     private void setEnding(ObjectNode state, String endingId, String endingName, String imageKey, String reason) {
         ObjectNode ending = objectMapper.createObjectNode();
         ending.put("endingId", endingId);
@@ -769,16 +1040,55 @@ public class GameService {
     }
 
     private int calculateLowCarbonScore(ObjectNode state, int latePlaced) {
-        ArrayNode placed = state.withArray("placedCore");
+        DomainCounts counts = countPlacedDomains(state);
         int policyUnlocked = state.withArray("policyUnlocked").size();
         int carbon = state.with("metrics").path("carbon").asInt();
-        int score = placed.size() + latePlaced + policyUnlocked * 3;
-        if (carbon <= 70) {
-            score += 3;
-        } else if (carbon > 80) {
-            score -= 2;
+        ObjectNode trade = state.with("carbonTrade");
+        ObjectNode eventStats = state.with("eventStats");
+
+        int score = counts.total + latePlaced * 2;
+        if (counts.industry >= 8) score += 5;
+        if (counts.ecology >= 8) score += 5;
+        if (counts.science >= 8) score += 5;
+        if (counts.society >= 8) score += 5;
+
+        score += policyUnlocked * 3;
+        if (policyUnlocked >= 8) {
+            score += 10;
         }
+
+        score += eventStats.path("negativeResolved").asInt(0) * 10;
+        score -= eventStats.path("negativeTriggered").asInt(0) * 10;
+
+        score += calculateCarbonTierScore(carbon);
+        if (state.path("highCarbonOverLimitStreak").asInt(0) >= 3) {
+            score -= 15;
+        }
+
+        double profit = trade.path("profit").asDouble(0D);
+        if (profit > 0) {
+            score += ((int) Math.floor(profit / 50D)) * 3;
+        }
+        score -= trade.path("quotaExhaustedCount").asInt(0) * 5;
+        score -= trade.path("invalidOperationCount").asInt(0) * 8;
+
         return Math.max(0, score);
+    }
+
+    private int calculateCarbonTierScore(int carbon) {
+        if (carbon <= 70) {
+            return 3;
+        }
+        if (carbon <= 80) {
+            return 0;
+        }
+        if (carbon <= 100) {
+            return -2;
+        }
+        if (carbon <= 130) {
+            return -5;
+        }
+        return -8;
     }
 
     private void applyEventCheck(ObjectNode state) {
@@ -789,6 +1099,19 @@ public class GameService {
             state.put("eventCooldown", 3);
         } else {
             state.put("eventCooldown", cooldown);
+        }
+    }
+
+    private void tickActiveNegativeEvents(ObjectNode state) {
+        ArrayNode activeEvents = state.withArray("activeNegativeEvents");
+        for (int i = activeEvents.size() - 1; i >= 0; i--) {
+            ObjectNode event = (ObjectNode) activeEvents.get(i);
+            int remain = event.path("remainingTurns").asInt(1) - 1;
+            if (remain <= 0) {
+                activeEvents.remove(i);
+            } else {
+                event.put("remainingTurns", remain);
+            }
         }
     }
 
@@ -814,10 +1137,26 @@ public class GameService {
         }
 
         String selected = weightedPick(candidates);
+        int greenDelta = 0;
+        int carbonDelta = 0;
+        int satisfactionDelta = 0;
+        int durationTurns = 1;
         switch (selected) {
-            case "flood" -> metrics.put("green", Math.max(0, metrics.path("green").asInt() - 10));
-            case "sea_level_rise" -> metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + 15));
-            case "citizen_protest" -> metrics.put("satisfaction", Math.max(0, metrics.path("satisfaction").asInt() - 12));
+            case "flood" -> {
+                greenDelta = -10;
+                durationTurns = 1;
+                metrics.put("green", Math.max(0, metrics.path("green").asInt() + greenDelta));
+            }
+            case "sea_level_rise" -> {
+                carbonDelta = 15;
+                durationTurns = 2;
+                metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + carbonDelta));
+            }
+            case "citizen_protest" -> {
+                satisfactionDelta = -12;
+                durationTurns = 1;
+                metrics.put("satisfaction", Math.max(0, metrics.path("satisfaction").asInt() + satisfactionDelta));
+            }
             default -> {
                 return;
             }
@@ -827,6 +1166,17 @@ public class GameService {
         eventNode.put("turn", state.path("turn").asInt());
         eventNode.put("eventType", selected);
         state.withArray("eventHistory").add(eventNode);
+
+        ObjectNode activeEvent = objectMapper.createObjectNode();
+        activeEvent.put("eventType", selected);
+        activeEvent.put("remainingTurns", durationTurns);
+        activeEvent.put("greenDelta", greenDelta);
+        activeEvent.put("carbonDelta", carbonDelta);
+        activeEvent.put("satisfactionDelta", satisfactionDelta);
+        state.withArray("activeNegativeEvents").add(activeEvent);
+
+        ObjectNode stats = state.with("eventStats");
+        stats.put("negativeTriggered", stats.path("negativeTriggered").asInt(0) + 1);
     }
 
     private String weightedPick(ArrayNode candidates) {
@@ -855,35 +1205,220 @@ public class GameService {
     }
 
     private String updatePhaseByProgress(ObjectNode state, int placedCount, int lowCarbonScore) {
+        String previousPhase = state.path("phase").asText("early");
+        int remainingCoreCards = countRemainingCoreCards(state);
+        boolean shouldEnterLate = (placedCount >= 31 && lowCarbonScore >= 101) || remainingCoreCards <= 10;
+        boolean shouldStayEarly = placedCount <= 15 && lowCarbonScore < 60;
+        boolean shouldEnterMid = placedCount >= 16 && placedCount <= 30 && lowCarbonScore >= 60 && lowCarbonScore <= 100;
+
         String phase;
-        if (placedCount <= 15 && lowCarbonScore < 60) {
+        if (shouldEnterLate) {
+            phase = "late";
+        } else if (shouldStayEarly) {
             phase = "early";
-        } else if (placedCount <= 30 && lowCarbonScore <= 100) {
+        } else if (shouldEnterMid) {
             phase = "mid";
         } else {
-            phase = "late";
+            if (placedCount <= 15) {
+                phase = "early";
+            } else if (placedCount >= 31) {
+                phase = "late";
+            } else {
+                phase = "mid";
+            }
         }
+        applyPhaseTransition(state.with("remainingPools"), previousPhase, phase);
         state.put("phase", phase);
         return phase;
     }
 
-    private void drawCoreCards(ObjectNode state, String phase, int count) {
-        ArrayNode hand = state.withArray("handCore");
-        if (hand.size() >= 6) {
+    private void applyPhaseTransition(ObjectNode pools, String previousPhase, String currentPhase) {
+        if (previousPhase.equals(currentPhase)) {
             return;
         }
+
+        if ("mid".equals(currentPhase)) {
+            mergePoolInto(pools.withArray("early"), pools.withArray("mid"));
+            return;
+        }
+
+        if ("late".equals(currentPhase)) {
+            if (!"late".equals(previousPhase)) {
+                mergePoolInto(pools.withArray("early"), pools.withArray("late"));
+                mergePoolInto(pools.withArray("mid"), pools.withArray("late"));
+            }
+        }
+    }
+
+    private void mergePoolInto(ArrayNode from, ArrayNode to) {
+        while (!from.isEmpty()) {
+            to.add(from.remove(0));
+        }
+    }
+
+    private void drawCoreCards(ObjectNode state, String phase, int count) {
+        if (count <= 0) {
+            return;
+        }
+
+        ArrayNode hand = state.withArray("handCore");
         ObjectNode pools = state.with("remainingPools");
-        ArrayNode pool = pools.withArray(phase);
-        int drawLimit = Math.min(count, 6 - hand.size());
+        int remainingInPools = countRemainingCardsInPools(pools, phase);
+        int drawLimit = Math.min(count, remainingInPools);
+        Map<String, Double> domainFactors = resolveCoreDomainDrawFactors(state);
+
+        if (drawLimit <= 0) {
+            return;
+        }
+
         for (int i = 0; i < drawLimit; i++) {
-            if (pool.isEmpty()) {
+            String cardId = drawOneCoreCardFromPools(pools, phase, domainFactors);
+            if (cardId == null) {
                 break;
             }
-            int index = ThreadLocalRandom.current().nextInt(pool.size());
-            String cardId = pool.get(index).asText();
-            pool.remove(index);
             hand.add(cardId);
         }
+
+        enforceCoreHandLimit(state);
+    }
+
+    private String drawOneCoreCardFromPools(ObjectNode pools, String phase, Map<String, Double> domainFactors) {
+        ArrayNode primaryPool = pools.withArray(phase);
+        if (!primaryPool.isEmpty()) {
+            return removeWeightedCard(primaryPool, domainFactors);
+        }
+
+        if ("early".equals(phase)) {
+            ArrayNode midPool = pools.withArray("mid");
+            if (!midPool.isEmpty()) {
+                return removeWeightedCard(midPool, domainFactors);
+            }
+            ArrayNode latePool = pools.withArray("late");
+            if (!latePool.isEmpty()) {
+                return removeWeightedCard(latePool, domainFactors);
+            }
+            return null;
+        }
+
+        if ("mid".equals(phase)) {
+            ArrayNode latePool = pools.withArray("late");
+            if (!latePool.isEmpty()) {
+                return removeWeightedCard(latePool, domainFactors);
+            }
+            return null;
+        }
+
+        return null;
+    }
+
+    private String removeWeightedCard(ArrayNode pool, Map<String, Double> domainFactors) {
+        int index = pickWeightedIndex(pool, domainFactors);
+        String cardId = pool.get(index).asText();
+        pool.remove(index);
+        return cardId;
+    }
+
+    private int pickWeightedIndex(ArrayNode pool, Map<String, Double> domainFactors) {
+        if (pool.size() == 1) {
+            return 0;
+        }
+
+        double[] weights = new double[pool.size()];
+        double totalWeight = 0D;
+        for (int i = 0; i < pool.size(); i++) {
+            String cardId = pool.get(i).asText();
+            String domain = cardCatalogService.getRequiredCard(cardId).getDomain();
+            double factor = domainFactors.getOrDefault(domain, 1.0D);
+            double weight = Math.max(0.01D, factor);
+            weights[i] = weight;
+            totalWeight += weight;
+        }
+
+        double roll = ThreadLocalRandom.current().nextDouble(totalWeight);
+        double cursor = 0D;
+        for (int i = 0; i < weights.length; i++) {
+            cursor += weights[i];
+            if (roll <= cursor) {
+                return i;
+            }
+        }
+        return weights.length - 1;
+    }
+
+    private Map<String, Double> resolveCoreDomainDrawFactors(ObjectNode state) {
+        DomainCounts counts = countPlacedDomains(state);
+        Map<String, Double> factors = new HashMap<>();
+        factors.put("industry", 1.0D);
+        factors.put("ecology", 1.0D);
+        factors.put("science", 1.0D);
+        factors.put("society", 1.0D);
+
+        if (counts.total <= 0) {
+            return factors;
+        }
+
+        applyDomainFactor(factors, "industry", counts.industry, counts.total);
+        applyDomainFactor(factors, "ecology", counts.ecology, counts.total);
+        applyDomainFactor(factors, "science", counts.science, counts.total);
+        applyDomainFactor(factors, "society", counts.society, counts.total);
+        return factors;
+    }
+
+    private void applyDomainFactor(Map<String, Double> factors, String domain, int count, int total) {
+        double ratio = (double) count / (double) total;
+        if (ratio >= 0.40D) {
+            factors.put(domain, 0.9D);
+        } else if (ratio <= 0.10D) {
+            factors.put(domain, 1.1D);
+        }
+    }
+
+    private int countRemainingCardsInPools(ObjectNode pools, String phase) {
+        if ("early".equals(phase)) {
+            return pools.withArray("early").size() + pools.withArray("mid").size() + pools.withArray("late").size();
+        }
+        if ("mid".equals(phase)) {
+            return pools.withArray("mid").size() + pools.withArray("late").size();
+        }
+        return pools.withArray("late").size();
+    }
+
+    private int countRemainingCoreCards(ObjectNode state) {
+        ObjectNode pools = state.with("remainingPools");
+        return state.withArray("handCore").size()
+            + pools.withArray("early").size()
+            + pools.withArray("mid").size()
+            + pools.withArray("late").size();
+    }
+
+    private void enforceCoreHandLimit(ObjectNode state) {
+        ArrayNode hand = state.withArray("handCore");
+        ArrayNode discard = state.withArray("discardCore");
+        while (hand.size() > CORE_HAND_LIMIT) {
+            String discardedCard = hand.remove(0).asText();
+            discard.add(discardedCard);
+            recordAutoDiscard(state, "core", discardedCard);
+        }
+    }
+
+    private void enforcePolicyHandLimit(ObjectNode state) {
+        ArrayNode hand = state.withArray("handPolicy");
+        ArrayNode discard = state.withArray("discardPolicy");
+        while (hand.size() > POLICY_HAND_LIMIT) {
+            String discardedCard = hand.remove(0).asText();
+            discard.add(discardedCard);
+            recordAutoDiscard(state, "policy", discardedCard);
+        }
+    }
+
+    private void recordAutoDiscard(ObjectNode state, String handType, String cardId) {
+        ObjectNode history = objectMapper.createObjectNode();
+        history.put("turn", state.path("turn").asInt());
+        history.put("handType", handType);
+        history.put("cardId", cardId);
+        history.put("decisionWindowSeconds", HAND_DISCARD_DECISION_SECONDS);
+        history.put("reason", "timeout_auto_discard");
+        state.withArray("handOverflowHistory").add(history);
     }
 
     private ArrayNode toShuffledArray(List<String> cards) {
@@ -910,6 +1445,13 @@ public class GameService {
             throw new BizException(ErrorCode.INVALID_PARAMETER, fieldName + " is required");
         }
         return actionData.path(fieldName).asText();
+    }
+
+    private int readRequiredInt(JsonNode actionData, String fieldName) {
+        if (actionData == null || !actionData.hasNonNull(fieldName) || !actionData.path(fieldName).canConvertToInt()) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, fieldName + " must be an integer");
+        }
+        return actionData.path(fieldName).asInt();
     }
 
     private int indexOf(ArrayNode arrayNode, String value) {
@@ -940,6 +1482,10 @@ public class GameService {
 
     private int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private double roundToOneDecimal(double value) {
+        return Math.round(value * 10.0D) / 10.0D;
     }
 
     private int safeCost(Integer cost) {

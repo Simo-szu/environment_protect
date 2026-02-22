@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.game.persistence.mapper.GameCardMapper">
+
+    <resultMap id="BaseResultMap" type="com.youthloop.game.persistence.entity.GameCardEntity">
+        <id column="card_id" property="cardId" jdbcType="VARCHAR"/>
+        <result column="card_no" property="cardNo" jdbcType="INTEGER"/>
+        <result column="name_zh" property="nameZh" jdbcType="VARCHAR"/>
+        <result column="name_en" property="nameEn" jdbcType="VARCHAR"/>
+        <result column="card_type" property="cardType" jdbcType="VARCHAR"/>
+        <result column="domain" property="domain" jdbcType="VARCHAR"/>
+        <result column="star" property="star" jdbcType="INTEGER"/>
+        <result column="phase_bucket" property="phaseBucket" jdbcType="VARCHAR"/>
+        <result column="unlock_cost_industry" property="unlockCostIndustry" jdbcType="INTEGER"/>
+        <result column="unlock_cost_tech" property="unlockCostTech" jdbcType="INTEGER"/>
+        <result column="unlock_cost_population" property="unlockCostPopulation" jdbcType="INTEGER"/>
+        <result column="unlock_cost_green" property="unlockCostGreen" jdbcType="INTEGER"/>
+        <result column="image_key" property="imageKey" jdbcType="VARCHAR"/>
+        <result column="advanced_image_key" property="advancedImageKey" jdbcType="VARCHAR"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
+               unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
+               image_key, advanced_image_key, is_enabled
+        FROM game.game_card
+        ORDER BY card_no ASC
+    </select>
+
+    <select id="selectAllEnabled" resultMap="BaseResultMap">
+        SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
+               unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
+               image_key, advanced_image_key, is_enabled
+        FROM game.game_card
+        WHERE is_enabled = TRUE
+        ORDER BY card_no ASC
+    </select>
+
+    <select id="selectCoreCardIdsByPhase" resultType="string">
+        SELECT card_id
+        FROM game.game_card
+        WHERE is_enabled = TRUE
+          AND card_type = 'core'
+          AND phase_bucket = #{phaseBucket, jdbcType=VARCHAR}
+        ORDER BY card_no ASC
+    </select>
+
+    <select id="selectByCardId" resultMap="BaseResultMap">
+        SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
+               unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
+               image_key, advanced_image_key, is_enabled
+        FROM game.game_card
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectEnabledByCardId" resultMap="BaseResultMap">
+        SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
+               unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
+               image_key, advanced_image_key, is_enabled
+        FROM game.game_card
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+          AND is_enabled = TRUE
+    </select>
+
+    <insert id="insert">
+        INSERT INTO game.game_card (
+            card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
+            unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
+            image_key, advanced_image_key, is_enabled
+        )
+        VALUES (
+            #{cardId, jdbcType=VARCHAR},
+            #{cardNo, jdbcType=INTEGER},
+            #{nameZh, jdbcType=VARCHAR},
+            #{nameEn, jdbcType=VARCHAR},
+            #{cardType, jdbcType=VARCHAR},
+            #{domain, jdbcType=VARCHAR},
+            #{star, jdbcType=INTEGER},
+            #{phaseBucket, jdbcType=VARCHAR},
+            #{unlockCostIndustry, jdbcType=INTEGER},
+            #{unlockCostTech, jdbcType=INTEGER},
+            #{unlockCostPopulation, jdbcType=INTEGER},
+            #{unlockCostGreen, jdbcType=INTEGER},
+            #{imageKey, jdbcType=VARCHAR},
+            #{advancedImageKey, jdbcType=VARCHAR},
+            #{isEnabled, jdbcType=BOOLEAN}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE game.game_card
+        SET card_no = #{cardNo, jdbcType=INTEGER},
+            name_zh = #{nameZh, jdbcType=VARCHAR},
+            name_en = #{nameEn, jdbcType=VARCHAR},
+            card_type = #{cardType, jdbcType=VARCHAR},
+            domain = #{domain, jdbcType=VARCHAR},
+            star = #{star, jdbcType=INTEGER},
+            phase_bucket = #{phaseBucket, jdbcType=VARCHAR},
+            unlock_cost_industry = #{unlockCostIndustry, jdbcType=INTEGER},
+            unlock_cost_tech = #{unlockCostTech, jdbcType=INTEGER},
+            unlock_cost_population = #{unlockCostPopulation, jdbcType=INTEGER},
+            unlock_cost_green = #{unlockCostGreen, jdbcType=INTEGER},
+            image_key = #{imageKey, jdbcType=VARCHAR},
+            advanced_image_key = #{advancedImageKey, jdbcType=VARCHAR},
+            is_enabled = #{isEnabled, jdbcType=BOOLEAN},
+            updated_at = now()
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteByCardId">
+        DELETE FROM game.game_card
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

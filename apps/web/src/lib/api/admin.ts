@@ -97,6 +97,60 @@ export interface AdminUpdateContentRequest {
   status?: number;
 }
 
+export interface AdminGameCardItem {
+  cardId: string;
+  cardNo: number;
+  chineseName: string;
+  englishName: string;
+  cardType: 'core' | 'policy';
+  domain: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
+  star: number;
+  phaseBucket: 'early' | 'mid' | 'late' | 'policy';
+  unlockCost: {
+    industry: number;
+    tech: number;
+    population: number;
+    green: number;
+  };
+  imageKey?: string;
+  advancedImageKey?: string;
+}
+
+export interface AdminCreateGameCardRequest {
+  cardId: string;
+  cardNo: number;
+  chineseName: string;
+  englishName: string;
+  cardType: 'core' | 'policy';
+  domain: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
+  star: number;
+  phaseBucket: 'early' | 'mid' | 'late' | 'policy';
+  unlockCostIndustry: number;
+  unlockCostTech: number;
+  unlockCostPopulation: number;
+  unlockCostGreen: number;
+  imageKey?: string;
+  advancedImageKey?: string;
+  isEnabled?: boolean;
+}
+
+export interface AdminUpdateGameCardRequest {
+  cardNo?: number;
+  chineseName?: string;
+  englishName?: string;
+  cardType?: 'core' | 'policy';
+  domain?: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
+  star?: number;
+  phaseBucket?: 'early' | 'mid' | 'late' | 'policy';
+  unlockCostIndustry?: number;
+  unlockCostTech?: number;
+  unlockCostPopulation?: number;
+  unlockCostGreen?: number;
+  imageKey?: string;
+  advancedImageKey?: string;
+  isEnabled?: boolean;
+}
+
 export async function getAdminHostVerifications(status?: number): Promise<PageResponse<AdminHostVerificationItem>> {
   return apiGet<PageResponse<AdminHostVerificationItem>>('/api/v1/admin/host/verifications', { status });
 }
@@ -156,6 +210,26 @@ export async function publishAdminContent(id: string): Promise<void> {
 
 export async function deleteAdminContent(id: string): Promise<void> {
   return apiDelete<void>(`/api/v1/admin/contents/${id}`);
+}
+
+export async function getAdminGameCards(): Promise<PageResponse<AdminGameCardItem>> {
+  return apiGet<PageResponse<AdminGameCardItem>>('/api/v1/admin/game/cards');
+}
+
+export async function getAdminGameCardById(cardId: string): Promise<AdminGameCardItem> {
+  return apiGet<AdminGameCardItem>(`/api/v1/admin/game/cards/${cardId}`);
+}
+
+export async function createAdminGameCard(data: AdminCreateGameCardRequest): Promise<string> {
+  return apiPost<string>('/api/v1/admin/game/cards', data);
+}
+
+export async function updateAdminGameCard(cardId: string, data: AdminUpdateGameCardRequest): Promise<void> {
+  return apiPatch<void>(`/api/v1/admin/game/cards/${cardId}`, data);
+}
+
+export async function deleteAdminGameCard(cardId: string): Promise<void> {
+  return apiDelete<void>(`/api/v1/admin/game/cards/${cardId}`);
 }
 
 export interface AdminIngestionReport {

@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -93,6 +94,39 @@ class GameServicePhase3Test {
 
         verify(gameSessionMapper).update(any());
         verify(gameActionMapper).insert(any());
+    }
+
+    @Test
+    void usePolicyCardShouldResolveMatchingNegativeEvent() {
+        ObjectNode state = baseState();
+        state.withArray("policyUnlocked").add("card064");
+        state.withArray("handPolicy").add("card064");
+
+        ObjectNode activeEvent = objectMapper.createObjectNode();
+        activeEvent.put("eventType", "flood");
+        activeEvent.put("remainingTurns", 1);
+        activeEvent.put("greenDelta", -10);
+        activeEvent.put("carbonDelta", 0);
+        activeEvent.put("satisfactionDelta", 0);
+        state.withArray("activeNegativeEvents").add(activeEvent);
+        state.with("metrics").put("green", 40);
+        state.with("eventStats").put("negativeTriggered", 1);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+        when(cardCatalogService.getRequiredCard("card064")).thenReturn(policyCard("card064"));
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(3);
+        request.setActionData(objectMapper.createObjectNode().put("cardId", "card064"));
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(0, next.withArray("activeNegativeEvents").size());
+        assertEquals(1, next.with("eventStats").path("negativeResolved").asInt());
+        assertTrue(next.withArray("eventHistory").size() >= 1);
     }
 
     @Test
@@ -186,12 +220,280 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void endTurnShouldDiscardOldestCoreCardWhenHandExceedsLimit() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        ArrayNode handCore = state.withArray("handCore");
+        handCore.add("card001");
+        handCore.add("card002");
+        handCore.add("card003");
+        handCore.add("card004");
+        handCore.add("card005");
+        handCore.add("card006");
+        state.with("remainingPools").set("early", objectMapper.createArrayNode());
+        state.with("remainingPools").set("mid", objectMapper.createArrayNode().add("card007"));
+        state.with("remainingPools").set("late", objectMapper.createArrayNode());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(6, next.withArray("handCore").size());
+        assertEquals("card001", next.withArray("discardCore").get(0).asText());
+        assertEquals(-1, indexOf(next.withArray("handCore"), "card001"));
+        assertTrue(indexOf(next.withArray("handCore"), "card007") >= 0);
+    }
+
+    @Test
+    void endTurnShouldSwitchToLatePhaseWhenRemainingCoreCardsAtMostTen() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.withArray("handCore").add("card001");
+        state.with("remainingPools").set("early", objectMapper.createArrayNode().add("card002").add("card003").add("card004"));
+        state.with("remainingPools").set("mid", objectMapper.createArrayNode().add("card005").add("card006"));
+        state.with("remainingPools").set("late", objectMapper.createArrayNode().add("card007").add("card008").add("card009").add("card010"));
+        when(cardCatalogService.getRequiredCard(anyString())).thenAnswer(invocation -> coreIndustryCard(invocation.getArgument(0)));
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals("late", next.path("phase").asText());
+        assertEquals(0, next.with("remainingPools").withArray("early").size());
+        assertEquals(0, next.with("remainingPools").withArray("mid").size());
+        assertEquals(7, next.with("remainingPools").withArray("late").size());
+    }
+
+    @Test
+    void endTurnShouldOpenCarbonTradeWindowAndConsumeQuota() {
+        ObjectNode state = baseState();
+        state.put("turn", 2);
+        state.put("eventCooldown", 2);
+        state.with("metrics").put("carbon", 130);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+        ObjectNode trade = next.with("carbonTrade");
+
+        assertEquals(45, trade.path("quota").asInt());
+        assertEquals(5, trade.path("lastQuotaConsumed").asInt());
+        assertTrue(trade.path("windowOpened").asBoolean());
+        assertEquals(2, trade.path("lastWindowTurn").asInt());
+        assertEquals(0, trade.withArray("history").size());
+    }
+
+    @Test
+    void endTurnShouldApplyActiveNegativeEventEffectOnFollowingTurn() {
+        ObjectNode state = baseState();
+        state.put("turn", 2);
+        state.put("eventCooldown", 2);
+
+        ObjectNode activeEvent = objectMapper.createObjectNode();
+        activeEvent.put("eventType", "sea_level_rise");
+        activeEvent.put("remainingTurns", 2);
+        activeEvent.put("greenDelta", 0);
+        activeEvent.put("carbonDelta", 15);
+        activeEvent.put("satisfactionDelta", 0);
+        state.withArray("activeNegativeEvents").add(activeEvent);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(95, next.with("metrics").path("carbon").asInt());
+        assertEquals(1, next.withArray("activeNegativeEvents").size());
+        assertEquals(1, next.withArray("activeNegativeEvents").get(0).path("remainingTurns").asInt());
+    }
+
+    @Test
+    void endTurnShouldDiscardOldestPolicyCardWhenPolicyHandExceedsLimit() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.withArray("policyUnlocked").add("card061");
+        state.withArray("policyUnlocked").add("card062");
+        state.withArray("policyUnlocked").add("card063");
+        state.withArray("handPolicy").add("card061");
+        state.withArray("handPolicy").add("card062");
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(2, next.withArray("handPolicy").size());
+        assertEquals(1, next.withArray("discardPolicy").size());
+        assertEquals("card061", next.withArray("discardPolicy").get(0).asText());
+        assertEquals(1, next.withArray("handOverflowHistory").size());
+        assertEquals("policy", next.withArray("handOverflowHistory").get(0).path("handType").asText());
+    }
+
+    @Test
+    void tradeCarbonShouldBuyQuotaAndCloseWindow() {
+        ObjectNode state = baseState();
+        state.with("carbonTrade").put("windowOpened", true);
+        state.with("carbonTrade").put("lastWindowTurn", 2);
+        state.with("carbonTrade").put("lastPrice", 2.0D);
+        state.with("resources").put("industry", 30);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(4);
+        request.setActionData(objectMapper.createObjectNode().put("tradeType", "buy").put("amount", 5));
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+        ObjectNode trade = next.with("carbonTrade");
+
+        assertEquals(1, response.getPointsEarned());
+        assertEquals(55, trade.path("quota").asInt());
+        assertEquals(10.0D, trade.path("buyAmountTotal").asDouble(), 0.001D);
+        assertEquals(20, next.with("resources").path("industry").asInt());
+        assertTrue(!trade.path("windowOpened").asBoolean());
+        assertEquals(1, trade.withArray("history").size());
+        assertEquals("buy", trade.withArray("history").get(0).path("action").asText());
+    }
+
+    @Test
+    void tradeCarbonShouldFailWhenWindowNotOpen() {
+        ObjectNode state = baseState();
+        state.with("carbonTrade").put("windowOpened", false);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(4);
+        request.setActionData(objectMapper.createObjectNode().put("tradeType", "sell").put("amount", 1));
+
+        assertThrows(BizException.class, () -> gameService.performAction(request));
+    }
+
+    @Test
+    void endTurnShouldFailWhenQuotaExhaustedAndTradeProfitNegative() {
+        ObjectNode state = baseState();
+        state.put("turn", 5);
+        state.put("eventCooldown", 2);
+        state.with("carbonTrade").put("quotaExhaustedCount", 4);
+        state.with("carbonTrade").put("profit", -10.0D);
+        state.with("metrics").put("lowCarbonScore", 180);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
+        assertEquals("failure", next.path("ending").path("endingId").asText());
+    }
+
+    @Test
+    void endTurnShouldReachInnovationEndingWhenAllDocumentConditionsMet() {
+        ObjectNode state = baseState();
+        state.put("turn", 30);
+        state.put("eventCooldown", 2);
+        state.with("resources").put("tech", 230);
+        state.with("metrics").put("carbon", 90);
+        state.with("carbonTrade").put("profit", 130.0D);
+        state.with("eventStats").put("negativeTriggered", 10);
+        state.with("eventStats").put("negativeResolved", 8);
+
+        ArrayNode placed = state.withArray("placedCore");
+        for (int i = 1; i <= 60; i++) {
+            placed.add(String.format("card%03d", i));
+        }
+        when(cardCatalogService.getRequiredCard(anyString())).thenAnswer(invocation -> coreScienceLateCard(invocation.getArgument(0)));
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
+        assertEquals("innovation_technology", next.path("ending").path("endingId").asText());
+    }
+
+    @Test
+    void endTurnShouldNotReachInnovationEndingWhenResolveRateBelowSeventyPercent() {
+        ObjectNode state = baseState();
+        state.put("turn", 30);
+        state.put("eventCooldown", 2);
+        state.with("resources").put("tech", 230);
+        state.with("metrics").put("carbon", 90);
+        state.with("carbonTrade").put("profit", 130.0D);
+        state.with("eventStats").put("negativeTriggered", 10);
+        state.with("eventStats").put("negativeResolved", 6);
+
+        ArrayNode placed = state.withArray("placedCore");
+        for (int i = 1; i <= 60; i++) {
+            placed.add(String.format("card%03d", i));
+        }
+        when(cardCatalogService.getRequiredCard(anyString())).thenAnswer(invocation -> coreScienceLateCard(invocation.getArgument(0)));
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
+        assertEquals("failure", next.path("ending").path("endingId").asText());
+    }
+
+    @Test
     void guestShouldStartAndPlayWithoutDatabasePersistence() {
         SecurityContextHolder.clearContext();
         when(cardCatalogService.listCoreCardsByPhase("early")).thenReturn(List.of("card001", "card002", "card003", "card004"));
         when(cardCatalogService.listCoreCardsByPhase("mid")).thenReturn(List.of("card021"));
         when(cardCatalogService.listCoreCardsByPhase("late")).thenReturn(List.of("card046"));
-        when(cardCatalogService.getRequiredCard("card001")).thenReturn(coreIndustryCard("card001"));
+        when(cardCatalogService.getRequiredCard(anyString())).thenAnswer(invocation -> coreIndustryCard(invocation.getArgument(0)));
 
         GameSessionDTO session = gameService.startSession();
         GameActionRequest request = new GameActionRequest();
@@ -225,6 +527,18 @@ class GameServicePhase3Test {
         metrics.put("satisfaction", 60);
         metrics.put("lowCarbonScore", 0);
 
+        ObjectNode carbonTrade = state.putObject("carbonTrade");
+        carbonTrade.put("quota", 50);
+        carbonTrade.put("buyAmountTotal", 0D);
+        carbonTrade.put("sellAmountTotal", 0D);
+        carbonTrade.put("profit", 0D);
+        carbonTrade.put("lastPrice", 2D);
+        carbonTrade.put("lastWindowTurn", 0);
+        carbonTrade.put("windowOpened", false);
+        carbonTrade.put("quotaExhaustedCount", 0);
+        carbonTrade.put("invalidOperationCount", 0);
+        carbonTrade.set("history", objectMapper.createArrayNode());
+
         ObjectNode pools = state.putObject("remainingPools");
         pools.set("early", objectMapper.createArrayNode());
         pools.set("mid", objectMapper.createArrayNode());
@@ -234,11 +548,17 @@ class GameServicePhase3Test {
         state.set("handPolicy", objectMapper.createArrayNode());
         state.set("placedCore", objectMapper.createArrayNode());
         state.set("discardCore", objectMapper.createArrayNode());
+        state.set("discardPolicy", objectMapper.createArrayNode());
         state.set("policyUnlocked", objectMapper.createArrayNode());
         state.set("activePolicies", objectMapper.createArrayNode());
         state.set("eventHistory", objectMapper.createArrayNode());
+        state.set("activeNegativeEvents", objectMapper.createArrayNode());
         state.set("comboHistory", objectMapper.createArrayNode());
         state.set("policyHistory", objectMapper.createArrayNode());
+        state.set("handOverflowHistory", objectMapper.createArrayNode());
+        ObjectNode eventStats = state.putObject("eventStats");
+        eventStats.put("negativeTriggered", 0);
+        eventStats.put("negativeResolved", 0);
         state.put("policyUsedThisTurn", false);
         state.putNull("lastPolicyUsed");
         return state;
@@ -275,6 +595,17 @@ class GameServicePhase3Test {
             .cardType("core")
             .phaseBucket("early")
             .domain("industry")
+            .unlockCost(new GameCardMetaDTO.UnlockCost(0, 0, 0, 0))
+            .build();
+    }
+
+    private GameCardMetaDTO coreScienceLateCard(String cardId) {
+        return GameCardMetaDTO.builder()
+            .cardId(cardId)
+            .cardNo(46)
+            .cardType("core")
+            .phaseBucket("late")
+            .domain("science")
             .unlockCost(new GameCardMetaDTO.UnlockCost(0, 0, 0, 0))
             .build();
     }
