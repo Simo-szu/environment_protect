@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 对象存储服务（MinIO）
+ * Object storage service (S3-compatible: MinIO/OSS).
  */
 @Slf4j
 @Service
@@ -28,6 +28,9 @@ public class StorageService {
     
     @Value("${minio.endpoint}")
     private String endpoint;
+
+    @Value("${minio.public-base-url:}")
+    private String publicBaseUrl;
     
     /**
      * 生成上传预签名 URL
@@ -53,8 +56,8 @@ public class StorageService {
                     .build()
             );
             
-            // 最终访问 URL（公开访问）
-            String fileUrl = String.format("%s/%s/%s", endpoint, bucketName, objectName);
+            // Public file URL: prefer CDN/public base URL when configured.
+            String fileUrl = buildPublicFileUrl(objectName);
             
             log.info("生成预签名 URL: objectName={}, uploadUrl={}", objectName, uploadUrl);
             
@@ -74,6 +77,39 @@ public class StorageService {
             return "";
         }
         return fileName.substring(fileName.lastIndexOf("."));
+    }
+
+    private String buildPublicFileUrl(String objectName) {
+        if (isNotBlank(publicBaseUrl)) {
+            return joinUrl(publicBaseUrl, objectName);
+        }
+        return joinUrl(joinUrl(endpoint, bucketName), objectName);
+    }
+
+    private String joinUrl(String base, String path) {
+        String normalizedBase = trimTrailingSlash(base);
+        String normalizedPath = trimLeadingSlash(path);
+        return normalizedBase + "/" + normalizedPath;
+    }
+
+    private String trimTrailingSlash(String value) {
+        String trimmed = value == null ? "" : value.trim();
+        while (trimmed.endsWith("/")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed;
+    }
+
+    private String trimLeadingSlash(String value) {
+        String trimmed = value == null ? "" : value.trim();
+        while (trimmed.startsWith("/")) {
+            trimmed = trimmed.substring(1);
+        }
+        return trimmed;
+    }
+
+    private boolean isNotBlank(String value) {
+        return value != null && !value.trim().isEmpty();
     }
     
     /**
