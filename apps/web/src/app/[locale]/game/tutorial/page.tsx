@@ -48,7 +48,7 @@ export default function GameTutorialPage() {
                             </div>
                             <div className="bg-blue-50 border-l-4 border-[#30499B] p-4 rounded-r-lg">
                                 <p className="text-slate-700 leading-relaxed m-0">
-                                    {t('tutorial.objective.content', '你将扮演深圳低碳城市规划师，在 15 个回合内（每回合 = 1 年），平衡"产业发展、市民需求、科技创新、生态保护"四大维度，达成核心目标：')}
+                                    {t('tutorial.objective.content', '你将扮演深圳低碳城市规划师，在最多 30 个回合内（每回合 = 1 年），平衡"产业发展、市民需求、科技创新、生态保护"四大维度，达成核心目标：')}
                                 </p>
                                 <ul className="mt-3 space-y-2 text-slate-700">
                                     <li className="flex items-center gap-2">
@@ -90,13 +90,13 @@ export default function GameTutorialPage() {
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">●</span>
                                         <p className="text-slate-700 m-0">
-                                            {t('tutorial.operations.deploy.step1', '点击卡牌可放大查看完整详情（消耗资源、效果、碳排放影响）')}
+                                            {t('tutorial.operations.deploy.step1', '选择1张核心卡牌后，点击棋盘空白地块进行放置（仅上下左右相邻判定）。')}
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#56B949] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">●</span>
                                         <p className="text-slate-700 m-0">
-                                            {t('tutorial.operations.deploy.step2', '若资源满足要求，可点击"部署"消耗资源激活，激活后卡牌会亮起，直接将卡牌拖动到对应区域即可生效')}
+                                            {t('tutorial.operations.deploy.step2', '若资源不足或地块不可用，放置会失败并提示原因；每回合最多放置1张核心卡牌。')}
                                         </p>
                                     </div>
                                 </div>
@@ -105,21 +105,21 @@ export default function GameTutorialPage() {
                             {/* 2. 卡牌回收 / 丢弃 */}
                             <div className="mb-6">
                                 <h3 className="text-lg font-semibold text-[#30499B] mb-3">
-                                    2. {t('tutorial.operations.recycle.title', '卡牌回收 / 丢弃')}
+                                    2. {t('tutorial.operations.recycle.title', '手牌上限与弃置')}
                                 </h3>
                                 <div className="space-y-3 pl-4 border-l-2 border-slate-200">
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">●</span>
                                         <p className="text-slate-700 m-0">
-                                            <strong>{t('tutorial.operations.recycle.recycle', '回收：')}</strong>
-                                            {t('tutorial.operations.recycle.recycleDesc', '点击底部"卡牌回收"按钮，再点击任意产业类卡牌，即可转化为 2 产业值（循环经济机制）')}
+                                            <strong>{t('tutorial.operations.recycle.recycle', '核心手牌上限：')}</strong>
+                                            {t('tutorial.operations.recycle.recycleDesc', '核心卡牌手牌上限为6张，超出后需要在10秒内完成弃置。')}
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#F0A32F] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">●</span>
                                         <p className="text-slate-700 m-0">
-                                            <strong>{t('tutorial.operations.recycle.discard', '丢弃：')}</strong>
-                                            {t('tutorial.operations.recycle.discardDesc', '长按卡牌拖拽至屏幕边缘，松开后确认即可')}
+                                            <strong>{t('tutorial.operations.recycle.discard', '政策手牌上限：')}</strong>
+                                            {t('tutorial.operations.recycle.discardDesc', '政策卡牌手牌上限为2张，超时未处理将自动弃置最早获得的卡牌。')}
                                         </p>
                                     </div>
                                 </div>
@@ -140,7 +140,7 @@ export default function GameTutorialPage() {
                                     <div className="flex items-start gap-3">
                                         <span className="w-6 h-6 rounded-full bg-[#30499B] text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">●</span>
                                         <p className="text-slate-700 m-0">
-                                            {t('tutorial.operations.endTurn.step2', '结算后发放下回合新卡牌，进度条同步推进')}
+                                            {t('tutorial.operations.endTurn.step2', '结算后自动触发事件判定、碳交易窗口判定，并发放下回合卡牌。')}
                                         </p>
                                     </div>
                                 </div>

@@ -6,7 +6,7 @@ import com.youthloop.host.application.service.HostVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import com.youthloop.common.api.PageResponse;
 import java.util.UUID;
 
 /**
@@ -33,10 +33,10 @@ public class HostFacade {
     }
     
     /**
-     * 查询所有认证申请（管理员）
+     * 查询所有认证申请（管理员，分页）
      */
-    public List<HostVerificationResponse> getAllVerifications(Integer status) {
-        return hostVerificationService.getAllVerifications(status);
+    public PageResponse<HostVerificationResponse> getAllVerifications(Integer status, int page, int size) {
+        return hostVerificationService.getAllVerifications(status, page, size);
     }
     
     /**

@@ -295,17 +295,17 @@ export default function ContactPage() {
                                     />
                                 </div>
 
-                                <div className="flex gap-4 pt-6 border-t border-slate-200">
+                                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200">
                                     <button
                                         type="submit"
-                                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                                        className="flex flex-1 justify-center items-center gap-2 px-8 py-3 bg-[#30499B] text-white rounded-xl font-medium shadow-md hover:bg-[#30499B]/90 hover:shadow-lg active:scale-95 transition-all duration-300"
                                     >
                                         <Send className="w-4 h-4" />
                                         {t('form.submit', '发送消息')}
                                     </button>
                                     <Link
                                         href={`/${locale}`}
-                                        className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                        className="flex flex-1 justify-center items-center px-8 py-3 border border-slate-200 text-[#30499B] bg-white rounded-xl font-medium hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-300"
                                     >
                                         {t('form.cancel', '取消')}
                                     </Link>

@@ -324,17 +324,17 @@ export default function SciencePage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
-                                className="flex justify-center items-center gap-3 pt-12"
+                                className="flex justify-center items-center gap-1.5 sm:gap-3 pt-12 flex-wrap"
                             >
                                 <button
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={currentPage === 1 || loading}
-                                    className="p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                    className="p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all disabled:opacity-30 disabled:pointer-events-none"
                                 >
-                                    <ChevronRight className="w-5 h-5 rotate-180" />
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
                                 </button>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 sm:gap-2">
                                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                                         const pageNum = getPageNum(i, currentPage, totalPages);
                                         return (
@@ -342,7 +342,7 @@ export default function SciencePage() {
                                                 key={pageNum}
                                                 onClick={() => handlePageChange(pageNum)}
                                                 disabled={loading}
-                                                className={`w-11 h-11 rounded-2xl text-sm font-bold transition-all ${currentPage === pageNum
+                                                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all ${currentPage === pageNum
                                                     ? 'bg-[#30499B] text-white shadow-lg shadow-[#30499B]/30'
                                                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-[#30499B]/50'
                                                     }`}
@@ -356,9 +356,9 @@ export default function SciencePage() {
                                 <button
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={currentPage === totalPages || loading}
-                                    className="p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all disabled:opacity-30 disabled:pointer-events-none"
+                                    className="p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all disabled:opacity-30 disabled:pointer-events-none"
                                 >
-                                    <ChevronRight className="w-5 h-5" />
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
                             </motion.div>
                         )}

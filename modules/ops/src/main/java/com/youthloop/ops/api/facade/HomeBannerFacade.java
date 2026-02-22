@@ -1,5 +1,6 @@
 package com.youthloop.ops.api.facade;
 
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.ops.api.dto.CreateHomeBannerRequest;
 import com.youthloop.ops.api.dto.HomeBannerDTO;
 import com.youthloop.ops.api.dto.UpdateHomeBannerRequest;
@@ -11,11 +12,11 @@ import java.util.UUID;
  * 首页轮播 Facade（对外契约）
  */
 public interface HomeBannerFacade {
-    
+
     /**
-     * 查询所有轮播（管理端）
+     * 查询所有轮播（管理端，分页）
      */
-    List<HomeBannerDTO> getAllBanners();
+    PageResponse<HomeBannerDTO> getAllBanners(int page, int size);
     
     /**
      * 查询启用的轮播（用户端）

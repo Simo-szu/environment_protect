@@ -44,180 +44,10 @@ public class GameService {
     private static final int SESSION_ACTIVE = 1;
     private static final int SESSION_ENDED = 3;
 
-    private static final int CORE_HAND_LIMIT = 6;
-    private static final int POLICY_HAND_LIMIT = 2;
-    private static final int MAX_COMBO_PER_TURN = 2;
-    private static final int MAX_TURN = 30;
-    private static final int HAND_DISCARD_DECISION_SECONDS = 10;
-    private static final int TRADE_WINDOW_INTERVAL = 2;
-    private static final double BASE_CARBON_PRICE = 2.0D;
-    private static final int MAX_CARBON_QUOTA = 200;
-    private static final Set<String> SHENZHEN_ECOLOGY_CARDS = Set.of("card025", "card026", "card027");
-    private static final Set<String> LOW_CARBON_CORE_CARDS = Set.of(
-        "card006", "card009", "card010", "card015", "card018", "card020",
-        "card021", "card022", "card023", "card024", "card025", "card026", "card027", "card028", "card029", "card030",
-        "card031", "card032", "card033", "card034", "card035",
-        "card038", "card041", "card042", "card043",
-        "card048", "card049", "card050",
-        "card054", "card055", "card056", "card057", "card059", "card060"
-    );
-    private static final Set<String> SHENZHEN_TAG_CORE_CARDS = Set.of(
-        "card025", "card026", "card027", "card036", "card037", "card054"
-    );
-    private static final Set<String> LINK_TAG_CORE_CARDS = Set.of(
-        "card009", "card019", "card031", "card035", "card044", "card045", "card053", "card058"
-    );
-    private static final Map<String, PolicyImmediateEffect> POLICY_IMMEDIATE_EFFECTS = Map.of(
-        "card061", new PolicyImmediateEffect(15, 0, 0, 0, -8, 0, 0, "industry_support", 3),
-        "card062", new PolicyImmediateEffect(0, 0, 0, 0, -30, 0, 0, "carbon_control", 3),
-        "card063", new PolicyImmediateEffect(0, 0, 0, 20, 0, 8, 0, "ecology", 3),
-        "card064", new PolicyImmediateEffect(0, 0, 0, 15, 0, 0, 3, "ecology", 3),
-        "card065", new PolicyImmediateEffect(0, 25, 0, 0, 0, 0, 0, "science_support", 3),
-        "card066", new PolicyImmediateEffect(0, 20, 0, 0, -40, 0, 0, "carbon_control", 3),
-        "card067", new PolicyImmediateEffect(0, 0, 10, 0, 0, 20, 0, "society_support", 3),
-        "card068", new PolicyImmediateEffect(0, 0, 8, 0, 0, 18, 0, "citizen", 3)
-    );
-    private static final Map<String, PolicyContinuousEffect> POLICY_CONTINUOUS_EFFECTS = Map.of(
-        "card061", new PolicyContinuousEffect(5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        "card062", new PolicyContinuousEffect(0, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, 20),
-        "card063", new PolicyContinuousEffect(0, 0, 0, 3, -4, 0, 0, 0, 0, 0, 0, 0),
-        "card064", new PolicyContinuousEffect(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0),
-        "card065", new PolicyContinuousEffect(0, 6, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0),
-        "card066", new PolicyContinuousEffect(0, 0, 0, 0, -8, 0, 0, 0, 0, 0, 0, 0),
-        "card067", new PolicyContinuousEffect(0, 0, 3, 0, 0, 4, 0, 0, 0, 0, 0, 0),
-        "card068", new PolicyContinuousEffect(0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0, 0)
-    );
-    private static final Map<String, ComboEffect> COMBO_EFFECTS = Map.ofEntries(
-        Map.entry("policy_industry_chain", new ComboEffect(10, 0, 0, 0, -15, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("policy_ecology_chain", new ComboEffect(0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("policy_science_chain", new ComboEffect(0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10)),
-        Map.entry("policy_society_chain", new ComboEffect(0, 0, 0, 0, 0, 15, 0, 0, 0, 20, 0, 0, 0, 0)),
-        Map.entry("cross_science_industry", new ComboEffect(20, 15, 0, 0, -20, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("cross_industry_ecology", new ComboEffect(0, 0, 0, 10, -25, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("cross_ecology_society", new ComboEffect(0, 0, 8, 8, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("cross_science_ecology", new ComboEffect(0, 10, 0, 15, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("intra_industry_scale", new ComboEffect(0, 0, 0, 0, -15, 0, 0, 0, 0, 0, 30, 0, 0, 0)),
-        Map.entry("intra_ecology_restore", new ComboEffect(0, 0, 0, 12, -8, 8, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("intra_science_boost", new ComboEffect(0, 0, 0, 0, 0, 0, 0, 0, 35, 0, 0, 8, 0, 0)),
-        Map.entry("intra_society_mobilize", new ComboEffect(0, 0, 0, 0, 0, 10, 0, 0, 0, 25, 0, 0, 0, 0))
-    );
-    private static final List<ComboTriggerRule> COMBO_TRIGGER_RULES = List.of(
-        // Priority 1: policy + core
-        new ComboTriggerRule("policy_industry_chain", "card061", 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0),
-        new ComboTriggerRule("policy_ecology_chain", "card064", 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0),
-        new ComboTriggerRule("policy_science_chain", "card065", 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        new ComboTriggerRule("policy_society_chain", "card067", 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0),
-        // Priority 2: cross-domain
-        new ComboTriggerRule("cross_science_industry", null, 0, 0, 3, 0, 3, 0, 0, 0, 0, 1, 0, 0),
-        new ComboTriggerRule("cross_industry_ecology", null, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0),
-        new ComboTriggerRule("cross_ecology_society", null, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2),
-        new ComboTriggerRule("cross_science_ecology", null, 0, 3, 3, 0, 0, 0, 1, 0, 0, 0, 0, 0),
-        // Priority 3: intra-domain
-        new ComboTriggerRule("intra_industry_scale", null, 0, 0, 0, 0, 4, 0, 0, 3, 0, 0, 0, 0),
-        new ComboTriggerRule("intra_ecology_restore", null, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0),
-        new ComboTriggerRule("intra_science_boost", null, 0, 0, 4, 0, 0, 0, 0, 0, 2, 0, 0, 0),
-        new ComboTriggerRule("intra_society_mobilize", null, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 2)
-    );
-    private static final Set<String> NEW_ENERGY_INDUSTRY_CARDS = Set.of("card055");
-    private static final Set<String> TRADITIONAL_INDUSTRY_CARDS = Set.of(
-        "card001", "card002", "card003", "card004", "card005", "card011", "card012", "card013", "card014", "card057"
-    );
-    private static final Set<String> ECOLOGY_CORE_CARDS = Set.of(
-        "card021", "card022", "card023", "card024", "card025", "card026", "card027", "card028", "card029", "card030",
-        "card031", "card032", "card033", "card034", "card035", "card056", "card059"
-    );
-    private static final Set<String> SCIENCE_CORE_CARDS = Set.of(
-        "card036", "card037", "card038", "card039", "card040", "card041", "card042", "card043", "card044", "card045", "card054"
-    );
-    private static final Set<String> NEW_ENERGY_EFFECT_CARDS = Set.of("card006", "card018", "card055");
-    private static final int DOMAIN_PROGRESS_CARD_CAP = 15;
-    private static final Map<String, Integer> CORE_DOMAIN_PROGRESS_BONUS = Map.ofEntries(
-        Map.entry("card001", 5), Map.entry("card002", 4), Map.entry("card003", 5), Map.entry("card004", 4),
-        Map.entry("card005", 6), Map.entry("card006", 7), Map.entry("card007", 8), Map.entry("card008", 7),
-        Map.entry("card009", 10), Map.entry("card010", 12), Map.entry("card011", 5), Map.entry("card012", 4),
-        Map.entry("card013", 5), Map.entry("card014", 6), Map.entry("card015", 15), Map.entry("card016", 14),
-        Map.entry("card017", 16), Map.entry("card018", 13),
-        Map.entry("card021", 3), Map.entry("card022", 2), Map.entry("card023", 4), Map.entry("card024", 4),
-        Map.entry("card025", 6), Map.entry("card026", 7), Map.entry("card027", 5), Map.entry("card028", 6),
-        Map.entry("card029", 10), Map.entry("card030", 12), Map.entry("card032", 7), Map.entry("card033", 8),
-        Map.entry("card034", 6),
-        Map.entry("card036", 3), Map.entry("card037", 2), Map.entry("card038", 6), Map.entry("card039", 7),
-        Map.entry("card040", 6), Map.entry("card041", 5), Map.entry("card042", 10), Map.entry("card043", 12),
-        Map.entry("card045", 5),
-        Map.entry("card046", 3), Map.entry("card047", 2), Map.entry("card048", 5), Map.entry("card049", 6),
-        Map.entry("card050", 5), Map.entry("card051", 5), Map.entry("card052", 8)
-    );
-    private static final Map<String, CoreContinuousEffect> CORE_CONTINUOUS_EFFECTS = Map.ofEntries(
-        Map.entry("card001", new CoreContinuousEffect(3, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card002", new CoreContinuousEffect(2, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card003", new CoreContinuousEffect(3, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card004", new CoreContinuousEffect(2, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card005", new CoreContinuousEffect(4, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card006", new CoreContinuousEffect(5, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card007", new CoreContinuousEffect(5, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card008", new CoreContinuousEffect(4, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card009", new CoreContinuousEffect(25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card010", new CoreContinuousEffect(28, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card011", new CoreContinuousEffect(3, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card012", new CoreContinuousEffect(3, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card013", new CoreContinuousEffect(4, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card014", new CoreContinuousEffect(4, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card015", new CoreContinuousEffect(30, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card016", new CoreContinuousEffect(29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card017", new CoreContinuousEffect(32, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card018", new CoreContinuousEffect(27, 0, 0, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card019", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card020", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0)),
-        Map.entry("card021", new CoreContinuousEffect(0, 0, 0, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card022", new CoreContinuousEffect(0, 0, 0, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card023", new CoreContinuousEffect(0, 0, 0, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card024", new CoreContinuousEffect(0, 0, 0, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card025", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card026", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card027", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card028", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card029", new CoreContinuousEffect(0, 0, 0, 12, -8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card030", new CoreContinuousEffect(0, 0, 0, 10, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card031", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card032", new CoreContinuousEffect(1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card033", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card034", new CoreContinuousEffect(0, 0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card036", new CoreContinuousEffect(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card037", new CoreContinuousEffect(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card038", new CoreContinuousEffect(0, 0, 0, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card039", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0)),
-        Map.entry("card041", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0)),
-        Map.entry("card042", new CoreContinuousEffect(0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0)),
-        Map.entry("card043", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0)),
-        Map.entry("card044", new CoreContinuousEffect(0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card046", new CoreContinuousEffect(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card047", new CoreContinuousEffect(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card048", new CoreContinuousEffect(0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card049", new CoreContinuousEffect(0, 0, 0, 0, -2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card050", new CoreContinuousEffect(0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card051", new CoreContinuousEffect(0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card052", new CoreContinuousEffect(2, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card053", new CoreContinuousEffect(0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card054", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0)),
-        Map.entry("card055", new CoreContinuousEffect(0, 0, 0, 0, -8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card057", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card058", new CoreContinuousEffect(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30)),
-        Map.entry("card059", new CoreContinuousEffect(0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
-        Map.entry("card060", new CoreContinuousEffect(8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0))
-    );
-    private static final Map<String, CoreEffectCondition> CORE_EFFECT_CONDITIONS = Map.of(
-        "card054", new CoreEffectCondition(5, 0, 0, Integer.MAX_VALUE, 0, 0, 0, ""),
-        "card055", new CoreEffectCondition(0, 0, 20, Integer.MAX_VALUE, 0, 0, 1, "new_energy_industry"),
-        "card057", new CoreEffectCondition(0, 0, 0, Integer.MAX_VALUE, 2, 40, 2, "traditional_industry"),
-        "card060", new CoreEffectCondition(0, 100, 0, 60, 0, 0, 0, "")
-    );
-    private static final Map<String, CoreSpecialEffect> CORE_SPECIAL_EFFECTS = Map.of(
-        "card035", new CoreSpecialEffect(20, 0, 0, 0, 0),
-        "card040", new CoreSpecialEffect(0, 0, 0, 20, 0),
-        "card045", new CoreSpecialEffect(0, 20, 0, 0, 0),
-        "card056", new CoreSpecialEffect(50, 0, 60, 0, 0),
-        "card059", new CoreSpecialEffect(0, 0, 0, 0, 5)
-    );
+    private static final String TAG_LOW_CARBON_CORE = "low_carbon_core";
+    private static final String TAG_SHENZHEN = "shenzhen_tag";
+    private static final String TAG_LINK = "link_tag";
+    private static final String TAG_NEW_ENERGY_EFFECT = "new_energy_effect";
 
     private static final String ENDING_FAILURE = "failure";
     private static final String ENDING_INNOVATION = "innovation_technology";
@@ -227,6 +57,7 @@ public class GameService {
     private final GameSessionMapper gameSessionMapper;
     private final GameActionMapper gameActionMapper;
     private final CardCatalogService cardCatalogService;
+    private final GameRuleConfigService gameRuleConfigService;
     private final ObjectMapper objectMapper;
     private final Map<UUID, GameSessionEntity> guestSessions = new ConcurrentHashMap<>();
 
@@ -238,12 +69,13 @@ public class GameService {
             if (existing != null) {
                 return toDTO(existing);
             }
-            GameSessionEntity session = createSession(userId);
+            GameSessionEntity session = createSession(userId, false);
             gameSessionMapper.insert(session);
             return toDTO(session);
         }
 
-        GameSessionEntity guestSession = createSession(null);
+        GameSessionEntity guestSession = createSession(UUID.randomUUID(), true);
+        gameSessionMapper.insert(guestSession);
         guestSessions.put(guestSession.getId(), guestSession);
         return toDTO(guestSession);
     }
@@ -256,6 +88,7 @@ public class GameService {
         }
         ObjectNode state = ensureStateObject(session.getPondState());
         processPendingDiscardTimeout(state);
+        processTradeWindowTimeout(state);
         session.setPondState(state);
         session.setUpdatedAt(LocalDateTime.now());
         gameSessionMapper.update(session);
@@ -275,19 +108,25 @@ public class GameService {
             }
             ObjectNode state = ensureStateObject(session.getPondState());
             processPendingDiscardTimeout(state);
+            processTradeWindowTimeout(state);
             session.setPondState(state);
             session.setUpdatedAt(LocalDateTime.now());
             gameSessionMapper.update(session);
             return toDTO(session);
         }
 
-        GameSessionEntity guestSession = guestSessions.get(sessionId);
+        GameSessionEntity guestSession = resolveGuestSession(sessionId);
         if (guestSession == null) {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         ObjectNode guestState = ensureStateObject(guestSession.getPondState());
         processPendingDiscardTimeout(guestState);
+        processTradeWindowTimeout(guestState);
         guestSession.setPondState(guestState);
+        guestSession.setUpdatedAt(LocalDateTime.now());
+        if (guestSession.getUserId() != null) {
+            gameSessionMapper.update(guestSession);
+        }
         guestSessions.put(guestSession.getId(), guestSession);
         return toDTO(guestSession);
     }
@@ -311,7 +150,7 @@ public class GameService {
                 throw new BizException(ErrorCode.GAME_SESSION_INVALID);
             }
         } else {
-            session = guestSessions.get(request.getSessionId());
+            session = resolveGuestSession(request.getSessionId());
             if (session == null) {
                 throw new BizException(ErrorCode.GAME_SESSION_INVALID);
             }
@@ -322,6 +161,7 @@ public class GameService {
 
         ObjectNode state = ensureStateObject(session.getPondState());
         processPendingDiscardTimeout(state);
+        processTradeWindowTimeout(state);
         if (state.path("pendingDiscard").path("active").asBoolean(false)
             && request.getActionType() != ACTION_DISCARD_CARD) {
             throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Discard required before other actions");
@@ -349,7 +189,7 @@ public class GameService {
         }
 
         long latestScore = state.path("metrics").path("lowCarbonScore").asLong(0);
-        boolean sessionEnded = state.path("sessionEnded").asBoolean(false) || state.path("turn").asInt() > MAX_TURN;
+        boolean sessionEnded = state.path("sessionEnded").asBoolean(false) || state.path("turn").asInt() > maxTurn();
         session.setPondState(state);
         session.setScore(latestScore);
         session.setLevel(calculateLevel(latestScore));
@@ -376,12 +216,16 @@ public class GameService {
             action.setCreatedAt(LocalDateTime.now());
             gameActionMapper.insert(action);
         } else {
+            if (session.getUserId() != null) {
+                gameSessionMapper.update(session);
+            }
             guestSessions.put(session.getId(), session);
         }
 
-        ObjectNode ending = state.path("ending").isObject() ? (ObjectNode) state.path("ending") : null;
+        ObjectNode sanitizedState = sanitizeStateForClient(state);
+        ObjectNode ending = sanitizedState.path("ending").isObject() ? (ObjectNode) sanitizedState.path("ending") : null;
         return GameActionResponse.builder()
-            .newPondState(state)
+            .newPondState(sanitizedState)
             .pointsEarned(pointsEarned)
             .totalScore(latestScore)
             .newLevel(session.getLevel())
@@ -407,7 +251,7 @@ public class GameService {
                 throw new BizException(ErrorCode.FORBIDDEN, "No permission to end this session");
             }
         } else {
-            session = guestSessions.get(sessionId);
+            session = resolveGuestSession(sessionId);
             if (session == null) {
                 throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
             }
@@ -420,11 +264,14 @@ public class GameService {
         if (authenticated) {
             gameSessionMapper.update(session);
         } else {
+            if (session.getUserId() != null) {
+                gameSessionMapper.update(session);
+            }
             guestSessions.put(session.getId(), session);
         }
 
         return GameActionResponse.builder()
-            .newPondState(session.getPondState())
+            .newPondState(sanitizeStateForClient(session.getPondState()))
             .pointsEarned(0)
             .totalScore(session.getScore())
             .newLevel(session.getLevel())
@@ -436,29 +283,31 @@ public class GameService {
             .build();
     }
 
-    private ObjectNode buildInitialState() {
+    private ObjectNode buildInitialState(boolean guestSession) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         ObjectNode root = objectMapper.createObjectNode();
         root.put("turn", 1);
-        root.put("phase", "early");
-        root.put("eventCooldown", 0);
-        root.put("maxTurn", MAX_TURN);
+        root.put("phase", balance.initialPhase());
+        root.put("eventCooldown", balance.initialEventCooldown());
+        root.put("maxTurn", maxTurn());
         root.put("highCarbonStreak", 0);
         root.put("highCarbonOverLimitStreak", 0);
         root.put("sessionEnded", false);
         root.putNull("ending");
-        root.put("boardSize", 6);
+        root.put("guestSession", guestSession);
+        root.put("boardSize", balance.boardSize());
         root.set("boardOccupied", objectMapper.createObjectNode());
 
         ObjectNode resources = root.putObject("resources");
-        resources.put("industry", 30);
-        resources.put("tech", 20);
-        resources.put("population", 25);
+        resources.put("industry", balance.initialIndustry());
+        resources.put("tech", balance.initialTech());
+        resources.put("population", balance.initialPopulation());
 
         ObjectNode metrics = root.putObject("metrics");
-        metrics.put("green", 50);
-        metrics.put("carbon", 80);
-        metrics.put("satisfaction", 60);
-        metrics.put("lowCarbonScore", 0);
+        metrics.put("green", balance.initialGreen());
+        metrics.put("carbon", balance.initialCarbon());
+        metrics.put("satisfaction", balance.initialSatisfaction());
+        metrics.put("lowCarbonScore", balance.initialLowCarbonScore());
         ObjectNode domainProgress = root.putObject("domainProgress");
         domainProgress.put("industry", 0);
         domainProgress.put("ecology", 0);
@@ -466,13 +315,14 @@ public class GameService {
         domainProgress.put("society", 0);
 
         ObjectNode carbonTrade = root.putObject("carbonTrade");
-        carbonTrade.put("quota", 50);
+        carbonTrade.put("quota", balance.initialQuota());
         carbonTrade.put("buyAmountTotal", 0D);
         carbonTrade.put("sellAmountTotal", 0D);
         carbonTrade.put("profit", 0D);
-        carbonTrade.put("lastPrice", BASE_CARBON_PRICE);
+        carbonTrade.put("lastPrice", baseCarbonPrice());
         carbonTrade.put("lastWindowTurn", 0);
         carbonTrade.put("windowOpened", false);
+        carbonTrade.put("windowExpiresAt", 0L);
         carbonTrade.put("pricePctModifier", 0);
         carbonTrade.put("quotaExhaustedCount", 0);
         carbonTrade.put("invalidOperationCount", 0);
@@ -510,7 +360,7 @@ public class GameService {
         eventStats.put("negativeTriggered", 0);
         eventStats.put("negativeResolved", 0);
 
-        drawCoreCards(root, "early", 4);
+        drawCoreCards(root, balance.initialPhase(), balance.initialDrawEarly());
         return root;
     }
 
@@ -646,21 +496,22 @@ public class GameService {
         ObjectNode metricsBefore = captureValueNode(metrics, "green", "carbon", "satisfaction", "lowCarbonScore");
         int globalPct = settlementBonus.path("globalPct").asInt(0);
         int industryCarbonReductionPct = settlementBonus.path("industryCarbonReductionPct").asInt(0);
-        int newEnergyIndustryCount = countPlacedBySet(state, NEW_ENERGY_EFFECT_CARDS);
+        int newEnergyIndustryCount = countPlacedByTag(state, TAG_NEW_ENERGY_EFFECT);
         int newEnergyExtraIndustry = applyPercentage(
             newEnergyIndustryCount,
             settlementBonus.path("newEnergyIndustryPct").asInt(0)
         ) - newEnergyIndustryCount;
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int industryGain = applyPercentage(
-            2 + counts.industry + settlementBonus.path("industry").asInt() + newEnergyExtraIndustry,
+            balance.settlementBaseIndustryGain() + counts.industry + settlementBonus.path("industry").asInt() + newEnergyExtraIndustry,
             settlementBonus.path("industryPct").asInt(0) + globalPct
         );
         int techGain = applyPercentage(
-            1 + counts.science + settlementBonus.path("tech").asInt(),
+            balance.settlementBaseTechGain() + counts.science + settlementBonus.path("tech").asInt(),
             settlementBonus.path("techPct").asInt(0) + globalPct
         );
         int populationGain = applyPercentage(
-            1 + counts.society + settlementBonus.path("population").asInt(),
+            balance.settlementBasePopulationGain() + counts.society + settlementBonus.path("population").asInt(),
             settlementBonus.path("populationPct").asInt(0) + globalPct
         );
         resources.put("industry", resources.path("industry").asInt() + industryGain);
@@ -672,8 +523,11 @@ public class GameService {
             settlementBonus.path("greenPct").asInt(0)
         );
         metrics.put("green", Math.max(0, metrics.path("green").asInt() + greenGain));
-        int industryCarbon = applyPercentage(counts.industry * 3, -industryCarbonReductionPct);
-        int carbonDelta = industryCarbon - counts.ecology * 2 - counts.science + settlementBonus.path("carbon").asInt();
+        int industryCarbon = applyPercentage(counts.industry * balance.carbonIndustryEmissionPerCard(), -industryCarbonReductionPct);
+        int carbonDelta = industryCarbon
+            - counts.ecology * balance.carbonEcologyReductionPerCard()
+            - counts.science * balance.carbonScienceReductionPerCard()
+            + settlementBonus.path("carbon").asInt();
         if (carbonDelta > 0) {
             carbonDelta = applyPercentage(carbonDelta, -settlementBonus.path("carbonDeltaReductionPct").asInt(0));
         }
@@ -689,13 +543,13 @@ public class GameService {
                     - Math.max(0, counts.industry - counts.ecology)
                     + settlementBonus.path("satisfaction").asInt(),
                 0,
-                200
+                balance.satisfactionMax()
             )
         );
         ObjectNode trade = state.with("carbonTrade");
         int quotaBonus = settlementBonus.path("quota").asInt(0);
         if (quotaBonus != 0) {
-            trade.put("quota", clamp(trade.path("quota").asInt(0) + quotaBonus, 0, MAX_CARBON_QUOTA));
+            trade.put("quota", clamp(trade.path("quota").asInt(0) + quotaBonus, 0, maxCarbonQuota()));
         }
         trade.put("pricePctModifier", settlementBonus.path("tradePricePct").asInt(0));
         applyCarbonQuotaSettlement(state);
@@ -711,9 +565,9 @@ public class GameService {
 
         String phase = updatePhaseByProgress(state, counts.total, lowCarbonScore);
         int drawCount = switch (phase) {
-            case "early" -> 4;
-            case "mid" -> 3;
-            default -> 2;
+            case "early" -> balance.drawCountEarly();
+            case "mid" -> balance.drawCountMid();
+            default -> balance.drawCountLate();
         };
 
         tickActiveNegativeEvents(state);
@@ -736,7 +590,7 @@ public class GameService {
     }
 
     private void validateBoardPlacement(ObjectNode state, int row, int col) {
-        int boardSize = state.path("boardSize").asInt(6);
+        int boardSize = state.path("boardSize").asInt(balanceRule().boardSize());
         if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Tile is out of board range");
         }
@@ -790,48 +644,101 @@ public class GameService {
         ObjectNode resources = state.with("resources");
         ObjectNode metrics = state.with("metrics");
         ArrayNode unlocked = state.withArray("policyUnlocked");
-        int shenzhenEcologyCards = countShenzhenEcologyCards(state);
-
-        tryUnlockPolicy(state, unlocked, "card061", counts.industry >= 6 && resources.path("industry").asInt() >= 50);
-        tryUnlockPolicy(state, unlocked, "card062", counts.industry >= 8 && metrics.path("carbon").asInt() >= 100);
-        tryUnlockPolicy(state, unlocked, "card063", counts.ecology >= 6 && metrics.path("green").asInt() >= 70);
-        tryUnlockPolicy(state, unlocked, "card064", shenzhenEcologyCards >= 2);
-        tryUnlockPolicy(state, unlocked, "card065", counts.science >= 6 && resources.path("tech").asInt() >= 70);
-        tryUnlockPolicy(state, unlocked, "card066", counts.science >= 5 && counts.industry >= 5 && resources.path("tech").asInt() >= 80);
-        tryUnlockPolicy(state, unlocked, "card067", counts.society >= 5 && counts.ecology >= 5 && metrics.path("satisfaction").asInt() >= 75);
-        tryUnlockPolicy(state, unlocked, "card068", counts.society >= 6 && resources.path("population").asInt() >= 60);
-    }
-
-    private int countShenzhenEcologyCards(ObjectNode state) {
-        int count = 0;
-        for (JsonNode node : state.withArray("placedCore")) {
-            if (SHENZHEN_ECOLOGY_CARDS.contains(node.asText())) {
-                count++;
-            }
+        for (GameRuleConfigService.PolicyUnlockRuleConfig rule : gameRuleConfigService.listPolicyUnlockRules()) {
+            tryUnlockPolicy(state, unlocked, rule.policyId(), isPolicyUnlockRuleMatched(state, counts, resources, metrics, rule));
         }
-        return count;
     }
 
-    private int countPlacedTaggedCards(ObjectNode state, String domain, Set<String> tagSet) {
+    private boolean isPolicyUnlockRuleMatched(
+        ObjectNode state,
+        DomainCounts counts,
+        ObjectNode resources,
+        ObjectNode metrics,
+        GameRuleConfigService.PolicyUnlockRuleConfig rule
+    ) {
+        if (counts.industry < rule.minIndustry()) {
+            return false;
+        }
+        if (counts.ecology < rule.minEcology()) {
+            return false;
+        }
+        if (counts.science < rule.minScience()) {
+            return false;
+        }
+        if (counts.society < rule.minSociety()) {
+            return false;
+        }
+        if (resources.path("industry").asInt() < rule.minIndustryResource()) {
+            return false;
+        }
+        if (resources.path("tech").asInt() < rule.minTechResource()) {
+            return false;
+        }
+        if (resources.path("population").asInt() < rule.minPopulationResource()) {
+            return false;
+        }
+        if (rule.minGreen() != null && metrics.path("green").asInt() < rule.minGreen()) {
+            return false;
+        }
+        if (rule.minCarbon() != null && metrics.path("carbon").asInt() < rule.minCarbon()) {
+            return false;
+        }
+        if (rule.maxCarbon() != null && metrics.path("carbon").asInt() > rule.maxCarbon()) {
+            return false;
+        }
+        if (rule.minSatisfaction() != null && metrics.path("satisfaction").asInt() < rule.minSatisfaction()) {
+            return false;
+        }
+        if (rule.minTaggedCards() > 0) {
+            return countPlacedByConditionTag(state, rule.requiredTag()) >= rule.minTaggedCards();
+        }
+        return true;
+    }
+
+    private int countPlacedTaggedCardsByTagAndDomain(ObjectNode state, String domain, String tagCode) {
+        Set<String> taggedCards = taggedCardIdSet(tagCode);
+        if (taggedCards.isEmpty()) {
+            return 0;
+        }
         int count = 0;
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
             GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
-            if (domain.equals(card.getDomain()) && tagSet.contains(cardId)) {
+            if (domain.equals(card.getDomain()) && taggedCards.contains(cardId)) {
                 count++;
             }
         }
         return count;
     }
 
-    private int countPlacedBySet(ObjectNode state, Set<String> tagSet) {
+    private int countPlacedByTag(ObjectNode state, String tagCode) {
+        Set<String> taggedCards = taggedCardIdSet(tagCode);
+        if (taggedCards.isEmpty()) {
+            return 0;
+        }
         int count = 0;
         for (JsonNode node : state.withArray("placedCore")) {
-            if (tagSet.contains(node.asText())) {
+            if (taggedCards.contains(node.asText())) {
                 count++;
             }
         }
         return count;
+    }
+
+    private boolean hasTag(String cardId, String tagCode) {
+        return taggedCardIdSet(tagCode).contains(cardId);
+    }
+
+    private Set<String> taggedCardIdSet(String tagCode) {
+        Map<String, List<String>> cardTagMap = gameRuleConfigService.cardTagMap();
+        if (cardTagMap == null) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "Game card tag config is not loaded");
+        }
+        List<String> cardIds = cardTagMap.get(tagCode);
+        if (cardIds == null || cardIds.isEmpty()) {
+            return Set.of();
+        }
+        return Set.copyOf(cardIds);
     }
 
     private AdjacencyStats calculateAdjacencyStats(ObjectNode state) {
@@ -881,8 +788,8 @@ public class GameService {
         GameCardMetaDTO right = cardCatalogService.getRequiredCard(rightCardId);
         String leftDomain = left.getDomain();
         String rightDomain = right.getDomain();
-        boolean leftLowCarbon = LOW_CARBON_CORE_CARDS.contains(leftCardId);
-        boolean rightLowCarbon = LOW_CARBON_CORE_CARDS.contains(rightCardId);
+        boolean leftLowCarbon = hasTag(leftCardId, TAG_LOW_CARBON_CORE);
+        boolean rightLowCarbon = hasTag(rightCardId, TAG_LOW_CARBON_CORE);
 
         if ("industry".equals(leftDomain) && "industry".equals(rightDomain) && leftLowCarbon && rightLowCarbon) {
             stats.industryLowCarbonAdjacentPairs++;
@@ -923,13 +830,13 @@ public class GameService {
         int triggered = 0;
         ArrayNode combos = objectMapper.createArrayNode();
         String lastPolicyUsed = state.path("lastPolicyUsed").asText("");
-        int lowCarbonIndustryCount = countPlacedTaggedCards(state, "industry", LOW_CARBON_CORE_CARDS);
-        int shenzhenEcologyCount = countPlacedTaggedCards(state, "ecology", SHENZHEN_TAG_CORE_CARDS);
-        int linkCardCount = countPlacedBySet(state, LINK_TAG_CORE_CARDS);
+        int lowCarbonIndustryCount = countPlacedTaggedCardsByTagAndDomain(state, "industry", TAG_LOW_CARBON_CORE);
+        int shenzhenEcologyCount = countPlacedTaggedCardsByTagAndDomain(state, "ecology", TAG_SHENZHEN);
+        int linkCardCount = countPlacedByTag(state, TAG_LINK);
         AdjacencyStats adjacency = calculateAdjacencyStats(state);
 
-        for (ComboTriggerRule rule : COMBO_TRIGGER_RULES) {
-            if (triggered >= MAX_COMBO_PER_TURN) {
+        for (GameRuleConfigService.ComboRuleConfig rule : gameRuleConfigService.listComboRules()) {
+            if (triggered >= maxComboPerTurn()) {
                 break;
             }
             if (!matchesComboTriggerRule(
@@ -943,7 +850,7 @@ public class GameService {
             )) {
                 continue;
             }
-            applyComboEffect(settlementBonus, rule.comboId());
+            applyComboEffect(settlementBonus, rule.effect());
             combos.add(rule.comboId());
             triggered++;
         }
@@ -959,7 +866,7 @@ public class GameService {
     }
 
     private void applyPolicyEffectNow(ObjectNode state, String policyId) {
-        PolicyImmediateEffect effect = POLICY_IMMEDIATE_EFFECTS.get(policyId);
+        PolicyImmediateEffect effect = resolvePolicyImmediateEffect(policyId);
         if (effect == null) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Unknown policy id: " + policyId);
         }
@@ -971,8 +878,11 @@ public class GameService {
         resources.put("population", resources.path("population").asInt() + effect.populationDelta());
         metrics.put("green", metrics.path("green").asInt() + effect.greenDelta());
         metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + effect.carbonDelta()));
-        metrics.put("satisfaction", clamp(metrics.path("satisfaction").asInt() + effect.satisfactionDelta(), 0, 200));
-        trade.put("quota", clamp(trade.path("quota").asInt(0) + effect.quotaDelta(), 0, MAX_CARBON_QUOTA));
+        metrics.put(
+            "satisfaction",
+            clamp(metrics.path("satisfaction").asInt() + effect.satisfactionDelta(), 0, balanceRule().satisfactionMax())
+        );
+        trade.put("quota", clamp(trade.path("quota").asInt(0) + effect.quotaDelta(), 0, maxCarbonQuota()));
         if (!effect.group().isBlank() && effect.turns() > 0) {
             upsertActivePolicy(state, policyId, effect.group(), effect.turns());
         }
@@ -997,7 +907,7 @@ public class GameService {
         for (int i = activePolicies.size() - 1; i >= 0; i--) {
             ObjectNode policy = (ObjectNode) activePolicies.get(i);
             String policyId = policy.path("policyId").asText();
-            PolicyContinuousEffect effect = POLICY_CONTINUOUS_EFFECTS.get(policyId);
+            PolicyContinuousEffect effect = resolvePolicyContinuousEffect(policyId);
             if (effect != null) {
                 addBonus(settlementBonus, "industry", effect.industryDelta());
                 addBonus(settlementBonus, "tech", effect.techDelta());
@@ -1022,6 +932,45 @@ public class GameService {
         }
     }
 
+    private PolicyImmediateEffect resolvePolicyImmediateEffect(String policyId) {
+        GameCardMetaDTO card = cardCatalogService.getRequiredCard(policyId);
+        if (card == null) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "Unknown policy id: " + policyId);
+        }
+        return new PolicyImmediateEffect(
+            card.getPolicyImmediateIndustryDelta() == null ? 0 : card.getPolicyImmediateIndustryDelta(),
+            card.getPolicyImmediateTechDelta() == null ? 0 : card.getPolicyImmediateTechDelta(),
+            card.getPolicyImmediatePopulationDelta() == null ? 0 : card.getPolicyImmediatePopulationDelta(),
+            card.getPolicyImmediateGreenDelta() == null ? 0 : card.getPolicyImmediateGreenDelta(),
+            card.getPolicyImmediateCarbonDelta() == null ? 0 : card.getPolicyImmediateCarbonDelta(),
+            card.getPolicyImmediateSatisfactionDelta() == null ? 0 : card.getPolicyImmediateSatisfactionDelta(),
+            card.getPolicyImmediateQuotaDelta() == null ? 0 : card.getPolicyImmediateQuotaDelta(),
+            card.getPolicyImmediateGroup() == null ? "" : card.getPolicyImmediateGroup(),
+            card.getPolicyImmediateTurns() == null ? 0 : card.getPolicyImmediateTurns()
+        );
+    }
+
+    private PolicyContinuousEffect resolvePolicyContinuousEffect(String policyId) {
+        GameCardMetaDTO card = cardCatalogService.getRequiredCard(policyId);
+        if (card == null) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "Unknown policy id: " + policyId);
+        }
+        return new PolicyContinuousEffect(
+            card.getPolicyContinuousIndustryDelta() == null ? 0 : card.getPolicyContinuousIndustryDelta(),
+            card.getPolicyContinuousTechDelta() == null ? 0 : card.getPolicyContinuousTechDelta(),
+            card.getPolicyContinuousPopulationDelta() == null ? 0 : card.getPolicyContinuousPopulationDelta(),
+            card.getPolicyContinuousGreenDelta() == null ? 0 : card.getPolicyContinuousGreenDelta(),
+            card.getPolicyContinuousCarbonDelta() == null ? 0 : card.getPolicyContinuousCarbonDelta(),
+            card.getPolicyContinuousSatisfactionDelta() == null ? 0 : card.getPolicyContinuousSatisfactionDelta(),
+            card.getPolicyContinuousLowCarbonDelta() == null ? 0 : card.getPolicyContinuousLowCarbonDelta(),
+            card.getPolicyContinuousGreenPct() == null ? 0 : card.getPolicyContinuousGreenPct(),
+            card.getPolicyContinuousTechPct() == null ? 0 : card.getPolicyContinuousTechPct(),
+            card.getPolicyContinuousPopulationPct() == null ? 0 : card.getPolicyContinuousPopulationPct(),
+            card.getPolicyContinuousIndustryPct() == null ? 0 : card.getPolicyContinuousIndustryPct(),
+            card.getPolicyContinuousIndustryCarbonReductionPct() == null ? 0 : card.getPolicyContinuousIndustryCarbonReductionPct()
+        );
+    }
+
     private void applyActiveNegativeEventEffects(ObjectNode state, ObjectNode settlementBonus) {
         ArrayNode activeEvents = state.withArray("activeNegativeEvents");
         for (JsonNode node : activeEvents) {
@@ -1032,6 +981,8 @@ public class GameService {
             addBonus(settlementBonus, "green", event.path("greenDelta").asInt(0));
             addBonus(settlementBonus, "carbon", event.path("carbonDelta").asInt(0));
             addBonus(settlementBonus, "satisfaction", event.path("satisfactionDelta").asInt(0));
+            addPercentBonus(settlementBonus, "greenPct", event.path("greenPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "populationPct", event.path("populationPctDelta").asInt(0));
         }
     }
 
@@ -1055,9 +1006,12 @@ public class GameService {
                 continue;
             }
 
-            metrics.put("green", clamp(metrics.path("green").asInt() - event.path("greenDelta").asInt(), 0, 200));
+            metrics.put("green", Math.max(0, metrics.path("green").asInt() - event.path("greenDelta").asInt()));
             metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() - event.path("carbonDelta").asInt()));
-            metrics.put("satisfaction", clamp(metrics.path("satisfaction").asInt() - event.path("satisfactionDelta").asInt(), 0, 200));
+            metrics.put(
+                "satisfaction",
+                clamp(metrics.path("satisfaction").asInt() - event.path("satisfactionDelta").asInt(), 0, balanceRule().satisfactionMax())
+            );
             activeEvents.remove(i);
             resolvedCount++;
 
@@ -1076,12 +1030,16 @@ public class GameService {
     }
 
     private List<String> resolvableEventTypes(String policyId) {
-        return switch (policyId) {
-            case "card062", "card066" -> List.of("sea_level_rise");
-            case "card063", "card064" -> List.of("flood");
-            case "card067", "card068" -> List.of("citizen_protest");
-            default -> List.of();
-        };
+        if (policyId == null || policyId.isBlank()) {
+            return List.of();
+        }
+        List<String> matched = new ArrayList<>();
+        for (GameRuleConfigService.EventRuleConfig eventRule : gameRuleConfigService.eventRuleMap().values()) {
+            if (eventRule.resolvablePolicyIds().contains(policyId)) {
+                matched.add(eventRule.eventType());
+            }
+        }
+        return matched;
     }
 
     private void drawPolicyCards(ObjectNode state) {
@@ -1097,10 +1055,11 @@ public class GameService {
     }
 
     private void applyCarbonQuotaSettlement(ObjectNode state) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int carbon = state.with("metrics").path("carbon").asInt();
-        int requiredQuota = Math.max(0, (carbon - 80) / 10);
+        int requiredQuota = Math.max(0, (carbon - balance.carbonQuotaBaseLine()) / balance.carbonQuotaPerNOver());
         ObjectNode trade = state.with("carbonTrade");
-        int quota = trade.path("quota").asInt(50);
+        int quota = trade.path("quota").asInt(balance.initialQuota());
         int consumed = Math.min(requiredQuota, quota);
         int shortage = Math.max(0, requiredQuota - consumed);
 
@@ -1120,7 +1079,7 @@ public class GameService {
         int turn = state.path("turn").asInt();
         ObjectNode trade = state.with("carbonTrade");
         trade.put("windowOpened", false);
-        if (turn % TRADE_WINDOW_INTERVAL != 0) {
+        if (turn % tradeWindowInterval() != 0) {
             return;
         }
 
@@ -1130,6 +1089,7 @@ public class GameService {
         trade.put("windowOpened", true);
         trade.put("lastWindowTurn", turn);
         trade.put("lastPrice", price);
+        trade.put("windowExpiresAt", System.currentTimeMillis() + tradeWindowSeconds() * 1000L);
     }
 
     private int handleCarbonTrade(ObjectNode state, JsonNode actionData) {
@@ -1148,14 +1108,14 @@ public class GameService {
 
         ObjectNode resources = state.with("resources");
         int currentQuota = trade.path("quota").asInt(0);
-        double price = trade.path("lastPrice").asDouble(BASE_CARBON_PRICE);
+        double price = trade.path("lastPrice").asDouble(baseCarbonPrice());
         double tradeValue = roundToOneDecimal(amount * price);
         double buyTotal = trade.path("buyAmountTotal").asDouble(0D);
         double sellTotal = trade.path("sellAmountTotal").asDouble(0D);
         int industryBefore = resources.path("industry").asInt();
 
         if ("buy".equals(tradeType)) {
-            if (currentQuota + amount > MAX_CARBON_QUOTA) {
+            if (currentQuota + amount > maxCarbonQuota()) {
                 markTradeViolation(state, "quota_overflow");
                 throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Quota exceeds maximum capacity");
             }
@@ -1186,6 +1146,7 @@ public class GameService {
         double profitAfter = roundToOneDecimal(sellTotal - buyTotal);
         trade.put("profit", profitAfter);
         trade.put("windowOpened", false);
+        trade.put("windowExpiresAt", 0L);
 
         ObjectNode history = objectMapper.createObjectNode();
         history.put("turn", trade.path("lastWindowTurn").asInt(state.path("turn").asInt()));
@@ -1218,32 +1179,47 @@ public class GameService {
 
         ObjectNode history = objectMapper.createObjectNode();
         history.put("turn", trade.path("lastWindowTurn").asInt(state.path("turn").asInt()));
-        history.put("price", trade.path("lastPrice").asDouble(BASE_CARBON_PRICE));
+        history.put("price", trade.path("lastPrice").asDouble(baseCarbonPrice()));
         history.put("action", "skip");
         history.put("amount", 0);
         history.put("industryDelta", 0);
         history.put("profitAfter", roundToOneDecimal(trade.path("profit").asDouble(0D)));
         trade.withArray("history").add(history);
         trade.put("windowOpened", false);
+        trade.put("windowExpiresAt", 0L);
+    }
+
+    private void processTradeWindowTimeout(ObjectNode state) {
+        ObjectNode trade = state.with("carbonTrade");
+        if (!trade.path("windowOpened").asBoolean(false)) {
+            return;
+        }
+        long expiresAt = trade.path("windowExpiresAt").asLong(0L);
+        if (expiresAt <= 0L || System.currentTimeMillis() < expiresAt) {
+            return;
+        }
+        settlePendingTradeWindowAsSkip(state);
     }
 
     private double calculateCarbonTradePrice(int carbon, int pricePctModifier) {
-        double randomFactor = 0.8D + ThreadLocalRandom.current().nextDouble() * 0.4D;
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
+        double randomFactor = balance.tradeRandomBaseMin() + ThreadLocalRandom.current().nextDouble() * balance.tradeRandomSpan();
         double carbonFactor;
-        if (carbon > 100) {
-            carbonFactor = 1.1D;
-        } else if (carbon < 60) {
-            carbonFactor = 0.9D;
+        if (carbon > balance.tradeHighCarbonThreshold()) {
+            carbonFactor = balance.tradeHighCarbonFactor();
+        } else if (carbon < balance.tradeLowCarbonThreshold()) {
+            carbonFactor = balance.tradeLowCarbonFactor();
         } else {
             carbonFactor = 1.0D;
         }
-        double basePrice = BASE_CARBON_PRICE * randomFactor * carbonFactor;
+        double basePrice = baseCarbonPrice() * randomFactor * carbonFactor;
         return roundToOneDecimal(basePrice * (1.0D + pricePctModifier / 100.0D));
     }
 
     private void updateFailureStreak(ObjectNode state) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int carbon = state.path("metrics").path("carbon").asInt();
-        if (carbon > 130) {
+        if (carbon > balance.failureHighCarbonThreshold()) {
             state.put("highCarbonStreak", state.path("highCarbonStreak").asInt() + 1);
         } else {
             state.put("highCarbonStreak", 0);
@@ -1251,8 +1227,9 @@ public class GameService {
     }
 
     private void updateCarbonOverLimitStreak(ObjectNode state) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int carbon = state.path("metrics").path("carbon").asInt();
-        if (carbon > 80) {
+        if (carbon > balance.lowCarbonOverLimitCarbonThreshold()) {
             state.put("highCarbonOverLimitStreak", state.path("highCarbonOverLimitStreak").asInt(0) + 1);
         } else {
             state.put("highCarbonOverLimitStreak", 0);
@@ -1271,43 +1248,26 @@ public class GameService {
             + state.with("remainingPools").withArray("early").size()
             + state.with("remainingPools").withArray("mid").size()
             + state.with("remainingPools").withArray("late").size();
-        boolean boundaryReached = remainingCoreCards == 0 || turn >= MAX_TURN;
-        boolean immediateFailure = state.path("highCarbonStreak").asInt() >= 5;
-        boolean tradeFailure = state.with("carbonTrade").path("quotaExhaustedCount").asInt(0) >= 4
-            && state.with("carbonTrade").path("profit").asDouble(0D) < 0D;
+        boolean boundaryReached = remainingCoreCards == 0 || turn >= maxTurn();
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
+        boolean immediateFailure = state.path("highCarbonStreak").asInt() >= balance.failureHighCarbonStreakLimit();
+        boolean tradeFailure = state.with("carbonTrade").path("quotaExhaustedCount").asInt(0) >= balance.tradeFailureQuotaExhaustedLimit()
+            && state.with("carbonTrade").path("profit").asDouble(0D) < balance.tradeFailureProfitThreshold();
 
         if (immediateFailure) {
-            setEnding(
-                state,
-                ENDING_FAILURE,
-                "失败结局",
-                "endings/失败结局.jpg",
-                "碳排放连续5回合高于130，系统进入失控状态。"
-            );
+            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_HIGH_CARBON));
             return;
         }
         if (tradeFailure) {
-            setEnding(
-                state,
-                ENDING_FAILURE,
-                "失败结局",
-                "endings/失败结局.jpg",
-                "配额耗尽记录达到4次且碳交易盈利为负。"
-            );
+            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_TRADE));
             return;
         }
         if (!boundaryReached) {
             return;
         }
 
-        if (lowCarbonScore < 120) {
-            setEnding(
-                state,
-                ENDING_FAILURE,
-                "失败结局",
-                "endings/失败结局.jpg",
-                "终局时低碳总分低于120。"
-            );
+        if (lowCarbonScore < balance.lowCarbonMinForPositiveEnding()) {
+            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_LOW_SCORE));
             return;
         }
 
@@ -1318,68 +1278,44 @@ public class GameService {
         ObjectNode trade = state.with("carbonTrade");
 
         boolean innovation = counts.science == maxDomain
-            && counts.science >= 14
-            && resources.path("tech").asInt() >= 220
-            && lowCarbonScore >= 170
-            && metrics.path("carbon").asInt() <= 95
-            && trade.path("profit").asDouble(0D) >= 120D
-            && eventResolveRate >= 70D;
+            && counts.science >= balance.endingInnovationMinScience()
+            && resources.path("tech").asInt() >= balance.endingInnovationMinTech()
+            && lowCarbonScore >= balance.endingInnovationMinLowCarbon()
+            && metrics.path("carbon").asInt() <= balance.endingInnovationMaxCarbon()
+            && trade.path("profit").asDouble(0D) >= balance.endingInnovationMinProfit()
+            && eventResolveRate >= balance.endingEventResolveRateRequired();
 
         boolean ecology = counts.ecology == maxDomain
-            && counts.ecology >= 14
-            && metrics.path("green").asInt() >= 140
-            && metrics.path("carbon").asInt() <= 70
-            && lowCarbonScore >= 170
-            && trade.path("quota").asInt(0) >= 30
-            && eventResolveRate >= 70D;
+            && counts.ecology >= balance.endingEcologyMinEcology()
+            && metrics.path("green").asInt() >= balance.endingEcologyMinGreen()
+            && metrics.path("carbon").asInt() <= balance.endingEcologyMaxCarbon()
+            && lowCarbonScore >= balance.endingEcologyMinLowCarbon()
+            && trade.path("quota").asInt(0) >= balance.endingEcologyMinQuota()
+            && eventResolveRate >= balance.endingEventResolveRateRequired();
 
         boolean doughnut = counts.society == maxDomain
-            && counts.society >= 12
-            && metrics.path("satisfaction").asInt() >= 92
-            && resources.path("population").asInt() >= 110
-            && minDomain >= 8
-            && metrics.path("carbon").asInt() <= 80
-            && lowCarbonScore >= 165
-            && usage6768 >= 3;
+            && counts.society >= balance.endingDoughnutMinSociety()
+            && metrics.path("satisfaction").asInt() >= balance.endingDoughnutMinSatisfaction()
+            && resources.path("population").asInt() >= balance.endingDoughnutMinPopulation()
+            && minDomain >= balance.endingDoughnutMinDomain()
+            && metrics.path("carbon").asInt() <= balance.endingDoughnutMaxCarbon()
+            && lowCarbonScore >= balance.endingDoughnutMinLowCarbon()
+            && usage6768 >= balance.endingDoughnutMinPolicyUsage6768();
 
         if (innovation) {
-            setEnding(
-                state,
-                ENDING_INNOVATION,
-                "创新科技结局",
-                "endings/创新科技结局.jpg",
-                "科技板块成为主导，城市通过技术迭代实现减排与增长。"
-            );
+            setEnding(state, ENDING_INNOVATION, null);
             return;
         }
         if (ecology) {
-            setEnding(
-                state,
-                ENDING_ECOLOGY,
-                "生态优先结局",
-                "endings/生态优先结局.jpg",
-                "生态板块成为主导，绿建和碳汇能力达成高水平。"
-            );
+            setEnding(state, ENDING_ECOLOGY, null);
             return;
         }
         if (doughnut) {
-            setEnding(
-                state,
-                ENDING_DOUGHNUT,
-                "甜甜圈结局",
-                "endings/甜甜圈结局.jpg",
-                "社会公平与低碳协同，城市进入甜甜圈稳态。"
-            );
+            setEnding(state, ENDING_DOUGHNUT, null);
             return;
         }
 
-        setEnding(
-            state,
-            ENDING_FAILURE,
-            "失败结局",
-            "endings/失败结局.jpg",
-            "已达到终局边界但未满足任一正向结局条件。"
-        );
+        setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_BOUNDARY_DEFAULT));
     }
 
     private int countPolicyUsage(ObjectNode state, String policyId) {
@@ -1402,11 +1338,41 @@ public class GameService {
         return (resolved * 100.0D) / triggered;
     }
 
-    private void setEnding(ObjectNode state, String endingId, String endingName, String imageKey, String reason) {
+    private static final String ENDING_FAILURE_REASON_HIGH_CARBON = "high_carbon";
+    private static final String ENDING_FAILURE_REASON_TRADE = "trade";
+    private static final String ENDING_FAILURE_REASON_LOW_SCORE = "low_score";
+    private static final String ENDING_FAILURE_REASON_BOUNDARY_DEFAULT = "boundary_default";
+
+    private String endingFailureReason(String reasonType) {
+        GameRuleConfigService.EndingContentConfig failure = endingContent(ENDING_FAILURE);
+        return switch (reasonType) {
+            case ENDING_FAILURE_REASON_HIGH_CARBON -> nonBlankOrDefault(failure.failureReasonHighCarbon(), failure.defaultReason());
+            case ENDING_FAILURE_REASON_TRADE -> nonBlankOrDefault(failure.failureReasonTrade(), failure.defaultReason());
+            case ENDING_FAILURE_REASON_LOW_SCORE -> nonBlankOrDefault(failure.failureReasonLowScore(), failure.defaultReason());
+            case ENDING_FAILURE_REASON_BOUNDARY_DEFAULT -> nonBlankOrDefault(failure.failureReasonBoundaryDefault(), failure.defaultReason());
+            default -> failure.defaultReason();
+        };
+    }
+
+    private String nonBlankOrDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private GameRuleConfigService.EndingContentConfig endingContent(String endingId) {
+        GameRuleConfigService.EndingContentConfig config = gameRuleConfigService.endingContentMap().get(endingId);
+        if (config == null) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "Missing ending content config: " + endingId);
+        }
+        return config;
+    }
+
+    private void setEnding(ObjectNode state, String endingId, String reasonOverride) {
+        GameRuleConfigService.EndingContentConfig content = endingContent(endingId);
+        String reason = (reasonOverride == null || reasonOverride.isBlank()) ? content.defaultReason() : reasonOverride;
         ObjectNode ending = objectMapper.createObjectNode();
         ending.put("endingId", endingId);
-        ending.put("endingName", endingName);
-        ending.put("imageKey", imageKey);
+        ending.put("endingName", content.endingName());
+        ending.put("imageKey", content.imageKey());
         ending.put("reason", reason);
         ending.put("turn", state.path("turn").asInt());
         state.set("ending", ending);
@@ -1414,6 +1380,7 @@ public class GameService {
     }
 
     private int calculateLowCarbonScore(ObjectNode state, int latePlaced) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         DomainCounts counts = countPlacedDomains(state);
         int policyUnlocked = state.withArray("policyUnlocked").size();
         int carbon = state.with("metrics").path("carbon").asInt();
@@ -1421,56 +1388,58 @@ public class GameService {
         ObjectNode eventStats = state.with("eventStats");
 
         int score = counts.total + latePlaced * 2;
-        if (counts.industry >= 8) score += 5;
-        if (counts.ecology >= 8) score += 5;
-        if (counts.science >= 8) score += 5;
-        if (counts.society >= 8) score += 5;
+        if (counts.industry >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
+        if (counts.ecology >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
+        if (counts.science >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
+        if (counts.society >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
 
-        score += policyUnlocked * 3;
-        if (policyUnlocked >= 8) {
-            score += 10;
+        score += policyUnlocked * balance.lowCarbonPolicyUnlockScore();
+        if (policyUnlocked >= balance.lowCarbonPolicyUnlockAllCount()) {
+            score += balance.lowCarbonPolicyUnlockAllBonus();
         }
 
-        score += eventStats.path("negativeResolved").asInt(0) * 10;
-        score -= eventStats.path("negativeTriggered").asInt(0) * 10;
+        score += eventStats.path("negativeResolved").asInt(0) * balance.lowCarbonEventResolvedScore();
+        score -= eventStats.path("negativeTriggered").asInt(0) * balance.lowCarbonEventTriggeredPenalty();
 
         score += calculateCarbonTierScore(carbon);
-        if (state.path("highCarbonOverLimitStreak").asInt(0) >= 3) {
-            score -= 15;
+        if (state.path("highCarbonOverLimitStreak").asInt(0) >= balance.lowCarbonOverLimitStreakThreshold()) {
+            score -= balance.lowCarbonOverLimitStreakPenalty();
         }
 
         double profit = trade.path("profit").asDouble(0D);
-        if (profit > 0) {
-            score += ((int) Math.floor(profit / 50D)) * 3;
+        if (profit > 0 && balance.lowCarbonTradeProfitDivisor() > 0) {
+            score += ((int) Math.floor(profit / balance.lowCarbonTradeProfitDivisor())) * balance.lowCarbonTradeProfitBonus();
         }
-        score -= trade.path("quotaExhaustedCount").asInt(0) * 5;
-        score -= trade.path("invalidOperationCount").asInt(0) * 8;
+        score -= trade.path("quotaExhaustedCount").asInt(0) * balance.lowCarbonQuotaExhaustedPenalty();
+        score -= trade.path("invalidOperationCount").asInt(0) * balance.lowCarbonInvalidOperationPenalty();
 
         return Math.max(0, score);
     }
 
     private int calculateCarbonTierScore(int carbon) {
-        if (carbon <= 70) {
-            return 3;
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
+        if (carbon <= balance.carbonTier1Max()) {
+            return balance.carbonTier1Score();
         }
-        if (carbon <= 80) {
-            return 0;
+        if (carbon <= balance.carbonTier2Max()) {
+            return balance.carbonTier2Score();
         }
-        if (carbon <= 100) {
-            return -2;
+        if (carbon <= balance.carbonTier3Max()) {
+            return balance.carbonTier3Score();
         }
-        if (carbon <= 130) {
-            return -5;
+        if (carbon <= balance.carbonTier4Max()) {
+            return balance.carbonTier4Score();
         }
-        return -8;
+        return balance.carbonTier5Score();
     }
 
     private void applyEventCheck(ObjectNode state) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int cooldown = state.path("eventCooldown").asInt();
         cooldown -= 1;
         if (cooldown <= 0) {
             maybeTriggerNegativeEvent(state);
-            state.put("eventCooldown", 3);
+            state.put("eventCooldown", balance.eventCooldownResetTurns());
         } else {
             state.put("eventCooldown", cooldown);
         }
@@ -1490,72 +1459,61 @@ public class GameService {
     }
 
     private void maybeTriggerNegativeEvent(ObjectNode state) {
-        if (ThreadLocalRandom.current().nextDouble() > 0.30D) {
+        int probabilityPct = clamp(gameRuleConfigService.eventTriggerProbabilityPct(), 0, 100);
+        if (ThreadLocalRandom.current().nextInt(100) >= probabilityPct) {
             return;
         }
 
         ObjectNode metrics = state.with("metrics");
         int turn = state.path("turn").asInt();
         ArrayNode candidates = objectMapper.createArrayNode();
-        if (metrics.path("green").asInt() <= 75 && turn % 2 == 0) {
-            candidates.add("flood");
-        }
-        if (metrics.path("carbon").asInt() >= 95) {
-            candidates.add("sea_level_rise");
-        }
-        if (metrics.path("satisfaction").asInt() <= 70 || state.with("resources").path("population").asInt() >= 100) {
-            candidates.add("citizen_protest");
+        Map<String, GameRuleConfigService.EventRuleConfig> eventRuleMap = gameRuleConfigService.eventRuleMap();
+        for (GameRuleConfigService.EventRuleConfig rule : eventRuleMap.values()) {
+            if (isEventRuleMatched(state, metrics, turn, rule)) {
+                candidates.add(rule.eventType());
+            }
         }
         if (candidates.isEmpty()) {
             return;
         }
 
         String selected = weightedPick(candidates);
-        int greenDelta = 0;
-        int carbonDelta = 0;
-        int satisfactionDelta = 0;
-        int durationTurns = 1;
-        switch (selected) {
-            case "flood" -> {
-                if (isFloodEventResisted(state)) {
-                    ObjectNode resisted = objectMapper.createObjectNode();
-                    resisted.put("turn", state.path("turn").asInt());
-                    resisted.put("eventType", "flood_resisted");
-                    state.withArray("eventHistory").add(resisted);
-                    return;
-                }
-                greenDelta = -10;
-                durationTurns = 1;
-                metrics.put("green", Math.max(0, metrics.path("green").asInt() + greenDelta));
-            }
-            case "sea_level_rise" -> {
-                carbonDelta = 15;
-                durationTurns = 1;
-                metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + carbonDelta));
-                ObjectNode trade = state.with("carbonTrade");
-                trade.put("quota", Math.max(0, trade.path("quota").asInt(0) - 2));
-            }
-            case "citizen_protest" -> {
-                satisfactionDelta = -12;
-                durationTurns = 2;
-                metrics.put("satisfaction", Math.max(0, metrics.path("satisfaction").asInt() + satisfactionDelta));
-            }
-            default -> {
-                return;
-            }
+        GameRuleConfigService.EventRuleConfig config = eventRuleMap.get(selected);
+        if (config == null) {
+            return;
         }
+        if ("flood".equals(selected) && isFloodEventResisted(state)) {
+            ObjectNode resisted = objectMapper.createObjectNode();
+            resisted.put("turn", state.path("turn").asInt());
+            resisted.put("eventType", "flood_resisted");
+            state.withArray("eventHistory").add(resisted);
+            return;
+        }
+        applyNegativeEventImmediateEffect(state, metrics, config);
 
         ObjectNode eventNode = objectMapper.createObjectNode();
         eventNode.put("turn", state.path("turn").asInt());
         eventNode.put("eventType", selected);
+        eventNode.put("eventName", config.displayName());
+        eventNode.put("effectSummary", config.effectSummary());
+        eventNode.put("resolutionHint", config.resolutionHint());
+        ArrayNode resolvableBy = objectMapper.createArrayNode();
+        config.resolvablePolicyIds().forEach(resolvableBy::add);
+        eventNode.set("resolvablePolicyIds", resolvableBy);
         state.withArray("eventHistory").add(eventNode);
 
         ObjectNode activeEvent = objectMapper.createObjectNode();
         activeEvent.put("eventType", selected);
-        activeEvent.put("remainingTurns", durationTurns);
-        activeEvent.put("greenDelta", greenDelta);
-        activeEvent.put("carbonDelta", carbonDelta);
-        activeEvent.put("satisfactionDelta", satisfactionDelta);
+        activeEvent.put("eventName", config.displayName());
+        activeEvent.put("remainingTurns", Math.max(1, config.durationTurns()));
+        activeEvent.put("greenDelta", config.greenDelta());
+        activeEvent.put("carbonDelta", config.carbonDelta());
+        activeEvent.put("satisfactionDelta", config.satisfactionDelta());
+        activeEvent.put("greenPctDelta", config.greenPctDelta());
+        activeEvent.put("populationPctDelta", config.populationPctDelta());
+        ArrayNode activeResolvableBy = objectMapper.createArrayNode();
+        config.resolvablePolicyIds().forEach(activeResolvableBy::add);
+        activeEvent.set("resolvablePolicyIds", activeResolvableBy);
         state.withArray("activeNegativeEvents").add(activeEvent);
 
         ObjectNode stats = state.with("eventStats");
@@ -1563,16 +1521,13 @@ public class GameService {
     }
 
     private String weightedPick(ArrayNode candidates) {
+        Map<String, GameRuleConfigService.EventRuleConfig> eventRuleMap = gameRuleConfigService.eventRuleMap();
         int total = 0;
         int[] weights = new int[candidates.size()];
         for (int i = 0; i < candidates.size(); i++) {
             String eventType = candidates.get(i).asText();
-            int weight = switch (eventType) {
-                case "sea_level_rise" -> 40;
-                case "flood" -> 35;
-                case "citizen_protest" -> 25;
-                default -> 10;
-            };
+            GameRuleConfigService.EventRuleConfig config = eventRuleMap.get(eventType);
+            int weight = config == null ? 1 : Math.max(1, config.weight());
             weights[i] = weight;
             total += weight;
         }
@@ -1587,6 +1542,47 @@ public class GameService {
         return candidates.get(0).asText();
     }
 
+    private boolean isEventRuleMatched(
+        ObjectNode state,
+        ObjectNode metrics,
+        int turn,
+        GameRuleConfigService.EventRuleConfig rule
+    ) {
+        if (rule.requireEvenTurn() && turn % 2 != 0) {
+            return false;
+        }
+        if (rule.minGreen() != null && metrics.path("green").asInt() > rule.minGreen()) {
+            return false;
+        }
+        if (rule.minCarbon() != null && metrics.path("carbon").asInt() < rule.minCarbon()) {
+            return false;
+        }
+        if (rule.maxSatisfaction() != null && metrics.path("satisfaction").asInt() > rule.maxSatisfaction()) {
+            return false;
+        }
+        if (rule.minPopulation() != null && state.with("resources").path("population").asInt() < rule.minPopulation()) {
+            return false;
+        }
+        return true;
+    }
+
+    private void applyNegativeEventImmediateEffect(
+        ObjectNode state,
+        ObjectNode metrics,
+        GameRuleConfigService.EventRuleConfig config
+    ) {
+        metrics.put("green", Math.max(0, metrics.path("green").asInt() + config.greenDelta()));
+        metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + config.carbonDelta()));
+        metrics.put(
+            "satisfaction",
+            clamp(metrics.path("satisfaction").asInt() + config.satisfactionDelta(), 0, balanceRule().satisfactionMax())
+        );
+        if (config.quotaDelta() != 0) {
+            ObjectNode trade = state.with("carbonTrade");
+            trade.put("quota", clamp(trade.path("quota").asInt(0) + config.quotaDelta(), 0, maxCarbonQuota()));
+        }
+    }
+
     private boolean isFloodEventResisted(ObjectNode state) {
         int resistancePct = resolveFloodResistancePct(state);
         if (resistancePct <= 0) {
@@ -1597,11 +1593,16 @@ public class GameService {
     }
 
     private String updatePhaseByProgress(ObjectNode state, int placedCount, int lowCarbonScore) {
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         String previousPhase = state.path("phase").asText("early");
         int remainingCoreCards = countRemainingCoreCards(state);
-        boolean shouldEnterLate = (placedCount >= 31 && lowCarbonScore >= 101) || remainingCoreCards <= 10;
-        boolean shouldStayEarly = placedCount <= 15 && lowCarbonScore < 60;
-        boolean shouldEnterMid = placedCount >= 16 && placedCount <= 30 && lowCarbonScore >= 60 && lowCarbonScore <= 100;
+        boolean shouldEnterLate = (placedCount >= balance.phaseLateMinCards() && lowCarbonScore >= balance.phaseLateMinScore())
+            || remainingCoreCards <= balance.phaseLateRemainingCardsThreshold();
+        boolean shouldStayEarly = placedCount <= balance.phaseEarlyMaxCards() && lowCarbonScore <= balance.phaseEarlyMaxScore();
+        boolean shouldEnterMid = placedCount >= balance.phaseMidMinCards()
+            && placedCount <= balance.phaseMidMaxCards()
+            && lowCarbonScore >= balance.phaseMidMinScore()
+            && lowCarbonScore <= balance.phaseMidMaxScore();
 
         String phase;
         if (shouldEnterLate) {
@@ -1611,9 +1612,9 @@ public class GameService {
         } else if (shouldEnterMid) {
             phase = "mid";
         } else {
-            if (placedCount <= 15) {
+            if (placedCount <= balance.phaseEarlyMaxCards()) {
                 phase = "early";
-            } else if (placedCount >= 31) {
+            } else if (placedCount >= balance.phaseLateMinCards()) {
                 phase = "late";
             } else {
                 phase = "mid";
@@ -1785,14 +1786,14 @@ public class GameService {
 
     private void enforceCoreHandLimit(ObjectNode state) {
         ArrayNode hand = state.withArray("handCore");
-        if (hand.size() > CORE_HAND_LIMIT) {
+        if (hand.size() > coreHandLimit()) {
             armPendingDiscard(state);
         }
     }
 
     private void enforcePolicyHandLimit(ObjectNode state) {
         ArrayNode hand = state.withArray("handPolicy");
-        if (hand.size() > POLICY_HAND_LIMIT) {
+        if (hand.size() > policyHandLimit()) {
             armPendingDiscard(state);
         }
     }
@@ -1800,15 +1801,15 @@ public class GameService {
     private void armPendingDiscard(ObjectNode state) {
         ObjectNode pending = state.with("pendingDiscard");
         pending.put("active", true);
-        pending.put("expiresAt", System.currentTimeMillis() + HAND_DISCARD_DECISION_SECONDS * 1000L);
-        pending.put("coreRequired", Math.max(0, state.withArray("handCore").size() - CORE_HAND_LIMIT));
-        pending.put("policyRequired", Math.max(0, state.withArray("handPolicy").size() - POLICY_HAND_LIMIT));
+        pending.put("expiresAt", System.currentTimeMillis() + handDiscardDecisionSeconds() * 1000L);
+        pending.put("coreRequired", Math.max(0, state.withArray("handCore").size() - coreHandLimit()));
+        pending.put("policyRequired", Math.max(0, state.withArray("handPolicy").size() - policyHandLimit()));
     }
 
     private void refreshPendingDiscardState(ObjectNode state) {
         ObjectNode pending = state.with("pendingDiscard");
-        int coreRequired = Math.max(0, state.withArray("handCore").size() - CORE_HAND_LIMIT);
-        int policyRequired = Math.max(0, state.withArray("handPolicy").size() - POLICY_HAND_LIMIT);
+        int coreRequired = Math.max(0, state.withArray("handCore").size() - coreHandLimit());
+        int policyRequired = Math.max(0, state.withArray("handPolicy").size() - policyHandLimit());
         pending.put("coreRequired", coreRequired);
         pending.put("policyRequired", policyRequired);
         if (coreRequired == 0 && policyRequired == 0) {
@@ -1826,12 +1827,12 @@ public class GameService {
         if (System.currentTimeMillis() < expiresAt) {
             return;
         }
-        while (state.withArray("handCore").size() > CORE_HAND_LIMIT) {
+        while (state.withArray("handCore").size() > coreHandLimit()) {
             String cardId = state.withArray("handCore").remove(0).asText();
             state.withArray("discardCore").add(cardId);
             recordAutoDiscard(state, "core", cardId);
         }
-        while (state.withArray("handPolicy").size() > POLICY_HAND_LIMIT) {
+        while (state.withArray("handPolicy").size() > policyHandLimit()) {
             String cardId = state.withArray("handPolicy").remove(0).asText();
             state.withArray("discardPolicy").add(cardId);
             recordAutoDiscard(state, "policy", cardId);
@@ -1857,7 +1858,7 @@ public class GameService {
         history.put("turn", state.path("turn").asInt());
         history.put("handType", handType);
         history.put("cardId", cardId);
-        history.put("decisionWindowSeconds", HAND_DISCARD_DECISION_SECONDS);
+        history.put("decisionWindowSeconds", handDiscardDecisionSeconds());
         history.put("reason", reason);
         state.withArray("handOverflowHistory").add(history);
     }
@@ -1867,7 +1868,7 @@ public class GameService {
         history.put("turn", state.path("turn").asInt());
         history.put("handType", handType);
         history.put("cardId", cardId);
-        history.put("decisionWindowSeconds", HAND_DISCARD_DECISION_SECONDS);
+        history.put("decisionWindowSeconds", handDiscardDecisionSeconds());
         history.put("reason", "timeout_auto_discard");
         state.withArray("handOverflowHistory").add(history);
     }
@@ -1986,11 +1987,7 @@ public class GameService {
         bonus.put(field, bonus.path(field).asInt() + delta);
     }
 
-    private void applyComboEffect(ObjectNode settlementBonus, String comboId) {
-        ComboEffect effect = COMBO_EFFECTS.get(comboId);
-        if (effect == null) {
-            return;
-        }
+    private void applyComboEffect(ObjectNode settlementBonus, GameRuleConfigService.ComboEffectConfig effect) {
         int comboPct = settlementBonus.path("comboPct").asInt(0);
         addBonus(settlementBonus, "industry", applyPercentage(effect.industryDelta(), comboPct));
         addBonus(settlementBonus, "tech", applyPercentage(effect.techDelta(), comboPct));
@@ -2013,8 +2010,9 @@ public class GameService {
         ObjectNode metrics = state.with("metrics");
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
-            CoreContinuousEffect effect = CORE_CONTINUOUS_EFFECTS.get(cardId);
-            if (effect == null || !isCoreEffectConditionMatched(cardId, state, counts, resources, metrics)) {
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            CoreContinuousEffect effect = resolveCoreContinuousEffect(cardId, card);
+            if (effect == null || !isCoreEffectConditionMatched(cardId, card, state, counts, resources, metrics)) {
                 continue;
             }
             addBonus(settlementBonus, "industry", effect.industryDelta());
@@ -2043,8 +2041,9 @@ public class GameService {
         ObjectNode metrics = state.with("metrics");
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
-            CoreSpecialEffect effect = CORE_SPECIAL_EFFECTS.get(cardId);
-            if (effect == null || !isCoreSpecialEffectMatched(cardId, state, counts, resources, metrics)) {
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            CoreSpecialEffect effect = resolveCoreSpecialEffect(cardId, card);
+            if (effect == null || !isCoreSpecialEffectMatched(cardId, card, state, counts, resources, metrics)) {
                 continue;
             }
             addPercentBonus(settlementBonus, "newEnergyIndustryPct", effect.newEnergyIndustryPct());
@@ -2065,8 +2064,9 @@ public class GameService {
         int reductionPct = 0;
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
-            CoreSpecialEffect effect = CORE_SPECIAL_EFFECTS.get(cardId);
-            if (effect == null || !isCoreSpecialEffectMatched(cardId, state, counts, resources, metrics)) {
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            CoreSpecialEffect effect = resolveCoreSpecialEffect(cardId, card);
+            if (effect == null || !isCoreSpecialEffectMatched(cardId, card, state, counts, resources, metrics)) {
                 continue;
             }
             if ("ecology".equals(targetDomain)) {
@@ -2085,8 +2085,9 @@ public class GameService {
         int resistancePct = 0;
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
-            CoreSpecialEffect effect = CORE_SPECIAL_EFFECTS.get(cardId);
-            if (effect == null || !isCoreSpecialEffectMatched(cardId, state, counts, resources, metrics)) {
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            CoreSpecialEffect effect = resolveCoreSpecialEffect(cardId, card);
+            if (effect == null || !isCoreSpecialEffectMatched(cardId, card, state, counts, resources, metrics)) {
                 continue;
             }
             resistancePct += effect.floodResistancePct();
@@ -2096,18 +2097,31 @@ public class GameService {
 
     private boolean isCoreSpecialEffectMatched(
         String cardId,
+        GameCardMetaDTO card,
         ObjectNode state,
         DomainCounts counts,
         ObjectNode resources,
         ObjectNode metrics
     ) {
-        if ("card056".equals(cardId) && !hasEventInHistory(state, "flood")) {
-            return false;
+        GameRuleConfigService.CoreSpecialConditionConfig condition = gameRuleConfigService.coreSpecialConditionMap().get(cardId);
+        if (condition != null) {
+            if (!condition.requiredEventType().isBlank() && !hasEventInHistory(state, condition.requiredEventType())) {
+                return false;
+            }
+            if (counts.industry < condition.minIndustryCards()) {
+                return false;
+            }
+            if (counts.ecology < condition.minEcologyCards()) {
+                return false;
+            }
+            if (counts.science < condition.minScienceCards()) {
+                return false;
+            }
+            if (counts.society < condition.minSocietyCards()) {
+                return false;
+            }
         }
-        if ("card059".equals(cardId) && counts.ecology < 2) {
-            return false;
-        }
-        return isCoreEffectConditionMatched(cardId, state, counts, resources, metrics);
+        return isCoreEffectConditionMatched(cardId, card, state, counts, resources, metrics);
     }
 
     private boolean hasEventInHistory(ObjectNode state, String eventType) {
@@ -2121,12 +2135,13 @@ public class GameService {
 
     private boolean isCoreEffectConditionMatched(
         String cardId,
+        GameCardMetaDTO card,
         ObjectNode state,
         DomainCounts counts,
         ObjectNode resources,
         ObjectNode metrics
     ) {
-        CoreEffectCondition condition = CORE_EFFECT_CONDITIONS.get(cardId);
+        CoreEffectCondition condition = resolveCoreEffectCondition(cardId, card);
         if (condition == null) {
             return true;
         }
@@ -2158,12 +2173,7 @@ public class GameService {
         if (requiredTag == null || requiredTag.isBlank()) {
             return 0;
         }
-        Set<String> target = switch (requiredTag) {
-            case "new_energy_industry" -> NEW_ENERGY_INDUSTRY_CARDS;
-            case "traditional_industry" -> TRADITIONAL_INDUSTRY_CARDS;
-            default -> Set.of();
-        };
-        return countPlacedBySet(state, target);
+        return countPlacedByTag(state, requiredTag);
     }
 
     private void refreshDomainProgress(ObjectNode state, DomainCounts counts) {
@@ -2175,15 +2185,15 @@ public class GameService {
     }
 
     private int calculateDomainProgressWithBonus(ObjectNode state, String domain, int domainCount) {
-        int baseProgress = (int) Math.floor(domainCount * 100.0D / DOMAIN_PROGRESS_CARD_CAP);
+        int baseProgress = (int) Math.floor(domainCount * 100.0D / domainProgressCardCap());
         int bonusProgress = 0;
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
-            Integer bonus = CORE_DOMAIN_PROGRESS_BONUS.get(cardId);
-            if (bonus == null || bonus <= 0) {
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            int bonus = resolveCoreDomainProgressBonus(cardId, card);
+            if (bonus <= 0) {
                 continue;
             }
-            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
             if (domain.equals(card.getDomain())) {
                 bonusProgress += bonus;
             }
@@ -2191,8 +2201,62 @@ public class GameService {
         return clamp(baseProgress + bonusProgress, 0, 200);
     }
 
+    private int resolveCoreDomainProgressBonus(String cardId, GameCardMetaDTO card) {
+        return defaultInt(card.getCoreDomainProgressBonus());
+    }
+
+    private CoreContinuousEffect resolveCoreContinuousEffect(String cardId, GameCardMetaDTO card) {
+        return new CoreContinuousEffect(
+            defaultInt(card.getCoreContinuousIndustryDelta()),
+            defaultInt(card.getCoreContinuousTechDelta()),
+            defaultInt(card.getCoreContinuousPopulationDelta()),
+            defaultInt(card.getCoreContinuousGreenDelta()),
+            defaultInt(card.getCoreContinuousCarbonDelta()),
+            defaultInt(card.getCoreContinuousSatisfactionDelta()),
+            defaultInt(card.getCoreContinuousQuotaDelta()),
+            defaultInt(card.getCoreContinuousLowCarbonDelta()),
+            defaultInt(card.getCoreContinuousIndustryPct()),
+            defaultInt(card.getCoreContinuousTechPct()),
+            defaultInt(card.getCoreContinuousPopulationPct()),
+            defaultInt(card.getCoreContinuousGreenPct()),
+            defaultInt(card.getCoreContinuousGlobalPct()),
+            defaultInt(card.getCoreContinuousLowCarbonPct()),
+            defaultInt(card.getCoreContinuousIndustryCarbonReductionPct()),
+            defaultInt(card.getCoreContinuousCarbonDeltaReductionPct()),
+            defaultInt(card.getCoreContinuousTradePricePct()),
+            defaultInt(card.getCoreContinuousComboPct())
+        );
+    }
+
+    private CoreEffectCondition resolveCoreEffectCondition(String cardId, GameCardMetaDTO card) {
+        return new CoreEffectCondition(
+            defaultInt(card.getCoreConditionMinTurn()),
+            defaultInt(card.getCoreConditionMinIndustryResource()),
+            defaultInt(card.getCoreConditionMinTechResource()),
+            card.getCoreConditionMaxCarbon() == null ? Integer.MAX_VALUE : card.getCoreConditionMaxCarbon(),
+            defaultInt(card.getCoreConditionMinIndustryCards()),
+            defaultInt(card.getCoreConditionMinIndustryProgressPct()),
+            defaultInt(card.getCoreConditionMinTaggedCards()),
+            card.getCoreConditionRequiredTag() == null ? "" : card.getCoreConditionRequiredTag()
+        );
+    }
+
+    private CoreSpecialEffect resolveCoreSpecialEffect(String cardId, GameCardMetaDTO card) {
+        return new CoreSpecialEffect(
+            defaultInt(card.getCoreSpecialEcologyCardCostReductionPct()),
+            defaultInt(card.getCoreSpecialScienceCardCostReductionPct()),
+            defaultInt(card.getCoreSpecialFloodResistancePct()),
+            defaultInt(card.getCoreSpecialNewEnergyIndustryPct()),
+            defaultInt(card.getCoreSpecialEcologyCarbonSinkPerTenGreen())
+        );
+    }
+
+    private int defaultInt(Integer value) {
+        return value == null ? 0 : value;
+    }
+
     private boolean matchesComboTriggerRule(
-        ComboTriggerRule rule,
+        GameRuleConfigService.ComboRuleConfig rule,
         String lastPolicyUsed,
         DomainCounts counts,
         int lowCarbonIndustryCount,
@@ -2200,7 +2264,7 @@ public class GameService {
         int linkCardCount,
         AdjacencyStats adjacency
     ) {
-        if (rule.requiredPolicyId() != null && !rule.requiredPolicyId().equals(lastPolicyUsed)) {
+        if (!rule.requiredPolicyId().isBlank() && !rule.requiredPolicyId().equals(lastPolicyUsed)) {
             return false;
         }
         return counts.industry >= rule.minIndustry()
@@ -2254,42 +2318,6 @@ public class GameService {
         int populationPct,
         int industryPct,
         int industryCarbonReductionPct
-    ) {
-    }
-
-    private record ComboEffect(
-        int industryDelta,
-        int techDelta,
-        int populationDelta,
-        int greenDelta,
-        int carbonDelta,
-        int satisfactionDelta,
-        int quotaDelta,
-        int lowCarbonDelta,
-        int techPct,
-        int populationPct,
-        int industryPct,
-        int lowCarbonPct,
-        int greenPct,
-        int globalPct
-    ) {
-    }
-
-    private record ComboTriggerRule(
-        String comboId,
-        String requiredPolicyId,
-        int minIndustry,
-        int minEcology,
-        int minScience,
-        int minSociety,
-        int minLowCarbonIndustry,
-        int minShenzhenEcology,
-        int minLinkCards,
-        int minIndustryLowCarbonAdjacentPairs,
-        int minScienceScienceAdjacentPairs,
-        int minScienceIndustryAdjacentPairs,
-        int minIndustryEcologyAdjacentPairs,
-        int minSocietyEcologyAdjacentPairs
     ) {
     }
 
@@ -2348,6 +2376,54 @@ public class GameService {
         return cost == null ? 0 : Math.max(0, cost);
     }
 
+    private GameRuleConfigService.RuntimeParamConfig runtimeParam() {
+        return gameRuleConfigService.runtimeParam();
+    }
+
+    private GameRuleConfigService.BalanceRuleConfig balanceRule() {
+        return gameRuleConfigService.balanceRule();
+    }
+
+    private int coreHandLimit() {
+        return runtimeParam().coreHandLimit();
+    }
+
+    private int policyHandLimit() {
+        return runtimeParam().policyHandLimit();
+    }
+
+    private int maxComboPerTurn() {
+        return runtimeParam().maxComboPerTurn();
+    }
+
+    private int maxTurn() {
+        return runtimeParam().maxTurn();
+    }
+
+    private int handDiscardDecisionSeconds() {
+        return runtimeParam().handDiscardDecisionSeconds();
+    }
+
+    private int tradeWindowInterval() {
+        return runtimeParam().tradeWindowInterval();
+    }
+
+    private int tradeWindowSeconds() {
+        return runtimeParam().tradeWindowSeconds();
+    }
+
+    private double baseCarbonPrice() {
+        return runtimeParam().baseCarbonPrice();
+    }
+
+    private int maxCarbonQuota() {
+        return runtimeParam().maxCarbonQuota();
+    }
+
+    private int domainProgressCardCap() {
+        return runtimeParam().domainProgressCardCap();
+    }
+
     private UUID resolveCurrentUserId() {
         return SecurityUtil.getCurrentUserId();
     }
@@ -2356,8 +2432,8 @@ public class GameService {
         return SecurityUtil.getCurrentUserIdOptional();
     }
 
-    private GameSessionEntity createSession(UUID userId) {
-        ObjectNode initialState = buildInitialState();
+    private GameSessionEntity createSession(UUID userId, boolean guestSession) {
+        ObjectNode initialState = buildInitialState(guestSession);
         long initialScore = initialState.path("metrics").path("lowCarbonScore").asLong(0);
         LocalDateTime now = LocalDateTime.now();
 
@@ -2375,17 +2451,53 @@ public class GameService {
         return session;
     }
 
+    private GameSessionEntity resolveGuestSession(UUID sessionId) {
+        GameSessionEntity session = guestSessions.get(sessionId);
+        if (session != null) {
+            return session;
+        }
+        session = gameSessionMapper.selectById(sessionId);
+        if (!isGuestSession(session)) {
+            return null;
+        }
+        guestSessions.put(sessionId, session);
+        return session;
+    }
+
+    private boolean isGuestSession(GameSessionEntity session) {
+        if (session == null) {
+            return false;
+        }
+        if (session.getUserId() == null) {
+            return true;
+        }
+        JsonNode pondState = session.getPondState();
+        return pondState != null && pondState.path("guestSession").asBoolean(false);
+    }
+
     private GameSessionDTO toDTO(GameSessionEntity entity) {
         return GameSessionDTO.builder()
             .id(entity.getId())
             .userId(entity.getUserId())
-            .pondState(entity.getPondState())
+            .pondState(sanitizeStateForClient(entity.getPondState()))
             .score(entity.getScore())
             .level(entity.getLevel())
             .startedAt(entity.getStartedAt())
             .lastActionAt(entity.getLastActionAt())
             .status(entity.getStatus())
             .build();
+    }
+
+    private ObjectNode sanitizeStateForClient(JsonNode source) {
+        if (!(source instanceof ObjectNode objectNode)) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "Invalid session state");
+        }
+        ObjectNode sanitized = objectNode.deepCopy();
+        JsonNode metricsNode = sanitized.path("metrics");
+        if (metricsNode instanceof ObjectNode metrics) {
+            metrics.remove("lowCarbonScore");
+        }
+        return sanitized;
     }
 
     private static class Coord {

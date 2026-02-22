@@ -32,11 +32,17 @@
     WHERE id = #{id}::uuid
   </select>
 
-  <!-- 查询所有（管理端） -->
+  <!-- 查询所有（管理端，分页） -->
   <select id="selectAll" resultMap="BaseResultMap">
     SELECT <include refid="Base_Column_List"/>
     FROM social.home_banner
     ORDER BY sort_order ASC, created_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 查询总数 -->
+  <select id="countAll" resultType="long">
+    SELECT COUNT(*) FROM social.home_banner
   </select>
 
   <!-- 查询启用的（用户端） -->

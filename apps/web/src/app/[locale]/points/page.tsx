@@ -32,7 +32,7 @@ function PointsPageContent() {
     // 积分账户数据
     const [pointsAccount, setPointsAccount] = useState<PointsAccount | null>(null);
     const [loadingAccount, setLoadingAccount] = useState(false);
-    
+
     // 积分动画状态
     const [displayPoints, setDisplayPoints] = useState(0);
     const [pointsIncrement, setPointsIncrement] = useState<number | null>(null);
@@ -110,20 +110,20 @@ function PointsPageContent() {
             loadPointsAccount();
         }
     }, [isLoggedIn]);
-    
+
     // 积分数字动画效果
     useEffect(() => {
         if (!pointsAccount) return;
-        
+
         const targetPoints = pointsAccount.availablePoints;
         if (displayPoints === targetPoints) return;
-        
+
         const diff = targetPoints - displayPoints;
         const duration = 1000; // 1秒动画
         const steps = 30;
         const increment = diff / steps;
         const stepDuration = duration / steps;
-        
+
         let currentStep = 0;
         const timer = setInterval(() => {
             currentStep++;
@@ -134,7 +134,7 @@ function PointsPageContent() {
                 setDisplayPoints(prev => Math.round(prev + increment));
             }
         }, stepDuration);
-        
+
         return () => clearInterval(timer);
     }, [displayPoints, pointsAccount]);
 
@@ -227,11 +227,11 @@ function PointsPageContent() {
     const handleClaimTask = async (taskId: string) => {
         try {
             setClaimingTask(taskId);
-            
+
             // 找到任务的积分奖励
             const task = dailyTasks.find(t => t.id === taskId);
             const taskPoints = task?.points || 0;
-            
+
             await pointsApi.claimTaskReward(taskId);
 
             // 更新任务列表
@@ -274,7 +274,7 @@ function PointsPageContent() {
                 // 显示增加的积分动画
                 setPointsIncrement(result.earnedPoints);
                 setTimeout(() => setPointsIncrement(null), 2000);
-                
+
                 // 重新加载积分账户以获取最新数据
                 const updatedAccount = await userApi.getMyPoints();
                 setPointsAccount(updatedAccount);
@@ -382,11 +382,11 @@ function PointsPageContent() {
                                             const current = pointsAccount?.totalPoints || 0;
                                             const nextMin = pointsAccount?.nextLevelMinPoints || 100;
                                             const pointsToNext = pointsAccount?.pointsToNextLevel || 0;
-                                            
+
                                             // 如果已是最高级（pointsToNextLevel为0且current > 0）
                                             if (pointsToNext === 0 && current > 0) {
                                                 return (
-                                                    <div 
+                                                    <div
                                                         className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative transition-all duration-500"
                                                         style={{ width: '100%' }}
                                                     >
@@ -395,7 +395,7 @@ function PointsPageContent() {
                                                     </div>
                                                 );
                                             }
-                                            
+
                                             // 计算当前等级的起始积分（下一级最低积分 - 距离下一级所需积分 = 当前等级起始积分）
                                             const currentMin = nextMin - pointsToNext - (current - (nextMin - pointsToNext));
                                             // 简化：当前等级起始积分 = 当前积分 - (下一级所需 - 已有到下一级的进度)
@@ -407,17 +407,17 @@ function PointsPageContent() {
                                             // 那么 currentMin = (level - 1) * 100
                                             const level = pointsAccount?.level || 1;
                                             const actualCurrentMin = (level - 1) * 100;
-                                            
+
                                             // 计算进度百分比
-                                            const progress = nextMin > actualCurrentMin 
-                                                ? ((current - actualCurrentMin) / (nextMin - actualCurrentMin)) * 100 
+                                            const progress = nextMin > actualCurrentMin
+                                                ? ((current - actualCurrentMin) / (nextMin - actualCurrentMin)) * 100
                                                 : 0;
-                                            
+
                                             // 设置最小宽度为3%，确保有积分时至少能看到一点进度
                                             const displayProgress = current > 0 ? Math.max(3, Math.min(100, progress)) : 0;
-                                            
+
                                             return (
-                                                <div 
+                                                <div
                                                     className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full relative transition-all duration-500"
                                                     style={{ width: `${displayProgress}%` }}
                                                 >
@@ -435,14 +435,14 @@ function PointsPageContent() {
                             </div>
 
                             {/* 右侧按钮 */}
-                            <div className="flex-shrink-0 flex md:flex-col gap-3">
-                                <Link href={`/${locale}/points/exchange`}>
-                                    <button className="w-full px-6 py-2.5 rounded-xl bg-[#56B949] text-white text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5 whitespace-nowrap">
+                            <div className="flex-shrink-0 flex w-full md:w-auto flex-row md:flex-col gap-3 mt-2 md:mt-0">
+                                <Link href={`/${locale}/points/exchange`} className="flex-1 w-full">
+                                    <button className="w-full px-2 sm:px-6 py-3 md:py-2.5 rounded-xl bg-[#56B949] text-white text-xs sm:text-sm font-semibold shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] transition-all hover:-translate-y-0.5 truncate">
                                         {t('exchangeStore', '兑换商城')}
                                     </button>
                                 </Link>
-                                <Link href={`/${locale}/points/history`}>
-                                    <button className="w-full px-6 py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50 whitespace-nowrap">
+                                <Link href={`/${locale}/points/history`} className="flex-1 w-full">
+                                    <button className="w-full px-2 sm:px-6 py-3 md:py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-xs sm:text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50 truncate">
                                         {t('pointsHistory', '积分记录')}
                                     </button>
                                 </Link>
@@ -572,12 +572,21 @@ function PointsPageContent() {
                             </div>
                         </div>
 
-                        <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium px-2">
-                            <span>{t('calendar.signedDays', '已签到')} <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
-                            <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>{t('calendar.consecutiveDays', '连续签到')} <b className="text-[#30499B]">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
-                            <div className="h-3 w-[1px] bg-slate-300"></div>
-                            <span>{t('calendar.missedDays', '已漏签')} <b className="text-[#EE4035]">2</b> {t('calendar.days', '天')}</span>
+                        <div className="mt-4 flex flex-row justify-between sm:justify-around items-center text-[10px] sm:text-sm text-slate-500 font-medium px-1 sm:px-2 gap-1 sm:gap-2 text-center">
+                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
+                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.signedDays', '已签到')}</span>
+                                <span><b className="text-[#30499B] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+                            </div>
+                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200"></div>
+                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
+                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.consecutiveDays', '连续签到')}</span>
+                                <span><b className="text-[#30499B] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+                            </div>
+                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200"></div>
+                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
+                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.missedDays', '已漏签')}</span>
+                                <span><b className="text-[#EE4035] text-sm">2</b> {t('calendar.days', '天')}</span>
+                            </div>
                         </div>
                     </motion.section>
 

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.youthloop.common.api.PageResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,14 +30,18 @@ public class HomeBannerService {
     private final HomeBannerMapper homeBannerMapper;
     
     /**
-     * 查询所有轮播（管理端）
+     * 查询所有轮播（管理端，分页）
      */
     @Transactional(readOnly = true)
-    public List<HomeBannerDTO> getAllBanners() {
-        List<HomeBannerEntity> entities = homeBannerMapper.selectAll();
-        return entities.stream()
+    public PageResponse<HomeBannerDTO> getAllBanners(int page, int size) {
+        int validPage = Math.max(1, page);
+        int validSize = Math.min(100, Math.max(1, size));
+        int offset = (validPage - 1) * validSize;
+        long total = homeBannerMapper.countAll();
+        List<HomeBannerDTO> items = homeBannerMapper.selectAll(offset, validSize).stream()
             .map(this::toDTO)
             .collect(Collectors.toList());
+        return PageResponse.of(items, total, validPage, validSize);
     }
     
     /**

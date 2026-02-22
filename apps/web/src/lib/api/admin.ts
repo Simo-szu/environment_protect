@@ -151,8 +151,12 @@ export interface AdminUpdateGameCardRequest {
   isEnabled?: boolean;
 }
 
-export async function getAdminHostVerifications(status?: number): Promise<PageResponse<AdminHostVerificationItem>> {
-  return apiGet<PageResponse<AdminHostVerificationItem>>('/api/v1/admin/host/verifications', { status });
+export async function getAdminHostVerifications(params: {
+  status?: number;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<AdminHostVerificationItem>> {
+  return apiGet<PageResponse<AdminHostVerificationItem>>('/api/v1/admin/host/verifications', params);
 }
 
 export async function reviewAdminHostVerification(
@@ -162,8 +166,11 @@ export async function reviewAdminHostVerification(
   return apiPatch<void>(`/api/v1/admin/host/verifications/${userId}`, data);
 }
 
-export async function getAdminHomeBanners(): Promise<PageResponse<AdminHomeBannerItem>> {
-  return apiGet<PageResponse<AdminHomeBannerItem>>('/api/v1/admin/home/banners');
+export async function getAdminHomeBanners(params?: {
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<AdminHomeBannerItem>> {
+  return apiGet<PageResponse<AdminHomeBannerItem>>('/api/v1/admin/home/banners', params);
 }
 
 export async function getAdminHomeBannerById(id: string): Promise<AdminHomeBannerItem> {
@@ -212,8 +219,11 @@ export async function deleteAdminContent(id: string): Promise<void> {
   return apiDelete<void>(`/api/v1/admin/contents/${id}`);
 }
 
-export async function getAdminGameCards(): Promise<PageResponse<AdminGameCardItem>> {
-  return apiGet<PageResponse<AdminGameCardItem>>('/api/v1/admin/game/cards');
+export async function getAdminGameCards(params?: {
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<AdminGameCardItem>> {
+  return apiGet<PageResponse<AdminGameCardItem>>('/api/v1/admin/game/cards', params);
 }
 
 export async function getAdminGameCardById(cardId: string): Promise<AdminGameCardItem> {

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.game.persistence.mapper.GameRuleConfigMapper">
+
+    <resultMap id="EventRuleResultMap" type="com.youthloop.game.persistence.entity.GameEventRuleConfigEntity">
+        <id column="event_type" property="eventType" jdbcType="VARCHAR"/>
+        <result column="trigger_probability_pct" property="triggerProbabilityPct" jdbcType="INTEGER"/>
+        <result column="min_green" property="minGreen" jdbcType="INTEGER"/>
+        <result column="min_carbon" property="minCarbon" jdbcType="INTEGER"/>
+        <result column="max_satisfaction" property="maxSatisfaction" jdbcType="INTEGER"/>
+        <result column="min_population" property="minPopulation" jdbcType="INTEGER"/>
+        <result column="require_even_turn" property="requireEvenTurn" jdbcType="BOOLEAN"/>
+        <result column="weight" property="weight" jdbcType="INTEGER"/>
+        <result column="duration_turns" property="durationTurns" jdbcType="INTEGER"/>
+        <result column="green_delta" property="greenDelta" jdbcType="INTEGER"/>
+        <result column="carbon_delta" property="carbonDelta" jdbcType="INTEGER"/>
+        <result column="satisfaction_delta" property="satisfactionDelta" jdbcType="INTEGER"/>
+        <result column="green_pct_delta" property="greenPctDelta" jdbcType="INTEGER"/>
+        <result column="population_pct_delta" property="populationPctDelta" jdbcType="INTEGER"/>
+        <result column="quota_delta" property="quotaDelta" jdbcType="INTEGER"/>
+        <result column="display_name" property="displayName" jdbcType="VARCHAR"/>
+        <result column="effect_summary" property="effectSummary" jdbcType="VARCHAR"/>
+        <result column="resolution_hint" property="resolutionHint" jdbcType="VARCHAR"/>
+        <result column="resolvable_policy_ids_csv" property="resolvablePolicyIdsCsv" jdbcType="VARCHAR"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="ComboRuleResultMap" type="com.youthloop.game.persistence.entity.GameComboRuleConfigEntity">
+        <id column="combo_id" property="comboId" jdbcType="VARCHAR"/>
+        <result column="priority_order" property="priorityOrder" jdbcType="INTEGER"/>
+        <result column="required_policy_id" property="requiredPolicyId" jdbcType="VARCHAR"/>
+        <result column="min_industry" property="minIndustry" jdbcType="INTEGER"/>
+        <result column="min_ecology" property="minEcology" jdbcType="INTEGER"/>
+        <result column="min_science" property="minScience" jdbcType="INTEGER"/>
+        <result column="min_society" property="minSociety" jdbcType="INTEGER"/>
+        <result column="min_low_carbon_industry" property="minLowCarbonIndustry" jdbcType="INTEGER"/>
+        <result column="min_shenzhen_ecology" property="minShenzhenEcology" jdbcType="INTEGER"/>
+        <result column="min_link_cards" property="minLinkCards" jdbcType="INTEGER"/>
+        <result column="min_industry_low_carbon_adjacent_pairs" property="minIndustryLowCarbonAdjacentPairs" jdbcType="INTEGER"/>
+        <result column="min_science_science_adjacent_pairs" property="minScienceScienceAdjacentPairs" jdbcType="INTEGER"/>
+        <result column="min_science_industry_adjacent_pairs" property="minScienceIndustryAdjacentPairs" jdbcType="INTEGER"/>
+        <result column="min_industry_ecology_adjacent_pairs" property="minIndustryEcologyAdjacentPairs" jdbcType="INTEGER"/>
+        <result column="min_society_ecology_adjacent_pairs" property="minSocietyEcologyAdjacentPairs" jdbcType="INTEGER"/>
+        <result column="effect_industry_delta" property="effectIndustryDelta" jdbcType="INTEGER"/>
+        <result column="effect_tech_delta" property="effectTechDelta" jdbcType="INTEGER"/>
+        <result column="effect_population_delta" property="effectPopulationDelta" jdbcType="INTEGER"/>
+        <result column="effect_green_delta" property="effectGreenDelta" jdbcType="INTEGER"/>
+        <result column="effect_carbon_delta" property="effectCarbonDelta" jdbcType="INTEGER"/>
+        <result column="effect_satisfaction_delta" property="effectSatisfactionDelta" jdbcType="INTEGER"/>
+        <result column="effect_quota_delta" property="effectQuotaDelta" jdbcType="INTEGER"/>
+        <result column="effect_low_carbon_delta" property="effectLowCarbonDelta" jdbcType="INTEGER"/>
+        <result column="effect_tech_pct" property="effectTechPct" jdbcType="INTEGER"/>
+        <result column="effect_population_pct" property="effectPopulationPct" jdbcType="INTEGER"/>
+        <result column="effect_industry_pct" property="effectIndustryPct" jdbcType="INTEGER"/>
+        <result column="effect_low_carbon_pct" property="effectLowCarbonPct" jdbcType="INTEGER"/>
+        <result column="effect_green_pct" property="effectGreenPct" jdbcType="INTEGER"/>
+        <result column="effect_global_pct" property="effectGlobalPct" jdbcType="INTEGER"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="CardTagResultMap" type="com.youthloop.game.persistence.entity.GameCardTagMapEntity">
+        <id column="card_id" property="cardId" jdbcType="VARCHAR"/>
+        <id column="tag_code" property="tagCode" jdbcType="VARCHAR"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="PolicyUnlockRuleResultMap" type="com.youthloop.game.persistence.entity.GamePolicyUnlockRuleConfigEntity">
+        <id column="policy_id" property="policyId" jdbcType="VARCHAR"/>
+        <result column="priority_order" property="priorityOrder" jdbcType="INTEGER"/>
+        <result column="min_industry" property="minIndustry" jdbcType="INTEGER"/>
+        <result column="min_ecology" property="minEcology" jdbcType="INTEGER"/>
+        <result column="min_science" property="minScience" jdbcType="INTEGER"/>
+        <result column="min_society" property="minSociety" jdbcType="INTEGER"/>
+        <result column="min_industry_resource" property="minIndustryResource" jdbcType="INTEGER"/>
+        <result column="min_tech_resource" property="minTechResource" jdbcType="INTEGER"/>
+        <result column="min_population_resource" property="minPopulationResource" jdbcType="INTEGER"/>
+        <result column="min_green" property="minGreen" jdbcType="INTEGER"/>
+        <result column="min_carbon" property="minCarbon" jdbcType="INTEGER"/>
+        <result column="max_carbon" property="maxCarbon" jdbcType="INTEGER"/>
+        <result column="min_satisfaction" property="minSatisfaction" jdbcType="INTEGER"/>
+        <result column="min_tagged_cards" property="minTaggedCards" jdbcType="INTEGER"/>
+        <result column="required_tag" property="requiredTag" jdbcType="VARCHAR"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="CoreSpecialConditionResultMap" type="com.youthloop.game.persistence.entity.GameCoreSpecialConditionConfigEntity">
+        <id column="card_id" property="cardId" jdbcType="VARCHAR"/>
+        <result column="required_event_type" property="requiredEventType" jdbcType="VARCHAR"/>
+        <result column="min_industry_cards" property="minIndustryCards" jdbcType="INTEGER"/>
+        <result column="min_ecology_cards" property="minEcologyCards" jdbcType="INTEGER"/>
+        <result column="min_science_cards" property="minScienceCards" jdbcType="INTEGER"/>
+        <result column="min_society_cards" property="minSocietyCards" jdbcType="INTEGER"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="RuntimeParamResultMap" type="com.youthloop.game.persistence.entity.GameRuntimeParamConfigEntity">
+        <id column="config_id" property="configId" jdbcType="INTEGER"/>
+        <result column="core_hand_limit" property="coreHandLimit" jdbcType="INTEGER"/>
+        <result column="policy_hand_limit" property="policyHandLimit" jdbcType="INTEGER"/>
+        <result column="max_combo_per_turn" property="maxComboPerTurn" jdbcType="INTEGER"/>
+        <result column="max_turn" property="maxTurn" jdbcType="INTEGER"/>
+        <result column="hand_discard_decision_seconds" property="handDiscardDecisionSeconds" jdbcType="INTEGER"/>
+        <result column="trade_window_interval" property="tradeWindowInterval" jdbcType="INTEGER"/>
+        <result column="trade_window_seconds" property="tradeWindowSeconds" jdbcType="INTEGER"/>
+        <result column="base_carbon_price" property="baseCarbonPrice" jdbcType="DOUBLE"/>
+        <result column="max_carbon_quota" property="maxCarbonQuota" jdbcType="INTEGER"/>
+        <result column="domain_progress_card_cap" property="domainProgressCardCap" jdbcType="INTEGER"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="BalanceRuleResultMap" type="com.youthloop.game.persistence.entity.GameBalanceRuleConfigEntity">
+        <id column="config_id" property="configId" jdbcType="INTEGER"/>
+        <result column="initial_phase" property="initialPhase" jdbcType="VARCHAR"/>
+        <result column="initial_event_cooldown" property="initialEventCooldown" jdbcType="INTEGER"/>
+        <result column="board_size" property="boardSize" jdbcType="INTEGER"/>
+        <result column="initial_industry" property="initialIndustry" jdbcType="INTEGER"/>
+        <result column="initial_tech" property="initialTech" jdbcType="INTEGER"/>
+        <result column="initial_population" property="initialPopulation" jdbcType="INTEGER"/>
+        <result column="initial_green" property="initialGreen" jdbcType="INTEGER"/>
+        <result column="initial_carbon" property="initialCarbon" jdbcType="INTEGER"/>
+        <result column="initial_satisfaction" property="initialSatisfaction" jdbcType="INTEGER"/>
+        <result column="initial_low_carbon_score" property="initialLowCarbonScore" jdbcType="INTEGER"/>
+        <result column="initial_quota" property="initialQuota" jdbcType="INTEGER"/>
+        <result column="initial_draw_early" property="initialDrawEarly" jdbcType="INTEGER"/>
+        <result column="draw_count_early" property="drawCountEarly" jdbcType="INTEGER"/>
+        <result column="draw_count_mid" property="drawCountMid" jdbcType="INTEGER"/>
+        <result column="draw_count_late" property="drawCountLate" jdbcType="INTEGER"/>
+        <result column="event_cooldown_reset_turns" property="eventCooldownResetTurns" jdbcType="INTEGER"/>
+        <result column="settlement_base_industry_gain" property="settlementBaseIndustryGain" jdbcType="INTEGER"/>
+        <result column="settlement_base_tech_gain" property="settlementBaseTechGain" jdbcType="INTEGER"/>
+        <result column="settlement_base_population_gain" property="settlementBasePopulationGain" jdbcType="INTEGER"/>
+        <result column="satisfaction_max" property="satisfactionMax" jdbcType="INTEGER"/>
+        <result column="carbon_quota_base_line" property="carbonQuotaBaseLine" jdbcType="INTEGER"/>
+        <result column="carbon_quota_per_n_over" property="carbonQuotaPerNOver" jdbcType="INTEGER"/>
+        <result column="carbon_industry_emission_per_card" property="carbonIndustryEmissionPerCard" jdbcType="INTEGER"/>
+        <result column="carbon_ecology_reduction_per_card" property="carbonEcologyReductionPerCard" jdbcType="INTEGER"/>
+        <result column="carbon_science_reduction_per_card" property="carbonScienceReductionPerCard" jdbcType="INTEGER"/>
+        <result column="trade_random_base_min" property="tradeRandomBaseMin" jdbcType="DOUBLE"/>
+        <result column="trade_random_span" property="tradeRandomSpan" jdbcType="DOUBLE"/>
+        <result column="trade_high_carbon_threshold" property="tradeHighCarbonThreshold" jdbcType="INTEGER"/>
+        <result column="trade_high_carbon_factor" property="tradeHighCarbonFactor" jdbcType="DOUBLE"/>
+        <result column="trade_low_carbon_threshold" property="tradeLowCarbonThreshold" jdbcType="INTEGER"/>
+        <result column="trade_low_carbon_factor" property="tradeLowCarbonFactor" jdbcType="DOUBLE"/>
+        <result column="failure_high_carbon_threshold" property="failureHighCarbonThreshold" jdbcType="INTEGER"/>
+        <result column="failure_high_carbon_streak_limit" property="failureHighCarbonStreakLimit" jdbcType="INTEGER"/>
+        <result column="trade_failure_quota_exhausted_limit" property="tradeFailureQuotaExhaustedLimit" jdbcType="INTEGER"/>
+        <result column="trade_failure_profit_threshold" property="tradeFailureProfitThreshold" jdbcType="DOUBLE"/>
+        <result column="low_carbon_min_for_positive_ending" property="lowCarbonMinForPositiveEnding" jdbcType="INTEGER"/>
+        <result column="low_carbon_domain_threshold" property="lowCarbonDomainThreshold" jdbcType="INTEGER"/>
+        <result column="low_carbon_domain_bonus" property="lowCarbonDomainBonus" jdbcType="INTEGER"/>
+        <result column="low_carbon_policy_unlock_score" property="lowCarbonPolicyUnlockScore" jdbcType="INTEGER"/>
+        <result column="low_carbon_policy_unlock_all_count" property="lowCarbonPolicyUnlockAllCount" jdbcType="INTEGER"/>
+        <result column="low_carbon_policy_unlock_all_bonus" property="lowCarbonPolicyUnlockAllBonus" jdbcType="INTEGER"/>
+        <result column="low_carbon_event_resolved_score" property="lowCarbonEventResolvedScore" jdbcType="INTEGER"/>
+        <result column="low_carbon_event_triggered_penalty" property="lowCarbonEventTriggeredPenalty" jdbcType="INTEGER"/>
+        <result column="low_carbon_over_limit_carbon_threshold" property="lowCarbonOverLimitCarbonThreshold" jdbcType="INTEGER"/>
+        <result column="low_carbon_over_limit_streak_threshold" property="lowCarbonOverLimitStreakThreshold" jdbcType="INTEGER"/>
+        <result column="low_carbon_over_limit_streak_penalty" property="lowCarbonOverLimitStreakPenalty" jdbcType="INTEGER"/>
+        <result column="low_carbon_trade_profit_divisor" property="lowCarbonTradeProfitDivisor" jdbcType="DOUBLE"/>
+        <result column="low_carbon_trade_profit_bonus" property="lowCarbonTradeProfitBonus" jdbcType="INTEGER"/>
+        <result column="low_carbon_quota_exhausted_penalty" property="lowCarbonQuotaExhaustedPenalty" jdbcType="INTEGER"/>
+        <result column="low_carbon_invalid_operation_penalty" property="lowCarbonInvalidOperationPenalty" jdbcType="INTEGER"/>
+        <result column="carbon_tier_1_max" property="carbonTier1Max" jdbcType="INTEGER"/>
+        <result column="carbon_tier_1_score" property="carbonTier1Score" jdbcType="INTEGER"/>
+        <result column="carbon_tier_2_max" property="carbonTier2Max" jdbcType="INTEGER"/>
+        <result column="carbon_tier_2_score" property="carbonTier2Score" jdbcType="INTEGER"/>
+        <result column="carbon_tier_3_max" property="carbonTier3Max" jdbcType="INTEGER"/>
+        <result column="carbon_tier_3_score" property="carbonTier3Score" jdbcType="INTEGER"/>
+        <result column="carbon_tier_4_max" property="carbonTier4Max" jdbcType="INTEGER"/>
+        <result column="carbon_tier_4_score" property="carbonTier4Score" jdbcType="INTEGER"/>
+        <result column="carbon_tier_5_score" property="carbonTier5Score" jdbcType="INTEGER"/>
+        <result column="phase_early_max_cards" property="phaseEarlyMaxCards" jdbcType="INTEGER"/>
+        <result column="phase_early_max_score" property="phaseEarlyMaxScore" jdbcType="INTEGER"/>
+        <result column="phase_mid_min_cards" property="phaseMidMinCards" jdbcType="INTEGER"/>
+        <result column="phase_mid_max_cards" property="phaseMidMaxCards" jdbcType="INTEGER"/>
+        <result column="phase_mid_min_score" property="phaseMidMinScore" jdbcType="INTEGER"/>
+        <result column="phase_mid_max_score" property="phaseMidMaxScore" jdbcType="INTEGER"/>
+        <result column="phase_late_min_cards" property="phaseLateMinCards" jdbcType="INTEGER"/>
+        <result column="phase_late_min_score" property="phaseLateMinScore" jdbcType="INTEGER"/>
+        <result column="phase_late_remaining_cards_threshold" property="phaseLateRemainingCardsThreshold" jdbcType="INTEGER"/>
+        <result column="ending_event_resolve_rate_required" property="endingEventResolveRateRequired" jdbcType="DOUBLE"/>
+        <result column="ending_innovation_min_science" property="endingInnovationMinScience" jdbcType="INTEGER"/>
+        <result column="ending_innovation_min_tech" property="endingInnovationMinTech" jdbcType="INTEGER"/>
+        <result column="ending_innovation_min_low_carbon" property="endingInnovationMinLowCarbon" jdbcType="INTEGER"/>
+        <result column="ending_innovation_max_carbon" property="endingInnovationMaxCarbon" jdbcType="INTEGER"/>
+        <result column="ending_innovation_min_profit" property="endingInnovationMinProfit" jdbcType="DOUBLE"/>
+        <result column="ending_ecology_min_ecology" property="endingEcologyMinEcology" jdbcType="INTEGER"/>
+        <result column="ending_ecology_min_green" property="endingEcologyMinGreen" jdbcType="INTEGER"/>
+        <result column="ending_ecology_min_low_carbon" property="endingEcologyMinLowCarbon" jdbcType="INTEGER"/>
+        <result column="ending_ecology_max_carbon" property="endingEcologyMaxCarbon" jdbcType="INTEGER"/>
+        <result column="ending_ecology_min_quota" property="endingEcologyMinQuota" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_society" property="endingDoughnutMinSociety" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_satisfaction" property="endingDoughnutMinSatisfaction" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_population" property="endingDoughnutMinPopulation" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_domain" property="endingDoughnutMinDomain" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_low_carbon" property="endingDoughnutMinLowCarbon" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_max_carbon" property="endingDoughnutMaxCarbon" jdbcType="INTEGER"/>
+        <result column="ending_doughnut_min_policy_usage_6768" property="endingDoughnutMinPolicyUsage6768" jdbcType="INTEGER"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="EndingContentResultMap" type="com.youthloop.game.persistence.entity.GameEndingContentConfigEntity">
+        <id column="ending_id" property="endingId" jdbcType="VARCHAR"/>
+        <result column="ending_name" property="endingName" jdbcType="VARCHAR"/>
+        <result column="image_key" property="imageKey" jdbcType="VARCHAR"/>
+        <result column="default_reason" property="defaultReason" jdbcType="VARCHAR"/>
+        <result column="failure_reason_high_carbon" property="failureReasonHighCarbon" jdbcType="VARCHAR"/>
+        <result column="failure_reason_trade" property="failureReasonTrade" jdbcType="VARCHAR"/>
+        <result column="failure_reason_low_score" property="failureReasonLowScore" jdbcType="VARCHAR"/>
+        <result column="failure_reason_boundary_default" property="failureReasonBoundaryDefault" jdbcType="VARCHAR"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <select id="selectEnabledEventRules" resultMap="EventRuleResultMap">
+        SELECT event_type, trigger_probability_pct, min_green, min_carbon, max_satisfaction, min_population, require_even_turn,
+               weight, duration_turns, green_delta, carbon_delta, satisfaction_delta, green_pct_delta, population_pct_delta,
+               quota_delta, display_name, effect_summary, resolution_hint, resolvable_policy_ids_csv, is_enabled
+        FROM game.game_event_rule_config
+        WHERE is_enabled = TRUE
+        ORDER BY event_type ASC
+    </select>
+
+    <select id="selectEnabledComboRules" resultMap="ComboRuleResultMap">
+        SELECT combo_id, priority_order, required_policy_id, min_industry, min_ecology, min_science, min_society,
+               min_low_carbon_industry, min_shenzhen_ecology, min_link_cards, min_industry_low_carbon_adjacent_pairs,
+               min_science_science_adjacent_pairs, min_science_industry_adjacent_pairs, min_industry_ecology_adjacent_pairs,
+               min_society_ecology_adjacent_pairs, effect_industry_delta, effect_tech_delta, effect_population_delta,
+               effect_green_delta, effect_carbon_delta, effect_satisfaction_delta, effect_quota_delta, effect_low_carbon_delta,
+               effect_tech_pct, effect_population_pct, effect_industry_pct, effect_low_carbon_pct, effect_green_pct,
+               effect_global_pct, is_enabled
+        FROM game.game_combo_rule_config
+        WHERE is_enabled = TRUE
+        ORDER BY priority_order ASC, combo_id ASC
+    </select>
+
+    <select id="selectEnabledCardTags" resultMap="CardTagResultMap">
+        SELECT card_id, tag_code, is_enabled
+        FROM game.game_card_tag_map
+        WHERE is_enabled = TRUE
+        ORDER BY tag_code ASC, card_id ASC
+    </select>
+
+    <select id="selectEnabledPolicyUnlockRules" resultMap="PolicyUnlockRuleResultMap">
+        SELECT policy_id, priority_order, min_industry, min_ecology, min_science, min_society,
+               min_industry_resource, min_tech_resource, min_population_resource,
+               min_green, min_carbon, max_carbon, min_satisfaction,
+               min_tagged_cards, required_tag, is_enabled
+        FROM game.game_policy_unlock_rule_config
+        WHERE is_enabled = TRUE
+        ORDER BY priority_order ASC, policy_id ASC
+    </select>
+
+    <select id="selectEnabledCoreSpecialConditions" resultMap="CoreSpecialConditionResultMap">
+        SELECT card_id, required_event_type, min_industry_cards, min_ecology_cards, min_science_cards, min_society_cards, is_enabled
+        FROM game.game_core_special_condition_config
+        WHERE is_enabled = TRUE
+        ORDER BY card_id ASC
+    </select>
+
+    <select id="selectEnabledRuntimeParamConfig" resultMap="RuntimeParamResultMap">
+        SELECT config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
+               hand_discard_decision_seconds, trade_window_interval, trade_window_seconds,
+               base_carbon_price, max_carbon_quota, domain_progress_card_cap, is_enabled
+        FROM game.game_runtime_param_config
+        WHERE is_enabled = TRUE
+        ORDER BY config_id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectEnabledBalanceRuleConfig" resultMap="BalanceRuleResultMap">
+        SELECT config_id, initial_phase, initial_event_cooldown, board_size,
+               initial_industry, initial_tech, initial_population,
+               initial_green, initial_carbon, initial_satisfaction, initial_low_carbon_score, initial_quota,
+               initial_draw_early, draw_count_early, draw_count_mid, draw_count_late,
+               event_cooldown_reset_turns, settlement_base_industry_gain, settlement_base_tech_gain, settlement_base_population_gain, satisfaction_max,
+               carbon_quota_base_line, carbon_quota_per_n_over,
+               carbon_industry_emission_per_card, carbon_ecology_reduction_per_card, carbon_science_reduction_per_card,
+               trade_random_base_min, trade_random_span, trade_high_carbon_threshold, trade_high_carbon_factor,
+               trade_low_carbon_threshold, trade_low_carbon_factor,
+               failure_high_carbon_threshold, failure_high_carbon_streak_limit,
+               trade_failure_quota_exhausted_limit, trade_failure_profit_threshold,
+               low_carbon_min_for_positive_ending, low_carbon_domain_threshold, low_carbon_domain_bonus,
+               low_carbon_policy_unlock_score, low_carbon_policy_unlock_all_count, low_carbon_policy_unlock_all_bonus,
+               low_carbon_event_resolved_score, low_carbon_event_triggered_penalty,
+               low_carbon_over_limit_carbon_threshold, low_carbon_over_limit_streak_threshold, low_carbon_over_limit_streak_penalty,
+               low_carbon_trade_profit_divisor, low_carbon_trade_profit_bonus,
+               low_carbon_quota_exhausted_penalty, low_carbon_invalid_operation_penalty,
+               carbon_tier_1_max, carbon_tier_1_score, carbon_tier_2_max, carbon_tier_2_score,
+               carbon_tier_3_max, carbon_tier_3_score, carbon_tier_4_max, carbon_tier_4_score, carbon_tier_5_score,
+               phase_early_max_cards, phase_early_max_score, phase_mid_min_cards, phase_mid_max_cards,
+               phase_mid_min_score, phase_mid_max_score, phase_late_min_cards, phase_late_min_score, phase_late_remaining_cards_threshold,
+               ending_event_resolve_rate_required,
+               ending_innovation_min_science, ending_innovation_min_tech, ending_innovation_min_low_carbon, ending_innovation_max_carbon, ending_innovation_min_profit,
+               ending_ecology_min_ecology, ending_ecology_min_green, ending_ecology_min_low_carbon, ending_ecology_max_carbon, ending_ecology_min_quota,
+               ending_doughnut_min_society, ending_doughnut_min_satisfaction, ending_doughnut_min_population, ending_doughnut_min_domain,
+               ending_doughnut_min_low_carbon, ending_doughnut_max_carbon, ending_doughnut_min_policy_usage_6768,
+               is_enabled
+        FROM game.game_balance_rule_config
+        WHERE is_enabled = TRUE
+        ORDER BY config_id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectEnabledEndingContents" resultMap="EndingContentResultMap">
+        SELECT ending_id, ending_name, image_key, default_reason,
+               failure_reason_high_carbon, failure_reason_trade, failure_reason_low_score, failure_reason_boundary_default, is_enabled
+        FROM game.game_ending_content_config
+        WHERE is_enabled = TRUE
+        ORDER BY ending_id ASC
+    </select>
+
+</mapper>

@@ -12,7 +12,9 @@ import java.util.List;
 @Mapper
 public interface GameCardMapper {
 
-    List<GameCardEntity> selectAll();
+    List<GameCardEntity> selectAll(@Param("offset") int offset, @Param("limit") int limit);
+
+    long countAll();
 
     List<GameCardEntity> selectAllEnabled();
 

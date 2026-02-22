@@ -15,6 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizDTO {
+    private Boolean available; // false = no quiz today
     private LocalDate quizDate;
     private JsonNode question; // 问题JSON
     private Integer points;

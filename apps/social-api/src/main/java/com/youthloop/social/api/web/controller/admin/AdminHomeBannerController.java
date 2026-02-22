@@ -26,9 +26,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.youthloop.common.api.PageResponse;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "管理端-首页轮播", description = "首页轮播/运营位管理")
 @RestController
@@ -42,14 +43,12 @@ public class AdminHomeBannerController {
     @Operation(summary = "获取所有轮播", description = "查询所有轮播配置")
     @GetMapping
     @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
-    public ApiSpecResponse<ApiPageData<HomeBannerDTO>> getAllBanners() {
-        List<HomeBannerDTO> banners = homeBannerFacade.getAllBanners();
-        ApiPageData<HomeBannerDTO> pageData = new ApiPageData<>(
-            1,
-            banners.size(),
-            (long) banners.size(),
-            banners
-        );
+    public ApiSpecResponse<ApiPageData<HomeBannerDTO>> getAllBanners(
+        @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size
+    ) {
+        PageResponse<HomeBannerDTO> result = homeBannerFacade.getAllBanners(page, size);
+        ApiPageData<HomeBannerDTO> pageData = new ApiPageData<>(result.getPage(), result.getSize(), result.getTotal(), result.getItems());
         return ApiSpecResponse.ok(pageData);
     }
 

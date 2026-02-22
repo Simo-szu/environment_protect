@@ -26,8 +26,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Map;
+import com.youthloop.common.api.PageResponse;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Admin controller for game card management.
@@ -41,12 +42,15 @@ public class AdminGameCardController {
 
     private final GameCardAdminFacade gameCardAdminFacade;
 
-    @Operation(summary = "List all game cards for admin")
+    @Operation(summary = "List game cards for admin")
     @GetMapping
     @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
-    public ApiSpecResponse<ApiPageData<GameCardMetaDTO>> listCards() {
-        List<GameCardMetaDTO> cards = gameCardAdminFacade.listCards();
-        ApiPageData<GameCardMetaDTO> pageData = new ApiPageData<>(1, cards.size(), (long) cards.size(), cards);
+    public ApiSpecResponse<ApiPageData<GameCardMetaDTO>> listCards(
+        @Parameter(description = "Page number") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size
+    ) {
+        PageResponse<GameCardMetaDTO> result = gameCardAdminFacade.listCards(page, size);
+        ApiPageData<GameCardMetaDTO> pageData = new ApiPageData<>(result.getPage(), result.getSize(), result.getTotal(), result.getItems());
         return ApiSpecResponse.ok(pageData);
     }
 

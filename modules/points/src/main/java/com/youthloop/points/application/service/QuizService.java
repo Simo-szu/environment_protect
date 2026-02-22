@@ -43,13 +43,14 @@ public class QuizService {
         // 查询今日问答
         DailyQuizEntity quiz = dailyQuizMapper.selectByDate(today);
         if (quiz == null) {
-            return null; // 今日无问答
+            return QuizDTO.builder().available(false).build();
         }
-        
+
         // 查询用户答题记录
         DailyQuizRecordEntity record = dailyQuizRecordMapper.selectByUserIdAndDate(userId, today);
-        
+
         return QuizDTO.builder()
+            .available(true)
             .quizDate(quiz.getQuizDate())
             .question(quiz.getQuestion())
             .points(quiz.getPoints())

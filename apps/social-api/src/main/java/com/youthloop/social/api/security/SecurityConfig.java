@@ -3,6 +3,7 @@ package com.youthloop.social.api.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -57,16 +58,16 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/users/*/profile").permitAll()
                 
                 // 放行：所有 GET 读接口（Optional 场景）
-                .requestMatchers("GET", "/api/v1/home/**").permitAll()
-                .requestMatchers("GET", "/api/v1/contents/**").permitAll()
-                .requestMatchers("GET", "/api/v1/activities/**").permitAll()
-                .requestMatchers("GET", "/api/v1/search/**").permitAll()
-                .requestMatchers("GET", "/api/v1/recommendations/**").permitAll()
-                
+                .requestMatchers(HttpMethod.GET, "/api/v1/home/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/contents/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/activities/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/search/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/recommendations/**").permitAll()
+
                 // 放行：活动报名（游客可报名，文档标记为 G）
-                .requestMatchers("POST", "/api/v1/activities/*/signups").permitAll()
-                .requestMatchers("PATCH", "/api/v1/activities/*/signups/*").permitAll()
-                .requestMatchers("DELETE", "/api/v1/activities/*/signups/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/signups").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/activities/*/signups/*").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/activities/*/signups/*").permitAll()
                 
                 // 放行：Swagger UI
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()

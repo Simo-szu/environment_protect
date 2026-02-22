@@ -17,21 +17,123 @@
         <result column="unlock_cost_green" property="unlockCostGreen" jdbcType="INTEGER"/>
         <result column="image_key" property="imageKey" jdbcType="VARCHAR"/>
         <result column="advanced_image_key" property="advancedImageKey" jdbcType="VARCHAR"/>
+        <result column="policy_immediate_industry_delta" property="policyImmediateIndustryDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_tech_delta" property="policyImmediateTechDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_population_delta" property="policyImmediatePopulationDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_green_delta" property="policyImmediateGreenDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_carbon_delta" property="policyImmediateCarbonDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_satisfaction_delta" property="policyImmediateSatisfactionDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_quota_delta" property="policyImmediateQuotaDelta" jdbcType="INTEGER"/>
+        <result column="policy_immediate_group" property="policyImmediateGroup" jdbcType="VARCHAR"/>
+        <result column="policy_immediate_turns" property="policyImmediateTurns" jdbcType="INTEGER"/>
+        <result column="policy_continuous_industry_delta" property="policyContinuousIndustryDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_tech_delta" property="policyContinuousTechDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_population_delta" property="policyContinuousPopulationDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_green_delta" property="policyContinuousGreenDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_carbon_delta" property="policyContinuousCarbonDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_satisfaction_delta" property="policyContinuousSatisfactionDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_low_carbon_delta" property="policyContinuousLowCarbonDelta" jdbcType="INTEGER"/>
+        <result column="policy_continuous_green_pct" property="policyContinuousGreenPct" jdbcType="INTEGER"/>
+        <result column="policy_continuous_tech_pct" property="policyContinuousTechPct" jdbcType="INTEGER"/>
+        <result column="policy_continuous_population_pct" property="policyContinuousPopulationPct" jdbcType="INTEGER"/>
+        <result column="policy_continuous_industry_pct" property="policyContinuousIndustryPct" jdbcType="INTEGER"/>
+        <result column="policy_continuous_industry_carbon_reduction_pct" property="policyContinuousIndustryCarbonReductionPct" jdbcType="INTEGER"/>
+        <result column="core_domain_progress_bonus" property="coreDomainProgressBonus" jdbcType="INTEGER"/>
+        <result column="core_continuous_industry_delta" property="coreContinuousIndustryDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_tech_delta" property="coreContinuousTechDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_population_delta" property="coreContinuousPopulationDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_green_delta" property="coreContinuousGreenDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_carbon_delta" property="coreContinuousCarbonDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_satisfaction_delta" property="coreContinuousSatisfactionDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_quota_delta" property="coreContinuousQuotaDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_low_carbon_delta" property="coreContinuousLowCarbonDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_industry_pct" property="coreContinuousIndustryPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_tech_pct" property="coreContinuousTechPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_population_pct" property="coreContinuousPopulationPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_green_pct" property="coreContinuousGreenPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_global_pct" property="coreContinuousGlobalPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_low_carbon_pct" property="coreContinuousLowCarbonPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_industry_carbon_reduction_pct" property="coreContinuousIndustryCarbonReductionPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_carbon_delta_reduction_pct" property="coreContinuousCarbonDeltaReductionPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_trade_price_pct" property="coreContinuousTradePricePct" jdbcType="INTEGER"/>
+        <result column="core_continuous_combo_pct" property="coreContinuousComboPct" jdbcType="INTEGER"/>
+        <result column="core_condition_min_turn" property="coreConditionMinTurn" jdbcType="INTEGER"/>
+        <result column="core_condition_min_industry_resource" property="coreConditionMinIndustryResource" jdbcType="INTEGER"/>
+        <result column="core_condition_min_tech_resource" property="coreConditionMinTechResource" jdbcType="INTEGER"/>
+        <result column="core_condition_max_carbon" property="coreConditionMaxCarbon" jdbcType="INTEGER"/>
+        <result column="core_condition_min_industry_cards" property="coreConditionMinIndustryCards" jdbcType="INTEGER"/>
+        <result column="core_condition_min_industry_progress_pct" property="coreConditionMinIndustryProgressPct" jdbcType="INTEGER"/>
+        <result column="core_condition_min_tagged_cards" property="coreConditionMinTaggedCards" jdbcType="INTEGER"/>
+        <result column="core_condition_required_tag" property="coreConditionRequiredTag" jdbcType="VARCHAR"/>
+        <result column="core_special_ecology_card_cost_reduction_pct" property="coreSpecialEcologyCardCostReductionPct" jdbcType="INTEGER"/>
+        <result column="core_special_science_card_cost_reduction_pct" property="coreSpecialScienceCardCostReductionPct" jdbcType="INTEGER"/>
+        <result column="core_special_flood_resistance_pct" property="coreSpecialFloodResistancePct" jdbcType="INTEGER"/>
+        <result column="core_special_new_energy_industry_pct" property="coreSpecialNewEnergyIndustryPct" jdbcType="INTEGER"/>
+        <result column="core_special_ecology_carbon_sink_per_ten_green" property="coreSpecialEcologyCarbonSinkPerTenGreen" jdbcType="INTEGER"/>
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     </resultMap>
 
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
                unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
-               image_key, advanced_image_key, is_enabled
+               image_key, advanced_image_key,
+               policy_immediate_industry_delta, policy_immediate_tech_delta, policy_immediate_population_delta,
+               policy_immediate_green_delta, policy_immediate_carbon_delta, policy_immediate_satisfaction_delta,
+               policy_immediate_quota_delta, policy_immediate_group, policy_immediate_turns,
+               policy_continuous_industry_delta, policy_continuous_tech_delta, policy_continuous_population_delta,
+               policy_continuous_green_delta, policy_continuous_carbon_delta, policy_continuous_satisfaction_delta,
+               policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
+               policy_continuous_population_pct, policy_continuous_industry_pct,
+               policy_continuous_industry_carbon_reduction_pct,
+               core_domain_progress_bonus,
+               core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
+               core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
+               core_continuous_quota_delta, core_continuous_low_carbon_delta, core_continuous_industry_pct,
+               core_continuous_tech_pct, core_continuous_population_pct, core_continuous_green_pct,
+               core_continuous_global_pct, core_continuous_low_carbon_pct,
+               core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
+               core_continuous_trade_price_pct, core_continuous_combo_pct,
+               core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
+               core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
+               core_condition_min_tagged_cards, core_condition_required_tag,
+               core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
+               core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
+               core_special_ecology_carbon_sink_per_ten_green, is_enabled
         FROM game.game_card
         ORDER BY card_no ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM game.game_card
     </select>
 
     <select id="selectAllEnabled" resultMap="BaseResultMap">
         SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
                unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
-               image_key, advanced_image_key, is_enabled
+               image_key, advanced_image_key,
+               policy_immediate_industry_delta, policy_immediate_tech_delta, policy_immediate_population_delta,
+               policy_immediate_green_delta, policy_immediate_carbon_delta, policy_immediate_satisfaction_delta,
+               policy_immediate_quota_delta, policy_immediate_group, policy_immediate_turns,
+               policy_continuous_industry_delta, policy_continuous_tech_delta, policy_continuous_population_delta,
+               policy_continuous_green_delta, policy_continuous_carbon_delta, policy_continuous_satisfaction_delta,
+               policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
+               policy_continuous_population_pct, policy_continuous_industry_pct,
+               policy_continuous_industry_carbon_reduction_pct,
+               core_domain_progress_bonus,
+               core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
+               core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
+               core_continuous_quota_delta, core_continuous_low_carbon_delta, core_continuous_industry_pct,
+               core_continuous_tech_pct, core_continuous_population_pct, core_continuous_green_pct,
+               core_continuous_global_pct, core_continuous_low_carbon_pct,
+               core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
+               core_continuous_trade_price_pct, core_continuous_combo_pct,
+               core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
+               core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
+               core_condition_min_tagged_cards, core_condition_required_tag,
+               core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
+               core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
+               core_special_ecology_carbon_sink_per_ten_green, is_enabled
         FROM game.game_card
         WHERE is_enabled = TRUE
         ORDER BY card_no ASC
@@ -49,7 +151,29 @@
     <select id="selectByCardId" resultMap="BaseResultMap">
         SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
                unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
-               image_key, advanced_image_key, is_enabled
+               image_key, advanced_image_key,
+               policy_immediate_industry_delta, policy_immediate_tech_delta, policy_immediate_population_delta,
+               policy_immediate_green_delta, policy_immediate_carbon_delta, policy_immediate_satisfaction_delta,
+               policy_immediate_quota_delta, policy_immediate_group, policy_immediate_turns,
+               policy_continuous_industry_delta, policy_continuous_tech_delta, policy_continuous_population_delta,
+               policy_continuous_green_delta, policy_continuous_carbon_delta, policy_continuous_satisfaction_delta,
+               policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
+               policy_continuous_population_pct, policy_continuous_industry_pct,
+               policy_continuous_industry_carbon_reduction_pct,
+               core_domain_progress_bonus,
+               core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
+               core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
+               core_continuous_quota_delta, core_continuous_low_carbon_delta, core_continuous_industry_pct,
+               core_continuous_tech_pct, core_continuous_population_pct, core_continuous_green_pct,
+               core_continuous_global_pct, core_continuous_low_carbon_pct,
+               core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
+               core_continuous_trade_price_pct, core_continuous_combo_pct,
+               core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
+               core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
+               core_condition_min_tagged_cards, core_condition_required_tag,
+               core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
+               core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
+               core_special_ecology_carbon_sink_per_ten_green, is_enabled
         FROM game.game_card
         WHERE card_id = #{cardId, jdbcType=VARCHAR}
     </select>
@@ -57,7 +181,29 @@
     <select id="selectEnabledByCardId" resultMap="BaseResultMap">
         SELECT card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
                unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
-               image_key, advanced_image_key, is_enabled
+               image_key, advanced_image_key,
+               policy_immediate_industry_delta, policy_immediate_tech_delta, policy_immediate_population_delta,
+               policy_immediate_green_delta, policy_immediate_carbon_delta, policy_immediate_satisfaction_delta,
+               policy_immediate_quota_delta, policy_immediate_group, policy_immediate_turns,
+               policy_continuous_industry_delta, policy_continuous_tech_delta, policy_continuous_population_delta,
+               policy_continuous_green_delta, policy_continuous_carbon_delta, policy_continuous_satisfaction_delta,
+               policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
+               policy_continuous_population_pct, policy_continuous_industry_pct,
+               policy_continuous_industry_carbon_reduction_pct,
+               core_domain_progress_bonus,
+               core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
+               core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
+               core_continuous_quota_delta, core_continuous_low_carbon_delta, core_continuous_industry_pct,
+               core_continuous_tech_pct, core_continuous_population_pct, core_continuous_green_pct,
+               core_continuous_global_pct, core_continuous_low_carbon_pct,
+               core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
+               core_continuous_trade_price_pct, core_continuous_combo_pct,
+               core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
+               core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
+               core_condition_min_tagged_cards, core_condition_required_tag,
+               core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
+               core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
+               core_special_ecology_carbon_sink_per_ten_green, is_enabled
         FROM game.game_card
         WHERE card_id = #{cardId, jdbcType=VARCHAR}
           AND is_enabled = TRUE
@@ -67,7 +213,30 @@
         INSERT INTO game.game_card (
             card_id, card_no, name_zh, name_en, card_type, domain, star, phase_bucket,
             unlock_cost_industry, unlock_cost_tech, unlock_cost_population, unlock_cost_green,
-            image_key, advanced_image_key, is_enabled
+            image_key, advanced_image_key,
+            policy_immediate_industry_delta, policy_immediate_tech_delta, policy_immediate_population_delta,
+            policy_immediate_green_delta, policy_immediate_carbon_delta, policy_immediate_satisfaction_delta,
+            policy_immediate_quota_delta, policy_immediate_group, policy_immediate_turns,
+            policy_continuous_industry_delta, policy_continuous_tech_delta, policy_continuous_population_delta,
+            policy_continuous_green_delta, policy_continuous_carbon_delta, policy_continuous_satisfaction_delta,
+            policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
+            policy_continuous_population_pct, policy_continuous_industry_pct,
+            policy_continuous_industry_carbon_reduction_pct,
+            core_domain_progress_bonus,
+            core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
+            core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
+            core_continuous_quota_delta, core_continuous_low_carbon_delta, core_continuous_industry_pct,
+            core_continuous_tech_pct, core_continuous_population_pct, core_continuous_green_pct,
+            core_continuous_global_pct, core_continuous_low_carbon_pct,
+            core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
+            core_continuous_trade_price_pct, core_continuous_combo_pct,
+            core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
+            core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
+            core_condition_min_tagged_cards, core_condition_required_tag,
+            core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
+            core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
+            core_special_ecology_carbon_sink_per_ten_green,
+            is_enabled
         )
         VALUES (
             #{cardId, jdbcType=VARCHAR},
@@ -84,6 +253,59 @@
             #{unlockCostGreen, jdbcType=INTEGER},
             #{imageKey, jdbcType=VARCHAR},
             #{advancedImageKey, jdbcType=VARCHAR},
+            #{policyImmediateIndustryDelta, jdbcType=INTEGER},
+            #{policyImmediateTechDelta, jdbcType=INTEGER},
+            #{policyImmediatePopulationDelta, jdbcType=INTEGER},
+            #{policyImmediateGreenDelta, jdbcType=INTEGER},
+            #{policyImmediateCarbonDelta, jdbcType=INTEGER},
+            #{policyImmediateSatisfactionDelta, jdbcType=INTEGER},
+            #{policyImmediateQuotaDelta, jdbcType=INTEGER},
+            #{policyImmediateGroup, jdbcType=VARCHAR},
+            #{policyImmediateTurns, jdbcType=INTEGER},
+            #{policyContinuousIndustryDelta, jdbcType=INTEGER},
+            #{policyContinuousTechDelta, jdbcType=INTEGER},
+            #{policyContinuousPopulationDelta, jdbcType=INTEGER},
+            #{policyContinuousGreenDelta, jdbcType=INTEGER},
+            #{policyContinuousCarbonDelta, jdbcType=INTEGER},
+            #{policyContinuousSatisfactionDelta, jdbcType=INTEGER},
+            #{policyContinuousLowCarbonDelta, jdbcType=INTEGER},
+            #{policyContinuousGreenPct, jdbcType=INTEGER},
+            #{policyContinuousTechPct, jdbcType=INTEGER},
+            #{policyContinuousPopulationPct, jdbcType=INTEGER},
+            #{policyContinuousIndustryPct, jdbcType=INTEGER},
+            #{policyContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            #{coreDomainProgressBonus, jdbcType=INTEGER},
+            #{coreContinuousIndustryDelta, jdbcType=INTEGER},
+            #{coreContinuousTechDelta, jdbcType=INTEGER},
+            #{coreContinuousPopulationDelta, jdbcType=INTEGER},
+            #{coreContinuousGreenDelta, jdbcType=INTEGER},
+            #{coreContinuousCarbonDelta, jdbcType=INTEGER},
+            #{coreContinuousSatisfactionDelta, jdbcType=INTEGER},
+            #{coreContinuousQuotaDelta, jdbcType=INTEGER},
+            #{coreContinuousLowCarbonDelta, jdbcType=INTEGER},
+            #{coreContinuousIndustryPct, jdbcType=INTEGER},
+            #{coreContinuousTechPct, jdbcType=INTEGER},
+            #{coreContinuousPopulationPct, jdbcType=INTEGER},
+            #{coreContinuousGreenPct, jdbcType=INTEGER},
+            #{coreContinuousGlobalPct, jdbcType=INTEGER},
+            #{coreContinuousLowCarbonPct, jdbcType=INTEGER},
+            #{coreContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            #{coreContinuousCarbonDeltaReductionPct, jdbcType=INTEGER},
+            #{coreContinuousTradePricePct, jdbcType=INTEGER},
+            #{coreContinuousComboPct, jdbcType=INTEGER},
+            #{coreConditionMinTurn, jdbcType=INTEGER},
+            #{coreConditionMinIndustryResource, jdbcType=INTEGER},
+            #{coreConditionMinTechResource, jdbcType=INTEGER},
+            #{coreConditionMaxCarbon, jdbcType=INTEGER},
+            #{coreConditionMinIndustryCards, jdbcType=INTEGER},
+            #{coreConditionMinIndustryProgressPct, jdbcType=INTEGER},
+            #{coreConditionMinTaggedCards, jdbcType=INTEGER},
+            #{coreConditionRequiredTag, jdbcType=VARCHAR},
+            #{coreSpecialEcologyCardCostReductionPct, jdbcType=INTEGER},
+            #{coreSpecialScienceCardCostReductionPct, jdbcType=INTEGER},
+            #{coreSpecialFloodResistancePct, jdbcType=INTEGER},
+            #{coreSpecialNewEnergyIndustryPct, jdbcType=INTEGER},
+            #{coreSpecialEcologyCarbonSinkPerTenGreen, jdbcType=INTEGER},
             #{isEnabled, jdbcType=BOOLEAN}
         )
     </insert>
@@ -103,6 +325,59 @@
             unlock_cost_green = #{unlockCostGreen, jdbcType=INTEGER},
             image_key = #{imageKey, jdbcType=VARCHAR},
             advanced_image_key = #{advancedImageKey, jdbcType=VARCHAR},
+            policy_immediate_industry_delta = #{policyImmediateIndustryDelta, jdbcType=INTEGER},
+            policy_immediate_tech_delta = #{policyImmediateTechDelta, jdbcType=INTEGER},
+            policy_immediate_population_delta = #{policyImmediatePopulationDelta, jdbcType=INTEGER},
+            policy_immediate_green_delta = #{policyImmediateGreenDelta, jdbcType=INTEGER},
+            policy_immediate_carbon_delta = #{policyImmediateCarbonDelta, jdbcType=INTEGER},
+            policy_immediate_satisfaction_delta = #{policyImmediateSatisfactionDelta, jdbcType=INTEGER},
+            policy_immediate_quota_delta = #{policyImmediateQuotaDelta, jdbcType=INTEGER},
+            policy_immediate_group = #{policyImmediateGroup, jdbcType=VARCHAR},
+            policy_immediate_turns = #{policyImmediateTurns, jdbcType=INTEGER},
+            policy_continuous_industry_delta = #{policyContinuousIndustryDelta, jdbcType=INTEGER},
+            policy_continuous_tech_delta = #{policyContinuousTechDelta, jdbcType=INTEGER},
+            policy_continuous_population_delta = #{policyContinuousPopulationDelta, jdbcType=INTEGER},
+            policy_continuous_green_delta = #{policyContinuousGreenDelta, jdbcType=INTEGER},
+            policy_continuous_carbon_delta = #{policyContinuousCarbonDelta, jdbcType=INTEGER},
+            policy_continuous_satisfaction_delta = #{policyContinuousSatisfactionDelta, jdbcType=INTEGER},
+            policy_continuous_low_carbon_delta = #{policyContinuousLowCarbonDelta, jdbcType=INTEGER},
+            policy_continuous_green_pct = #{policyContinuousGreenPct, jdbcType=INTEGER},
+            policy_continuous_tech_pct = #{policyContinuousTechPct, jdbcType=INTEGER},
+            policy_continuous_population_pct = #{policyContinuousPopulationPct, jdbcType=INTEGER},
+            policy_continuous_industry_pct = #{policyContinuousIndustryPct, jdbcType=INTEGER},
+            policy_continuous_industry_carbon_reduction_pct = #{policyContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            core_domain_progress_bonus = #{coreDomainProgressBonus, jdbcType=INTEGER},
+            core_continuous_industry_delta = #{coreContinuousIndustryDelta, jdbcType=INTEGER},
+            core_continuous_tech_delta = #{coreContinuousTechDelta, jdbcType=INTEGER},
+            core_continuous_population_delta = #{coreContinuousPopulationDelta, jdbcType=INTEGER},
+            core_continuous_green_delta = #{coreContinuousGreenDelta, jdbcType=INTEGER},
+            core_continuous_carbon_delta = #{coreContinuousCarbonDelta, jdbcType=INTEGER},
+            core_continuous_satisfaction_delta = #{coreContinuousSatisfactionDelta, jdbcType=INTEGER},
+            core_continuous_quota_delta = #{coreContinuousQuotaDelta, jdbcType=INTEGER},
+            core_continuous_low_carbon_delta = #{coreContinuousLowCarbonDelta, jdbcType=INTEGER},
+            core_continuous_industry_pct = #{coreContinuousIndustryPct, jdbcType=INTEGER},
+            core_continuous_tech_pct = #{coreContinuousTechPct, jdbcType=INTEGER},
+            core_continuous_population_pct = #{coreContinuousPopulationPct, jdbcType=INTEGER},
+            core_continuous_green_pct = #{coreContinuousGreenPct, jdbcType=INTEGER},
+            core_continuous_global_pct = #{coreContinuousGlobalPct, jdbcType=INTEGER},
+            core_continuous_low_carbon_pct = #{coreContinuousLowCarbonPct, jdbcType=INTEGER},
+            core_continuous_industry_carbon_reduction_pct = #{coreContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            core_continuous_carbon_delta_reduction_pct = #{coreContinuousCarbonDeltaReductionPct, jdbcType=INTEGER},
+            core_continuous_trade_price_pct = #{coreContinuousTradePricePct, jdbcType=INTEGER},
+            core_continuous_combo_pct = #{coreContinuousComboPct, jdbcType=INTEGER},
+            core_condition_min_turn = #{coreConditionMinTurn, jdbcType=INTEGER},
+            core_condition_min_industry_resource = #{coreConditionMinIndustryResource, jdbcType=INTEGER},
+            core_condition_min_tech_resource = #{coreConditionMinTechResource, jdbcType=INTEGER},
+            core_condition_max_carbon = #{coreConditionMaxCarbon, jdbcType=INTEGER},
+            core_condition_min_industry_cards = #{coreConditionMinIndustryCards, jdbcType=INTEGER},
+            core_condition_min_industry_progress_pct = #{coreConditionMinIndustryProgressPct, jdbcType=INTEGER},
+            core_condition_min_tagged_cards = #{coreConditionMinTaggedCards, jdbcType=INTEGER},
+            core_condition_required_tag = #{coreConditionRequiredTag, jdbcType=VARCHAR},
+            core_special_ecology_card_cost_reduction_pct = #{coreSpecialEcologyCardCostReductionPct, jdbcType=INTEGER},
+            core_special_science_card_cost_reduction_pct = #{coreSpecialScienceCardCostReductionPct, jdbcType=INTEGER},
+            core_special_flood_resistance_pct = #{coreSpecialFloodResistancePct, jdbcType=INTEGER},
+            core_special_new_energy_industry_pct = #{coreSpecialNewEnergyIndustryPct, jdbcType=INTEGER},
+            core_special_ecology_carbon_sink_per_ten_green = #{coreSpecialEcologyCarbonSinkPerTenGreen, jdbcType=INTEGER},
             is_enabled = #{isEnabled, jdbcType=BOOLEAN},
             updated_at = now()
         WHERE card_id = #{cardId, jdbcType=VARCHAR}

@@ -4,6 +4,23 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      // MinIO (dev)
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/**',
+      },
+      // Aliyun OSS (prod) — set NEXT_PUBLIC_STORAGE_BASE_URL to your OSS domain
+      {
+        protocol: 'https',
+        hostname: '*.aliyuncs.com',
+        pathname: '/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

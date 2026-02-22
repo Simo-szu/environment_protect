@@ -1,5 +1,6 @@
 package com.youthloop.ops.application.facade;
 
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.ops.api.dto.CreateHomeBannerRequest;
 import com.youthloop.ops.api.dto.HomeBannerDTO;
 import com.youthloop.ops.api.dto.UpdateHomeBannerRequest;
@@ -21,8 +22,8 @@ public class HomeBannerFacadeImpl implements HomeBannerFacade {
     private final HomeBannerService homeBannerService;
     
     @Override
-    public List<HomeBannerDTO> getAllBanners() {
-        return homeBannerService.getAllBanners();
+    public PageResponse<HomeBannerDTO> getAllBanners(int page, int size) {
+        return homeBannerService.getAllBanners(page, size);
     }
     
     @Override

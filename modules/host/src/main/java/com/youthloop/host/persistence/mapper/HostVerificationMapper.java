@@ -24,9 +24,18 @@ public interface HostVerificationMapper {
     HostVerificationEntity selectByUserId(@Param("userId") UUID userId);
     
     /**
-     * 查询所有认证申请（管理端）
+     * 查询所有认证申请（管理端，分页）
      */
-    List<HostVerificationEntity> selectAll(@Param("status") Integer status);
+    List<HostVerificationEntity> selectAll(
+        @Param("status") Integer status,
+        @Param("offset") int offset,
+        @Param("limit") int limit
+    );
+
+    /**
+     * 查询认证申请总数
+     */
+    long countAll(@Param("status") Integer status);
     
     /**
      * 更新审核状态

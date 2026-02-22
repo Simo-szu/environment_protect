@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.youthloop.common.api.PageResponse;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,15 +39,12 @@ public class AdminHostController {
     @GetMapping
     @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
     public ApiSpecResponse<ApiPageData<HostVerificationResponse>> getVerifications(
-        @Parameter(description = "状态") @RequestParam(required = false) Integer status
+        @Parameter(description = "状态") @RequestParam(required = false) Integer status,
+        @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size
     ) {
-        List<HostVerificationResponse> verifications = hostFacade.getAllVerifications(status);
-        ApiPageData<HostVerificationResponse> pageData = new ApiPageData<>(
-            1,
-            verifications.size(),
-            (long) verifications.size(),
-            verifications
-        );
+        PageResponse<HostVerificationResponse> result = hostFacade.getAllVerifications(status, page, size);
+        ApiPageData<HostVerificationResponse> pageData = new ApiPageData<>(result.getPage(), result.getSize(), result.getTotal(), result.getItems());
         return ApiSpecResponse.ok(pageData);
     }
 

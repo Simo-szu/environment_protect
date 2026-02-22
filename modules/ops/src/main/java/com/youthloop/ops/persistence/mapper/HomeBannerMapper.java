@@ -19,9 +19,14 @@ public interface HomeBannerMapper {
     HomeBannerEntity selectById(@Param("id") UUID id);
     
     /**
-     * 查询所有轮播（管理端用）
+     * 查询所有轮播（管理端用，分页）
      */
-    List<HomeBannerEntity> selectAll();
+    List<HomeBannerEntity> selectAll(@Param("offset") int offset, @Param("limit") int limit);
+
+    /**
+     * 查询所有轮播总数
+     */
+    long countAll();
     
     /**
      * 查询启用的轮播（用户端用）

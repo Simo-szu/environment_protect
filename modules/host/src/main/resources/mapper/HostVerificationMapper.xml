@@ -33,9 +33,9 @@
     WHERE user_id = #{userId}::uuid
   </select>
 
-  <!-- 查询所有认证申请（管理端） -->
+  <!-- 查询所有认证申请（管理端，分页） -->
   <select id="selectAll" resultType="com.youthloop.host.persistence.entity.HostVerificationEntity">
-    SELECT 
+    SELECT
       user_id, org_name, contact_name, contact_phone, doc_urls,
       status, submitted_at, reviewed_by, reviewed_at, review_note,
       created_at, updated_at
@@ -46,6 +46,18 @@
       </if>
     </where>
     ORDER BY submitted_at DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <!-- 查询认证申请总数 -->
+  <select id="countAll" resultType="long">
+    SELECT COUNT(*)
+    FROM social.host_verification
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
   </select>
 
   <!-- 更新审核状态 -->

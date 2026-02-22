@@ -153,7 +153,7 @@ export default function HomePage() {
         const isActive = offset === 0;
 
         return {
-            backgroundColor: isActive ? cardsData[index].color : '#ffffff',
+            ...(isActive ? { backgroundColor: cardsData[index].color } : {}),
             borderColor: isActive ? 'transparent' : `${cardsData[index].color}20`,
             boxShadow: isActive
                 ? `0 15px 30px -8px ${cardsData[index].color}40`
@@ -214,14 +214,14 @@ export default function HomePage() {
                         return (
                             <div
                                 key={data.id}
-                                className={`carousel-item rounded-2xl shadow-sm transition-all duration-500 ${positionClass}`}
+                                className={`carousel-item rounded-2xl shadow-sm transition-all duration-500 ${positionClass} bg-white dark:bg-slate-800`}
                                 style={getCardStyle(index)}
                                 onClick={() => handleCardClick(index, data)}
                             >
                                 {/* Active Content */}
                                 <div className={`card-content-active flex flex-col items-center justify-center text-center w-full h-full relative overflow-hidden p-4 z-20 ${isActive ? 'flex opacity-100' : 'hidden opacity-0'}`}>
                                     <Icon className="w-10 h-10 text-white mb-3 stroke-[1.5]" />
-                                    <h3 className="text-2xl text-white font-serif font-medium leading-tight mb-4 whitespace-nowrap">
+                                    <h3 className="text-xl md:text-2xl text-white font-serif font-medium leading-tight mb-4 px-2 line-clamp-2 md:whitespace-nowrap text-balance">
                                         {data.title}
                                     </h3>
                                     <button className="glass-btn px-4 py-1.5 rounded-full text-white text-xs font-medium hover:bg-white/30 transition-colors">
@@ -248,7 +248,7 @@ export default function HomePage() {
                                     >
                                         <Icon className="w-5 h-5" style={{ color: data.color }} />
                                     </div>
-                                    <h3 className="text-lg font-serif font-bold mb-1 whitespace-nowrap text-[#30499B]">
+                                    <h3 className="text-base md:text-lg font-serif font-bold mb-1 px-1 line-clamp-2 leading-tight md:whitespace-nowrap text-[#30499B] dark:text-slate-200">
                                         {data.title.replace('\n', '')}
                                     </h3>
                                     <p className="text-[10px] text-slate-400 font-medium">{data.sub}</p>
@@ -622,7 +622,7 @@ export default function HomePage() {
                         {mounted && (
                             <motion.div whileHover={{ y: -4 }}>
                                 {/* Background */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#56B949] to-[#30499B] opacity-90"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#56B949] to-[#30499B] opacity-90 dark:from-[#2e6d23] dark:to-[#17275c] dark:opacity-80"></div>
                                 <div className="absolute inset-0 bg-[url('https://api.iconify.design/lucide/sprout.svg?color=%23ffffff&opacity=0.2')] bg-repeat bg-[length:120px_120px] opacity-10"></div>
 
                                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8">
@@ -667,7 +667,7 @@ export default function HomePage() {
 
                     <div
                         onClick={handlePointsClick}
-                        className="relative w-full p-6 md:p-8 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:bg-slate-800/50 border border-[#F0A32F]/20 dark:border-[#F0A32F]/30 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden cursor-pointer hover:bg-gradient-to-br hover:from-amber-100 hover:to-orange-100 dark:hover:bg-slate-800/70 transition-colors"
+                        className="relative w-full p-6 md:p-8 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800/80 dark:to-slate-800/30 border border-[#F0A32F]/20 dark:border-[#F0A32F]/30 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden cursor-pointer hover:from-amber-100 hover:to-orange-100 dark:hover:from-slate-800 dark:hover:to-slate-800/60 transition-colors"
                     >
                         {/* Decorative bg */}
                         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-[#F0A32F]/5 rounded-full blur-3xl"></div>
@@ -770,22 +770,22 @@ export default function HomePage() {
         /* 移动端调整 */
         @media (max-width: 768px) {
           .carousel-item { 
-            width: 180px; 
-            height: 240px; 
+            width: 200px; 
+            height: 260px; 
           }
           .carousel-item.pos-0 { 
-            left: 8%; 
-            opacity: 0.7; 
-            transform: translateY(-50%) translateX(-50%) scale(0.85); 
+            left: -5%; 
+            opacity: 0.4; 
+            transform: translateY(-50%) translateX(-50%) scale(0.8); 
           }
           .carousel-item.pos-1 { 
             left: 50%; 
             transform: translateY(-50%) translateX(-50%) scale(1.05); 
           }
           .carousel-item.pos-2 { 
-            left: 92%; 
-            opacity: 0.7; 
-            transform: translateY(-50%) translateX(-50%) scale(0.85); 
+            left: 105%; 
+            opacity: 0.4; 
+            transform: translateY(-50%) translateX(-50%) scale(0.8); 
           }
         }
         

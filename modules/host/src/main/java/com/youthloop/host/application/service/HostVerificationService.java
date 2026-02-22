@@ -3,6 +3,7 @@ package com.youthloop.host.application.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.youthloop.common.api.ErrorCode;
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.host.api.dto.HostVerificationRequest;
@@ -94,14 +95,17 @@ public class HostVerificationService {
     }
     
     /**
-     * 查询所有认证申请（管理端）
+     * 查询所有认证申请（管理端，分页）
      */
     @Transactional(readOnly = true)
-    public List<HostVerificationResponse> getAllVerifications(Integer status) {
-        List<HostVerificationEntity> entities = hostVerificationMapper.selectAll(status);
-        return entities.stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
+    public PageResponse<HostVerificationResponse> getAllVerifications(Integer status, int page, int size) {
+        int validPage = Math.max(1, page);
+        int validSize = Math.min(100, Math.max(1, size));
+        int offset = (validPage - 1) * validSize;
+        long total = hostVerificationMapper.countAll(status);
+        List<HostVerificationEntity> entities = hostVerificationMapper.selectAll(status, offset, validSize);
+        List<HostVerificationResponse> items = entities.stream().map(this::mapToResponse).collect(Collectors.toList());
+        return PageResponse.of(items, total, validPage, validSize);
     }
     
     /**

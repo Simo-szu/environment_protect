@@ -133,7 +133,7 @@ export default function ProfilePage() {
                     variants={staggerItem}
                     className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
                 >
-                    <div className="flex flex-col md:flex-row items-start gap-6">
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
                         {/* Avatar */}
                         <div className="relative">
                             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-3xl shadow-2xl overflow-hidden">
@@ -146,14 +146,13 @@ export default function ProfilePage() {
                         </div>
 
                         {/* User Details */}
-                        {/* User Details */}
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                                <div>
+                                <div className="flex flex-col items-center md:items-start">
                                     <h2 className="text-2xl font-semibold text-[#30499B] mb-2">
                                         {profile?.nickname || user?.nickname || t('info.defaultNickname', '用户')}
                                     </h2>
-                                    <div className="flex items-center gap-4 text-slate-600">
+                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-slate-600">
                                         {profile?.gender && (
                                             <div className="flex items-center gap-1">
                                                 <User className="w-4 h-4" />
@@ -174,7 +173,7 @@ export default function ProfilePage() {
                                 {/* Edit Button */}
                                 <Link
                                     href={`/${locale}/profile/edit`}
-                                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 mt-4 md:mt-0"
+                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-[#30499B] border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-medium shadow-sm active:scale-95 transition-all mt-4 md:mt-0 w-full md:w-auto"
                                 >
                                     <Edit className="w-4 h-4" />
                                     {t('actions.editProfile', '编辑资料')}
