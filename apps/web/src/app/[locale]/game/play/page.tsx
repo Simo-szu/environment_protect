@@ -53,6 +53,7 @@ export default function GamePlayPage() {
   const [catalog, setCatalog] = useState<Map<string, GameCardMeta>>(new Map());
   const [selectedCoreId, setSelectedCoreId] = useState('');
   const [selectedPolicyId, setSelectedPolicyId] = useState('');
+  const [selectedTile, setSelectedTile] = useState<string>('');
   const [ending, setEnding] = useState<EndingView | null>(null);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [tradeAmount, setTradeAmount] = useState(1);
@@ -64,6 +65,12 @@ export default function GamePlayPage() {
   const placedCore: string[] = pondState?.placedCore || [];
   const turn = pondState?.turn || 1;
   const maxTurn = pondState?.maxTurn || 30;
+  const corePlacedThisTurn = Boolean(pondState?.corePlacedThisTurn);
+  const boardSize = Number(pondState?.boardSize || 6);
+  const boardOccupied = (pondState?.boardOccupied || {}) as Record<string, string>;
+  const pendingDiscard = (pondState?.pendingDiscard || {}) as Record<string, unknown>;
+  const pendingDiscardActive = Boolean(pendingDiscard.active);
+  const pendingDiscardExpiresAt = Number(pendingDiscard.expiresAt || 0);
   const carbonTrade = pondState?.carbonTrade || {};
   const activeNegativeEvents: Array<Record<string, unknown>> = pondState?.activeNegativeEvents || [];
 
@@ -187,6 +194,26 @@ export default function GamePlayPage() {
     }
   }
 
+  async function discardCard(handType: 'core' | 'policy', cardId: string) {
+    if (!sessionId) {
+      return;
+    }
+    setActionLoading(true);
+    setError(null);
+    try {
+      const response = await performAction({
+        sessionId,
+        actionType: 5,
+        actionData: { handType, cardId }
+      });
+      applyActionResult(response);
+    } catch (e: any) {
+      setError(e?.message || 'Discard failed');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function refreshSession() {
     if (!sessionId) {
       return;
@@ -234,7 +261,7 @@ export default function GamePlayPage() {
           </button>
           <button
             onClick={() => runAction(2)}
-            disabled={actionLoading || !!ending}
+            disabled={actionLoading || !!ending || pendingDiscardActive}
             className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm disabled:opacity-50"
           >
             End Turn
@@ -254,6 +281,9 @@ export default function GamePlayPage() {
           <div className="text-sm">Satisfaction: {metrics.satisfaction ?? 0}</div>
           <div className="text-sm">Low-Carbon Score: {metrics.lowCarbonScore ?? 0}</div>
           <div className="pt-2 text-xs text-slate-500">Placed core cards: {placedCore.length}</div>
+          <div className={`text-xs ${corePlacedThisTurn ? 'text-amber-600' : 'text-slate-500'}`}>
+            {corePlacedThisTurn ? 'Core card already placed this turn' : 'You can place one core card this turn'}
+          </div>
           <div className="pt-3 border-t border-slate-200 mt-3">
             <div className="font-semibold mb-1">Carbon Trade</div>
             <div className="text-sm">Quota: {tradeQuota}</div>
@@ -281,6 +311,35 @@ export default function GamePlayPage() {
         </section>
 
         <section className="col-span-6 bg-white rounded border p-4">
+          <div className="font-semibold mb-3">Board</div>
+          <div className="grid gap-1 mb-4" style={{ gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))` }}>
+            {Array.from({ length: boardSize * boardSize }).map((_, idx) => {
+              const row = Math.floor(idx / boardSize);
+              const col = idx % boardSize;
+              const key = `${row},${col}`;
+              const occupied = boardOccupied[key];
+              const selected = selectedTile === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={!!occupied || !!ending || pendingDiscardActive}
+                  onClick={() => setSelectedTile(key)}
+                  className={`h-8 rounded border text-[10px] ${
+                    occupied
+                      ? 'bg-slate-200 border-slate-300 text-slate-500'
+                      : selected
+                        ? 'bg-blue-100 border-blue-500 text-blue-700'
+                        : 'bg-white border-slate-200 text-slate-400'
+                  }`}
+                  title={occupied ? occupied : `tile ${key}`}
+                >
+                  {occupied ? occupied.slice(-3) : ''}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="font-semibold mb-3">Core Cards in Hand</div>
           <div className="grid grid-cols-3 gap-3">
             {handCoreCards.map((card) => (
@@ -297,8 +356,14 @@ export default function GamePlayPage() {
           </div>
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => selectedCoreId && runAction(1, { cardId: selectedCoreId })}
-              disabled={actionLoading || !selectedCoreId || !!ending}
+              onClick={() => {
+                if (!selectedCoreId || !selectedTile) {
+                  return;
+                }
+                const [row, col] = selectedTile.split(',').map((v) => Number(v));
+                runAction(1, { cardId: selectedCoreId, row, col });
+              }}
+              disabled={actionLoading || !selectedCoreId || !selectedTile || !!ending || corePlacedThisTurn || pendingDiscardActive}
               className="px-3 py-1.5 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
             >
               Place Core Card
@@ -322,7 +387,7 @@ export default function GamePlayPage() {
           </div>
           <button
             onClick={() => selectedPolicyId && runAction(3, { cardId: selectedPolicyId })}
-            disabled={actionLoading || !selectedPolicyId || !!ending}
+            disabled={actionLoading || !selectedPolicyId || !!ending || pendingDiscardActive}
             className="mt-3 px-3 py-1.5 rounded bg-emerald-600 text-white text-sm disabled:opacity-50"
           >
             Use Policy Card
@@ -348,7 +413,7 @@ export default function GamePlayPage() {
             />
             <button
               onClick={runTradeAction}
-              disabled={actionLoading || !tradeWindowOpened || !!ending}
+              disabled={actionLoading || !tradeWindowOpened || !!ending || pendingDiscardActive}
               className="w-full px-3 py-1.5 rounded bg-amber-600 text-white text-sm disabled:opacity-50"
             >
               Execute Trade
@@ -356,6 +421,40 @@ export default function GamePlayPage() {
           </div>
         </section>
       </main>
+
+      {pendingDiscardActive && (
+        <div className="px-6 pb-4">
+          <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+            <div className="font-semibold text-amber-700">Discard Required</div>
+            <div className="text-amber-700/90">
+              Please discard cards within 10 seconds. Timeout: auto-discard oldest cards.
+            </div>
+            <div className="text-xs text-amber-700/80">
+              Expires at: {pendingDiscardExpiresAt > 0 ? new Date(pendingDiscardExpiresAt).toLocaleTimeString() : '-'}
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {handCore.map((id) => (
+                <button
+                  key={`d-core-${id}`}
+                  onClick={() => discardCard('core', id)}
+                  className="text-left px-2 py-1 rounded border border-amber-300 bg-white text-xs"
+                >
+                  Discard core: {id}
+                </button>
+              ))}
+              {handPolicy.map((id) => (
+                <button
+                  key={`d-policy-${id}`}
+                  onClick={() => discardCard('policy', id)}
+                  className="text-left px-2 py-1 rounded border border-amber-300 bg-white text-xs"
+                >
+                  Discard policy: {id}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {(error || lastMessage) && (
         <div className="px-6 pb-6 text-sm">

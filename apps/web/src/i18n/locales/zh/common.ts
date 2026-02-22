@@ -1,0 +1,32 @@
+const common = {
+    loading: '加载中...',
+    error: '出错了',
+    success: '成功',
+    cancel: '取消',
+    confirm: '确认',
+    save: '保存',
+    edit: '编辑',
+    delete: '删除',
+    back: '返回',
+    goBack: '返回上一页',
+    next: '下一步',
+    previous: '上一步',
+    nextPage: '下一页',
+    previousPage: '上一页',
+    submit: '提交',
+    search: '搜索',
+    filter: '筛选',
+    all: '全部',
+    more: '更多',
+    viewAll: '查看全部',
+    loadMore: '加载更多',
+    verifyingAuth: '正在验证登录状态',
+    loginRequired: '请先登录再查看此内容',
+    needLogin: '需要登录访问',
+    backToHome: '返回首页',
+    loginNow: '立即登录',
+    noData: '暂无数据',
+} as const;
+
+export default common;
+export type CommonMessages = typeof common;

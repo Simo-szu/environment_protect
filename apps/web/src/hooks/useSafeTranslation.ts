@@ -9,14 +9,17 @@ export function useSafeTranslation(namespace: string = 'home') {
     const params = useParams();
     const locale = params?.locale as string || 'zh';
 
-    // 始终无条件调用 useTranslations
-    const t = useTranslations(namespace);
+    // Always call useTranslations unconditionally.
+    // Cast namespace to `any` so useSafeTranslation can accept dynamic string namespaces.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = useTranslations(namespace as any);
 
     // 创建一个安全的翻译函数，支持参数
     const safeT = useMemo(() => {
         return (key: string, fallback?: string, values?: Record<string, any>) => {
             try {
-                const translation = t(key, values);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const translation = (t as any)(key, values);
 
                 // 如果翻译存在且不等于key本身，返回翻译
                 if (translation && translation !== key) {

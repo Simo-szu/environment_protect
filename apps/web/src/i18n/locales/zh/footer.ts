@@ -1,0 +1,30 @@
+const footer = {
+    terms: '服务协议',
+    privacy: '隐私政策',
+    contact: '联系我们',
+    copyright: '© 2026 YouthLoop. 让绿色循环，用行动改变未来',
+    description: '让绿色循环，用行动改变未来。加入我们，一起为地球环保贡献力量。',
+    quickNav: '快速导航',
+    home: '首页',
+    science: '环保科普',
+    activities: '活动广场',
+    points: '积分中心',
+    game: '环保游戏',
+    userService: '用户服务',
+    profile: '个人中心',
+    myActivities: '我的活动',
+    favorites: '我的收藏',
+    likes: '我的点赞',
+    editProfile: '修改资料',
+    helpSupport: '帮助与支持',
+    help: '帮助中心',
+    feedback: '意见反馈',
+    address: '北京市朝阳区环保大厦',
+    copyrightFull: '© 2026 YouthLoop. 保留所有权利',
+    slogan: '让绿色循环，用行动改变未来',
+    icp: 'ICP备案号：京ICP备2024000001号',
+    police: '京公网安备 11010502000001号',
+} as const;
+
+export default footer;
+export type FooterMessages = typeof footer;

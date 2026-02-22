@@ -15,7 +15,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     const validLocale = locale && locales.includes(locale as Locale) ? locale : defaultLocale;
 
     try {
-        const messages = (await import(`./messages/${validLocale}.json`)).default;
+        const messages = (await import(`./locales/${validLocale}/index`)).default;
 
         return {
             messages,
@@ -23,9 +23,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
         };
     } catch (error) {
         console.error(`Failed to load messages for locale: ${validLocale}`, error);
-        // 如果加载失败，尝试加载默认语言
+        // Fallback to default locale
         return {
-            messages: (await import(`./messages/${defaultLocale}.json`)).default,
+            messages: (await import(`./locales/${defaultLocale}/index`)).default,
             locale: defaultLocale as string
         };
     }

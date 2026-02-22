@@ -1,0 +1,62 @@
+const myActivities = {
+    title: '我的活动中心',
+    subtitle: '我的活动中心',
+    description: '管理您参与的所有环保活动',
+    badge: '我的活动',
+    loading: '加载中...',
+    redirecting: '跳转到登录页面...',
+    sessionLabel: '场次',
+    signupTime: '报名时间',
+    viewDetails: '查看详情',
+    cancelRegistration: '取消报名',
+    confirmCancel: '确定要取消报名吗？',
+    cancelSuccess: '报名已取消',
+    cancelFailed: '取消失败，请重试',
+    stats: {
+        registered: '已报名活动',
+        completed: '已完成活动',
+        ongoing: '进行中活动',
+        points: '获得积分',
+    },
+    tabs: {
+        all: '全部活动',
+        registered: '已报名',
+        ongoing: '进行中',
+        completed: '已完成',
+    },
+    status: {
+        pending: '待审核',
+        approved: '已通过',
+        rejected: '已拒绝',
+        cancelled: '已取消',
+        registered: '已报名',
+        ongoing: '进行中',
+        completed: '已完成',
+        waiting: '待参与',
+        inProgress: '正在进行',
+    },
+    empty: {
+        all: '暂无活动',
+        allDesc: '暂无相关活动',
+        registered: '暂无已报名活动',
+        registeredDesc: '您还没有报名任何活动',
+        ongoing: '暂无进行中活动',
+        ongoingDesc: '您目前没有正在进行的活动',
+        completed: '暂无已完成活动',
+        completedDesc: '您还没有完成任何活动',
+    },
+    actions: {
+        viewDetails: '查看详情',
+        cancelRegistration: '取消报名',
+        rateActivity: '评价活动',
+    },
+    info: {
+        registrationTime: '报名时间',
+        completionTime: '完成时间',
+        startTime: '开始时间',
+        pointsEarned: '获得积分',
+    },
+} as const;
+
+export default myActivities;
+export type MyActivitiesMessages = typeof myActivities;

@@ -1,0 +1,30 @@
+
+const footer = {
+    terms: 'Terms of Service',
+    privacy: 'Privacy Policy',
+    contact: 'Contact Us',
+    copyright: '© 2026 YouthLoop. Let Green Cycle, Change the Future with Action',
+    description: 'Let Green Cycle, Change the Future with Action. Join us to contribute to environmental protection.',
+    quickNav: 'Quick Navigation',
+    home: 'Home',
+    science: 'Environmental Science',
+    activities: 'Activity Plaza',
+    points: 'Points Center',
+    game: 'Eco Game',
+    userService: 'User Services',
+    profile: 'Profile Center',
+    myActivities: 'My Activities',
+    favorites: 'My Favorites',
+    likes: 'My Likes',
+    editProfile: 'Edit Profile',
+    helpSupport: 'Help & Support',
+    help: 'Help Center',
+    feedback: 'Feedback',
+    address: 'Environmental Building, Chaoyang District, Beijing',
+    copyrightFull: '© 2026 YouthLoop. All rights reserved',
+    slogan: 'Let Green Cycle, Change the Future with Action',
+    icp: 'ICP Registration: Beijing ICP 2024000001',
+    police: 'Beijing Public Security 11010502000001',
+};
+
+export default footer;

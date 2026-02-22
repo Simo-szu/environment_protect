@@ -1,0 +1,62 @@
+
+const myActivities = {
+    title: 'My Activity Center',
+    subtitle: 'My Activity Center',
+    description: 'Manage all your environmental activities',
+    badge: 'My Activities',
+    loading: 'Loading...',
+    redirecting: 'Redirecting to login...',
+    sessionLabel: 'Session',
+    signupTime: 'Signup Time',
+    viewDetails: 'View Details',
+    cancelRegistration: 'Cancel Registration',
+    confirmCancel: 'Are you sure you want to cancel your registration?',
+    cancelSuccess: 'Registration cancelled',
+    cancelFailed: 'Cancellation failed, please try again',
+    stats: {
+        registered: 'Registered Activities',
+        completed: 'Completed Activities',
+        ongoing: 'Ongoing Activities',
+        points: 'Points Earned',
+    },
+    tabs: {
+        all: 'All Activities',
+        registered: 'Registered',
+        ongoing: 'Ongoing',
+        completed: 'Completed',
+    },
+    status: {
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        cancelled: 'Cancelled',
+        registered: 'Registered',
+        ongoing: 'Ongoing',
+        completed: 'Completed',
+        waiting: 'Waiting',
+        inProgress: 'In Progress',
+    },
+    empty: {
+        all: 'No activities',
+        allDesc: 'No related activities',
+        registered: 'No registered activities',
+        registeredDesc: "You haven't registered for any activities yet",
+        ongoing: 'No ongoing activities',
+        ongoingDesc: 'You currently have no ongoing activities',
+        completed: 'No completed activities',
+        completedDesc: "You haven't completed any activities yet",
+    },
+    actions: {
+        viewDetails: 'View Details',
+        cancelRegistration: 'Cancel Registration',
+        rateActivity: 'Rate Activity',
+    },
+    info: {
+        registrationTime: 'Registration Time',
+        completionTime: 'Completion Time',
+        startTime: 'Start Time',
+        pointsEarned: 'Points Earned',
+    },
+};
+
+export default myActivities;

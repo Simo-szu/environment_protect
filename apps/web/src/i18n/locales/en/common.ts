@@ -1,0 +1,32 @@
+
+const common = {
+    loading: 'Loading...',
+    error: 'Error occurred',
+    success: 'Success',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    save: 'Save',
+    edit: 'Edit',
+    delete: 'Delete',
+    back: 'Back',
+    goBack: 'Go Back',
+    next: 'Next',
+    previous: 'Previous',
+    nextPage: 'Next',
+    previousPage: 'Previous',
+    submit: 'Submit',
+    search: 'Search',
+    filter: 'Filter',
+    all: 'All',
+    more: 'More',
+    viewAll: 'View All',
+    loadMore: 'Load More',
+    verifyingAuth: 'Verifying login status',
+    loginRequired: 'Please login first to view this content',
+    needLogin: 'Login Required',
+    backToHome: 'Back to Home',
+    loginNow: 'Login Now',
+    noData: 'No Data',
+};
+
+export default common;
