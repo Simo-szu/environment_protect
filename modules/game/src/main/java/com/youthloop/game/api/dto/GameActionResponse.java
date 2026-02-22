@@ -7,15 +7,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 游戏操作响应
+ * Gameplay action response.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameActionResponse {
-    private JsonNode newPondState; // 新的池塘状态
-    private Integer pointsEarned; // 本次获得积分
-    private Long totalScore; // 总分
-    private Integer newLevel; // 新等级
+    private JsonNode newPondState;
+    private Integer pointsEarned;
+    private Long totalScore;
+    private Integer newLevel;
+    private String message;
+    private Boolean sessionEnded;
+    private String endingId;
+    private String endingName;
+    private String endingImageKey;
 }

@@ -22,3 +22,4 @@ export * as recommendationApi from './recommendation';
 export * as systemApi from './system';
 export * as notificationApi from './notification';
 export * as adminApi from './admin';
+export * as gameApi from './game';
