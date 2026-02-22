@@ -46,8 +46,7 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
 
 2. **初始化数据库**
    ```powershell
-   cd infra/db
-   .\setup_all.ps1
+   psql -U postgres -h localhost -p 5432 -d youthloop -f infra/db/init/db_init_roles_schemas.sql
    ```
 
 3. **启动后端服务**
@@ -70,8 +69,7 @@ YouthLoop 是一个面向青年群体的环保主题社交平台，通过科普�
    ```bash
    cd apps/web
    pnpm install
-   # 首次启动请准备环境变量
-   cp .env.example .env.local
+   # Use repository root .env
    pnpm dev
    ```
 

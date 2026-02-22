@@ -175,3 +175,41 @@ export interface AdminDailyIngestionSummary {
 export async function triggerAdminIngestion(): Promise<AdminDailyIngestionSummary> {
   return apiPost<AdminDailyIngestionSummary>('/api/v1/admin/contents/ingestion/trigger', {});
 }
+
+export interface AdminIngestionSourceSettings {
+  enabled: boolean;
+  maxPages: number;
+  maxArticles: number;
+}
+
+export interface AdminIngestionSettings {
+  cron: string;
+  zone: string;
+  enabled: boolean;
+  publishStatus: number;
+  requestTimeoutMs: number;
+  requestIntervalMs: number;
+  earth: AdminIngestionSourceSettings;
+  ecoepn: AdminIngestionSourceSettings;
+}
+
+export interface AdminUpdateIngestionSettingsRequest {
+  cron: string;
+  zone: string;
+  enabled: boolean;
+  publishStatus: number;
+  requestTimeoutMs: number;
+  requestIntervalMs: number;
+  earth: AdminIngestionSourceSettings;
+  ecoepn: AdminIngestionSourceSettings;
+}
+
+export async function getAdminIngestionSettings(): Promise<AdminIngestionSettings> {
+  return apiGet<AdminIngestionSettings>('/api/v1/admin/contents/ingestion/settings');
+}
+
+export async function updateAdminIngestionSettings(
+  data: AdminUpdateIngestionSettingsRequest
+): Promise<AdminIngestionSettings> {
+  return apiPatch<AdminIngestionSettings>('/api/v1/admin/contents/ingestion/settings', data);
+}

@@ -23,10 +23,10 @@ public class StorageService {
     
     private final MinioClient minioClient;
     
-    @Value("${minio.bucket-name:youthloop}")
+    @Value("${minio.bucket-name}")
     private String bucketName;
     
-    @Value("${minio.endpoint:http://localhost:9000}")
+    @Value("${minio.endpoint}")
     private String endpoint;
     
     /**

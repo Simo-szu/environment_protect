@@ -9,6 +9,7 @@ import type {
     AdminContentDetail,
     AdminContentItem,
     AdminDailyIngestionSummary,
+    AdminIngestionSettings,
     AdminHomeBannerItem,
     AdminHostVerificationItem,
 } from '@/lib/api/admin';
@@ -26,6 +27,23 @@ type ContentFormState = {
     status: number;
 };
 
+type IngestionSettingsFormState = {
+    cron: string;
+    zone: string;
+    enabled: boolean;
+    publishStatus: number;
+    requestTimeoutMs: number;
+    requestIntervalMs: number;
+    earthEnabled: boolean;
+    earthMaxPages: number;
+    earthMaxArticles: number;
+    ecoepnEnabled: boolean;
+    ecoepnMaxPages: number;
+    ecoepnMaxArticles: number;
+};
+
+type IngestionSettingsFormErrors = Partial<Record<keyof IngestionSettingsFormState, string>>;
+
 const defaultContentForm: ContentFormState = {
     type: 1,
     title: '',
@@ -35,6 +53,44 @@ const defaultContentForm: ContentFormState = {
     sourceType: 2,
     sourceUrl: '',
     status: 1,
+};
+
+const defaultIngestionSettingsForm: IngestionSettingsFormState = {
+    cron: '',
+    zone: '',
+    enabled: true,
+    publishStatus: 1,
+    requestTimeoutMs: 10000,
+    requestIntervalMs: 300,
+    earthEnabled: true,
+    earthMaxPages: 2,
+    earthMaxArticles: 30,
+    ecoepnEnabled: true,
+    ecoepnMaxPages: 2,
+    ecoepnMaxArticles: 30,
+};
+
+const validateIngestionSettings = (
+    form: IngestionSettingsFormState,
+    t: (key: string, fallback?: string, values?: Record<string, string | number>) => string
+): IngestionSettingsFormErrors => {
+    const errors: IngestionSettingsFormErrors = {};
+    const cronParts = form.cron.trim().split(/\s+/);
+
+    if (!form.cron.trim()) errors.cron = t('contents.validation.cronRequired');
+    else if (cronParts.length < 6 || cronParts.length > 7) errors.cron = t('contents.validation.cronInvalid');
+
+    if (!form.zone.trim()) errors.zone = t('contents.validation.zoneRequired');
+
+    if (form.publishStatus < 0) errors.publishStatus = t('contents.validation.publishStatusInvalid');
+    if (form.requestTimeoutMs <= 0) errors.requestTimeoutMs = t('contents.validation.timeoutInvalid');
+    if (form.requestIntervalMs < 0) errors.requestIntervalMs = t('contents.validation.intervalInvalid');
+    if (form.earthMaxPages <= 0) errors.earthMaxPages = t('contents.validation.maxPagesInvalid');
+    if (form.earthMaxArticles <= 0) errors.earthMaxArticles = t('contents.validation.maxArticlesInvalid');
+    if (form.ecoepnMaxPages <= 0) errors.ecoepnMaxPages = t('contents.validation.maxPagesInvalid');
+    if (form.ecoepnMaxArticles <= 0) errors.ecoepnMaxArticles = t('contents.validation.maxArticlesInvalid');
+
+    return errors;
 };
 
 const pageNumbers = (current: number, total: number): number[] => {
@@ -67,6 +123,7 @@ export default function AdminPage() {
     const [editingContentId, setEditingContentId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState<ContentFormState>(defaultContentForm);
     const [ingestionSummary, setIngestionSummary] = useState<AdminDailyIngestionSummary | null>(null);
+    const [ingestionSettings, setIngestionSettings] = useState<IngestionSettingsFormState>(defaultIngestionSettingsForm);
     const [contentError, setContentError] = useState('');
     const [contentSuccess, setContentSuccess] = useState('');
 
@@ -76,10 +133,18 @@ export default function AdminPage() {
     const [creatingContent, setCreatingContent] = useState(false);
     const [updatingContent, setUpdatingContent] = useState(false);
     const [triggeringIngestion, setTriggeringIngestion] = useState(false);
+    const [loadingIngestionSettings, setLoadingIngestionSettings] = useState(false);
+    const [savingIngestionSettings, setSavingIngestionSettings] = useState(false);
 
     const contentSize = 20;
     const totalPages = useMemo(() => Math.max(1, Math.ceil(contentTotal / contentSize)), [contentTotal]);
     const visiblePages = useMemo(() => pageNumbers(contentPage, totalPages), [contentPage, totalPages]);
+    const ingestionSettingsErrors = useMemo(
+        () => validateIngestionSettings(ingestionSettings, t),
+        [ingestionSettings, t]
+    );
+    const getFieldClassName = (hasError: boolean): string =>
+        `px-3 py-2 border rounded-lg ${hasError ? 'border-red-400 bg-red-50' : 'border-slate-200'}`;
 
     const loadVerifications = useCallback(async () => {
         const r = await adminApi.getAdminHostVerifications(verificationStatus);
@@ -112,6 +177,34 @@ export default function AdminPage() {
         }
     }, [contentKeyword, contentPage, contentStatusFilter, contentTypeFilter]);
 
+    const mapIngestionSettingsToForm = (s: AdminIngestionSettings): IngestionSettingsFormState => ({
+        cron: s.cron,
+        zone: s.zone,
+        enabled: s.enabled,
+        publishStatus: s.publishStatus,
+        requestTimeoutMs: s.requestTimeoutMs,
+        requestIntervalMs: s.requestIntervalMs,
+        earthEnabled: s.earth.enabled,
+        earthMaxPages: s.earth.maxPages,
+        earthMaxArticles: s.earth.maxArticles,
+        ecoepnEnabled: s.ecoepn.enabled,
+        ecoepnMaxPages: s.ecoepn.maxPages,
+        ecoepnMaxArticles: s.ecoepn.maxArticles,
+    });
+
+    const loadIngestionSettings = useCallback(async () => {
+        try {
+            setLoadingIngestionSettings(true);
+            const settings = await adminApi.getAdminIngestionSettings();
+            setIngestionSettings(mapIngestionSettingsToForm(settings));
+        } catch (error) {
+            console.error('Failed to load ingestion settings:', error);
+            setContentError(t('contents.loadIngestionSettingsFailed'));
+        } finally {
+            setLoadingIngestionSettings(false);
+        }
+    }, [t]);
+
     useEffect(() => {
         const run = async () => {
             try {
@@ -128,8 +221,12 @@ export default function AdminPage() {
     }, [loadBanners, loadVerifications]);
 
     useEffect(() => {
-        if (activeTab === 'contents') loadContents();
-    }, [activeTab, loadContents]);
+        if (activeTab !== 'contents') return;
+        const run = async () => {
+            await Promise.all([loadContents(), loadIngestionSettings()]);
+        };
+        run();
+    }, [activeTab, loadContents, loadIngestionSettings]);
 
     const mapDetailToForm = (d: AdminContentDetail): ContentFormState => ({
         type: d.type,
@@ -249,6 +346,43 @@ export default function AdminPage() {
         }
     };
 
+    const saveIngestionSettings = async () => {
+        const errors = validateIngestionSettings(ingestionSettings, t);
+        if (Object.keys(errors).length > 0) {
+            setMessage('', t('contents.validation.fixErrors'));
+            return;
+        }
+
+        try {
+            setSavingIngestionSettings(true);
+            const updated = await adminApi.updateAdminIngestionSettings({
+                cron: ingestionSettings.cron.trim(),
+                zone: ingestionSettings.zone.trim(),
+                enabled: ingestionSettings.enabled,
+                publishStatus: ingestionSettings.publishStatus,
+                requestTimeoutMs: ingestionSettings.requestTimeoutMs,
+                requestIntervalMs: ingestionSettings.requestIntervalMs,
+                earth: {
+                    enabled: ingestionSettings.earthEnabled,
+                    maxPages: ingestionSettings.earthMaxPages,
+                    maxArticles: ingestionSettings.earthMaxArticles,
+                },
+                ecoepn: {
+                    enabled: ingestionSettings.ecoepnEnabled,
+                    maxPages: ingestionSettings.ecoepnMaxPages,
+                    maxArticles: ingestionSettings.ecoepnMaxArticles,
+                },
+            });
+            setIngestionSettings(mapIngestionSettingsToForm(updated));
+            setMessage(t('contents.ingestionSettingsSaved'));
+        } catch (error) {
+            console.error('Failed to update ingestion settings:', error);
+            setMessage('', t('contents.ingestionSettingsSaveFailed'));
+        } finally {
+            setSavingIngestionSettings(false);
+        }
+    };
+
     const reviewHost = async (userId: string, status: 2 | 3) => {
         try {
             const note = window.prompt(status === 2 ? t('verifications.approvalNote') : t('verifications.rejectReason'), '') || undefined;
@@ -354,8 +488,132 @@ export default function AdminPage() {
                 {!loading && activeTab === 'contents' && (
                     <div className="space-y-4">
                         <div className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-                            <div className="text-sm font-medium text-slate-700 mb-3">{t('contents.ingestionControl')}</div>
-                            <button onClick={triggerIngestion} disabled={triggeringIngestion} className="px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{triggeringIngestion ? t('contents.triggering') : t('contents.triggerIngestion')}</button>
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                                <div className="text-sm font-medium text-slate-700">{t('contents.ingestionControl')}</div>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={loadIngestionSettings} disabled={loadingIngestionSettings} className="px-3 py-2 border border-slate-200 rounded-lg disabled:opacity-60">
+                                        {loadingIngestionSettings ? t('contents.loading') : t('refresh')}
+                                    </button>
+                                    <button
+                                        onClick={saveIngestionSettings}
+                                        disabled={savingIngestionSettings || loadingIngestionSettings || Object.keys(ingestionSettingsErrors).length > 0}
+                                        className="px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60"
+                                    >
+                                        {savingIngestionSettings ? t('contents.saving') : t('contents.saveIngestionSettings')}
+                                    </button>
+                                </div>
+                            </div>
+                            {Object.keys(ingestionSettingsErrors).length > 0 && (
+                                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                    {t('contents.validation.fixErrors')}
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2">
+                                    <div className="text-xs font-semibold text-slate-700">{t('contents.scheduleConfig')}</div>
+                                    <input
+                                        value={ingestionSettings.cron}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, cron: e.target.value }))}
+                                        placeholder={t('contents.ingestionCron')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.cron))}
+                                    />
+                                    {ingestionSettingsErrors.cron && <div className="text-xs text-red-600">{ingestionSettingsErrors.cron}</div>}
+                                    <input
+                                        value={ingestionSettings.zone}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, zone: e.target.value }))}
+                                        placeholder={t('contents.ingestionZone')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.zone))}
+                                    />
+                                    {ingestionSettingsErrors.zone && <div className="text-xs text-red-600">{ingestionSettingsErrors.zone}</div>}
+                                    <label className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={ingestionSettings.enabled}
+                                            onChange={(e) => setIngestionSettings((p) => ({ ...p, enabled: e.target.checked }))}
+                                        />
+                                        {t('contents.ingestionEnabled')}
+                                    </label>
+                                </div>
+                                <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2">
+                                    <div className="text-xs font-semibold text-slate-700">{t('contents.globalConfig')}</div>
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.publishStatus}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, publishStatus: Number(e.target.value) }))}
+                                        placeholder={t('contents.publishStatus')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.publishStatus))}
+                                    />
+                                    {ingestionSettingsErrors.publishStatus && <div className="text-xs text-red-600">{ingestionSettingsErrors.publishStatus}</div>}
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.requestTimeoutMs}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, requestTimeoutMs: Number(e.target.value) }))}
+                                        placeholder={t('contents.requestTimeoutMs')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.requestTimeoutMs))}
+                                    />
+                                    {ingestionSettingsErrors.requestTimeoutMs && <div className="text-xs text-red-600">{ingestionSettingsErrors.requestTimeoutMs}</div>}
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.requestIntervalMs}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, requestIntervalMs: Number(e.target.value) }))}
+                                        placeholder={t('contents.requestIntervalMs')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.requestIntervalMs))}
+                                    />
+                                    {ingestionSettingsErrors.requestIntervalMs && <div className="text-xs text-red-600">{ingestionSettingsErrors.requestIntervalMs}</div>}
+                                </div>
+                                <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2">
+                                    <div className="text-xs font-semibold text-slate-700">{t('contents.sourceConfig')}</div>
+                                    <label className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={ingestionSettings.earthEnabled}
+                                            onChange={(e) => setIngestionSettings((p) => ({ ...p, earthEnabled: e.target.checked }))}
+                                        />
+                                        {t('contents.earthEnabled')}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.earthMaxPages}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, earthMaxPages: Number(e.target.value) }))}
+                                        placeholder={t('contents.earthMaxPages')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.earthMaxPages))}
+                                    />
+                                    {ingestionSettingsErrors.earthMaxPages && <div className="text-xs text-red-600">{ingestionSettingsErrors.earthMaxPages}</div>}
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.earthMaxArticles}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, earthMaxArticles: Number(e.target.value) }))}
+                                        placeholder={t('contents.earthMaxArticles')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.earthMaxArticles))}
+                                    />
+                                    {ingestionSettingsErrors.earthMaxArticles && <div className="text-xs text-red-600">{ingestionSettingsErrors.earthMaxArticles}</div>}
+                                    <label className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={ingestionSettings.ecoepnEnabled}
+                                            onChange={(e) => setIngestionSettings((p) => ({ ...p, ecoepnEnabled: e.target.checked }))}
+                                        />
+                                        {t('contents.ecoepnEnabled')}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.ecoepnMaxPages}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, ecoepnMaxPages: Number(e.target.value) }))}
+                                        placeholder={t('contents.ecoepnMaxPages')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.ecoepnMaxPages))}
+                                    />
+                                    {ingestionSettingsErrors.ecoepnMaxPages && <div className="text-xs text-red-600">{ingestionSettingsErrors.ecoepnMaxPages}</div>}
+                                    <input
+                                        type="number"
+                                        value={ingestionSettings.ecoepnMaxArticles}
+                                        onChange={(e) => setIngestionSettings((p) => ({ ...p, ecoepnMaxArticles: Number(e.target.value) }))}
+                                        placeholder={t('contents.ecoepnMaxArticles')}
+                                        className={getFieldClassName(Boolean(ingestionSettingsErrors.ecoepnMaxArticles))}
+                                    />
+                                    {ingestionSettingsErrors.ecoepnMaxArticles && <div className="text-xs text-red-600">{ingestionSettingsErrors.ecoepnMaxArticles}</div>}
+                                </div>
+                            </div>
+                            <button onClick={triggerIngestion} disabled={triggeringIngestion} className="mt-3 px-3 py-2 bg-[#30499B] text-white rounded-lg disabled:opacity-60">{triggeringIngestion ? t('contents.triggering') : t('contents.triggerIngestion')}</button>
                             {ingestionSummary && (
                                 <div className="mt-3 text-xs text-slate-700 space-y-1">
                                     <div>{t('contents.startedAt')}={ingestionSummary.startedAt} {t('contents.finishedAt')}={ingestionSummary.finishedAt}</div>

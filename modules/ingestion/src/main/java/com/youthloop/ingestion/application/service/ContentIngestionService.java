@@ -5,9 +5,10 @@ import com.youthloop.common.exception.BizException;
 import com.youthloop.content.api.dto.CreateContentRequest;
 import com.youthloop.content.api.facade.ContentCommandFacade;
 import com.youthloop.ingestion.api.dto.DailyIngestionSummary;
+import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
 import com.youthloop.ingestion.api.dto.IngestionReport;
+import com.youthloop.ingestion.api.facade.IngestionSettingsFacade;
 import com.youthloop.ingestion.application.dto.ExternalArticle;
-import com.youthloop.ingestion.config.IngestionProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,15 +28,16 @@ public class ContentIngestionService {
 
     private static final int SOURCE_TYPE_CRAWLED = 2;
 
-    private final IngestionProperties properties;
+    private final IngestionSettingsFacade ingestionSettingsFacade;
     private final ContentCommandFacade contentCommandFacade;
     private final List<ContentSourceClient> contentSourceClients;
 
     public DailyIngestionSummary ingestDaily() {
+        IngestionSettingsDTO settings = ingestionSettingsFacade.getSettings();
         LocalDateTime startedAt = LocalDateTime.now();
         List<IngestionReport> reports = new ArrayList<>();
 
-        if (!properties.isEnabled()) {
+        if (!settings.isEnabled()) {
             log.info("Content ingestion is disabled by configuration.");
             return DailyIngestionSummary.builder()
                 .startedAt(startedAt)
@@ -45,7 +47,7 @@ public class ContentIngestionService {
         }
 
         for (ContentSourceClient client : contentSourceClients) {
-            reports.add(ingestOneSource(client));
+            reports.add(ingestOneSource(client, settings));
         }
 
         return DailyIngestionSummary.builder()
@@ -55,9 +57,9 @@ public class ContentIngestionService {
             .build();
     }
 
-    private IngestionReport ingestOneSource(ContentSourceClient client) {
+    private IngestionReport ingestOneSource(ContentSourceClient client, IngestionSettingsDTO settings) {
         String sourceKey = client.sourceKey();
-        IngestionProperties.SourceProperties sourceProperties = resolveSourceProperties(sourceKey);
+        IngestionSettingsDTO.SourceSettings sourceProperties = resolveSourceSettings(sourceKey, settings);
         if (!sourceProperties.isEnabled()) {
             log.info("Skip source {} because it is disabled.", sourceKey);
             return IngestionReport.builder()
@@ -76,7 +78,9 @@ public class ContentIngestionService {
 
         List<ExternalArticle> articles = client.fetchLatest(
             sourceProperties.getMaxPages(),
-            sourceProperties.getMaxArticles()
+            sourceProperties.getMaxArticles(),
+            settings.getRequestTimeoutMs(),
+            settings.getRequestIntervalMs()
         );
         fetched = articles.size();
 
@@ -96,7 +100,7 @@ public class ContentIngestionService {
                 request.setSourceType(SOURCE_TYPE_CRAWLED);
                 request.setSourceUrl(article.getSourceUrl());
                 request.setPublishedAt(article.getPublishedAt());
-                request.setStatus(properties.getPublishStatus());
+                request.setStatus(settings.getPublishStatus());
                 contentCommandFacade.createContent(request);
                 created++;
             } catch (BizException e) {
@@ -125,11 +129,11 @@ public class ContentIngestionService {
             .build();
     }
 
-    private IngestionProperties.SourceProperties resolveSourceProperties(String sourceKey) {
+    private IngestionSettingsDTO.SourceSettings resolveSourceSettings(String sourceKey, IngestionSettingsDTO settings) {
         return switch (sourceKey) {
-            case "earth" -> properties.getEarth();
-            case "ecoepn" -> properties.getEcoepn();
-            default -> new IngestionProperties.SourceProperties();
+            case "earth" -> settings.getEarth();
+            case "ecoepn" -> settings.getEcoepn();
+            default -> throw new BizException(ErrorCode.INVALID_PARAMETER, "Unsupported source: " + sourceKey);
         };
     }
 
@@ -147,4 +151,3 @@ public class ContentIngestionService {
         return value != null && !value.trim().isEmpty();
     }
 }
-

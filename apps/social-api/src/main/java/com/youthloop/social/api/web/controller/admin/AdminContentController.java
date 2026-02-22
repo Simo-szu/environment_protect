@@ -15,7 +15,10 @@ import com.youthloop.content.api.dto.UpdateContentRequest;
 import com.youthloop.content.api.facade.ContentCommandFacade;
 import com.youthloop.content.api.facade.ContentQueryFacade;
 import com.youthloop.ingestion.api.dto.DailyIngestionSummary;
+import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
+import com.youthloop.ingestion.api.dto.UpdateIngestionSettingsRequest;
 import com.youthloop.ingestion.api.facade.ContentIngestionFacade;
+import com.youthloop.ingestion.api.facade.IngestionSettingsFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,6 +49,7 @@ public class AdminContentController {
     private final ContentQueryFacade contentQueryFacade;
     private final ContentCommandFacade contentCommandFacade;
     private final ContentIngestionFacade contentIngestionFacade;
+    private final IngestionSettingsFacade ingestionSettingsFacade;
 
     @Operation(summary = "Get content list", description = "Admin query content list with optional all-status and keyword search")
     @GetMapping
@@ -132,5 +136,22 @@ public class AdminContentController {
     public ApiSpecResponse<DailyIngestionSummary> triggerIngestion() {
         DailyIngestionSummary summary = contentIngestionFacade.ingestDaily();
         return ApiSpecResponse.ok(summary);
+    }
+
+    @Operation(summary = "Get ingestion settings", description = "Admin get current ingestion settings")
+    @GetMapping("/ingestion/settings")
+    @ApiResponseContract(ApiEndpointKind.DETAIL)
+    public ApiSpecResponse<IngestionSettingsDTO> getIngestionSettings() {
+        return ApiSpecResponse.ok(ingestionSettingsFacade.getSettings());
+    }
+
+    @Operation(summary = "Update ingestion settings", description = "Admin update ingestion settings")
+    @PatchMapping("/ingestion/settings")
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<IngestionSettingsDTO> updateIngestionSettings(
+        @Valid @RequestBody UnifiedRequest<UpdateIngestionSettingsRequest> request
+    ) {
+        IngestionSettingsDTO settings = ingestionSettingsFacade.updateSettings(request.getData());
+        return ApiSpecResponse.ok(settings);
     }
 }

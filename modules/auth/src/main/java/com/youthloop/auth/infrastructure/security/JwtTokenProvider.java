@@ -21,13 +21,13 @@ import java.util.UUID;
 @Component
 public class JwtTokenProvider {
     
-    @Value("${jwt.secret:youthloop-secret-key-change-in-production-min-256-bits}")
+    @Value("${jwt.secret}")
     private String secret;
     
-    @Value("${jwt.access-token-validity:3600}") // 默认 1 小时
+    @Value("${jwt.access-token-validity}") // 默认 1 小时
     private Long accessTokenValidity;
     
-    @Value("${jwt.refresh-token-validity:2592000}") // 默认 30 天
+    @Value("${jwt.refresh-token-validity}") // 默认 30 天
     private Long refreshTokenValidity;
     
     private static final String TOKEN_TYPE_CLAIM = "typ";

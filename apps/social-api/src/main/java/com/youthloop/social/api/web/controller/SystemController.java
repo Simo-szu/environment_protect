@@ -18,7 +18,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/system")
 public class SystemController {
 
-    @Value("${google.client-id:}")
+    @Value("${google.client-id}")
     private String googleClientId;
 
     @Operation(summary = "获取公开配置", description = "获取前端需要的公开配置")

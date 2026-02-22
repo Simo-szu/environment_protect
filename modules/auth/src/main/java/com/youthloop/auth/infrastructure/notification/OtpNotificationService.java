@@ -23,8 +23,8 @@ public class OtpNotificationService {
     private final boolean emailEnabled;
     
     public OtpNotificationService(
-            @Value("${resend.api-key:}") String apiKey,
-            @Value("${resend.from-email:noreply@youthloop.top}") String fromEmail) {
+            @Value("${resend.api-key}") String apiKey,
+            @Value("${resend.from-email}") String fromEmail) {
         this.fromEmail = fromEmail;
         this.emailEnabled = apiKey != null && !apiKey.isBlank();
         

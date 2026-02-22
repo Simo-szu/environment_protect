@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.IngestionConfigMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.ingestion.persistence.entity.IngestionConfigEntity">
+    <id column="id" property="id" jdbcType="INTEGER"/>
+    <result column="cron" property="cron" jdbcType="VARCHAR"/>
+    <result column="zone_id" property="zoneId" jdbcType="VARCHAR"/>
+    <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    <result column="publish_status" property="publishStatus" jdbcType="INTEGER"/>
+    <result column="request_timeout_ms" property="requestTimeoutMs" jdbcType="INTEGER"/>
+    <result column="request_interval_ms" property="requestIntervalMs" jdbcType="BIGINT"/>
+    <result column="earth_enabled" property="earthEnabled" jdbcType="BOOLEAN"/>
+    <result column="earth_max_pages" property="earthMaxPages" jdbcType="INTEGER"/>
+    <result column="earth_max_articles" property="earthMaxArticles" jdbcType="INTEGER"/>
+    <result column="ecoepn_enabled" property="ecoepnEnabled" jdbcType="BOOLEAN"/>
+    <result column="ecoepn_max_pages" property="ecoepnMaxPages" jdbcType="INTEGER"/>
+    <result column="ecoepn_max_articles" property="ecoepnMaxArticles" jdbcType="INTEGER"/>
+    <result column="created_by" property="createdBy" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="updated_by" property="updatedBy" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+  </resultMap>
+
+  <sql id="BaseColumnList">
+    id, cron, zone_id, is_enabled, publish_status, request_timeout_ms, request_interval_ms,
+    earth_enabled, earth_max_pages, earth_max_articles,
+    ecoepn_enabled, ecoepn_max_pages, ecoepn_max_articles,
+    created_by, updated_by, created_at, updated_at
+  </sql>
+
+  <select id="selectCurrent" resultMap="BaseResultMap">
+    SELECT <include refid="BaseColumnList"/>
+    FROM social.ingestion_config
+    WHERE id = 1
+  </select>
+
+  <insert id="insert" parameterType="com.youthloop.ingestion.persistence.entity.IngestionConfigEntity">
+    INSERT INTO social.ingestion_config (
+      id, cron, zone_id, is_enabled, publish_status, request_timeout_ms, request_interval_ms,
+      earth_enabled, earth_max_pages, earth_max_articles,
+      ecoepn_enabled, ecoepn_max_pages, ecoepn_max_articles,
+      created_by, updated_by, created_at, updated_at
+    ) VALUES (
+      #{id}, #{cron}, #{zoneId}, #{isEnabled}, #{publishStatus}, #{requestTimeoutMs}, #{requestIntervalMs},
+      #{earthEnabled}, #{earthMaxPages}, #{earthMaxArticles},
+      #{ecoepnEnabled}, #{ecoepnMaxPages}, #{ecoepnMaxArticles},
+      #{createdBy, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler},
+      #{updatedBy, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler},
+      #{createdAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}, #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+    )
+  </insert>
+
+  <update id="updateById" parameterType="com.youthloop.ingestion.persistence.entity.IngestionConfigEntity">
+    UPDATE social.ingestion_config
+    SET
+      cron = #{cron},
+      zone_id = #{zoneId},
+      is_enabled = #{isEnabled},
+      publish_status = #{publishStatus},
+      request_timeout_ms = #{requestTimeoutMs},
+      request_interval_ms = #{requestIntervalMs},
+      earth_enabled = #{earthEnabled},
+      earth_max_pages = #{earthMaxPages},
+      earth_max_articles = #{earthMaxArticles},
+      ecoepn_enabled = #{ecoepnEnabled},
+      ecoepn_max_pages = #{ecoepnMaxPages},
+      ecoepn_max_articles = #{ecoepnMaxArticles},
+      updated_by = #{updatedBy, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler},
+      updated_at = #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+    WHERE id = #{id}
+  </update>
+</mapper>

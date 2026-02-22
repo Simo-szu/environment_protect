@@ -3,7 +3,6 @@ package com.youthloop.ingestion.infrastructure.client;
 import com.youthloop.ingestion.application.dto.ExternalArticle;
 import com.youthloop.ingestion.application.service.ContentSourceClient;
 import com.youthloop.ingestion.application.service.HtmlSanitizerService;
-import com.youthloop.ingestion.config.IngestionProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,8 +29,7 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
 
     private final HtmlSanitizerService htmlSanitizerService;
 
-    public EcoepnWikiSourceClient(IngestionProperties properties, HtmlSanitizerService htmlSanitizerService) {
-        super(properties);
+    public EcoepnWikiSourceClient(HtmlSanitizerService htmlSanitizerService) {
         this.htmlSanitizerService = htmlSanitizerService;
     }
 
@@ -41,12 +39,12 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
     }
 
     @Override
-    public List<ExternalArticle> fetchLatest(int maxPages, int maxArticles) {
+    public List<ExternalArticle> fetchLatest(int maxPages, int maxArticles, int requestTimeoutMs, long requestIntervalMs) {
         Set<String> detailUrls = new LinkedHashSet<>();
         for (int page = 1; page <= maxPages && detailUrls.size() < maxArticles; page++) {
             String listUrl = page == 1 ? BASE_URL : BASE_URL + "&paged=" + page;
             try {
-                Document document = fetchDocument(listUrl);
+                Document document = fetchDocument(listUrl, requestTimeoutMs);
                 for (Element link : document.select("a[href]")) {
                     String href = normalizeUrl(link.absUrl("href"));
                     if (isValidDetailUrl(href)) {
@@ -59,26 +57,26 @@ public class EcoepnWikiSourceClient extends BaseWebSourceClient implements Conte
             } catch (IOException e) {
                 log.warn("Fetch ecoepn list failed, url={}", listUrl, e);
             }
-            sleepBetweenRequests();
+            sleepBetweenRequests(requestIntervalMs);
         }
 
         List<ExternalArticle> articles = new ArrayList<>();
         for (String detailUrl : detailUrls) {
             try {
-                ExternalArticle article = fetchDetail(detailUrl);
+                ExternalArticle article = fetchDetail(detailUrl, requestTimeoutMs);
                 if (article != null) {
                     articles.add(article);
                 }
             } catch (Exception e) {
                 log.warn("Fetch ecoepn detail failed, url={}", detailUrl, e);
             }
-            sleepBetweenRequests();
+            sleepBetweenRequests(requestIntervalMs);
         }
         return articles;
     }
 
-    private ExternalArticle fetchDetail(String detailUrl) throws IOException {
-        Document document = fetchDocument(detailUrl);
+    private ExternalArticle fetchDetail(String detailUrl, int requestTimeoutMs) throws IOException {
+        Document document = fetchDocument(detailUrl, requestTimeoutMs);
         String title = firstText(document, "h1.entry-title, h1");
 
         // Try to select .entry-content first, then fallback to .post-content

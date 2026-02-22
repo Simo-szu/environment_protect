@@ -3,6 +3,7 @@ package com.youthloop.auth.infrastructure.security;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.core.env.Environment;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +17,15 @@ public class JwtConfigValidator {
     
     @Value("${jwt.secret}")
     private String jwtSecret;
-    
-    @Value("${spring.profiles.active:default}")
-    private String activeProfile;
+
+    private final Environment environment;
     
     private static final int MIN_SECRET_LENGTH = 32; // 256 bits
     private static final String DEFAULT_SECRET = "youthloop-secret-key-change-in-production-min-256-bits";
+
+    public JwtConfigValidator(Environment environment) {
+        this.environment = environment;
+    }
     
     /**
      * 应用启动后校验 JWT 配置
@@ -60,7 +64,12 @@ public class JwtConfigValidator {
      * 判断是否为生产环境
      */
     private boolean isProductionProfile() {
-        return "prod".equalsIgnoreCase(activeProfile) 
-            || "production".equalsIgnoreCase(activeProfile);
+        String[] activeProfiles = environment.getActiveProfiles();
+        for (String profile : activeProfiles) {
+            if ("prod".equalsIgnoreCase(profile) || "production".equalsIgnoreCase(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

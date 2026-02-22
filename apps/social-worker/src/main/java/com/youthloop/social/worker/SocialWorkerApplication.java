@@ -26,7 +26,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "com.youthloop.event.persistence.mapper",
     "com.youthloop.points.persistence.mapper",
     "com.youthloop.search.persistence.mapper",
-    "com.youthloop.recommendation.persistence.mapper"
+    "com.youthloop.recommendation.persistence.mapper",
+    "com.youthloop.ingestion.persistence.mapper"
 })
 public class SocialWorkerApplication {
     public static void main(String[] args) {

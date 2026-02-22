@@ -25,7 +25,7 @@ docker compose down -v
 - **User:** postgres
 - **Password:** postgres
 - **Database:** youthloop
-- **Connection:** `postgresql://postgres:postgres@localhost:5432/youthloop`
+- **Connection:** `jdbc:postgresql://localhost:5432/youthloop`
 
 ### Redis
 - **Port:** 6379
@@ -108,15 +108,31 @@ docker exec youthloop-rabbitmq rabbitmqctl list_exchanges
 
 ## Environment Variables
 
-Update your `.env.local`:
+Update repository root `.env`:
 ```env
-DATABASE_URL=postgresql://social_app:postgres@localhost:5432/youthloop
+DATABASE_URL=jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared&stringtype=unspecified&user=social_app&password=postgres
+FLYWAY_URL=jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared&stringtype=unspecified
+FLYWAY_USER=social_migrator
+FLYWAY_PASSWORD=postgres
+GAME_DATABASE_URL=jdbc:postgresql://localhost:5432/youthloop?currentSchema=game,shared&stringtype=unspecified&user=game_app&password=postgres
+GAME_FLYWAY_URL=jdbc:postgresql://localhost:5432/youthloop?currentSchema=game,shared&stringtype=unspecified
+GAME_FLYWAY_USER=game_migrator
+GAME_FLYWAY_PASSWORD=postgres
 REDIS_URL=redis://localhost:6379
 RABBITMQ_URL=amqp://guest:guest@localhost:5672
-MINIO_ENDPOINT=localhost:9000
+MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=youthloop
+JWT_SECRET=change-this-to-a-long-random-secret-at-least-32-chars
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=noreply@yourdomain.com
 ```
+
+Ingestion settings are managed in database via admin APIs:
+- `GET /api/v1/admin/contents/ingestion/settings`
+- `PATCH /api/v1/admin/contents/ingestion/settings`
 
 Note: `guest/guest` works when connecting via localhost. If you later run your apps inside Docker, consider switching to a non-guest user (RabbitMQ restricts `guest` on non-loopback by default).
 

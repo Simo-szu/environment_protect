@@ -3,7 +3,6 @@ package com.youthloop.ingestion.infrastructure.client;
 import com.youthloop.ingestion.application.dto.ExternalArticle;
 import com.youthloop.ingestion.application.service.ContentSourceClient;
 import com.youthloop.ingestion.application.service.HtmlSanitizerService;
-import com.youthloop.ingestion.config.IngestionProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,8 +28,7 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
 
     private final HtmlSanitizerService htmlSanitizerService;
 
-    public EarthClimateSourceClient(IngestionProperties properties, HtmlSanitizerService htmlSanitizerService) {
-        super(properties);
+    public EarthClimateSourceClient(HtmlSanitizerService htmlSanitizerService) {
         this.htmlSanitizerService = htmlSanitizerService;
     }
 
@@ -40,12 +38,12 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
     }
 
     @Override
-    public List<ExternalArticle> fetchLatest(int maxPages, int maxArticles) {
+    public List<ExternalArticle> fetchLatest(int maxPages, int maxArticles, int requestTimeoutMs, long requestIntervalMs) {
         Set<String> detailUrls = new LinkedHashSet<>();
         for (int page = 1; page <= maxPages && detailUrls.size() < maxArticles; page++) {
             String listUrl = page == 1 ? BASE_URL : BASE_URL + "page/" + page + "/";
             try {
-                Document document = fetchDocument(listUrl);
+                Document document = fetchDocument(listUrl, requestTimeoutMs);
                 var articleLinks = document.select("article a[href], .image_article a[href], .hero_article a[href], h2 a[href], h3 a[href]");
                 log.debug("Earth list parsed: url={}, articleLinks={}, allLinks={}",
                     listUrl, articleLinks.size(), document.select("a[href]").size());
@@ -66,39 +64,39 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
             } catch (IOException e) {
                 log.warn("Fetch earth list failed, url={}", listUrl, e);
             }
-            sleepBetweenRequests();
+            sleepBetweenRequests(requestIntervalMs);
         }
 
         List<ExternalArticle> articles = new ArrayList<>();
         for (String detailUrl : detailUrls) {
             try {
-                ExternalArticle article = fetchDetail(detailUrl);
+                ExternalArticle article = fetchDetail(detailUrl, requestTimeoutMs);
                 if (article != null) {
                     articles.add(article);
                 }
             } catch (Exception e) {
                 log.warn("Fetch earth detail failed, url={}", detailUrl, e);
             }
-            sleepBetweenRequests();
+            sleepBetweenRequests(requestIntervalMs);
         }
         return articles;
     }
 
-    private ExternalArticle fetchDetail(String detailUrl) throws IOException {
-        ExternalArticle renderedArticle = tryFetchRenderedDetail(detailUrl);
+    private ExternalArticle fetchDetail(String detailUrl, int requestTimeoutMs) throws IOException {
+        ExternalArticle renderedArticle = tryFetchRenderedDetail(detailUrl, requestTimeoutMs);
         if (renderedArticle != null) {
             return renderedArticle;
         }
-        Document document = fetchDocument(detailUrl);
+        Document document = fetchDocument(detailUrl, requestTimeoutMs);
         return mapDetailDocument(document, detailUrl);
     }
 
-    private ExternalArticle tryFetchRenderedDetail(String detailUrl) {
+    private ExternalArticle tryFetchRenderedDetail(String detailUrl, int requestTimeoutMs) {
         String renderedUrl = detailUrl.contains("?")
             ? detailUrl + "&output=1"
             : detailUrl + "/?output=1";
         try {
-            Document renderedDocument = fetchDocument(renderedUrl);
+            Document renderedDocument = fetchDocument(renderedUrl, requestTimeoutMs);
             return mapDetailDocument(renderedDocument, detailUrl);
         } catch (IOException e) {
             log.debug("Fetch earth rendered detail failed, url={}", renderedUrl, e);

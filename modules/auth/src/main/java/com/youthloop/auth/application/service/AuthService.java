@@ -49,10 +49,10 @@ public class AuthService {
     private final GoogleIdentityProvider googleIdentityProvider;
 
     
-    @Value("${jwt.access-token-validity:3600}")
+    @Value("${jwt.access-token-validity}")
     private Long accessTokenValidity;
     
-    @Value("${jwt.max-refresh-tokens-per-user:5}")
+    @Value("${jwt.max-refresh-tokens-per-user}")
     private Integer maxRefreshTokensPerUser;
     
     /**

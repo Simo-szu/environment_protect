@@ -1,7 +1,5 @@
 package com.youthloop.ingestion.infrastructure.client;
 
-import com.youthloop.ingestion.config.IngestionProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,14 +19,11 @@ import java.util.Locale;
  * Shared HTTP/parse helpers for web source clients.
  */
 @Slf4j
-@RequiredArgsConstructor
 public abstract class BaseWebSourceClient {
 
-    private final IngestionProperties properties;
-
-    protected Document fetchDocument(String url) throws IOException {
+    protected Document fetchDocument(String url, int requestTimeoutMs) throws IOException {
         return Jsoup.connect(url)
-            .timeout(properties.getRequestTimeoutMs())
+            .timeout(requestTimeoutMs)
             .userAgent(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     + "(KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
@@ -37,8 +32,7 @@ public abstract class BaseWebSourceClient {
             .get();
     }
 
-    protected void sleepBetweenRequests() {
-        long intervalMs = properties.getRequestIntervalMs();
+    protected void sleepBetweenRequests(long intervalMs) {
         if (intervalMs <= 0) {
             return;
         }

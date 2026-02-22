@@ -11,6 +11,5 @@ public interface ContentSourceClient {
 
     String sourceKey();
 
-    List<ExternalArticle> fetchLatest(int maxPages, int maxArticles);
+    List<ExternalArticle> fetchLatest(int maxPages, int maxArticles, int requestTimeoutMs, long requestIntervalMs);
 }
-

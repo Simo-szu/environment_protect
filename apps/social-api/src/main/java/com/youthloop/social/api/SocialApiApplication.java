@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     "com.youthloop.recommendation.persistence.mapper",
     "com.youthloop.host.persistence.mapper",
     "com.youthloop.ops.persistence.mapper",
+    "com.youthloop.ingestion.persistence.mapper",
     "com.youthloop.event.persistence.mapper",
     "com.youthloop.query.mapper"
 })

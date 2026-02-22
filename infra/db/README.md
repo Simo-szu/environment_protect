@@ -134,31 +134,31 @@ v0.1 Social schema table count: **26** (as listed above).
 
 **For Social Service (API/Worker):**
 ```
-postgresql://social_app:postgres@localhost:5432/youthloop
+jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared&stringtype=unspecified&user=social_app&password=postgres
 ```
 
 
 
 **For Migrations (Social):**
 ```
-postgresql://social_migrator:postgres@localhost:5432/youthloop
+jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared&stringtype=unspecified
 ```
 
 **For Game Service (API):**
 ```
-postgresql://game_app:postgres@localhost:5432/youthloop
+jdbc:postgresql://localhost:5432/youthloop?currentSchema=game,shared&stringtype=unspecified&user=game_app&password=postgres
 ```
 
 **For Migrations (Game):**
 ```
-postgresql://game_migrator:postgres@localhost:5432/youthloop
+jdbc:postgresql://localhost:5432/youthloop?currentSchema=game,shared&stringtype=unspecified
 ```
 
 ## Flyway (Current)
 
 Flyway is now integrated into the Spring Boot apps and is the default way to run schema migrations.
 This follows `Project-Structure.md` requirements:
-- 1 Postgres instance, 2 schemas: `shared`, `social`
+- 1 Postgres instance, 3 schemas: `shared`, `social`, `game`
 - Separate Flyway history tables per service (no cross-service conflicts)
 - Use migrator roles for DDL (apps still connect with app roles)
 
@@ -196,8 +196,8 @@ mvn -pl apps/game-api spring-boot:run
 ```
 
 Notes:
-- Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` (defaults are `social_migrator`).
-- Configure `GAME_FLYWAY_USER` / `GAME_FLYWAY_PASSWORD` (defaults are `game_migrator`).
+- Configure `FLYWAY_USER` / `FLYWAY_PASSWORD` in `.env`.
+- Configure `GAME_FLYWAY_USER` / `GAME_FLYWAY_PASSWORD` in `.env`.
 - Runtime apps use `DATABASE_URL` (social) and `GAME_DATABASE_URL` (game) for normal DML.
 
 ## Troubleshooting
@@ -224,5 +224,5 @@ Get-Service postgresql*
 ## Next Steps
 
 After database setup:
-1. Update `.env.local` with connection strings
+1. Update repository root `.env` with connection strings
 2. Start services once to apply Flyway migrations
