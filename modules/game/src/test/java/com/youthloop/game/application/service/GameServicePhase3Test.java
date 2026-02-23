@@ -24,7 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -796,7 +796,7 @@ class GameServicePhase3Test {
         assertTrue(trade.path("windowOpened").asBoolean());
         assertEquals(50, trade.path("pricePctModifier").asInt());
         assertTrue(trade.path("lastPrice").asDouble() >= 2.4D && trade.path("lastPrice").asDouble() <= 3.6D);
-        assertTrue(trade.path("windowExpiresAt").asLong() > System.currentTimeMillis());
+        assertEquals(0L, trade.path("windowExpiresAt").asLong());
         assertEquals(55, trade.path("quota").asInt());
     }
 
@@ -1094,7 +1094,7 @@ class GameServicePhase3Test {
     }
 
     @Test
-    void tradeCarbonShouldTimeoutWindowAndRecordSkipBeforeRejectingTrade() {
+    void tradeCarbonShouldIgnoreExpiredTimestampWhenWindowIsOpen() {
         ObjectNode state = baseState();
         state.with("carbonTrade").put("windowOpened", true);
         state.with("carbonTrade").put("lastWindowTurn", 2);
@@ -1109,13 +1109,12 @@ class GameServicePhase3Test {
         request.setActionType(4);
         request.setActionData(objectMapper.createObjectNode().put("tradeType", "buy").put("amount", 1));
 
-        assertThrows(BizException.class, () -> gameService.performAction(request));
-
-        ObjectNode trade = state.with("carbonTrade");
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode trade = ((ObjectNode) response.getNewPondState()).with("carbonTrade");
         assertTrue(!trade.path("windowOpened").asBoolean());
         assertEquals(0L, trade.path("windowExpiresAt").asLong());
         assertTrue(trade.withArray("history").size() >= 1);
-        assertEquals("skip", trade.withArray("history").get(0).path("action").asText());
+        assertEquals("buy", trade.withArray("history").get(0).path("action").asText());
     }
 
     @Test
@@ -1139,7 +1138,7 @@ class GameServicePhase3Test {
     }
 
     @Test
-    void getSessionByIdShouldProcessExpiredTradeWindowAsSkip() {
+    void getSessionByIdShouldKeepOpenedTradeWindowEvenIfExpiredTimestampExists() {
         ObjectNode state = baseState();
         state.with("carbonTrade").put("windowOpened", true);
         state.with("carbonTrade").put("lastWindowTurn", 2);
@@ -1152,9 +1151,8 @@ class GameServicePhase3Test {
         GameSessionDTO result = gameService.getSessionById(sessionId);
         ObjectNode trade = ((ObjectNode) result.getPondState()).with("carbonTrade");
 
-        assertTrue(!trade.path("windowOpened").asBoolean());
-        assertEquals(0L, trade.path("windowExpiresAt").asLong());
-        assertEquals("skip", trade.withArray("history").get(0).path("action").asText());
+        assertTrue(trade.path("windowOpened").asBoolean());
+        assertEquals(0, trade.withArray("history").size());
     }
 
     @Test
@@ -2097,8 +2095,8 @@ class GameServicePhase3Test {
         session.setScore(0L);
         session.setLevel(1);
         session.setStatus(1);
-        session.setStartedAt(LocalDateTime.now());
-        session.setLastActionAt(LocalDateTime.now());
+        session.setStartedAt(OffsetDateTime.now());
+        session.setLastActionAt(OffsetDateTime.now());
         return session;
     }
 

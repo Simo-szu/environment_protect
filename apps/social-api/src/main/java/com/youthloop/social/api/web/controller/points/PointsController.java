@@ -62,6 +62,9 @@ public class PointsController {
     @ApiResponseContract(ApiEndpointKind.DETAIL)
     public ApiSpecResponse<SigninRecordDTO> getTodaySignin() {
         SigninRecordDTO response = pointsFacade.getTodaySignin();
+        if (response == null) {
+            response = SigninRecordDTO.builder().isSigned(false).build();
+        }
         return ApiSpecResponse.ok(response);
     }
 

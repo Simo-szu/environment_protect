@@ -8,11 +8,11 @@
         <result column="pond_state" property="pondState" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="score" property="score" jdbcType="BIGINT"/>
         <result column="level" property="level" jdbcType="INTEGER"/>
-        <result column="started_at" property="startedAt" jdbcType="TIMESTAMP"/>
-        <result column="last_action_at" property="lastActionAt" jdbcType="TIMESTAMP"/>
+        <result column="started_at" property="startedAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+        <result column="last_action_at" property="lastActionAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
         <result column="status" property="status" jdbcType="INTEGER"/>
-        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
-        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
     </resultMap>
     
     <select id="selectById" resultMap="BaseResultMap">
@@ -38,11 +38,11 @@
             #{pondState, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{score, jdbcType=BIGINT},
             #{level, jdbcType=INTEGER},
-            #{startedAt, jdbcType=TIMESTAMP},
-            #{lastActionAt, jdbcType=TIMESTAMP},
+            #{startedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE},
+            #{lastActionAt, jdbcType=TIMESTAMP_WITH_TIMEZONE},
             #{status, jdbcType=INTEGER},
-            #{createdAt, jdbcType=TIMESTAMP},
-            #{updatedAt, jdbcType=TIMESTAMP}
+            #{createdAt, jdbcType=TIMESTAMP_WITH_TIMEZONE},
+            #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
         )
     </insert>
     
@@ -51,9 +51,9 @@
         SET pond_state = #{pondState, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             score = #{score, jdbcType=BIGINT},
             level = #{level, jdbcType=INTEGER},
-            last_action_at = #{lastActionAt, jdbcType=TIMESTAMP},
+            last_action_at = #{lastActionAt, jdbcType=TIMESTAMP_WITH_TIMEZONE},
             status = #{status, jdbcType=INTEGER},
-            updated_at = #{updatedAt, jdbcType=TIMESTAMP}
+            updated_at = #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
         WHERE id = #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.UuidTypeHandler}
     </update>
     

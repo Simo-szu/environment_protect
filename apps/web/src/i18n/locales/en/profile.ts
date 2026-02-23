@@ -52,6 +52,10 @@ const profile = {
         favorites: 'My Favorites',
         activities: 'My Activities',
         points: 'My Points',
+        descLikes: 'View liked content',
+        descFavorites: 'View saved content',
+        descActivities: 'View joined activities',
+        descPoints: 'View eco points',
     },
     recentActivities: {
         title: 'Recent Activities',

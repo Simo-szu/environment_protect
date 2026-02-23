@@ -2,7 +2,7 @@ package com.youthloop.game.persistence.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -15,9 +15,9 @@ public class GameSessionEntity {
     private JsonNode pondState;
     private Long score;
     private Integer level;
-    private LocalDateTime startedAt;
-    private LocalDateTime lastActionAt;
+    private OffsetDateTime startedAt;
+    private OffsetDateTime lastActionAt;
     private Integer status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
 }

@@ -23,6 +23,18 @@ export interface GameCardMeta {
   unlockCost: GameCardUnlockCost;
   imageKey: string;
   advancedImageKey?: string;
+  coreContinuousIndustryDelta?: number;
+  coreContinuousTechDelta?: number;
+  coreContinuousPopulationDelta?: number;
+  coreContinuousGreenDelta?: number;
+  coreContinuousCarbonDelta?: number;
+  coreContinuousSatisfactionDelta?: number;
+  policyImmediateIndustryDelta?: number;
+  policyImmediateTechDelta?: number;
+  policyImmediatePopulationDelta?: number;
+  policyImmediateGreenDelta?: number;
+  policyImmediateCarbonDelta?: number;
+  policyImmediateSatisfactionDelta?: number;
 }
 
 export interface GameCardCatalog {

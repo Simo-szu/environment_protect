@@ -464,10 +464,10 @@ function PointsPageContent() {
                         className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">
+                            <h3 className="text-xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">
                                 {t('signInCalendar', '签到日历')}
                             </h3>
-                            <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                            <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
                                 {t('currentMonth', 'May 2024', { month: new Date().toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long' }) })}
                             </div>
                         </div>
@@ -480,7 +480,7 @@ function PointsPageContent() {
                             <div className="grid grid-cols-7 gap-2 sm:gap-4 w-full text-center">
                                 {/* 星期头 */}
                                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                    <div key={day} className="text-xs text-slate-400 pb-2">{day}</div>
+                                    <div key={day} className="text-xs text-slate-400 dark:text-slate-500 pb-2">{day}</div>
                                 ))}
 
                                 {/* 日期格子 */}
@@ -510,7 +510,7 @@ function PointsPageContent() {
 
                                     if (isFuture) {
                                         return (
-                                            <div key={index} className="aspect-square rounded-lg bg-white border border-transparent flex flex-col items-center justify-center text-slate-300">
+                                            <div key={index} className="aspect-square rounded-lg bg-white dark:bg-slate-800/80 border border-transparent flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
                                                 {dayNum}
                                             </div>
                                         );
@@ -526,7 +526,7 @@ function PointsPageContent() {
                                                     : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
                                                     }`}
                                             >
-                                                <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400' : 'text-[#56B949]'}`}>
+                                                <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400 dark:text-slate-500' : 'text-[#56B949]'}`}>
                                                     {dayNum}
                                                 </span>
 
@@ -543,7 +543,7 @@ function PointsPageContent() {
                                                     </div>
                                                 )}
 
-                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
+                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
                                                     {todaySignin ? `${t('calendar.signedIn', '已签到')} +${todaySignin.points}` : t('calendar.clickToSignIn', '点击签到')}
                                                 </div>
                                             </div>
@@ -552,20 +552,20 @@ function PointsPageContent() {
 
                                     if (isSigned) {
                                         return (
-                                            <div key={index} className="aspect-square rounded-lg bg-white border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
-                                                <span className="text-[10px] text-slate-400 absolute top-1 left-1">{dayNum}</span>
+                                            <div key={index} className="aspect-square rounded-lg bg-white dark:bg-slate-800 border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 absolute top-1 left-1">{dayNum}</span>
                                                 <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" style={{ animationDelay: `${index * 0.1}s` }} />
-                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')}</div>
+                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')}</div>
                                             </div>
                                         );
                                     }
 
                                     // Missed
                                     return (
-                                        <div key={index} className="aspect-square rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center relative group grayscale">
-                                            <span className="text-[10px] text-slate-400 absolute top-1 left-1">{dayNum}</span>
-                                            <Leaf className="w-5 h-5 text-[#8b5a2b] rotate-45 opacity-60" />
-                                            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
+                                        <div key={index} className="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 flex flex-col items-center justify-center relative group grayscale">
+                                            <span className="text-[10px] text-slate-400 dark:text-slate-500 absolute top-1 left-1">{dayNum}</span>
+                                            <Leaf className="w-5 h-5 text-[#8b5a2b] dark:text-[#a07a50] rotate-45 opacity-60" />
+                                            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
                                         </div>
                                     );
                                 })}
@@ -574,18 +574,18 @@ function PointsPageContent() {
 
                         <div className="mt-4 flex flex-row justify-between sm:justify-around items-center text-[10px] sm:text-sm text-slate-500 font-medium px-1 sm:px-2 gap-1 sm:gap-2 text-center">
                             <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.signedDays', '已签到')}</span>
-                                <span><b className="text-[#30499B] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.signedDays', '已签到')}</span>
+                                <span><b className="text-[#30499B] dark:text-[#56B949] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
                             </div>
-                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200"></div>
+                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
                             <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.consecutiveDays', '连续签到')}</span>
-                                <span><b className="text-[#30499B] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.consecutiveDays', '连续签到')}</span>
+                                <span><b className="text-[#30499B] dark:text-[#56B949] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
                             </div>
-                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200"></div>
+                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
                             <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 mb-0.5 sm:mb-0">{t('calendar.missedDays', '已漏签')}</span>
-                                <span><b className="text-[#EE4035] text-sm">2</b> {t('calendar.days', '天')}</span>
+                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.missedDays', '已漏签')}</span>
+                                <span><b className="text-[#EE4035] dark:text-red-400 text-sm">2</b> {t('calendar.days', '天')}</span>
                             </div>
                         </div>
                     </motion.section>
@@ -599,7 +599,7 @@ function PointsPageContent() {
                         className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-[#30499B] font-serif">{t('dailyTasks', '每日任务')}</h3>
+                            <h3 className="text-xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">{t('dailyTasks', '每日任务')}</h3>
                             <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
                                 {t('tasksRemaining', '今日剩余')} {Array.isArray(dailyTasks) ? dailyTasks.filter(t => t.status !== 3).length : 0}
                             </span>
@@ -632,7 +632,7 @@ function PointsPageContent() {
                                         <div className="flex items-center gap-3 relative z-10">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${task.status === 3
                                                 ? 'bg-[#56B949]/10 text-[#56B949]'
-                                                : 'bg-white text-[#30499B]'
+                                                : 'bg-white dark:bg-slate-800 text-[#30499B] dark:text-[#56B949]'
                                                 }`}>
                                                 {task.status === 3 ? (
                                                     <CheckCircle className="w-4 h-4" />
@@ -641,7 +641,7 @@ function PointsPageContent() {
                                                 )}
                                             </div>
                                             <div>
-                                                <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 line-through' : 'text-[#30499B]'
+                                                <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-[#30499B] dark:text-slate-200'
                                                     }`}>
                                                     {task.name === 'readArticle' ? t('mockTasks.readArticle', '阅读环保文章') : task.name === 'shareKnowledge' ? t('mockTasks.shareKnowledge', '分享环保知识') : task.name}
                                                 </div>
@@ -675,7 +675,7 @@ function PointsPageContent() {
                                                     {claimingTask === task.id ? t('tasks.claiming', '领取中...') : t('tasks.claim', '领取')}
                                                 </button>
                                             ) : (
-                                                <button className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-medium text-slate-600 rounded-lg hover:border-[#30499B] hover:text-[#30499B] transition-all">
+                                                <button className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-medium text-slate-600 dark:text-slate-300 rounded-lg hover:border-[#30499B] dark:hover:border-[#56B949] hover:text-[#30499B] dark:hover:text-[#56B949] transition-all">
                                                     {t('tasks.goComplete', '去完成')}
                                                 </button>
                                             )}
@@ -692,7 +692,7 @@ function PointsPageContent() {
                     variants={staggerItem}
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <h3 className="text-xl font-bold text-[#30499B] font-serif">
+                        <h3 className="text-xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">
                             {t('dailyQuiz', '每日问答')}
                         </h3>
 
@@ -735,7 +735,7 @@ function PointsPageContent() {
                                         </div>
                                     ) : todayQuiz && (
                                         <>
-                                            <h4 className="text-sm font-semibold text-[#30499B] mb-3">
+                                            <h4 className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] mb-3">
                                                 {(todayQuiz!.question as any)?.title ?? (todayQuiz!.question as any)?.question ?? t('quiz.title', 'Daily Quiz')}
                                             </h4>
 
@@ -755,8 +755,8 @@ function PointsPageContent() {
                                                                     setQuizSubmitted(false);
                                                                 }}
                                                                 className={`w-full text-left p-3 rounded-xl text-xs transition-all border ${selected
-                                                                    ? 'border-[#56B949] bg-[#56B949]/10'
-                                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                                                                    ? 'border-[#56B949] bg-[#56B949]/10 text-slate-800 dark:text-slate-200'
+                                                                    : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600/50 text-slate-700 dark:text-slate-300'
                                                                     } ${todayQuiz!.answered ? 'opacity-70 cursor-not-allowed' : ''}`}
                                                                 disabled={todayQuiz!.answered}
                                                             >
@@ -770,7 +770,7 @@ function PointsPageContent() {
                                                     <input
                                                         type="number"
                                                         placeholder={t('quiz.enterNumber', '请输入数字')}
-                                                        className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
+                                                        className="w-full p-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
                                                         value={quizAnswer ?? ''}
                                                         onChange={(e) => {
                                                             const v = e.target.value;
@@ -788,7 +788,7 @@ function PointsPageContent() {
                                                     type="button"
                                                     onClick={handleSubmitQuiz}
                                                     disabled={!todayQuiz || todayQuiz!.answered || quizSubmitted || quizAnswer === null}
-                                                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] text-white disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
+                                                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] dark:bg-[#56B949] text-white disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 dark:disabled:text-slate-500 transition-colors"
                                                 >
                                                     {t('quiz.submit', '提交')}
                                                 </button>

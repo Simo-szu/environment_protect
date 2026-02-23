@@ -145,7 +145,7 @@ export function AdminGameCardsTab() {
                 }
             } else {
                 if (!formState.cardId.trim() || !formState.chineseName.trim() || !formState.englishName.trim()) {
-                    alert('ID和名称必填');
+                    alert(t('gameCards.required', '卡牌 ID、中文名称、英文名称为必填项'));
                     return;
                 }
                 payload = { ...formState };
@@ -161,14 +161,14 @@ export function AdminGameCardsTab() {
             setIsModalOpen(false);
             await loadCards(page);
         } catch (e: any) {
-            alert(e?.message || '保存失败');
+            alert(e?.message || t('gameCards.saveFailed', '保存失败'));
         } finally {
             setSaving(false);
         }
     };
 
     const deleteCard = async (id: string) => {
-        if (!window.confirm('确认删除?')) return;
+        if (!window.confirm(t('gameCards.confirmDelete', '确认删除此卡牌？'))) return;
         try {
             await adminApi.deleteAdminGameCard(id);
             await loadCards(page);
@@ -192,7 +192,7 @@ export function AdminGameCardsTab() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <h2 className="text-xl font-medium text-slate-800 tracking-tight">{t('tabs.gameCards', 'Game Cards')}</h2>
+                <h2 className="text-xl font-medium text-slate-800 dark:text-slate-200 tracking-tight">{t('tabs.gameCards', '游戏卡牌')}</h2>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {/* Search Bar */}
                     <div className="relative flex-1 md:w-64">
@@ -202,34 +202,34 @@ export function AdminGameCardsTab() {
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
                             placeholder={t('contents.searchPlaceholder', '搜索标题...')}
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#30499B]/10 outline-none transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-[#30499B]/10 dark:focus:ring-[#56B949]/20 outline-none transition-all"
                         />
                     </div>
 
                     {/* Domain Filter */}
                     <Select value={domainFilter} onValueChange={setDomainFilter}>
-                        <SelectTrigger className="w-[130px] h-10 rounded-xl border-slate-200 bg-white text-sm">
-                            <SelectValue>{domainFilter === 'all' ? t('gameCards.allDomains') : domainFilter.charAt(0).toUpperCase() + domainFilter.slice(1)}</SelectValue>
+                        <SelectTrigger className="w-[130px] h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm">
+                            <SelectValue>{domainFilter === 'all' ? t('gameCards.allDomains', '全部领域') : t(`gameCards.domain${domainFilter.charAt(0).toUpperCase() + domainFilter.slice(1)}`, domainFilter)}</SelectValue>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                            <SelectItem value="all">{t('gameCards.allDomains')}</SelectItem>
-                            <SelectItem value="industry">Industry</SelectItem>
-                            <SelectItem value="ecology">Ecology</SelectItem>
-                            <SelectItem value="science">Science</SelectItem>
-                            <SelectItem value="society">Society</SelectItem>
-                            <SelectItem value="policy">Policy</SelectItem>
+                            <SelectItem value="all">{t('gameCards.allDomains', '全部领域')}</SelectItem>
+                            <SelectItem value="industry">{t('gameCards.domainIndustry', '工业')}</SelectItem>
+                            <SelectItem value="ecology">{t('gameCards.domainEcology', '生态')}</SelectItem>
+                            <SelectItem value="science">{t('gameCards.domainScience', '科技')}</SelectItem>
+                            <SelectItem value="society">{t('gameCards.domainSociety', '社会')}</SelectItem>
+                            <SelectItem value="policy">{t('gameCards.domainPolicy', '政策')}</SelectItem>
                         </SelectContent>
                     </Select>
 
                     {/* Type Filter */}
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="w-[110px] h-10 rounded-xl border-slate-200 bg-white text-sm">
-                            <SelectValue>{typeFilter === 'all' ? t('gameCards.allTypes') : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}</SelectValue>
+                        <SelectTrigger className="w-[110px] h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm">
+                            <SelectValue>{typeFilter === 'all' ? t('gameCards.allTypes', '全部类型') : t(`gameCards.type${typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}`, typeFilter)}</SelectValue>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                            <SelectItem value="all">{t('gameCards.allTypes')}</SelectItem>
-                            <SelectItem value="core">Core</SelectItem>
-                            <SelectItem value="policy">Policy</SelectItem>
+                            <SelectItem value="all">{t('gameCards.allTypes', '全部类型')}</SelectItem>
+                            <SelectItem value="core">{t('gameCards.typeCore', '核心卡')}</SelectItem>
+                            <SelectItem value="policy">{t('gameCards.typePolicy', '政策卡')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -247,8 +247,8 @@ export function AdminGameCardsTab() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredCards.map((card) => (
-                    <div key={card.cardId} className="group relative bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-xl hover:border-[#30499B]/30 transition-all p-5 flex flex-col items-center text-center">
-                        <span className="absolute top-4 left-4 px-2.5 py-1 text-[10px] uppercase font-bold rounded-full bg-slate-100 text-slate-600">{card.domain}</span>
+                    <div key={card.cardId} className="group relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm hover:shadow-xl hover:border-[#30499B]/30 dark:hover:border-[#56B949]/40 transition-all p-5 flex flex-col items-center text-center">
+                        <span className="absolute top-4 left-4 px-2.5 py-1 text-[10px] uppercase font-bold rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{t(`gameCards.domain${card.domain.charAt(0).toUpperCase() + card.domain.slice(1)}`, card.domain)}</span>
                         <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => startEdit(card.cardId)} className="p-1.5 bg-slate-100 hover:bg-[#30499B] hover:text-white rounded-lg" title={t('gameCards.edit')}>✏️</button>
                             <button onClick={() => deleteCard(card.cardId)} className="p-1.5 bg-slate-100 hover:bg-red-600 hover:text-white rounded-lg" title={t('gameCards.delete')}>🗑️</button>
@@ -271,11 +271,11 @@ export function AdminGameCardsTab() {
                             {card.star > 0 && <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 bg-yellow-100 text-yellow-600 rounded-full text-xs font-bold ring-1 ring-yellow-200 z-10">{'⭐'.repeat(Math.min(card.star, 3))}</div>}
                         </div>
 
-                        <h3 className="font-bold text-lg text-slate-800">{card.chineseName}</h3>
-                        <p className="text-xs text-slate-500 uppercase">{card.englishName}</p>
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{card.chineseName}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 uppercase">{card.englishName}</p>
 
-                        <div className="mt-4 w-full bg-slate-50 rounded-xl p-3 border border-slate-100">
-                            <div className="grid grid-cols-4 gap-1 text-center text-xs">
+                        <div className="mt-4 w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
+                            <div className="grid grid-cols-4 gap-1 text-center text-xs text-slate-700 dark:text-slate-300">
                                 <div><span className="text-[10px] opacity-70 block">IND</span>{card.unlockCost?.industry || 0}</div>
                                 <div><span className="text-[10px] opacity-70 block">TEC</span>{card.unlockCost?.tech || 0}</div>
                                 <div><span className="text-[10px] opacity-70 block">POP</span>{card.unlockCost?.population || 0}</div>
@@ -326,16 +326,16 @@ export function AdminGameCardsTab() {
                             </div>
                             <button
                                 onClick={() => setRawMode((v) => !v)}
-                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-sm"
+                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 text-sm transition-colors"
                             >
-                                {rawMode ? 'Form Mode' : 'JSON Mode'}
+                                {rawMode ? t('gameCards.formMode', '表单模式') : t('gameCards.jsonMode', 'JSON 模式')}
                             </button>
                         </div>
 
                         <div className="p-10 space-y-12">
                             {rawMode ? (
                                 <section className="space-y-3">
-                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">Raw Card JSON</h4>
+                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.rawJson', '原始卡牌 JSON')}</h4>
                                     <textarea
                                         spellCheck={false}
                                         value={rawJson}
@@ -345,138 +345,138 @@ export function AdminGameCardsTab() {
                                 </section>
                             ) : (
                                 <>
-                            {/* Section 1: Basic Info & Assets */}
-                            <section className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.basicInfo')}</h4>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 bg-slate-50/40 p-8 rounded-3xl border border-slate-100/50">
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.cardId')}</Label>
-                                        <input value={formState.cardId} onChange={e => setFormState(p => ({ ...p, cardId: e.target.value }))} disabled={!!editingCardId} placeholder="e.g. card_001" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.cardNo')}</Label>
-                                        <input type="number" value={formState.cardNo} onChange={e => setFormState(p => ({ ...p, cardNo: Number(e.target.value) || 1 }))} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.chineseName')}</Label>
-                                        <input value={formState.chineseName} onChange={e => setFormState(p => ({ ...p, chineseName: e.target.value }))} placeholder={t('gameCards.chineseNamePlaceholder')} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.englishName')}</Label>
-                                        <input value={formState.englishName} onChange={e => setFormState(p => ({ ...p, englishName: e.target.value }))} placeholder={t('gameCards.englishNamePlaceholder')} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.imageKeyLabel')}</Label>
-                                        <input value={formState.imageKey} onChange={e => setFormState(p => ({ ...p, imageKey: e.target.value }))} placeholder="e.g. cards/card001.webp" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-xs" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.advancedImageKeyLabel')}</Label>
-                                        <input value={formState.advancedImageKey} onChange={e => setFormState(p => ({ ...p, advancedImageKey: e.target.value }))} placeholder="e.g. cards/card001_adv.webp" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-xs" />
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Section 2: Game Logic */}
-                            <section className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-1.5 h-6 bg-purple-500 rounded-full"></span>
-                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.gameLogic')}</h4>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-50/40 p-8 rounded-3xl border border-slate-100/50">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.cardType')}</Label>
-                                        <Select value={formState.cardType} onValueChange={v => setFormState(p => ({ ...p, cardType: v as any }))}>
-                                            <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                                                <SelectValue>{formState.cardType === 'policy' ? '📜 Policy' : '⚙️ Core'}</SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl">
-                                                <SelectItem value="core">⚙️ Core</SelectItem>
-                                                <SelectItem value="policy">📜 Policy</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.domain')}</Label>
-                                        <Select value={formState.domain} onValueChange={v => setFormState(p => ({ ...p, domain: v as any }))}>
-                                            <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                                                <SelectValue>{formState.domain.charAt(0).toUpperCase() + formState.domain.slice(1)}</SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl">
-                                                <SelectItem value="industry">Industry</SelectItem>
-                                                <SelectItem value="ecology">Ecology</SelectItem>
-                                                <SelectItem value="science">Science</SelectItem>
-                                                <SelectItem value="society">Society</SelectItem>
-                                                <SelectItem value="policy">Policy</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.phase')}</Label>
-                                        <Select value={formState.phaseBucket} onValueChange={v => setFormState(p => ({ ...p, phaseBucket: v as any }))}>
-                                            <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                                                <SelectValue>{formState.phaseBucket.charAt(0).toUpperCase() + formState.phaseBucket.slice(1)}</SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl">
-                                                <SelectItem value="early">Early</SelectItem>
-                                                <SelectItem value="mid">Mid</SelectItem>
-                                                <SelectItem value="late">Late</SelectItem>
-                                                <SelectItem value="policy">Policy</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.star')}</Label>
-                                        <div className="relative">
-                                            <input type="number" value={formState.star} onChange={e => setFormState(p => ({ ...p, star: Number(e.target.value) || 1 }))} className="w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-center" />
-                                            <span className="absolute right-4 top-3 text-lg">⭐</span>
+                                    {/* Section 1: Basic Info & Assets */}
+                                    <section className="space-y-6">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+                                            <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.basicInfo')}</h4>
                                         </div>
-                                    </div>
-                                </div>
-                            </section>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 bg-slate-50/40 p-8 rounded-3xl border border-slate-100/50">
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.cardId')}</Label>
+                                                <input value={formState.cardId} onChange={e => setFormState(p => ({ ...p, cardId: e.target.value }))} disabled={!!editingCardId} placeholder="e.g. card_001" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.cardNo')}</Label>
+                                                <input type="number" value={formState.cardNo} onChange={e => setFormState(p => ({ ...p, cardNo: Number(e.target.value) || 1 }))} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.chineseName')}</Label>
+                                                <input value={formState.chineseName} onChange={e => setFormState(p => ({ ...p, chineseName: e.target.value }))} placeholder={t('gameCards.chineseNamePlaceholder')} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.englishName')}</Label>
+                                                <input value={formState.englishName} onChange={e => setFormState(p => ({ ...p, englishName: e.target.value }))} placeholder={t('gameCards.englishNamePlaceholder')} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.imageKeyLabel')}</Label>
+                                                <input value={formState.imageKey} onChange={e => setFormState(p => ({ ...p, imageKey: e.target.value }))} placeholder="e.g. cards/card001.webp" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-xs" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.advancedImageKeyLabel')}</Label>
+                                                <input value={formState.advancedImageKey} onChange={e => setFormState(p => ({ ...p, advancedImageKey: e.target.value }))} placeholder="e.g. cards/card001_adv.webp" className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-xs" />
+                                            </div>
+                                        </div>
+                                    </section>
 
-                            {/* Section 3: Unlock Cost */}
-                            <section className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-1.5 h-6 bg-green-500 rounded-full"></span>
-                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.unlockCost')}</h4>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 px-1">
-                                            <span className="text-[10px] p-1 bg-blue-100 text-blue-600 rounded-md font-black">IND</span>
-                                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costIndustry')}</Label>
+                                    {/* Section 2: Game Logic */}
+                                    <section className="space-y-6">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-1.5 h-6 bg-purple-500 rounded-full"></span>
+                                            <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.gameLogic')}</h4>
                                         </div>
-                                        <input type="number" value={formState.unlockCostIndustry} onChange={e => setFormState(p => ({ ...p, unlockCostIndustry: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-blue-500 transition-all outline-none" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 px-1">
-                                            <span className="text-[10px] p-1 bg-purple-100 text-purple-600 rounded-md font-black">TEC</span>
-                                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costTech')}</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-50/40 p-8 rounded-3xl border border-slate-100/50">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.cardType')}</Label>
+                                                <Select value={formState.cardType} onValueChange={v => setFormState(p => ({ ...p, cardType: v as any }))}>
+                                                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                                                        <SelectValue>{formState.cardType === 'policy' ? `📜 ${t('gameCards.typePolicy', '政策卡')}` : `⚙️ ${t('gameCards.typeCore', '核心卡')}`}</SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl">
+                                                        <SelectItem value="core">⚙️ {t('gameCards.typeCore', '核心卡')}</SelectItem>
+                                                        <SelectItem value="policy">📜 {t('gameCards.typePolicy', '政策卡')}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.domain')}</Label>
+                                                <Select value={formState.domain} onValueChange={v => setFormState(p => ({ ...p, domain: v as any }))}>
+                                                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                                                        <SelectValue>{t(`gameCards.domain${formState.domain.charAt(0).toUpperCase() + formState.domain.slice(1)}`, formState.domain)}</SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl">
+                                                        <SelectItem value="industry">{t('gameCards.domainIndustry', '工业')}</SelectItem>
+                                                        <SelectItem value="ecology">{t('gameCards.domainEcology', '生态')}</SelectItem>
+                                                        <SelectItem value="science">{t('gameCards.domainScience', '科技')}</SelectItem>
+                                                        <SelectItem value="society">{t('gameCards.domainSociety', '社会')}</SelectItem>
+                                                        <SelectItem value="policy">{t('gameCards.domainPolicy', '政策')}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.phase')}</Label>
+                                                <Select value={formState.phaseBucket} onValueChange={v => setFormState(p => ({ ...p, phaseBucket: v as any }))}>
+                                                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                                                        <SelectValue>{t(`gameCards.phase${formState.phaseBucket.charAt(0).toUpperCase() + formState.phaseBucket.slice(1)}`, formState.phaseBucket)}</SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl">
+                                                        <SelectItem value="early">{t('gameCards.phaseEarly', '早期')}</SelectItem>
+                                                        <SelectItem value="mid">{t('gameCards.phaseMid', '中期')}</SelectItem>
+                                                        <SelectItem value="late">{t('gameCards.phaseLate', '后期')}</SelectItem>
+                                                        <SelectItem value="policy">{t('gameCards.phasePolicy', '政策')}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.star')}</Label>
+                                                <div className="relative">
+                                                    <input type="number" value={formState.star} onChange={e => setFormState(p => ({ ...p, star: Number(e.target.value) || 1 }))} className="w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-center" />
+                                                    <span className="absolute right-4 top-3 text-lg">⭐</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <input type="number" value={formState.unlockCostTech} onChange={e => setFormState(p => ({ ...p, unlockCostTech: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-purple-500 transition-all outline-none" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 px-1">
-                                            <span className="text-[10px] p-1 bg-amber-100 text-amber-600 rounded-md font-black">POP</span>
-                                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costPopulation')}</Label>
+                                    </section>
+
+                                    {/* Section 3: Unlock Cost */}
+                                    <section className="space-y-6">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-1.5 h-6 bg-green-500 rounded-full"></span>
+                                            <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">{t('gameCards.unlockCost')}</h4>
                                         </div>
-                                        <input type="number" value={formState.unlockCostPopulation} onChange={e => setFormState(p => ({ ...p, unlockCostPopulation: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-amber-500 transition-all outline-none" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 px-1">
-                                            <span className="text-[10px] p-1 bg-green-100 text-green-600 rounded-md font-black">GRN</span>
-                                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costGreen')}</Label>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-[10px] p-1 bg-blue-100 text-blue-600 rounded-md font-black">IND</span>
+                                                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costIndustry')}</Label>
+                                                </div>
+                                                <input type="number" value={formState.unlockCostIndustry} onChange={e => setFormState(p => ({ ...p, unlockCostIndustry: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-blue-500 transition-all outline-none" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-[10px] p-1 bg-purple-100 text-purple-600 rounded-md font-black">TEC</span>
+                                                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costTech')}</Label>
+                                                </div>
+                                                <input type="number" value={formState.unlockCostTech} onChange={e => setFormState(p => ({ ...p, unlockCostTech: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-purple-500 transition-all outline-none" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-[10px] p-1 bg-amber-100 text-amber-600 rounded-md font-black">POP</span>
+                                                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costPopulation')}</Label>
+                                                </div>
+                                                <input type="number" value={formState.unlockCostPopulation} onChange={e => setFormState(p => ({ ...p, unlockCostPopulation: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-amber-500 transition-all outline-none" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-[10px] p-1 bg-green-100 text-green-600 rounded-md font-black">GRN</span>
+                                                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costGreen')}</Label>
+                                                </div>
+                                                <input type="number" value={formState.unlockCostGreen} onChange={e => setFormState(p => ({ ...p, unlockCostGreen: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-green-500 transition-all outline-none" />
+                                            </div>
                                         </div>
-                                        <input type="number" value={formState.unlockCostGreen} onChange={e => setFormState(p => ({ ...p, unlockCostGreen: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-green-500 transition-all outline-none" />
-                                    </div>
-                                </div>
-                            </section>
+                                    </section>
                                 </>
                             )}
                         </div>
@@ -488,8 +488,8 @@ export function AdminGameCardsTab() {
                             </button>
                         </div>
                     </div>
-                </DialogContent>
-            </Dialog>
-        </div>
+                </DialogContent >
+            </Dialog >
+        </div >
     );
 }

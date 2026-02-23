@@ -101,16 +101,16 @@ export function SelectTrigger({
       type="button"
       onClick={() => context.setOpen(!context.open)}
       className={cn(
-        "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm backdrop-blur-sm transition-all hover:border-[#30499B]/30 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm text-slate-800",
-        context.open && "border-[#30499B]/50 ring-2 ring-[#30499B]/10",
+        "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-4 py-2 text-sm backdrop-blur-sm transition-all hover:border-[#30499B]/30 dark:hover:border-[#56B949]/30 hover:bg-white dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm text-slate-800 dark:text-slate-200",
+        context.open && "border-[#30499B]/50 dark:border-[#56B949]/50 ring-2 ring-[#30499B]/10 dark:ring-[#56B949]/10",
         className
       )}
     >
       {children}
       <ChevronDown
         className={cn(
-          "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
-          context.open && "rotate-180 text-[#30499B]"
+          "h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500 transition-transform duration-200",
+          context.open && "rotate-180 text-[#30499B] dark:text-[#56B949]"
         )}
       />
     </button>
@@ -155,7 +155,7 @@ export function SelectContent({
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
           className={cn(
-            "absolute left-0 right-0 z-50 min-w-[8rem] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-1 text-slate-920 shadow-xl backdrop-blur-md",
+            "absolute left-0 right-0 z-50 min-w-[8rem] overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800 p-1 text-slate-920 shadow-xl dark:shadow-slate-900/50 backdrop-blur-md",
             className
           )}
         >
@@ -192,8 +192,8 @@ export function SelectItem({
       type="button"
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-lg py-2 pl-3 pr-9 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 text-slate-700",
-        isSelected && "bg-[#30499B]/5 text-[#30499B] font-medium",
+        "relative flex w-full cursor-default select-none items-center rounded-lg py-2 pl-3 pr-9 text-sm outline-none transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 disabled:pointer-events-none disabled:opacity-50 text-slate-700 dark:text-slate-200",
+        isSelected && "bg-[#30499B]/5 dark:bg-[#56B949]/10 text-[#30499B] dark:text-[#56B949] font-medium",
         className
       )}
     >

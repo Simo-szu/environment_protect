@@ -132,18 +132,18 @@ export default function FeedbackPage() {
                         <MessageSquare className="w-3 h-3" />
                         {t('badge')}
                     </div>
-                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title')}</h1>
-                    <p className="text-slate-600 max-w-2xl mx-auto">
+                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] dark:text-white mb-4">{t('title')}</h1>
+                    <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
                         {t('description')}
                     </p>
                 </div>
 
                 {/* 反馈表单 */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
+                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 dark:border-slate-800 shadow-lg">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* 反馈类型 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-3">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                 {t('form.type.label')}
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -151,8 +151,8 @@ export default function FeedbackPage() {
                                     <label
                                         key={type.value}
                                         className={`flex items-center justify-center p-3 border rounded-lg cursor-pointer transition-all ${formData.type === type.value
-                                            ? 'border-[#56B949] bg-[#56B949]/5'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-[#56B949] bg-[#56B949]/5 dark:bg-[#56B949]/20'
+                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
                                             }`}
                                     >
                                         <input
@@ -163,7 +163,7 @@ export default function FeedbackPage() {
                                             onChange={handleInputChange}
                                             className="sr-only"
                                         />
-                                        <span className={`text-sm font-medium ${formData.type === type.value ? type.color : 'text-slate-600'
+                                        <span className={`text-sm font-medium ${formData.type === type.value ? type.color : 'text-slate-600 dark:text-slate-400'
                                             }`}>
                                             {type.label}
                                         </span>
@@ -174,7 +174,7 @@ export default function FeedbackPage() {
 
                         {/* 满意度评分 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-3">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                 {t('form.rating.label')}
                             </label>
                             <div className="flex items-center gap-2">
@@ -185,13 +185,13 @@ export default function FeedbackPage() {
                                         onClick={() => handleRatingChange(star)}
                                         className={`p-1 transition-colors ${star <= formData.rating
                                             ? 'text-[#F0A32F]'
-                                            : 'text-slate-300 hover:text-slate-400'
+                                            : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
                                             }`}
                                     >
                                         <Star className={`w-6 h-6 ${star <= formData.rating ? 'fill-current' : ''}`} />
                                     </button>
                                 ))}
-                                <span className="ml-2 text-sm text-slate-600">
+                                <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">
                                     {formData.rating} {t('form.rating.stars')}
                                 </span>
                             </div>
@@ -199,7 +199,7 @@ export default function FeedbackPage() {
 
                         {/* 反馈标题 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 {t('form.title.label')}
                             </label>
                             <input
@@ -207,7 +207,7 @@ export default function FeedbackPage() {
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                 placeholder={t('form.title.placeholder')}
                                 required
                             />
@@ -215,7 +215,7 @@ export default function FeedbackPage() {
 
                         {/* 详细内容 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 {t('form.content.label')}
                             </label>
                             <textarea
@@ -223,7 +223,7 @@ export default function FeedbackPage() {
                                 value={formData.content}
                                 onChange={handleInputChange}
                                 rows={6}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
                                 placeholder={t('form.content.placeholder')}
                                 required
                             />
@@ -231,7 +231,7 @@ export default function FeedbackPage() {
 
                         {/* 联系方式 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 {t('form.contact.label')}
                             </label>
                             <input
@@ -239,7 +239,7 @@ export default function FeedbackPage() {
                                 name="contact"
                                 value={formData.contact}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                 placeholder={t('form.contact.placeholder')}
                             />
                         </div>
@@ -253,13 +253,13 @@ export default function FeedbackPage() {
                                 onChange={handleInputChange}
                                 className="w-4 h-4 text-[#56B949] border-slate-300 rounded focus:ring-[#56B949]"
                             />
-                            <label className="text-sm text-slate-700">
+                            <label className="text-sm text-slate-700 dark:text-slate-300">
                                 {t('form.anonymous')}
                             </label>
                         </div>
 
                         {/* 提交按钮 */}
-                        <div className="flex gap-4 pt-6 border-t border-slate-200">
+                        <div className="flex gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                             <button
                                 type="submit"
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
@@ -269,7 +269,7 @@ export default function FeedbackPage() {
                             </button>
                             <Link
                                 href={`/${locale}`}
-                                className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                className="px-6 py-3 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                             >
                                 {t('form.cancel')}
                             </Link>
@@ -278,20 +278,20 @@ export default function FeedbackPage() {
                 </div>
 
                 {/* 其他联系方式 */}
-                <div className="mt-8 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 rounded-xl p-6 border border-[#56B949]/20">
-                    <h3 className="text-lg font-semibold text-[#30499B] mb-4">{t('otherContact.title')}</h3>
+                <div className="mt-8 bg-gradient-to-r from-[#56B949]/10 to-[#F0A32F]/10 dark:from-[#56B949]/5 dark:to-[#F0A32F]/5 rounded-xl p-6 border border-[#56B949]/20 dark:border-[#56B949]/10">
+                    <h3 className="text-lg font-semibold text-[#30499B] dark:text-white mb-4">{t('otherContact.title')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.email.title')}</p>
-                            <p className="text-slate-600">{t('otherContact.email.address')}</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">{t('otherContact.email.title')}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{t('otherContact.email.address')}</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.phone.title')}</p>
-                            <p className="text-slate-600">{t('otherContact.phone.number')}</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">{t('otherContact.phone.title')}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{t('otherContact.phone.number')}</p>
                         </div>
                         <div className="text-center">
-                            <p className="font-medium text-slate-800 mb-1">{t('otherContact.hours.title')}</p>
-                            <p className="text-slate-600">{t('otherContact.hours.schedule')}</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200 mb-1">{t('otherContact.hours.title')}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{t('otherContact.hours.schedule')}</p>
                         </div>
                     </div>
                 </div>

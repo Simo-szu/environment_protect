@@ -2,7 +2,7 @@ package com.youthloop.game.persistence.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -16,5 +16,5 @@ public class GameActionEntity {
     private Integer actionType;
     private JsonNode actionData;
     private Integer pointsEarned;
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 }

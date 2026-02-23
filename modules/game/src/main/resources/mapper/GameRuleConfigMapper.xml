@@ -99,9 +99,7 @@
         <result column="policy_hand_limit" property="policyHandLimit" jdbcType="INTEGER"/>
         <result column="max_combo_per_turn" property="maxComboPerTurn" jdbcType="INTEGER"/>
         <result column="max_turn" property="maxTurn" jdbcType="INTEGER"/>
-        <result column="hand_discard_decision_seconds" property="handDiscardDecisionSeconds" jdbcType="INTEGER"/>
         <result column="trade_window_interval" property="tradeWindowInterval" jdbcType="INTEGER"/>
-        <result column="trade_window_seconds" property="tradeWindowSeconds" jdbcType="INTEGER"/>
         <result column="base_carbon_price" property="baseCarbonPrice" jdbcType="DOUBLE"/>
         <result column="max_carbon_quota" property="maxCarbonQuota" jdbcType="INTEGER"/>
         <result column="domain_progress_card_cap" property="domainProgressCardCap" jdbcType="INTEGER"/>
@@ -262,7 +260,7 @@
 
     <select id="selectEnabledRuntimeParamConfig" resultMap="RuntimeParamResultMap">
         SELECT config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
-               hand_discard_decision_seconds, trade_window_interval, trade_window_seconds,
+               trade_window_interval,
                base_carbon_price, max_carbon_quota, domain_progress_card_cap,
                ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
                is_enabled
@@ -317,7 +315,7 @@
     <insert id="upsertRuntimeParamConfig">
         INSERT INTO game.game_runtime_param_config (
             config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
-            hand_discard_decision_seconds, trade_window_interval, trade_window_seconds,
+            trade_window_interval,
             base_carbon_price, max_carbon_quota, domain_progress_card_cap,
             ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
             is_enabled
@@ -327,9 +325,7 @@
             #{policyHandLimit, jdbcType=INTEGER},
             #{maxComboPerTurn, jdbcType=INTEGER},
             #{maxTurn, jdbcType=INTEGER},
-            #{handDiscardDecisionSeconds, jdbcType=INTEGER},
             #{tradeWindowInterval, jdbcType=INTEGER},
-            #{tradeWindowSeconds, jdbcType=INTEGER},
             #{baseCarbonPrice, jdbcType=DOUBLE},
             #{maxCarbonQuota, jdbcType=INTEGER},
             #{domainProgressCardCap, jdbcType=INTEGER},
@@ -343,9 +339,7 @@
             policy_hand_limit = EXCLUDED.policy_hand_limit,
             max_combo_per_turn = EXCLUDED.max_combo_per_turn,
             max_turn = EXCLUDED.max_turn,
-            hand_discard_decision_seconds = EXCLUDED.hand_discard_decision_seconds,
             trade_window_interval = EXCLUDED.trade_window_interval,
-            trade_window_seconds = EXCLUDED.trade_window_seconds,
             base_carbon_price = EXCLUDED.base_carbon_price,
             max_carbon_quota = EXCLUDED.max_carbon_quota,
             domain_progress_card_cap = EXCLUDED.domain_progress_card_cap,

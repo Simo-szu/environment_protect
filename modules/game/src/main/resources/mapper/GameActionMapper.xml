@@ -11,7 +11,7 @@
             #{actionType, jdbcType=INTEGER},
             #{actionData, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{pointsEarned, jdbcType=INTEGER},
-            #{createdAt, jdbcType=TIMESTAMP}
+            #{createdAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
         )
     </insert>
     

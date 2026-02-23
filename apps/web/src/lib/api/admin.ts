@@ -151,15 +151,209 @@ export interface AdminUpdateGameCardRequest {
   isEnabled?: boolean;
 }
 
+export interface AdminBalanceRule {
+  configId?: number;
+  initialPhase?: string;
+  initialEventCooldown?: number;
+  boardSize?: number;
+  initialIndustry?: number;
+  initialTech?: number;
+  initialPopulation?: number;
+  initialGreen?: number;
+  initialCarbon?: number;
+  initialSatisfaction?: number;
+  initialLowCarbonScore?: number;
+  initialQuota?: number;
+  initialDrawEarly?: number;
+  drawCountEarly?: number;
+  drawCountMid?: number;
+  drawCountLate?: number;
+  eventCooldownResetTurns?: number;
+  settlementBaseIndustryGain?: number;
+  settlementBaseTechGain?: number;
+  settlementBasePopulationGain?: number;
+  satisfactionMax?: number;
+  carbonQuotaBaseLine?: number;
+  carbonQuotaPerNOver?: number;
+  carbonIndustryEmissionPerCard?: number;
+  carbonEcologyReductionPerCard?: number;
+  carbonScienceReductionPerCard?: number;
+  tradeRandomBaseMin?: number;
+  tradeRandomSpan?: number;
+  tradeHighCarbonThreshold?: number;
+  tradeHighCarbonFactor?: number;
+  tradeLowCarbonThreshold?: number;
+  tradeLowCarbonFactor?: number;
+  failureHighCarbonThreshold?: number;
+  failureHighCarbonStreakLimit?: number;
+  tradeFailureQuotaExhaustedLimit?: number;
+  tradeFailureProfitThreshold?: number;
+  lowCarbonMinForPositiveEnding?: number;
+  lowCarbonDomainThreshold?: number;
+  lowCarbonDomainBonus?: number;
+  lowCarbonPolicyUnlockScore?: number;
+  lowCarbonPolicyUnlockAllCount?: number;
+  lowCarbonPolicyUnlockAllBonus?: number;
+  lowCarbonEventResolvedScore?: number;
+  lowCarbonEventTriggeredPenalty?: number;
+  lowCarbonOverLimitCarbonThreshold?: number;
+  lowCarbonOverLimitStreakThreshold?: number;
+  lowCarbonOverLimitStreakPenalty?: number;
+  lowCarbonTradeProfitDivisor?: number;
+  lowCarbonTradeProfitBonus?: number;
+  lowCarbonQuotaExhaustedPenalty?: number;
+  lowCarbonInvalidOperationPenalty?: number;
+  carbonTier1Max?: number;
+  carbonTier1Score?: number;
+  carbonTier2Max?: number;
+  carbonTier2Score?: number;
+  carbonTier3Max?: number;
+  carbonTier3Score?: number;
+  carbonTier4Max?: number;
+  carbonTier4Score?: number;
+  carbonTier5Score?: number;
+  phaseEarlyMaxCards?: number;
+  phaseEarlyMaxScore?: number;
+  phaseMidMinCards?: number;
+  phaseMidMaxCards?: number;
+  phaseMidMinScore?: number;
+  phaseMidMaxScore?: number;
+  phaseLateMinCards?: number;
+  phaseLateMinScore?: number;
+  phaseLateRemainingCardsThreshold?: number;
+  endingEventResolveRateRequired?: number;
+  endingInnovationMinScience?: number;
+  endingInnovationMinTech?: number;
+  endingInnovationMinLowCarbon?: number;
+  endingInnovationMaxCarbon?: number;
+  endingInnovationMinProfit?: number;
+  endingEcologyMinEcology?: number;
+  endingEcologyMinGreen?: number;
+  endingEcologyMinLowCarbon?: number;
+  endingEcologyMaxCarbon?: number;
+  endingEcologyMinQuota?: number;
+  endingDoughnutMinSociety?: number;
+  endingDoughnutMinSatisfaction?: number;
+  endingDoughnutMinPopulation?: number;
+  endingDoughnutMinDomain?: number;
+  endingDoughnutMinLowCarbon?: number;
+  endingDoughnutMaxCarbon?: number;
+  endingDoughnutMinPolicyUsage6768?: number;
+  isEnabled?: boolean;
+}
+
+export interface AdminEventRule {
+  eventType: string;
+  triggerProbabilityPct?: number;
+  minGreen?: number | null;
+  minCarbon?: number | null;
+  maxSatisfaction?: number | null;
+  minPopulation?: number | null;
+  requireEvenTurn?: boolean;
+  weight?: number;
+  durationTurns?: number;
+  greenDelta?: number;
+  carbonDelta?: number;
+  satisfactionDelta?: number;
+  greenPctDelta?: number;
+  populationPctDelta?: number;
+  quotaDelta?: number;
+  displayName?: string;
+  effectSummary?: string;
+  resolutionHint?: string;
+  resolvablePolicyIdsCsv?: string;
+  isEnabled?: boolean;
+}
+
+export interface AdminComboRule {
+  comboId: string;
+  priorityOrder?: number;
+  requiredPolicyId?: string;
+  minIndustry?: number;
+  minEcology?: number;
+  minScience?: number;
+  minSociety?: number;
+  minLowCarbonIndustry?: number;
+  minShenzhenEcology?: number;
+  minLinkCards?: number;
+  minIndustryLowCarbonAdjacentPairs?: number;
+  minScienceScienceAdjacentPairs?: number;
+  minScienceIndustryAdjacentPairs?: number;
+  minIndustryEcologyAdjacentPairs?: number;
+  minSocietyEcologyAdjacentPairs?: number;
+  effectIndustryDelta?: number;
+  effectTechDelta?: number;
+  effectPopulationDelta?: number;
+  effectGreenDelta?: number;
+  effectCarbonDelta?: number;
+  effectSatisfactionDelta?: number;
+  effectQuotaDelta?: number;
+  effectLowCarbonDelta?: number;
+  effectTechPct?: number;
+  effectPopulationPct?: number;
+  effectIndustryPct?: number;
+  effectLowCarbonPct?: number;
+  effectGreenPct?: number;
+  effectGlobalPct?: number;
+  isEnabled?: boolean;
+}
+
+export interface AdminPolicyUnlockRule {
+  policyId: string;
+  priorityOrder?: number;
+  minIndustry?: number;
+  minEcology?: number;
+  minScience?: number;
+  minSociety?: number;
+  minIndustryResource?: number;
+  minTechResource?: number;
+  minPopulationResource?: number;
+  minGreen?: number | null;
+  minCarbon?: number | null;
+  maxCarbon?: number | null;
+  minSatisfaction?: number | null;
+  minTaggedCards?: number;
+  requiredTag?: string;
+  isEnabled?: boolean;
+}
+
+export interface AdminCoreSpecialCondition {
+  cardId: string;
+  requiredEventType?: string;
+  minIndustryCards?: number;
+  minEcologyCards?: number;
+  minScienceCards?: number;
+  minSocietyCards?: number;
+  isEnabled?: boolean;
+}
+
+export interface AdminCardTag {
+  cardId: string;
+  tagCode: string;
+  isEnabled?: boolean;
+}
+
+export interface AdminEndingContent {
+  endingId: string;
+  endingName?: string;
+  imageKey?: string;
+  defaultReason?: string;
+  failureReasonHighCarbon?: string;
+  failureReasonTrade?: string;
+  failureReasonLowScore?: string;
+  failureReasonBoundaryDefault?: string;
+  isEnabled?: boolean;
+}
+
 export interface AdminGameRulesConfig {
   runtimeParam: AdminGameRuntimeParam | null;
-  balanceRule: Record<string, any> | null;
-  eventRules: Record<string, any>[];
-  comboRules: Record<string, any>[];
-  policyUnlockRules: Record<string, any>[];
-  coreSpecialConditions: Record<string, any>[];
-  cardTags: Record<string, any>[];
-  endingContents: Record<string, any>[];
+  balanceRule: AdminBalanceRule | null;
+  eventRules: AdminEventRule[];
+  comboRules: AdminComboRule[];
+  policyUnlockRules: AdminPolicyUnlockRule[];
+  coreSpecialConditions: AdminCoreSpecialCondition[];
+  cardTags: AdminCardTag[];
+  endingContents: AdminEndingContent[];
 }
 
 export interface AdminGameRuntimeParam {
@@ -168,9 +362,7 @@ export interface AdminGameRuntimeParam {
   policyHandLimit?: number;
   maxComboPerTurn?: number;
   maxTurn?: number;
-  handDiscardDecisionSeconds?: number;
   tradeWindowInterval?: number;
-  tradeWindowSeconds?: number;
   baseCarbonPrice?: number;
   maxCarbonQuota?: number;
   domainProgressCardCap?: number;
@@ -181,13 +373,13 @@ export interface AdminGameRuntimeParam {
 
 export interface AdminUpdateGameRulesRequest {
   runtimeParam?: AdminGameRuntimeParam | null;
-  balanceRule?: Record<string, any> | null;
-  eventRules?: Record<string, any>[] | null;
-  comboRules?: Record<string, any>[] | null;
-  policyUnlockRules?: Record<string, any>[] | null;
-  coreSpecialConditions?: Record<string, any>[] | null;
-  cardTags?: Record<string, any>[] | null;
-  endingContents?: Record<string, any>[] | null;
+  balanceRule?: AdminBalanceRule | null;
+  eventRules?: AdminEventRule[] | null;
+  comboRules?: AdminComboRule[] | null;
+  policyUnlockRules?: AdminPolicyUnlockRule[] | null;
+  coreSpecialConditions?: AdminCoreSpecialCondition[] | null;
+  cardTags?: AdminCardTag[] | null;
+  endingContents?: AdminEndingContent[] | null;
 }
 
 export async function getAdminHostVerifications(params: {

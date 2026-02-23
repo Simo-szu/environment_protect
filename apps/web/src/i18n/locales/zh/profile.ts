@@ -51,6 +51,10 @@ const profile = {
         favorites: '我的收藏',
         activities: '我的活动',
         points: '我的积分',
+        descLikes: '查看点赞的内容',
+        descFavorites: '查看收藏的内容',
+        descActivities: '查看参与的活动',
+        descPoints: '查看环保积分',
     },
     recentActivities: {
         title: '最近动态',

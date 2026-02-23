@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +90,7 @@ public class GameService {
         processPendingDiscardTimeout(state);
         processTradeWindowTimeout(state);
         session.setPondState(state);
-        session.setUpdatedAt(LocalDateTime.now());
+        session.setUpdatedAt(OffsetDateTime.now());
         gameSessionMapper.update(session);
         return toDTO(session);
     }
@@ -110,7 +110,7 @@ public class GameService {
             processPendingDiscardTimeout(state);
             processTradeWindowTimeout(state);
             session.setPondState(state);
-            session.setUpdatedAt(LocalDateTime.now());
+            session.setUpdatedAt(OffsetDateTime.now());
             gameSessionMapper.update(session);
             return toDTO(session);
         }
@@ -123,7 +123,7 @@ public class GameService {
         processPendingDiscardTimeout(guestState);
         processTradeWindowTimeout(guestState);
         guestSession.setPondState(guestState);
-        guestSession.setUpdatedAt(LocalDateTime.now());
+        guestSession.setUpdatedAt(OffsetDateTime.now());
         if (guestSession.getUserId() != null) {
             gameSessionMapper.update(guestSession);
         }
@@ -193,8 +193,8 @@ public class GameService {
         session.setPondState(state);
         session.setScore(latestScore);
         session.setLevel(calculateLevel(latestScore));
-        session.setLastActionAt(LocalDateTime.now());
-        session.setUpdatedAt(LocalDateTime.now());
+        session.setLastActionAt(OffsetDateTime.now());
+        session.setUpdatedAt(OffsetDateTime.now());
         if (sessionEnded) {
             session.setStatus(SESSION_ENDED);
             if (state.has("ending") && state.path("ending").isObject()) {
@@ -213,7 +213,7 @@ public class GameService {
             action.setActionType(request.getActionType());
             action.setActionData(request.getActionData());
             action.setPointsEarned(pointsEarned);
-            action.setCreatedAt(LocalDateTime.now());
+            action.setCreatedAt(OffsetDateTime.now());
             gameActionMapper.insert(action);
         } else {
             if (session.getUserId() != null) {
@@ -260,7 +260,7 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_ACTIVE);
         }
         session.setStatus(SESSION_ENDED);
-        session.setUpdatedAt(LocalDateTime.now());
+        session.setUpdatedAt(OffsetDateTime.now());
         if (authenticated) {
             gameSessionMapper.update(session);
         } else {
@@ -1091,6 +1091,7 @@ public class GameService {
         int turn = state.path("turn").asInt();
         ObjectNode trade = state.with("carbonTrade");
         trade.put("windowOpened", false);
+        trade.put("windowExpiresAt", 0L);
         if (turn % tradeWindowInterval() != 0) {
             return;
         }
@@ -1101,7 +1102,7 @@ public class GameService {
         trade.put("windowOpened", true);
         trade.put("lastWindowTurn", turn);
         trade.put("lastPrice", price);
-        trade.put("windowExpiresAt", System.currentTimeMillis() + tradeWindowSeconds() * 1000L);
+        trade.put("windowExpiresAt", 0L);
     }
 
     private int handleCarbonTrade(ObjectNode state, JsonNode actionData) {
@@ -1202,15 +1203,8 @@ public class GameService {
     }
 
     private void processTradeWindowTimeout(ObjectNode state) {
-        ObjectNode trade = state.with("carbonTrade");
-        if (!trade.path("windowOpened").asBoolean(false)) {
-            return;
-        }
-        long expiresAt = trade.path("windowExpiresAt").asLong(0L);
-        if (expiresAt <= 0L || System.currentTimeMillis() < expiresAt) {
-            return;
-        }
-        settlePendingTradeWindowAsSkip(state);
+        // Trade window timeout is intentionally disabled:
+        // players can decide within the turn and end turn manually.
     }
 
     private double calculateCarbonTradePrice(int carbon, int pricePctModifier) {
@@ -1815,7 +1809,7 @@ public class GameService {
     private void armPendingDiscard(ObjectNode state) {
         ObjectNode pending = state.with("pendingDiscard");
         pending.put("active", true);
-        pending.put("expiresAt", System.currentTimeMillis() + handDiscardDecisionSeconds() * 1000L);
+        pending.put("expiresAt", 0L);
         pending.put("coreRequired", Math.max(0, state.withArray("handCore").size() - coreHandLimit()));
         pending.put("policyRequired", Math.max(0, state.withArray("handPolicy").size() - policyHandLimit()));
     }
@@ -1838,6 +1832,9 @@ public class GameService {
             return;
         }
         long expiresAt = pending.path("expiresAt").asLong(0L);
+        if (expiresAt <= 0L) {
+            return;
+        }
         if (System.currentTimeMillis() < expiresAt) {
             return;
         }
@@ -1872,7 +1869,6 @@ public class GameService {
         history.put("turn", state.path("turn").asInt());
         history.put("handType", handType);
         history.put("cardId", cardId);
-        history.put("decisionWindowSeconds", handDiscardDecisionSeconds());
         history.put("reason", reason);
         state.withArray("handOverflowHistory").add(history);
     }
@@ -1882,7 +1878,6 @@ public class GameService {
         history.put("turn", state.path("turn").asInt());
         history.put("handType", handType);
         history.put("cardId", cardId);
-        history.put("decisionWindowSeconds", handDiscardDecisionSeconds());
         history.put("reason", "timeout_auto_discard");
         state.withArray("handOverflowHistory").add(history);
     }
@@ -2414,16 +2409,8 @@ public class GameService {
         return runtimeParam().maxTurn();
     }
 
-    private int handDiscardDecisionSeconds() {
-        return runtimeParam().handDiscardDecisionSeconds();
-    }
-
     private int tradeWindowInterval() {
         return runtimeParam().tradeWindowInterval();
-    }
-
-    private int tradeWindowSeconds() {
-        return runtimeParam().tradeWindowSeconds();
     }
 
     private double baseCarbonPrice() {
@@ -2461,7 +2448,7 @@ public class GameService {
     private GameSessionEntity createSession(UUID userId, boolean guestSession) {
         ObjectNode initialState = buildInitialState(guestSession);
         long initialScore = initialState.path("metrics").path("lowCarbonScore").asLong(0);
-        LocalDateTime now = LocalDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now();
 
         GameSessionEntity session = new GameSessionEntity();
         session.setId(UUID.randomUUID());

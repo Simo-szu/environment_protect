@@ -12,9 +12,7 @@ public class GameRuntimeParamConfigEntity {
     private Integer policyHandLimit;
     private Integer maxComboPerTurn;
     private Integer maxTurn;
-    private Integer handDiscardDecisionSeconds;
     private Integer tradeWindowInterval;
-    private Integer tradeWindowSeconds;
     private Double baseCarbonPrice;
     private Integer maxCarbonQuota;
     private Integer domainProgressCardCap;

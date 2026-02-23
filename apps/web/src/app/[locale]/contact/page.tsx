@@ -119,8 +119,8 @@ export default function ContactPage() {
                         <MessageCircle className="w-3 h-3" />
                         {t('badge')}
                     </div>
-                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title')}</h1>
-                    <p className="text-slate-600 max-w-2xl mx-auto">
+                    <h1 className="text-3xl font-serif font-semibold text-[#30499B] dark:text-white mb-4">{t('title')}</h1>
+                    <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
                         {t('description')}
                     </p>
                 </div>
@@ -129,8 +129,8 @@ export default function ContactPage() {
                     {/* 联系信息 */}
                     <div className="lg:col-span-1 space-y-6">
                         {/* 联系方式卡片 */}
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg">
-                            <h3 className="text-lg font-semibold text-[#30499B] mb-6">{t('contactInfo.title', '联系方式')}</h3>
+                        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-800 shadow-lg">
+                            <h3 className="text-lg font-semibold text-[#30499B] dark:text-blue-400 mb-6">{t('contactInfo.title', '联系方式')}</h3>
 
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
@@ -138,9 +138,9 @@ export default function ContactPage() {
                                         <Phone className="w-5 h-5 text-[#56B949]" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-800">{t('contactInfo.phone.title', '客服热线')}</p>
-                                        <p className="text-slate-600">{t('contactInfo.phone.number', '400-123-4567')}</p>
-                                        <p className="text-xs text-slate-500">{t('contactInfo.phone.hours', '工作日 9:00-18:00')}</p>
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">{t('contactInfo.phone.title', '客服热线')}</p>
+                                        <p className="text-slate-600 dark:text-slate-400">{t('contactInfo.phone.number', '400-123-4567')}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">{t('contactInfo.phone.hours', '工作日 9:00-18:00')}</p>
                                     </div>
                                 </div>
 
@@ -149,9 +149,9 @@ export default function ContactPage() {
                                         <Mail className="w-5 h-5 text-[#30499B]" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-800">{t('contactInfo.email.title', '邮箱地址')}</p>
-                                        <p className="text-slate-600">{t('contactInfo.email.address', 'contact@youthloop.org')}</p>
-                                        <p className="text-xs text-slate-500">{t('contactInfo.email.response', '24小时内回复')}</p>
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">{t('contactInfo.email.title', '邮箱地址')}</p>
+                                        <p className="text-slate-600 dark:text-slate-400">{t('contactInfo.email.address', 'contact@youthloop.org')}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">{t('contactInfo.email.response', '24小时内回复')}</p>
                                     </div>
                                 </div>
 
@@ -160,9 +160,9 @@ export default function ContactPage() {
                                         <MapPin className="w-5 h-5 text-[#F0A32F]" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-800">{t('contactInfo.address.title', '办公地址')}</p>
-                                        <p className="text-slate-600">{t('contactInfo.address.location', '北京市朝阳区环保大厦')}</p>
-                                        <p className="text-xs text-slate-500">{t('contactInfo.address.postal', '邮编：100020')}</p>
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">{t('contactInfo.address.title', '办公地址')}</p>
+                                        <p className="text-slate-600 dark:text-slate-400">{t('contactInfo.address.location', '北京市朝阳区环保大厦')}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">{t('contactInfo.address.postal', '邮编：100020')}</p>
                                     </div>
                                 </div>
 
@@ -171,22 +171,22 @@ export default function ContactPage() {
                                         <Clock className="w-5 h-5 text-[#EE4035]" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-800">{t('contactInfo.hours.title', '服务时间')}</p>
-                                        <p className="text-slate-600">{t('contactInfo.hours.days', '周一至周日')}</p>
-                                        <p className="text-xs text-slate-500">{t('contactInfo.hours.support', '7×24小时在线支持')}</p>
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">{t('contactInfo.hours.title', '服务时间')}</p>
+                                        <p className="text-slate-600 dark:text-slate-400">{t('contactInfo.hours.days', '周一至周日')}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">{t('contactInfo.hours.support', '7×24小时在线支持')}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* 关于我们 */}
-                        <div className="bg-gradient-to-br from-[#56B949]/10 to-[#F0A32F]/10 rounded-xl p-6 border border-[#56B949]/20">
+                        <div className="bg-gradient-to-br from-[#56B949]/10 to-[#F0A32F]/10 dark:from-[#56B949]/5 dark:to-[#F0A32F]/5 rounded-xl p-6 border border-[#56B949]/20">
                             <div className="text-center">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-xl mx-auto mb-4">
                                     YL
                                 </div>
-                                <h4 className="font-semibold text-[#30499B] mb-2">YouthLoop</h4>
-                                <p className="text-sm text-slate-600 mb-4">
+                                <h4 className="font-semibold text-[#30499B] dark:text-white mb-2">YouthLoop</h4>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                                     {t('about.slogan', '让绿色循环，用行动改变未来')}
                                 </p>
                                 <div className="flex justify-center gap-4 text-xs text-slate-500">
@@ -209,13 +209,13 @@ export default function ContactPage() {
 
                     {/* 联系表单 */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg">
-                            <h3 className="text-xl font-semibold text-[#30499B] mb-6">{t('form.title', '发送消息')}</h3>
+                        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 dark:border-slate-800 shadow-lg">
+                            <h3 className="text-xl font-semibold text-[#30499B] dark:text-blue-400 mb-6">{t('form.title', '发送消息')}</h3>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             {t('form.name.label', '姓名')} *
                                         </label>
                                         <input
@@ -223,13 +223,13 @@ export default function ContactPage() {
                                             name="name"
                                             value={formData.name}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                             placeholder={t('form.name.placeholder', '请输入您的姓名')}
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             {t('form.email.label', '邮箱')} *
                                         </label>
                                         <input
@@ -237,7 +237,7 @@ export default function ContactPage() {
                                             name="email"
                                             value={formData.email}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                             placeholder={t('form.email.placeholder', '请输入您的邮箱')}
                                             required
                                         />
@@ -246,7 +246,7 @@ export default function ContactPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             {t('form.phone.label', '电话')}
                                         </label>
                                         <input
@@ -254,19 +254,19 @@ export default function ContactPage() {
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                             placeholder={t('form.phone.placeholder', '请输入您的电话')}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                             {t('form.subject.label', '主题')} *
                                         </label>
                                         <select
                                             name="subject"
                                             value={formData.subject}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                             required
                                         >
                                             <option value="">{t('form.subject.placeholder', '请选择主题')}</option>
@@ -281,7 +281,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                         {t('form.message.label', '消息内容')} *
                                     </label>
                                     <textarea
@@ -289,7 +289,7 @@ export default function ContactPage() {
                                         value={formData.message}
                                         onChange={handleInputChange}
                                         rows={6}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
+                                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
                                         placeholder={t('form.message.placeholder', '请详细描述您的问题或需求...')}
                                         required
                                     />
@@ -317,32 +317,32 @@ export default function ContactPage() {
                         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Link
                                 href={`/${locale}/help`}
-                                className="p-4 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40 hover:border-[#56B949] transition-colors text-center"
+                                className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/40 dark:border-slate-700 hover:border-[#56B949] dark:hover:border-[#56B949] transition-colors text-center"
                             >
                                 <div className="w-8 h-8 rounded-lg bg-[#56B949]/10 flex items-center justify-center mx-auto mb-2">
                                     <MessageCircle className="w-4 h-4 text-[#56B949]" />
                                 </div>
-                                <p className="font-medium text-slate-800 text-sm">{t('quickLinks.help.title')}</p>
-                                <p className="text-xs text-slate-600">{t('quickLinks.help.description')}</p>
+                                <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{t('quickLinks.help.title')}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">{t('quickLinks.help.description')}</p>
                             </Link>
 
                             <Link
                                 href={`/${locale}/feedback`}
-                                className="p-4 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40 hover:border-[#F0A32F] transition-colors text-center"
+                                className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/40 dark:border-slate-700 hover:border-[#F0A32F] transition-colors text-center"
                             >
                                 <div className="w-8 h-8 rounded-lg bg-[#F0A32F]/10 flex items-center justify-center mx-auto mb-2">
                                     <Send className="w-4 h-4 text-[#F0A32F]" />
                                 </div>
-                                <p className="font-medium text-slate-800 text-sm">{t('quickLinks.feedback.title')}</p>
-                                <p className="text-xs text-slate-600">{t('quickLinks.feedback.description')}</p>
+                                <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{t('quickLinks.feedback.title')}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">{t('quickLinks.feedback.description')}</p>
                             </Link>
 
-                            <div className="p-4 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40 text-center">
+                            <div className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/40 dark:border-slate-700 text-center">
                                 <div className="w-8 h-8 rounded-lg bg-[#30499B]/10 flex items-center justify-center mx-auto mb-2">
                                     <Phone className="w-4 h-4 text-[#30499B]" />
                                 </div>
-                                <p className="font-medium text-slate-800 text-sm">{t('quickLinks.emergency.title', '紧急联系')}</p>
-                                <p className="text-xs text-slate-600">{t('quickLinks.emergency.phone', '400-123-4567')}</p>
+                                <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">{t('quickLinks.emergency.title', '紧急联系')}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">{t('quickLinks.emergency.phone', '400-123-4567')}</p>
                             </div>
                         </div>
                     </div>
