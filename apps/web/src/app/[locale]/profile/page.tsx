@@ -107,7 +107,7 @@ export default function ProfilePage() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
+                className="bg-gradient-to-br from-white/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm"
             >
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="text-center">
@@ -115,8 +115,8 @@ export default function ProfilePage() {
                             <User className="w-3 h-3" />
                             {t('badge', '个人资料')}
                         </div>
-                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '个人资料')}</h1>
-                        <p className="text-slate-600">{t('description', '管理你的个人信息和偏好设置')}</p>
+                        <h1 className="text-3xl font-serif font-semibold text-[#30499B] dark:text-[#56B949] mb-4">{t('title', '个人资料')}</h1>
+                        <p className="text-slate-600 dark:text-slate-400">{t('description', '管理你的个人信息和偏好设置')}</p>
                     </div>
                 </div>
             </motion.div>
@@ -131,7 +131,7 @@ export default function ProfilePage() {
                 {/* User Info Card */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg mb-8"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 dark:border-slate-700 shadow-lg mb-8"
                 >
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
                         {/* Avatar */}
@@ -149,10 +149,10 @@ export default function ProfilePage() {
                         <div className="flex-1 w-full">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                                 <div className="flex flex-col items-center md:items-start">
-                                    <h2 className="text-2xl font-semibold text-[#30499B] mb-2">
+                                    <h2 className="text-2xl font-semibold text-[#30499B] dark:text-[#56B949] mb-2">
                                         {profile?.nickname || user?.nickname || t('info.defaultNickname', '用户')}
                                     </h2>
-                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-slate-600">
+                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-slate-600 dark:text-slate-400">
                                         {profile?.gender && (
                                             <div className="flex items-center gap-1">
                                                 <User className="w-4 h-4" />
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                                 {/* Edit Button */}
                                 <Link
                                     href={`/${locale}/profile/edit`}
-                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-[#30499B] border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-medium shadow-sm active:scale-95 transition-all mt-4 md:mt-0 w-full md:w-auto"
+                                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white dark:bg-slate-800 text-[#30499B] dark:text-[#56B949] border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl font-medium shadow-sm active:scale-95 transition-all mt-4 md:mt-0 w-full md:w-auto"
                                 >
                                     <Edit className="w-4 h-4" />
                                     {t('actions.editProfile', '编辑资料')}
@@ -184,13 +184,13 @@ export default function ProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* 性别 */}
                                 {profile?.gender && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                         <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center">
                                             <User className="w-4 h-4" />
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-500">{t('info.gender', '性别')}</p>
-                                            <p className="font-medium text-slate-800">
+                                            <p className="font-medium text-slate-800 dark:text-slate-200">
                                                 {profile.gender === 1 ? t('info.male', '男') : profile.gender === 2 ? t('info.female', '女') : t('info.other', '其他')}
                                             </p>
                                         </div>
@@ -199,36 +199,36 @@ export default function ProfilePage() {
 
                                 {/* 位置 */}
                                 {profile?.location && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                         <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
                                             <MapPin className="w-4 h-4" />
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-500">{t('info.location', '位置')}</p>
-                                            <p className="font-medium text-slate-800">{profile.location}</p>
+                                            <p className="font-medium text-slate-800 dark:text-slate-200">{profile.location}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {/* 积分 */}
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                     <div className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center">
                                         <Trophy className="w-4 h-4" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500">{t('info.points', '环保积分')}</p>
-                                        <p className="font-medium text-slate-800">0 {t('info.pointsUnit', '分')}</p>
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">0 {t('info.pointsUnit', '分')}</p>
                                     </div>
                                 </div>
 
                                 {/* 等级 */}
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                     <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
                                         <TreePine className="w-4 h-4" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500">{t('info.level', '环保等级')}</p>
-                                        <p className="font-medium text-slate-800">
+                                        <p className="font-medium text-slate-800 dark:text-slate-200">
                                             Lv.1 {t('info.levelName', '环保达人')}
                                         </p>
                                     </div>
@@ -237,7 +237,7 @@ export default function ProfilePage() {
 
                             {/* 个人简介 */}
                             {profile?.bio && (
-                                <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 rounded-lg border border-[#56B949]/10">
+                                <div className="mt-4 p-4 bg-gradient-to-r from-[#56B949]/5 to-[#F0A32F]/5 dark:from-[#56B949]/10 dark:to-[#F0A32F]/10 rounded-lg border border-[#56B949]/10 dark:border-slate-700">
                                     <div className="flex items-center gap-2 mb-2">
                                         <FileText className="w-4 h-4 text-[#56B949]" />
                                         <span className="text-sm font-medium text-[#30499B]">{t('info.bio', '个人简介')}</span>
@@ -265,30 +265,30 @@ export default function ProfilePage() {
                 {/* Recent Activities */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg mb-8"
                 >
                     <h3 className="text-lg font-semibold text-[#30499B] mb-6">{t('recentActivities.title', '最近动态')}</h3>
 
                     <div className="space-y-4">
                         {/* Activity Item 1 */}
-                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center flex-shrink-0">
                                 <TreePine className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
+                                <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
                                 <p className="text-xs text-slate-500">2024-05-11 14:30</p>
                             </div>
                             <ArrowRight className="w-4 h-4 text-slate-400" />
                         </div>
 
                         {/* Activity Item 2 */}
-                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center flex-shrink-0">
                                 <TreePine className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
+                                <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentActivities.lowCarbonChallenge', '完成了一次「低碳出行」挑战')}</h4>
                                 <p className="text-xs text-slate-500">2024-05-12 14:30</p>
                             </div>
                             <ArrowRight className="w-4 h-4 text-slate-400" />
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                 {/* Recent Likes */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg mb-8"
                 >
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
@@ -317,12 +317,12 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Recent Liked Article */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
+                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.articleType', '科普文章')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.articleTitle', '环保小贴士分享')}</h4>
+                            <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentLikes.articleTitle', '环保小贴士分享')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.articleDesc', '分享一些日常生活中的环保小技巧...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
@@ -331,12 +331,12 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Recent Liked Activity */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
+                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <TreePine className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.activityType', '环保活动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.activityTitle', '城市绿洲种植计划')}</h4>
+                            <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentLikes.activityTitle', '城市绿洲种植计划')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.activityDesc', '加入我们在市中心创建绿色角落...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
@@ -345,12 +345,12 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Recent Liked Comment */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
+                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <MessageCircle className="w-4 h-4 text-[#F0A32F]" />
                                 <span className="text-xs text-slate-500">{t('recentLikes.commentType', '评论互动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentLikes.commentTitle', '张小明的评论')}</h4>
+                            <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentLikes.commentTitle', '张小明的评论')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentLikes.commentDesc', '非常赞同你的观点！环保确实需要...')}</p>
                             <div className="flex items-center gap-1 text-[#EE4035] mt-auto">
                                 <Heart className="w-3 h-3 fill-current" />
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                 {/* Recent Favorites */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg mb-8"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg mb-8"
                 >
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold text-[#30499B] flex items-center gap-2">
@@ -381,12 +381,12 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Recent Favorited Article */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
+                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Droplets className="w-4 h-4 text-[#56B949]" />
                                 <span className="text-xs text-slate-500">{t('recentFavorites.articleType', '科普文章')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.articleTitle', '节约用水小妙招')}</h4>
+                            <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentFavorites.articleTitle', '节约用水小妙招')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.articleDesc', '洗菜水可以浇花，洗衣水可以拖地，一水多用...')}</p>
                             <div className="flex items-center gap-1 text-[#56B949] mt-auto">
                                 <Bookmark className="w-3 h-3 fill-current" />
@@ -395,12 +395,12 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Recent Favorited Activity */}
-                        <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors flex flex-col h-full">
+                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex flex-col h-full">
                             <div className="flex items-center gap-2 mb-2">
                                 <Recycle className="w-4 h-4 text-[#F0A32F]" />
                                 <span className="text-xs text-slate-500">{t('recentFavorites.activityType', '环保活动')}</span>
                             </div>
-                            <h4 className="font-medium text-slate-800 text-sm mb-1">{t('recentFavorites.activityTitle', '旧物新生DIY工作坊')}</h4>
+                            <h4 className="font-medium text-slate-800 dark:text-slate-200 text-sm mb-1">{t('recentFavorites.activityTitle', '旧物新生DIY工作坊')}</h4>
                             <p className="text-xs text-slate-500 mb-2">{t('recentFavorites.activityDesc', '学习如何将废弃物品变废为宝...')}</p>
                             <div className="flex items-center gap-1 text-[#56B949] mt-auto">
                                 <Bookmark className="w-3 h-3 fill-current" />
@@ -413,7 +413,7 @@ export default function ProfilePage() {
                 {/* Logout */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg"
                 >
                     <button
                         onClick={handleLogout}

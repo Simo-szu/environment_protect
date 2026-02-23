@@ -157,15 +157,15 @@ export default function NotificationsPage() {
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 dark:border-slate-700 text-center">
                             <div className="text-2xl font-bold text-[#EE4035] mb-1">{unreadCount}</div>
                             <div className="text-sm text-slate-500">{t('stats.unread', '未读消息')}</div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 dark:border-slate-700 text-center">
                             <div className="text-2xl font-bold text-[#30499B] mb-1">{notifications.length}</div>
                             <div className="text-sm text-slate-500">{t('stats.totalReplies', '总消息数')}</div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 text-center">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/60 dark:border-slate-700 text-center">
                             <div className="text-2xl font-bold text-[#56B949] mb-1">{notifications.filter(n => n.isRead).length}</div>
                             <div className="text-sm text-slate-500">{t('stats.totalRead', '已读消息')}</div>
                         </div>
@@ -176,8 +176,8 @@ export default function NotificationsPage() {
                         <button
                             onClick={() => handleFilterChange('all')}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'all'
-                                ? 'bg-[#30499B] text-white'
-                                : 'text-slate-600 hover:text-[#30499B]'
+                                ? 'bg-[#30499B] dark:bg-[#56B949] text-white'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-[#30499B] dark:hover:text-[#56B949]'
                                 }`}
                         >
                             {t('filters.all', '全部')}
@@ -185,8 +185,8 @@ export default function NotificationsPage() {
                         <button
                             onClick={() => handleFilterChange('unread')}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'unread'
-                                ? 'bg-[#30499B] text-white'
-                                : 'text-slate-600 hover:text-[#30499B]'
+                                ? 'bg-[#30499B] dark:bg-[#56B949] text-white'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-[#30499B] dark:hover:text-[#56B949]'
                                 }`}
                         >
                             <span className="flex items-center gap-2">
@@ -209,7 +209,7 @@ export default function NotificationsPage() {
                         {filteredNotifications.map((notification) => (
                             <div
                                 key={notification.id}
-                                className={`bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl transition-all ${!notification.isRead ? 'border-l-4 border-l-[#EE4035]' : ''
+                                className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg hover:shadow-xl dark:hover:shadow-none transition-all ${!notification.isRead ? 'border-l-4 border-l-[#EE4035]' : ''
                                     }`}
                             >
                                 <div className="flex items-start gap-4">
@@ -218,7 +218,7 @@ export default function NotificationsPage() {
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-semibold text-slate-800">{getNotificationTitle(notification)}</h3>
+                                            <h3 className="font-semibold text-slate-800 dark:text-slate-200">{getNotificationTitle(notification)}</h3>
                                             <div className="flex items-center gap-2">
                                                 {!notification.isRead && (
                                                     <span className="px-2 py-1 text-xs rounded-full bg-[#EE4035]/10 text-[#EE4035]">
@@ -231,7 +231,7 @@ export default function NotificationsPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <p className="text-sm text-slate-600 mb-3">{notification.content}</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{notification.content}</p>
                                         <div className="flex items-center gap-3">
                                             {getLocalizedLink(notification.linkUrl) && (
                                                 <a

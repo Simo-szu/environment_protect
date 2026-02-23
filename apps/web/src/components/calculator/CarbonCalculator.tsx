@@ -286,7 +286,6 @@ export default function CarbonCalculator() {
                 <div className="space-y-2">
                   <Label htmlFor="carType">车辆类型</Label>
                   <Select
-                    id="carType"
                     value={data.transportation.carType}
                     onValueChange={(value) => updateData('transportation', 'carType', value)}
                   >
@@ -352,7 +351,6 @@ export default function CarbonCalculator() {
                 <div className="space-y-2">
                   <Label htmlFor="heating">主要供暖方式</Label>
                   <Select
-                    id="heating"
                     value={data.energy.heating}
                     onValueChange={(value) => updateData('energy', 'heating', value)}
                   >
@@ -365,7 +363,6 @@ export default function CarbonCalculator() {
                 <div className="space-y-2">
                   <Label htmlFor="homeSize">住房面积</Label>
                   <Select
-                    id="homeSize"
                     value={data.energy.homeSize}
                     onValueChange={(value) => updateData('energy', 'homeSize', value)}
                   >
@@ -383,7 +380,6 @@ export default function CarbonCalculator() {
               <div className="space-y-2">
                 <Label htmlFor="diet">饮食习惯</Label>
                 <Select
-                  id="diet"
                   value={data.food.diet}
                   onValueChange={(value) => updateData('food', 'diet', value)}
                 >
@@ -439,7 +435,6 @@ export default function CarbonCalculator() {
                 <div className="space-y-2">
                   <Label htmlFor="waste">垃圾处理方式</Label>
                   <Select
-                    id="waste"
                     value={data.lifestyle.waste}
                     onValueChange={(value) => updateData('lifestyle', 'waste', value)}
                   >

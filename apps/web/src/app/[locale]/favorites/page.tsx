@@ -91,7 +91,7 @@ export default function FavoritesPage() {
             <Layout>
                 {/* ... 保持原有内容 ... */}
                 {/* Header */}
-                <div className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm">
+                <div className="bg-gradient-to-br from-white/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                         <div className="text-center">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#56B949]/10 text-[#56B949] text-xs font-semibold mb-4 border border-[#56B949]/20">
@@ -99,7 +99,7 @@ export default function FavoritesPage() {
                                 {t('badge', '我的收藏')}
                             </div>
                             <h1 className="text-3xl font-serif font-semibold text-[#30499B] mb-4">{t('title', '我的收藏')}</h1>
-                            <p className="text-slate-600">{t('description', '这里保存了你收藏的所有内容')}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{t('description', '这里保存了你收藏的所有内容')}</p>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@ export default function FavoritesPage() {
                             onClick={() => handleTabChange('articles')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'articles'
                                 ? 'bg-[#56B949] text-white'
-                                : 'text-slate-600 hover:text-[#56B949]'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-[#56B949]'
                                 }`}
                         >
                             <Bookmark className="w-4 h-4" />
@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                             onClick={() => handleTabChange('activities')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'activities'
                                 ? 'bg-[#56B949] text-white'
-                                : 'text-slate-600 hover:text-[#56B949]'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-[#56B949]'
                                 }`}
                         >
                             <Calendar className="w-4 h-4" />
@@ -135,7 +135,7 @@ export default function FavoritesPage() {
                             <div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {favorites.filter(f => f.targetType === 1).map((item) => (
-                                        <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                        <div key={item.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                                             <div className="aspect-video bg-gradient-to-br from-[#56B949]/10 to-[#30499B]/10 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                                                 {item.contentCoverUrl ? (
                                                     <img src={item.contentCoverUrl} alt={item.contentTitle} className="w-full h-full object-cover" />
@@ -143,7 +143,7 @@ export default function FavoritesPage() {
                                                     <Droplets className="w-12 h-12 text-[#56B949]" />
                                                 )}
                                             </div>
-                                            <h3 className="font-semibold text-slate-800 mb-2">{item.contentTitle || '科普文章'}</h3>
+                                            <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{item.contentTitle || '科普文章'}</h3>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-1 text-[#56B949]">
                                                     <Bookmark className="w-4 h-4 fill-current" />
@@ -159,7 +159,7 @@ export default function FavoritesPage() {
                                 {favorites.filter(f => f.targetType === 1).length === 0 && (
                                     <div className="text-center py-12">
                                         <Bookmark className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                        <p className="text-slate-500">{t('empty.articles', '暂无收藏的文章')}</p>
+                                        <p className="text-slate-500 dark:text-slate-400">{t('empty.articles', '暂无收藏的文章')}</p>
                                     </div>
                                 )}
 
@@ -177,7 +177,7 @@ export default function FavoritesPage() {
                             <div>
                                 <div className="space-y-4">
                                     {favorites.filter(f => f.targetType === 2).map((item) => (
-                                        <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                        <div key={item.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-lg hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                                             <div className="flex items-start gap-4">
                                                 <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                                     {item.activityPosterUrl ? (
@@ -190,7 +190,7 @@ export default function FavoritesPage() {
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
                                                     </div>
-                                                    <h3 className="font-semibold text-slate-800 mb-2">{item.activityTitle || '环保活动'}</h3>
+                                                    <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{item.activityTitle || '环保活动'}</h3>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-1 text-[#56B949]">
                                                             <Bookmark className="w-4 h-4 fill-current" />
@@ -207,7 +207,7 @@ export default function FavoritesPage() {
                                 {favorites.filter(f => f.targetType === 2).length === 0 && (
                                     <div className="text-center py-12">
                                         <Bookmark className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                        <p className="text-slate-500">{t('empty.activities', '暂无收藏的活动')}</p>
+                                        <p className="text-slate-500 dark:text-slate-400">{t('empty.activities', '暂无收藏的活动')}</p>
                                     </div>
                                 )}
 

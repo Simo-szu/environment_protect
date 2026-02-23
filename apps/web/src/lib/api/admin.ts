@@ -151,6 +151,45 @@ export interface AdminUpdateGameCardRequest {
   isEnabled?: boolean;
 }
 
+export interface AdminGameRulesConfig {
+  runtimeParam: AdminGameRuntimeParam | null;
+  balanceRule: Record<string, any> | null;
+  eventRules: Record<string, any>[];
+  comboRules: Record<string, any>[];
+  policyUnlockRules: Record<string, any>[];
+  coreSpecialConditions: Record<string, any>[];
+  cardTags: Record<string, any>[];
+  endingContents: Record<string, any>[];
+}
+
+export interface AdminGameRuntimeParam {
+  configId?: number;
+  coreHandLimit?: number;
+  policyHandLimit?: number;
+  maxComboPerTurn?: number;
+  maxTurn?: number;
+  handDiscardDecisionSeconds?: number;
+  tradeWindowInterval?: number;
+  tradeWindowSeconds?: number;
+  baseCarbonPrice?: number;
+  maxCarbonQuota?: number;
+  domainProgressCardCap?: number;
+  endingDisplaySeconds?: number;
+  turnTransitionAnimationEnabledDefault?: boolean;
+  turnTransitionAnimationSeconds?: number;
+}
+
+export interface AdminUpdateGameRulesRequest {
+  runtimeParam?: AdminGameRuntimeParam | null;
+  balanceRule?: Record<string, any> | null;
+  eventRules?: Record<string, any>[] | null;
+  comboRules?: Record<string, any>[] | null;
+  policyUnlockRules?: Record<string, any>[] | null;
+  coreSpecialConditions?: Record<string, any>[] | null;
+  cardTags?: Record<string, any>[] | null;
+  endingContents?: Record<string, any>[] | null;
+}
+
 export async function getAdminHostVerifications(params: {
   status?: number;
   page?: number;
@@ -240,6 +279,14 @@ export async function updateAdminGameCard(cardId: string, data: AdminUpdateGameC
 
 export async function deleteAdminGameCard(cardId: string): Promise<void> {
   return apiDelete<void>(`/api/v1/admin/game/cards/${cardId}`);
+}
+
+export async function getAdminGameRules(): Promise<AdminGameRulesConfig> {
+  return apiGet<AdminGameRulesConfig>('/api/v1/admin/game/rules');
+}
+
+export async function updateAdminGameRules(data: AdminUpdateGameRulesRequest): Promise<void> {
+  return apiPatch<void>('/api/v1/admin/game/rules', data);
 }
 
 export interface AdminIngestionReport {

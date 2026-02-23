@@ -121,19 +121,20 @@ public class SigninService {
         
         SigninRecordEntity entity = signinRecordMapper.selectByUserIdAndDate(userId, today);
         if (entity == null || !entity.getIsSigned()) {
-            return null;
+            return SigninRecordDTO.builder()
+                .userId(userId)
+                .signinDate(today)
+                .isSigned(false)
+                .build();
         }
-        
-        // 这里的 points 只是示意，实际上数据库没存单次积分，暂用常量或者设为0
-        // 如果 Entity 有 points 字段更好，但看之前代码没 setPoints
-        // 假设 SigninRecordEntity 没有 points 字段，我们返回默认值或0
-        
+
         return SigninRecordDTO.builder()
             .userId(userId)
             .signinDate(entity.getSigninDate())
             .consecutiveDays(entity.getStreakCount())
             .isMakeup(entity.getIsMakeup())
-            .points(SIGNIN_POINTS) // 假设今日签到也是标准分
+            .points(SIGNIN_POINTS)
+            .isSigned(true)
             .build();
     }
 }

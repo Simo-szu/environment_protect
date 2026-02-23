@@ -21,4 +21,6 @@ public class SigninRecordDTO {
     private Integer points;
     private Integer consecutiveDays;
     private Boolean isMakeup;
+    /** Whether the user has signed in today. False means not yet signed in. */
+    private Boolean isSigned;
 }

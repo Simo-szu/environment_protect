@@ -91,9 +91,9 @@ export function AdminVerificationsTab() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header Controls */}
-      <div className="relative z-30 flex flex-col sm:flex-row items-center gap-4 bg-white/60 p-4 rounded-3xl border border-slate-200 backdrop-blur-sm shadow-sm">
+      <div className="relative z-30 flex flex-col sm:flex-row items-center gap-4 bg-white/60 dark:bg-slate-800/60 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 backdrop-blur-sm shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-600">{t('verifications.status')}</span>
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('verifications.status')}</span>
           <Select
             value={verificationStatus?.toString() ?? ''}
             onValueChange={handleStatusChange}
@@ -113,7 +113,7 @@ export function AdminVerificationsTab() {
         <button
           onClick={() => loadVerifications(page)}
           disabled={loading}
-          className="px-4 py-2 ml-auto text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors disabled:opacity-50"
+          className="px-4 py-2 ml-auto text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors disabled:opacity-50"
         >
           {loading ? t('loading') : t('refresh')}
         </button>
@@ -122,11 +122,11 @@ export function AdminVerificationsTab() {
       {/* List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {loading && verifications.length === 0 && (
-          <div className="col-span-1 md:col-span-2 py-12 text-center text-slate-500">{t('loading')}</div>
+          <div className="col-span-1 md:col-span-2 py-12 text-center text-slate-500 dark:text-slate-400">{t('loading')}</div>
         )}
 
         {!loading && verifications.length === 0 && (
-          <div className="col-span-1 md:col-span-2 py-12 flex flex-col items-center justify-center text-slate-500 bg-white/40 rounded-3xl border border-slate-100 border-dashed">
+          <div className="col-span-1 md:col-span-2 py-12 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
             <div className="text-4xl mb-3 opacity-50">📂</div>
             <p>{t('noRecords')}</p>
           </div>
@@ -135,23 +135,23 @@ export function AdminVerificationsTab() {
         {verifications.map((item) => (
           <div
             key={item.userId}
-            className="group flex flex-col p-5 bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden"
+            className="group flex flex-col p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-slate-100 to-transparent opacity-50 pointer-events-none rounded-tr-3xl" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-slate-100 dark:from-slate-700 to-transparent opacity-50 pointer-events-none rounded-tr-3xl" />
 
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-lg text-slate-800 tracking-tight leading-tight">{item.orgName}</h3>
-                <div className="flex items-center text-sm text-slate-500 mt-1">
+                <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-200 tracking-tight leading-tight">{item.orgName}</h3>
+                <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1">
                   <span>🧑‍💼 {item.contactName}</span>
-                  <span className="mx-2 text-slate-300">•</span>
+                  <span className="mx-2 text-slate-300 dark:text-slate-600">•</span>
                   <span>📱 {item.contactPhone}</span>
                 </div>
               </div>
-              <div className={`px-3 py-1 text-xs font-semibold rounded-full border ${item.status === 1 ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                item.status === 2 ? 'bg-green-50 text-green-600 border-green-200' :
-                  item.status === 3 ? 'bg-red-50 text-red-600 border-red-200' :
-                    'bg-slate-50 text-slate-600 border-slate-200'
+              <div className={`px-3 py-1 text-xs font-semibold rounded-full border ${item.status === 1 ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/50' :
+                item.status === 2 ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800/50' :
+                  item.status === 3 ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800/50' :
+                    'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                 }`}>
                 {item.status === 1 ? t('verifications.pending') :
                   item.status === 2 ? t('verifications.approved') :
@@ -160,22 +160,22 @@ export function AdminVerificationsTab() {
               </div>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-              <div className="text-xs text-slate-400 font-medium">
+            <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <div className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                 {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : '-'}
               </div>
               <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => openReviewDialog(item.userId, 2)}
                   disabled={item.status !== 1}
-                  className="px-4 py-1.5 text-sm font-medium bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-xl transition-colors disabled:opacity-40 disabled:hover:bg-green-50 disabled:hover:text-green-600"
+                  className="px-4 py-1.5 text-sm font-medium bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-600 dark:hover:bg-green-600 hover:text-white dark:hover:text-white rounded-xl transition-colors disabled:opacity-40 disabled:hover:bg-green-50 dark:disabled:hover:bg-green-900/30 disabled:hover:text-green-600 dark:disabled:hover:text-green-400"
                 >
                   {t('approve')}
                 </button>
                 <button
                   onClick={() => openReviewDialog(item.userId, 3)}
                   disabled={item.status !== 1}
-                  className="px-4 py-1.5 text-sm font-medium bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-colors disabled:opacity-40 disabled:hover:bg-red-50 disabled:hover:text-red-600"
+                  className="px-4 py-1.5 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-600 dark:hover:bg-red-600 hover:text-white dark:hover:text-white rounded-xl transition-colors disabled:opacity-40 disabled:hover:bg-red-50 dark:disabled:hover:bg-red-900/30 disabled:hover:text-red-600 dark:disabled:hover:text-red-400"
                 >
                   {t('reject')}
                 </button>
@@ -190,7 +190,7 @@ export function AdminVerificationsTab() {
           <button
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1}
-            className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &lsaquo;
           </button>
@@ -198,7 +198,7 @@ export function AdminVerificationsTab() {
             <button
               key={p}
               onClick={() => handlePageChange(p)}
-              className={`px-3 py-2 text-sm font-medium rounded-lg border ${p === page ? 'bg-[#30499B] text-white border-[#30499B]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+              className={`px-3 py-2 text-sm font-medium rounded-lg border ${p === page ? 'bg-[#30499B] dark:bg-[#56B949] text-white border-[#30499B] dark:border-[#56B949]' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
             >
               {p}
             </button>
@@ -206,7 +206,7 @@ export function AdminVerificationsTab() {
           <button
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages}
-            className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &rsaquo;
           </button>
@@ -215,15 +215,15 @@ export function AdminVerificationsTab() {
 
       {/* Review Dialog */}
       <Dialog open={!!reviewUserId} onOpenChange={(open) => !open && setReviewUserId(null)}>
-        <DialogContent className="sm:max-w-md rounded-3xl overflow-hidden p-6 border-none shadow-xl">
+        <DialogContent className="sm:max-w-md rounded-3xl overflow-hidden p-6 border-none shadow-xl dark:bg-slate-800">
           <DialogHeader>
-            <DialogTitle className="text-xl">
+            <DialogTitle className="text-xl dark:text-slate-200">
               {reviewStatus === 2 ? t('verifications.approvalNote') : t('verifications.rejectReason')}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <textarea
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B]/30 transition-all min-h-32 text-slate-700 resize-none"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 focus:border-[#30499B]/30 dark:focus:border-[#56B949]/30 transition-all min-h-32 text-slate-700 dark:text-slate-200 resize-none"
               placeholder={t('verifications.reviewNotePlaceholder', '填写备注或原因...')}
               value={reviewNote}
               onChange={(e) => setReviewNote(e.target.value)}
@@ -232,7 +232,7 @@ export function AdminVerificationsTab() {
           <DialogFooter className="gap-2 sm:gap-0">
             <button
               onClick={() => setReviewUserId(null)}
-              className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium transition-colors"
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
             >
               {t('cancel', '取消')}
             </button>

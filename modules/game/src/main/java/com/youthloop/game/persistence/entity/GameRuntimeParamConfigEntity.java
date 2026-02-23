@@ -18,5 +18,8 @@ public class GameRuntimeParamConfigEntity {
     private Double baseCarbonPrice;
     private Integer maxCarbonQuota;
     private Integer domainProgressCardCap;
+    private Integer endingDisplaySeconds;
+    private Boolean turnTransitionAnimationEnabledDefault;
+    private Integer turnTransitionAnimationSeconds;
     private Boolean isEnabled;
 }

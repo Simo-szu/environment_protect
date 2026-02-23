@@ -95,10 +95,10 @@ export function AdminBannersTab() {
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Action Bar */}
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-medium text-slate-800 tracking-tight">{t('tabs.banners')}</h2>
+                <h2 className="text-xl font-medium text-slate-800 dark:text-slate-200 tracking-tight">{t('tabs.banners')}</h2>
                 <button
                     onClick={() => setIsCreateOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[#30499B] hover:bg-[#25397a] text-white font-medium rounded-xl transition-all shadow-md shadow-[#30499B]/20"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[#30499B] dark:bg-[#56B949] hover:bg-[#25397a] dark:hover:bg-[#4aa840] text-white font-medium rounded-xl transition-all shadow-md shadow-[#30499B]/20 dark:shadow-[#56B949]/20"
                 >
                     <span className="text-lg leading-none">+</span>
                     {t('banners.createBanner', '新建横幅')}
@@ -106,11 +106,11 @@ export function AdminBannersTab() {
             </div>
 
             {loading && banners.length === 0 && (
-                <div className="py-12 text-center text-slate-500">{t('loading')}</div>
+                <div className="py-12 text-center text-slate-500 dark:text-slate-400">{t('loading')}</div>
             )}
 
             {!loading && banners.length === 0 && (
-                <div className="py-16 flex flex-col items-center justify-center text-slate-500 bg-white/40 rounded-3xl border border-slate-200 border-dashed">
+                <div className="py-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
                     <div className="text-4xl mb-3 opacity-50">🖼️</div>
                     <p>{t('banners.noBanners', '暂无横幅设置')}</p>
                 </div>
@@ -119,8 +119,8 @@ export function AdminBannersTab() {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {banners.map((banner) => (
-                    <div key={banner.id} className="group overflow-hidden bg-white border border-slate-200 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
-                        <div className="aspect-[21/9] w-full bg-slate-100 flex items-center justify-center overflow-hidden relative">
+                    <div key={banner.id} className="group overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
+                        <div className="aspect-[21/9] w-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden relative">
                             {banner.imageUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={banner.imageUrl} alt={banner.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -130,7 +130,7 @@ export function AdminBannersTab() {
                             <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => deleteBanner(banner.id)}
-                                    className="p-2 bg-white/90 hover:bg-red-50 hover:text-red-600 text-slate-600 rounded-xl shadow-sm transition-colors"
+                                    className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 text-slate-600 dark:text-slate-300 rounded-xl shadow-sm transition-colors"
                                     title={t('banners.delete')}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
@@ -139,21 +139,21 @@ export function AdminBannersTab() {
                         </div>
 
                         <div className="p-5 flex-1 flex flex-col">
-                            <h3 className="font-semibold text-lg text-slate-800 line-clamp-1">{banner.title || t('banners.untitled', '未命名横幅')}</h3>
+                            <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-200 line-clamp-1">{banner.title || t('banners.untitled', '未命名横幅')}</h3>
 
-                            <div className="mt-3 flex flex-col gap-1.5 text-sm text-slate-500">
+                            <div className="mt-3 flex flex-col gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-mono shrink-0">URL</span>
+                                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-xs font-mono shrink-0">URL</span>
                                     <span className="truncate">{banner.imageUrl}</span>
                                 </div>
                                 {banner.linkTarget && (
                                     <div className="flex items-center gap-2">
-                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-mono shrink-0">LINK</span>
+                                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-xs font-mono shrink-0">LINK</span>
                                         <span className="truncate">{banner.linkTarget}</span>
                                     </div>
                                 )}
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-mono shrink-0">TYPE</span>
+                                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-xs font-mono shrink-0">TYPE</span>
                                     <span>
                                         {banner.linkType === 1 ? t('banners.none') :
                                             banner.linkType === 2 ? t('banners.content') :
@@ -172,7 +172,7 @@ export function AdminBannersTab() {
                     <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page === 1}
-                        className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         &lsaquo;
                     </button>
@@ -180,7 +180,7 @@ export function AdminBannersTab() {
                         <button
                             key={p}
                             onClick={() => handlePageChange(p)}
-                            className={`px-3 py-2 text-sm font-medium rounded-lg border ${p === page ? 'bg-[#30499B] text-white border-[#30499B]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg border ${p === page ? 'bg-[#30499B] dark:bg-[#56B949] text-white border-[#30499B] dark:border-[#56B949]' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                         >
                             {p}
                         </button>
@@ -188,7 +188,7 @@ export function AdminBannersTab() {
                     <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page === totalPages}
-                        className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         &rsaquo;
                     </button>
@@ -197,39 +197,39 @@ export function AdminBannersTab() {
 
             {/* Create Modal */}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <DialogContent className="sm:max-w-lg rounded-3xl overflow-hidden p-0 border-none shadow-2xl">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                        <DialogTitle className="text-xl font-semibold text-slate-800">
+                <DialogContent className="sm:max-w-lg rounded-3xl overflow-hidden p-0 border-none shadow-2xl dark:bg-slate-800">
+                    <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-700">
+                        <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-200">
                             {t('banners.createBanner', '新建横幅')}
                         </DialogTitle>
                     </div>
                     <div className="p-6 space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">{t('banners.title', '标题')}</label>
+                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('banners.title', '标题')}</label>
                             <input
                                 value={newBanner.title}
                                 onChange={(e) => setNewBanner(p => ({ ...p, title: e.target.value }))}
                                 placeholder={t('banners.title')}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B]/30 transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 focus:border-[#30499B]/30 dark:focus:border-[#56B949]/30 transition-all"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">{t('banners.imageUrl', '图片 URL')} <span className="text-red-500">*</span></label>
+                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('banners.imageUrl', '图片 URL')} <span className="text-red-500">*</span></label>
                             <input
                                 value={newBanner.imageUrl}
                                 onChange={(e) => setNewBanner(p => ({ ...p, imageUrl: e.target.value }))}
                                 placeholder="https://example.com/image.jpg"
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B]/30 transition-all font-mono text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 focus:border-[#30499B]/30 dark:focus:border-[#56B949]/30 transition-all font-mono text-sm"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">{t('banners.linkType', '跳转类型')}</label>
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('banners.linkType', '跳转类型')}</label>
                                 <Select
                                     value={newBanner.linkType.toString()}
                                     onValueChange={(v) => setNewBanner(p => ({ ...p, linkType: Number(v) }))}
                                 >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
                                         <SelectValue placeholder={t('banners.none')} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -241,28 +241,28 @@ export function AdminBannersTab() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">{t('banners.linkTarget', '跳转目标')}</label>
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('banners.linkTarget', '跳转目标')}</label>
                                 <input
                                     value={newBanner.linkTarget}
                                     onChange={(e) => setNewBanner(p => ({ ...p, linkTarget: e.target.value }))}
                                     placeholder={newBanner.linkType === 4 ? "https://..." : "ID"}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 focus:border-[#30499B]/30 transition-all"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 focus:border-[#30499B]/30 dark:focus:border-[#56B949]/30 transition-all disabled:opacity-50"
                                     disabled={newBanner.linkType === 1}
                                 />
                             </div>
                         </div>
                     </div>
-                    <div className="px-6 py-4 bg-slate-50 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
                         <button
                             onClick={() => setIsCreateOpen(false)}
-                            className="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-200 font-medium transition-colors"
+                            className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-colors"
                         >
                             {t('cancel', '取消')}
                         </button>
                         <button
                             onClick={createBanner}
                             disabled={creatingBanner}
-                            className="px-5 py-2.5 rounded-xl text-white font-medium bg-[#30499B] hover:bg-[#25397a] shadow-sm shadow-[#30499B]/20 disabled:opacity-60 transition-colors"
+                            className="px-5 py-2.5 rounded-xl text-white font-medium bg-[#30499B] dark:bg-[#56B949] hover:bg-[#25397a] dark:hover:bg-[#4aa840] shadow-sm shadow-[#30499B]/20 dark:shadow-[#56B949]/20 disabled:opacity-60 transition-colors"
                         >
                             {creatingBanner ? t('banners.creating', '创建中...') : t('banners.create', '创建横幅')}
                         </button>

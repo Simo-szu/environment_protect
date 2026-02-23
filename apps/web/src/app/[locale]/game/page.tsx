@@ -24,8 +24,8 @@ export default function GamePage() {
         <Layout>
             {/* 全局背景氛围 */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '20s' }}></div>
-                <div className="absolute bottom-[-20%] right-[10%] w-[80%] h-[60%] bg-blue-100/40 rounded-full blur-[130px] animate-pulse" style={{ animationDuration: '25s', animationDelay: '-5s' }}></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/10 dark:bg-[#56B949]/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '20s' }}></div>
+                <div className="absolute bottom-[-20%] right-[10%] w-[80%] h-[60%] bg-blue-100/40 dark:bg-blue-900/20 rounded-full blur-[130px] animate-pulse" style={{ animationDuration: '25s', animationDelay: '-5s' }}></div>
             </div>
 
             <div className="relative z-10">
@@ -34,13 +34,13 @@ export default function GamePage() {
                     initial="hidden"
                     animate="visible"
                     variants={pageEnter}
-                    className="w-full bg-[#F0F8FF] rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col lg:flex-row min-h-[640px] mb-16"
+                    className="w-full bg-[#F0F8FF] dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row min-h-[640px] mb-16"
                 >
                     {/* 左侧内容面板 */}
-                    <div className="w-full lg:w-1/2 p-8 md:p-14 flex flex-col justify-center relative bg-[#F0F8FF]">
+                    <div className="w-full lg:w-1/2 p-8 md:p-14 flex flex-col justify-center relative bg-[#F0F8FF] dark:bg-slate-900">
                         {/* 头部图标和日期 */}
                         <div className="flex items-center gap-4 mb-10">
-                            <div className="w-10 h-10 rounded-full border border-[#00C087]/30 bg-white flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full border border-[#00C087]/30 bg-white dark:bg-slate-800 flex items-center justify-center">
                                 <Zap className="w-5 h-5 text-[#00C087] fill-current" />
                             </div>
                             <span className="text-xs font-mono text-slate-400 tracking-wider">
@@ -50,7 +50,7 @@ export default function GamePage() {
 
                         {/* 主标题 */}
                         <div className="space-y-2 mb-8">
-                            <h1 className="text-5xl md:text-6xl font-bold text-[#1E293B] tracking-tight font-sans">
+                            <h1 className="text-5xl md:text-6xl font-bold text-[#1E293B] dark:text-white tracking-tight font-sans">
                                 {t('cover.city', '深圳')}
                             </h1>
                             <h1 className="text-5xl md:text-6xl font-bold text-[#00C087] tracking-tight font-sans">
@@ -59,7 +59,7 @@ export default function GamePage() {
                         </div>
 
                         {/* 描述 */}
-                        <p className="text-slate-500 text-sm md:text-[15px] leading-7 max-w-md mb-12 font-medium">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm md:text-[15px] leading-7 max-w-md mb-12 font-medium">
                             {t('cover.description', '构建可持续发展的未来。通过科学决策平衡工业增长与环境保护，在这座科创之都谱写绿色篇章。')}
                         </p>
 
@@ -76,7 +76,7 @@ export default function GamePage() {
                             </button>
                             <button
                                 onClick={() => router.push(`/${locale}/game/tutorial`)}
-                                className="group w-full bg-white hover:bg-slate-50 text-[#0F172A] py-4 px-6 rounded-xl border border-slate-200 flex items-center justify-between transition-all duration-300"
+                                className="group w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[#0F172A] dark:text-white py-4 px-6 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between transition-all duration-300"
                             >
                                 <span className="font-bold text-sm tracking-wide">
                                     {t('cover.tutorial', '新手教程')}

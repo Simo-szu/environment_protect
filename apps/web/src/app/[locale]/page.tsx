@@ -199,7 +199,7 @@ export default function HomePage() {
                 {/* Prev Button */}
                 <button
                     onClick={() => moveCarousel(-1)}
-                    className="absolute left-2 md:-left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white hover:bg-slate-50 text-slate-300 hover:text-[#30499B] transition-all duration-300 border border-slate-100 shadow-sm hover:shadow-md hover:scale-105 group"
+                    className="absolute left-2 md:-left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-300 dark:text-slate-500 hover:text-[#30499B] dark:hover:text-[#56B949] transition-all duration-300 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:scale-105 group"
                 >
                     <ChevronLeft className="w-5 h-5 stroke-[2.5px] group-hover:-translate-x-0.5 transition-transform" />
                 </button>
@@ -261,7 +261,7 @@ export default function HomePage() {
                 {/* Next Button */}
                 <button
                     onClick={() => moveCarousel(1)}
-                    className="absolute right-2 md:-right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white hover:bg-slate-50 text-slate-300 hover:text-[#30499B] transition-all duration-300 border border-slate-100 shadow-sm hover:shadow-md hover:scale-105 group"
+                    className="absolute right-2 md:-right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-300 dark:text-slate-500 hover:text-[#30499B] dark:hover:text-[#56B949] transition-all duration-300 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:scale-105 group"
                 >
                     <ChevronRight className="w-5 h-5 stroke-[2.5px] group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -287,7 +287,7 @@ export default function HomePage() {
                                     <Link
                                         key={banner.id}
                                         href={banner.linkUrl ? (banner.linkUrl.startsWith('/') ? `/${locale}${banner.linkUrl}` : banner.linkUrl) : `/${locale}`}
-                                        className="relative block h-24 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity"
+                                        className="relative block h-24 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
                                     >
                                         <img src={banner.imageUrl} alt={banner.title || 'banner'} className="w-full h-full object-cover" />
                                     </Link>
@@ -334,13 +334,13 @@ export default function HomePage() {
                 <AnimatedSection delay={0.1}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
+                            <div className="w-1.5 h-8 bg-[#30499B] dark:bg-[#56B949] rounded-full"></div>
                             <div>
                                 <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('sections.science.title', '科普资料')}</h2>
                                 <p className="text-xs text-slate-400 mt-1">{t('sections.science.subtitle', 'TRUSTWORTHY KNOWLEDGE')}</p>
                             </div>
                         </div>
-                        <Link href={`/${locale}/science`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                        <Link href={`/${locale}/science`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 dark:decoration-[#56B949]/50 underline-offset-4">
                             {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
@@ -364,7 +364,7 @@ export default function HomePage() {
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] dark:text-[#56B949] shadow-sm ring-1 ring-[#30499B]/10 dark:ring-[#56B949]/20">
                                                         <Leaf className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">
@@ -378,7 +378,7 @@ export default function HomePage() {
                                                     {content.summary || t('viewContent', '点击查看详情')}
                                                 </p>
                                                 <div className="mt-auto">
-                                                    <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                    <div className="w-full h-[1px] bg-[#30499B]/10 dark:bg-slate-700 mb-3"></div>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
                                                             {t('readMore', '阅读详情')} <ArrowRight className="w-3 h-3" />
@@ -403,7 +403,7 @@ export default function HomePage() {
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] dark:text-[#56B949] shadow-sm ring-1 ring-[#30499B]/10 dark:ring-[#56B949]/20">
                                                         <Leaf className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">GUIDE</span>
@@ -415,7 +415,7 @@ export default function HomePage() {
                                                     {t('sections.science.items.guide.description', '涵盖衣食住行各个方面的减碳小技巧，附带详细数据支持。')}
                                                 </p>
                                                 <div className="mt-auto">
-                                                    <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                    <div className="w-full h-[1px] bg-[#30499B]/10 dark:bg-slate-700 mb-3"></div>
                                                     <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
                                                         {t('readReport', '阅读报告')} <ArrowRight className="w-3 h-3" />
                                                     </div>
@@ -430,7 +430,7 @@ export default function HomePage() {
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] dark:text-[#56B949] shadow-sm ring-1 ring-[#30499B]/10 dark:ring-[#56B949]/20">
                                                         <BarChart3 className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">DATA</span>
@@ -442,7 +442,7 @@ export default function HomePage() {
                                                     {t('sections.science.items.data.description', '实时更新的全球环境监测数据，可视化图表分析。')}
                                                 </p>
                                                 <div className="mt-auto">
-                                                    <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                    <div className="w-full h-[1px] bg-[#30499B]/10 dark:bg-slate-700 mb-3"></div>
                                                     <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
                                                         {t('viewDetails', '查看详情')} <ArrowRight className="w-3 h-3" />
                                                     </div>
@@ -457,7 +457,7 @@ export default function HomePage() {
                                         {mounted && (
                                             <motion.div whileHover={{ y: -4 }} className="h-full flex flex-col">
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] shadow-sm ring-1 ring-[#30499B]/10">
+                                                    <div className="p-2 bg-white dark:bg-slate-700 rounded-lg text-[#30499B] dark:text-[#56B949] shadow-sm ring-1 ring-[#30499B]/10 dark:ring-[#56B949]/20">
                                                         <Trash2 className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-bold tracking-wider text-[#30499B]/60 bg-[#30499B]/10 px-2 py-1 rounded">TIPS</span>
@@ -469,7 +469,7 @@ export default function HomePage() {
                                                     {t('sections.science.items.tips.description', '如何正确分类？哪些可以变废为宝？专家视频讲解。')}
                                                 </p>
                                                 <div className="mt-auto">
-                                                    <div className="w-full h-[1px] bg-[#30499B]/10 mb-3"></div>
+                                                    <div className="w-full h-[1px] bg-[#30499B]/10 dark:bg-slate-700 mb-3"></div>
                                                     <div className="flex items-center gap-2 text-xs text-[#30499B] dark:text-[#56B949] font-medium cursor-pointer group-hover:translate-x-1 transition-transform">
                                                         {t('learnNow', '立即学习')} <ArrowRight className="w-3 h-3" />
                                                     </div>
@@ -493,7 +493,7 @@ export default function HomePage() {
                                 <p className="text-xs text-slate-400 mt-1">{t('sections.activities.subtitle', 'JOIN THE ACTION')}</p>
                             </div>
                         </div>
-                        <Link href={`/${locale}/activities`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 underline-offset-4">
+                        <Link href={`/${locale}/activities`} className="text-sm text-[#30499B] dark:text-[#56B949] hover:underline decoration-[#30499B]/50 dark:decoration-[#56B949]/50 underline-offset-4">
                             {t('viewAll', '查看全部')} -&gt;
                         </Link>
                     </div>
@@ -539,7 +539,7 @@ export default function HomePage() {
                                                     <Link href={`/${locale}/activities/${activity.id}`}>
                                                         <button className={`w-full py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${activity.signupPolicy === 'OPEN'
                                                             ? 'bg-[#EE4035] text-white hover:bg-[#d63730] shadow-lg shadow-[#EE4035]/20'
-                                                            : 'bg-white dark:bg-slate-700 border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
+                                                            : 'bg-white dark:bg-slate-700 border border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949] hover:bg-[#30499B] dark:hover:bg-[#56B949] hover:text-white'
                                                             }`}>
                                                             {activity.signupPolicy === 'OPEN' ? t('signUpNow', '立即报名') : t('viewDetails', '查看详情')}
                                                         </button>

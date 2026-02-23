@@ -202,7 +202,7 @@ export default function MyActivitiesPage() {
 
                     {/* Statistics Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 dark:border-slate-700 text-center hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#56B949] to-[#4aa840] rounded-full flex items-center justify-center mx-auto mb-3">
                                 <CalendarCheck className="w-6 h-6 text-white" />
                             </div>
@@ -210,7 +210,7 @@ export default function MyActivitiesPage() {
                             <div className="text-sm text-slate-500">{t('stats.registered', '已报名活动')}</div>
                         </div>
 
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 dark:border-slate-700 text-center hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#F0A32F] to-[#e67e22] rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Trophy className="w-6 h-6 text-white" />
                             </div>
@@ -218,7 +218,7 @@ export default function MyActivitiesPage() {
                             <div className="text-sm text-slate-500">{t('stats.completed', '已完成活动')}</div>
                         </div>
 
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 dark:border-slate-700 text-center hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#30499B] to-[#253a7a] rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Clock className="w-6 h-6 text-white" />
                             </div>
@@ -226,7 +226,7 @@ export default function MyActivitiesPage() {
                             <div className="text-sm text-slate-500">{t('stats.ongoing', '进行中活动')}</div>
                         </div>
 
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 dark:border-slate-700 text-center hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#EE4035] to-[#d63031] rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Star className="w-6 h-6 text-white" />
                             </div>
@@ -236,63 +236,51 @@ export default function MyActivitiesPage() {
                     </div>
 
                     {/* Tab Navigation */}
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 overflow-hidden mb-8">
-                        <div className="flex border-b border-slate-100">
-                            <button
-                                onClick={() => switchTab('all')}
-                                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === 'all'
-                                    ? 'text-[#30499B] bg-slate-50'
-                                    : 'text-slate-600 hover:text-[#30499B]'
-                                    }`}
-                            >
-                                {t('tabs.all', '全部活动')}
-                                {activeTab === 'all' && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => switchTab('registered')}
-                                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === 'registered'
-                                    ? 'text-[#30499B] bg-slate-50'
-                                    : 'text-slate-600 hover:text-[#30499B]'
-                                    }`}
-                            >
-                                {t('tabs.registered', '已报名')}
-                                {activeTab === 'registered' && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => switchTab('ongoing')}
-                                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === 'ongoing'
-                                    ? 'text-[#30499B] bg-slate-50'
-                                    : 'text-slate-600 hover:text-[#30499B]'
-                                    }`}
-                            >
-                                {t('tabs.ongoing', '进行中')}
-                                {activeTab === 'ongoing' && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => switchTab('completed')}
-                                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === 'completed'
-                                    ? 'text-[#30499B] bg-slate-50'
-                                    : 'text-slate-600 hover:text-[#30499B]'
-                                    }`}
-                            >
-                                {t('tabs.completed', '已完成')}
-                                {activeTab === 'completed' && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#56B949] to-[#F0A32F]"></div>
-                                )}
-                            </button>
-                        </div>
+                    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-white/60 dark:border-slate-700 mb-6 flex overflow-x-auto hide-scrollbar gap-2">
+                        <button
+                            onClick={() => switchTab('all')}
+                            className={`flex-1 min-w-max px-4 py-3 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${activeTab === 'all'
+                                    ? 'bg-[#30499B] dark:bg-[#56B949] text-white shadow-md'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            {t('tabs.all', '全部活动')}
+                        </button>
+                        <button
+                            onClick={() => switchTab('registered')}
+                            className={`flex-1 min-w-max px-4 py-3 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${activeTab === 'registered'
+                                    ? 'bg-[#30499B] dark:bg-[#56B949] text-white shadow-md'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            {t('tabs.registered', '已报名')}
+                        </button>
+                        <button
+                            onClick={() => switchTab('ongoing')}
+                            className={`flex-1 min-w-max px-4 py-3 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${activeTab === 'ongoing'
+                                    ? 'bg-[#30499B] dark:bg-[#56B949] text-white shadow-md'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            {t('tabs.ongoing', '进行中')}
+                        </button>
+                        <button
+                            onClick={() => switchTab('completed')}
+                            className={`flex-1 min-w-max px-4 py-3 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${activeTab === 'completed'
+                                    ? 'bg-[#30499B] dark:bg-[#56B949] text-white shadow-md'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            {t('tabs.completed', '已完成')}
+                        </button>
+                    </div>
 
-                        {/* Tab Content */}
-                        <div className="p-6 tab-content">
+                    {/* Tab Content */}
+                    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 dark:border-slate-700 overflow-hidden mb-8">
+                        <div className="p-4 sm:p-6 tab-content">
                             <div className="space-y-6">
                                 {filteredActivities.map((activity) => (
-                                    <div key={activity.signupId} className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                    <div key={activity.signupId} className="bg-white/60 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-white/60 dark:border-slate-700 shadow-sm hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300">
                                         <div className="flex flex-col md:flex-row gap-6">
                                             {/* Activity Image */}
                                             <div className="w-full md:w-48 h-32 rounded-lg bg-gradient-to-br from-[#56B949]/20 to-[#30499B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">

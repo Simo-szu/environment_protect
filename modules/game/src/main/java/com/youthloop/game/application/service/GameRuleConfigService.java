@@ -61,14 +61,21 @@ public class GameRuleConfigService {
             this.comboRules = Collections.unmodifiableList(new ArrayList<>(loadedCombos));
 
             LinkedHashMap<String, EventRuleConfig> loadedEventMap = new LinkedHashMap<>();
-            int probabilityPct = 30;
+            Integer probabilityPct = null;
             for (GameEventRuleConfigEntity entity : eventEntities) {
                 EventRuleConfig config = toEventConfig(entity);
                 loadedEventMap.put(config.eventType(), config);
-                probabilityPct = config.triggerProbabilityPct();
+                if (probabilityPct == null) {
+                    probabilityPct = config.triggerProbabilityPct();
+                } else if (!probabilityPct.equals(config.triggerProbabilityPct())) {
+                    throw new BizException(
+                        ErrorCode.SYSTEM_ERROR,
+                        "Inconsistent trigger_probability_pct across enabled event rules"
+                    );
+                }
             }
             this.eventRuleMap = Collections.unmodifiableMap(loadedEventMap);
-            this.eventTriggerProbabilityPct = probabilityPct;
+            this.eventTriggerProbabilityPct = probabilityPct == null ? 30 : probabilityPct;
 
             LinkedHashMap<String, List<String>> loadedTagMap = new LinkedHashMap<>();
             for (GameCardTagMapEntity entity : cardTagEntities) {
@@ -254,7 +261,10 @@ public class GameRuleConfigService {
             Math.max(1, defaultInt(entity.getTradeWindowSeconds())),
             defaultDouble(entity.getBaseCarbonPrice()),
             Math.max(1, defaultInt(entity.getMaxCarbonQuota())),
-            Math.max(1, defaultInt(entity.getDomainProgressCardCap()))
+            Math.max(1, defaultInt(entity.getDomainProgressCardCap())),
+            Math.max(1, entity.getEndingDisplaySeconds() == null ? 5 : entity.getEndingDisplaySeconds()),
+            defaultBoolean(entity.getTurnTransitionAnimationEnabledDefault(), true),
+            Math.max(1, entity.getTurnTransitionAnimationSeconds() == null ? 2 : entity.getTurnTransitionAnimationSeconds())
         );
     }
 
@@ -389,6 +399,10 @@ public class GameRuleConfigService {
         return Objects.requireNonNullElse(value, "");
     }
 
+    private boolean defaultBoolean(Boolean value, boolean fallback) {
+        return value == null ? fallback : value;
+    }
+
     private int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }
@@ -491,7 +505,10 @@ public class GameRuleConfigService {
         int tradeWindowSeconds,
         double baseCarbonPrice,
         int maxCarbonQuota,
-        int domainProgressCardCap
+        int domainProgressCardCap,
+        int endingDisplaySeconds,
+        boolean turnTransitionAnimationEnabledDefault,
+        int turnTransitionAnimationSeconds
     ) {
     }
 

@@ -63,6 +63,8 @@ export function AdminGameCardsTab() {
     const [editingCardId, setEditingCardId] = useState<string | null>(null);
     const [formState, setFormState] = useState<GameCardFormState>(defaultGameCardForm);
     const [saving, setSaving] = useState(false);
+    const [rawMode, setRawMode] = useState(false);
+    const [rawJson, setRawJson] = useState('{}');
 
     // Filters state
     const [keyword, setKeyword] = useState('');
@@ -104,6 +106,8 @@ export function AdminGameCardsTab() {
     const openCreate = () => {
         setEditingCardId(null);
         setFormState(defaultGameCardForm);
+        setRawMode(false);
+        setRawJson(JSON.stringify(defaultGameCardForm, null, 2));
         setIsModalOpen(true);
     };
 
@@ -112,6 +116,8 @@ export function AdminGameCardsTab() {
             const card = await adminApi.getAdminGameCardById(id);
             setEditingCardId(id);
             setFormState(mapToForm(card));
+            setRawJson(JSON.stringify(card, null, 2));
+            setRawMode(false);
             setIsModalOpen(true);
         } catch (e) {
             alert(t('gameCards.loadDetailFailed', '获取详情失败'));
@@ -119,24 +125,43 @@ export function AdminGameCardsTab() {
     };
 
     const save = async () => {
-        if (!formState.cardId.trim() || !formState.chineseName.trim() || !formState.englishName.trim()) {
-            alert('ID和名称必填');
-            return;
-        }
         try {
             setSaving(true);
-            const payload = { ...formState };
-            payload.imageKey = payload.imageKey.trim() || undefined as any;
-            payload.advancedImageKey = payload.advancedImageKey.trim() || undefined as any;
+            let payload: any;
+            if (rawMode) {
+                payload = JSON.parse(rawJson);
+                if (payload.unlockCost) {
+                    payload.unlockCostIndustry = payload.unlockCost.industry ?? 0;
+                    payload.unlockCostTech = payload.unlockCost.tech ?? 0;
+                    payload.unlockCostPopulation = payload.unlockCost.population ?? 0;
+                    payload.unlockCostGreen = payload.unlockCost.green ?? 0;
+                    delete payload.unlockCost;
+                }
+                if (payload.imageKey !== undefined && typeof payload.imageKey === 'string') {
+                    payload.imageKey = payload.imageKey.trim() || undefined;
+                }
+                if (payload.advancedImageKey !== undefined && typeof payload.advancedImageKey === 'string') {
+                    payload.advancedImageKey = payload.advancedImageKey.trim() || undefined;
+                }
+            } else {
+                if (!formState.cardId.trim() || !formState.chineseName.trim() || !formState.englishName.trim()) {
+                    alert('ID和名称必填');
+                    return;
+                }
+                payload = { ...formState };
+                payload.imageKey = payload.imageKey.trim() || undefined as any;
+                payload.advancedImageKey = payload.advancedImageKey.trim() || undefined as any;
+            }
             if (editingCardId) {
+                delete payload.cardId;
                 await adminApi.updateAdminGameCard(editingCardId, payload as any);
             } else {
                 await adminApi.createAdminGameCard(payload as any);
             }
             setIsModalOpen(false);
             await loadCards(page);
-        } catch {
-            alert('保存失败');
+        } catch (e: any) {
+            alert(e?.message || '保存失败');
         } finally {
             setSaving(false);
         }
@@ -299,9 +324,27 @@ export function AdminGameCardsTab() {
                                 </DialogTitle>
                                 <p className="text-slate-400 text-sm mt-1">{t('gameCards.dialogSubtitle')}</p>
                             </div>
+                            <button
+                                onClick={() => setRawMode((v) => !v)}
+                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-sm"
+                            >
+                                {rawMode ? 'Form Mode' : 'JSON Mode'}
+                            </button>
                         </div>
 
                         <div className="p-10 space-y-12">
+                            {rawMode ? (
+                                <section className="space-y-3">
+                                    <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">Raw Card JSON</h4>
+                                    <textarea
+                                        spellCheck={false}
+                                        value={rawJson}
+                                        onChange={(e) => setRawJson(e.target.value)}
+                                        className="w-full min-h-[520px] rounded-2xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs outline-none focus:ring-2 focus:ring-[#30499B]/20"
+                                    />
+                                </section>
+                            ) : (
+                                <>
                             {/* Section 1: Basic Info & Assets */}
                             <section className="space-y-6">
                                 <div className="flex items-center gap-3">
@@ -434,6 +477,8 @@ export function AdminGameCardsTab() {
                                     </div>
                                 </div>
                             </section>
+                                </>
+                            )}
                         </div>
 
                         <div className="px-10 py-8 border-t border-slate-100 bg-slate-50/50 flex justify-end items-center gap-4">

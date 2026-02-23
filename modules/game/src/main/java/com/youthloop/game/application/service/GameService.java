@@ -297,6 +297,10 @@ public class GameService {
         root.put("guestSession", guestSession);
         root.put("boardSize", balance.boardSize());
         root.set("boardOccupied", objectMapper.createObjectNode());
+        ObjectNode runtimeConfig = root.putObject("runtimeConfig");
+        runtimeConfig.put("endingDisplaySeconds", endingDisplaySeconds());
+        runtimeConfig.put("turnTransitionAnimationEnabledDefault", turnTransitionAnimationEnabledDefault());
+        runtimeConfig.put("turnTransitionAnimationSeconds", turnTransitionAnimationSeconds());
 
         ObjectNode resources = root.putObject("resources");
         resources.put("industry", balance.initialIndustry());
@@ -360,6 +364,7 @@ public class GameService {
         eventStats.put("negativeTriggered", 0);
         eventStats.put("negativeResolved", 0);
 
+        decrementEventCooldownAtTurnStart(root);
         drawCoreCards(root, balance.initialPhase(), balance.initialDrawEarly());
         return root;
     }
@@ -563,30 +568,37 @@ public class GameService {
         metrics.put("lowCarbonScore", lowCarbonScore);
         appendSettlementHistory(state, settlementBonus, resourcesBefore, metricsBefore, tradeBefore);
 
-        String phase = updatePhaseByProgress(state, counts.total, lowCarbonScore);
-        int drawCount = switch (phase) {
-            case "early" -> balance.drawCountEarly();
-            case "mid" -> balance.drawCountMid();
-            default -> balance.drawCountLate();
-        };
-
         tickActiveNegativeEvents(state);
         applyEventCheck(state);
         processCarbonTradeWindow(state);
-        drawCoreCards(state, phase, drawCount);
-        drawPolicyCards(state);
-        state.put("policyUsedThisTurn", false);
-        state.put("corePlacedThisTurn", false);
-        state.putNull("lastPolicyUsed");
         updateFailureStreak(state);
         applyEndingEvaluationByDocument(state, counts, lowCarbonScore);
 
         if (!state.path("sessionEnded").asBoolean(false)) {
             state.put("turn", state.path("turn").asInt() + 1);
+            prepareNextTurn(state);
         }
 
         int baseTurnPoint = Math.max(0, lowCarbonScore - Math.max(0, state.path("turn").asInt() - 1));
         return baseTurnPoint + comboTriggered;
+    }
+
+    private void prepareNextTurn(ObjectNode state) {
+        int placedCount = state.withArray("placedCore").size();
+        int lowCarbonScore = state.with("metrics").path("lowCarbonScore").asInt();
+        String phase = updatePhaseByProgress(state, placedCount, lowCarbonScore);
+        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
+        decrementEventCooldownAtTurnStart(state);
+        int drawCount = switch (phase) {
+            case "early" -> balance.drawCountEarly();
+            case "mid" -> balance.drawCountMid();
+            default -> balance.drawCountLate();
+        };
+        drawCoreCards(state, phase, drawCount);
+        drawPolicyCards(state);
+        state.put("policyUsedThisTurn", false);
+        state.put("corePlacedThisTurn", false);
+        state.putNull("lastPolicyUsed");
     }
 
     private void validateBoardPlacement(ObjectNode state, int row, int col) {
@@ -1436,13 +1448,15 @@ public class GameService {
     private void applyEventCheck(ObjectNode state) {
         GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int cooldown = state.path("eventCooldown").asInt();
-        cooldown -= 1;
         if (cooldown <= 0) {
             maybeTriggerNegativeEvent(state);
             state.put("eventCooldown", balance.eventCooldownResetTurns());
-        } else {
-            state.put("eventCooldown", cooldown);
         }
+    }
+
+    private void decrementEventCooldownAtTurnStart(ObjectNode state) {
+        int cooldown = state.path("eventCooldown").asInt();
+        state.put("eventCooldown", cooldown - 1);
     }
 
     private void tickActiveNegativeEvents(ObjectNode state) {
@@ -2422,6 +2436,18 @@ public class GameService {
 
     private int domainProgressCardCap() {
         return runtimeParam().domainProgressCardCap();
+    }
+
+    private int endingDisplaySeconds() {
+        return runtimeParam().endingDisplaySeconds();
+    }
+
+    private boolean turnTransitionAnimationEnabledDefault() {
+        return runtimeParam().turnTransitionAnimationEnabledDefault();
+    }
+
+    private int turnTransitionAnimationSeconds() {
+        return runtimeParam().turnTransitionAnimationSeconds();
     }
 
     private UUID resolveCurrentUserId() {

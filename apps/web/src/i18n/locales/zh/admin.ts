@@ -21,6 +21,20 @@ const admin = {
         members: '会员用户',
         banners: '首页横幅',
         gameCards: '游戏卡牌',
+        gameRuntime: '游戏运行参数',
+        gameRules: '游戏规则',
+    },
+    gameRuntime: {
+        subtitle: '用于调整回合节奏、交易窗口与结局展示相关运行参数',
+        loadFailed: '加载运行参数失败',
+        saveSuccess: '运行参数已保存并热重载',
+        saveFailed: '运行参数保存失败',
+    },
+    gameRules: {
+        subtitle: '可直接修改数据库中的规则配置，保存后立即生效于新回合计算',
+        loadFailed: '加载游戏规则失败',
+        saveSuccess: '保存成功，规则已热重载',
+        saveFailed: '保存失败',
     },
     verifications: {
         all: '全部',

@@ -123,19 +123,19 @@ export default function ProfileEditPage() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-sm"
+                className="bg-gradient-to-br from-white/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm"
             >
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="flex items-center gap-4 mb-6">
                         <button
                             onClick={handleCancel}
-                            className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                            className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-serif font-semibold text-[#30499B]">{t('edit.title', '编辑资料')}</h1>
-                            <p className="text-slate-600">{t('edit.subtitle', '更新你的个人信息')}</p>
+                            <h1 className="text-3xl font-serif font-semibold text-[#30499B] dark:text-[#56B949]">{t('edit.title', '编辑资料')}</h1>
+                            <p className="text-slate-600 dark:text-slate-400">{t('edit.subtitle', '更新你的个人信息')}</p>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,7 @@ export default function ProfileEditPage() {
                 {/* Edit Form */}
                 <motion.div
                     variants={staggerItem}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 shadow-lg"
+                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-8 border border-white/60 dark:border-slate-700 shadow-lg"
                 >
                     <div className="space-y-8">
                         {/* Avatar Section */}
@@ -164,14 +164,14 @@ export default function ProfileEditPage() {
                                     <Camera className="w-4 h-4" />
                                 </button>
                             </div>
-                            <p className="text-sm text-slate-500">{t('edit.changeAvatar', '点击更换头像')}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('edit.changeAvatar', '点击更换头像')}</p>
                         </div>
 
                         {/* Form Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* 昵称 */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     <User className="w-4 h-4 inline mr-2" />
                                     {t('edit.nickname', '昵称')}
                                 </label>
@@ -180,14 +180,14 @@ export default function ProfileEditPage() {
                                     name="nickname"
                                     value={formData.nickname}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                    className="w-full px-4 py-3 bg-transparent border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                     placeholder={t('edit.nicknamePlaceholder', '请输入昵称')}
                                 />
                             </div>
 
                             {/* 性别 */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     <User className="w-4 h-4 inline mr-2" />
                                     {t('edit.gender', '性别')}
                                 </label>
@@ -195,7 +195,7 @@ export default function ProfileEditPage() {
                                     name="gender"
                                     value={formData.gender}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                    className="w-full px-4 py-3 bg-transparent border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                 >
                                     <option value="female">{t('edit.genderFemale', '女')}</option>
                                     <option value="male">{t('edit.genderMale', '男')}</option>
@@ -205,7 +205,7 @@ export default function ProfileEditPage() {
 
                             {/* 家乡 */}
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     <MapPin className="w-4 h-4 inline mr-2" />
                                     {t('edit.hometown', '家乡')}
                                 </label>
@@ -214,7 +214,7 @@ export default function ProfileEditPage() {
                                     name="hometown"
                                     value={formData.hometown}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
+                                    className="w-full px-4 py-3 bg-transparent border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors"
                                     placeholder={t('edit.hometownPlaceholder', '请输入家乡')}
                                 />
                             </div>
@@ -222,7 +222,7 @@ export default function ProfileEditPage() {
 
                         {/* 个人简介 */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 <FileText className="w-4 h-4 inline mr-2" />
                                 {t('edit.bio', '个人简介')}
                             </label>
@@ -231,26 +231,26 @@ export default function ProfileEditPage() {
                                 value={formData.bio}
                                 onChange={handleInputChange}
                                 rows={4}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
+                                className="w-full px-4 py-3 bg-transparent border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:border-[#56B949] focus:outline-none transition-colors resize-none"
                                 placeholder={t('edit.bioPlaceholder', '介绍一下你自己...')}
                             />
-                            <p className="text-xs text-slate-500 mt-2">{t('edit.bioLimit', '最多200个字符')}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{t('edit.bioLimit', '最多200个字符')}</p>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-4 pt-6 border-t border-slate-200">
+                        <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                             <button
                                 onClick={handleSave}
                                 disabled={submitting}
-                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#56B949] to-[#F0A32F] text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                             >
-                                <Save className="w-4 h-4" />
-                                {submitting ? t('edit.saving', '保存中...') : t('edit.save', '保存更改')}
+                                <Save className="w-4 h-4 shrink-0" />
+                                <span>{submitting ? t('edit.saving', '保存中...') : t('edit.save', '保存更改')}</span>
                             </button>
                             <button
                                 onClick={handleCancel}
                                 disabled={submitting}
-                                className="px-6 py-3 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto flex items-center justify-center px-6 py-3 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                             >
                                 {t('edit.cancel', '取消')}
                             </button>

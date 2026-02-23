@@ -1025,6 +1025,7 @@ class GameServicePhase3Test {
     void endTurnShouldDiscardOldestPolicyCardWhenPolicyHandExceedsLimit() {
         ObjectNode state = baseState();
         state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
         state.withArray("policyUnlocked").add("card061");
         state.withArray("policyUnlocked").add("card062");
         state.withArray("policyUnlocked").add("card063");
@@ -1159,7 +1160,7 @@ class GameServicePhase3Test {
     @Test
     void endTurnShouldResetEventCooldownToThreeWhenCheckTriggered() {
         ObjectNode state = baseState();
-        state.put("eventCooldown", 1);
+        state.put("eventCooldown", 0);
         state.with("metrics").put("green", 100);
         state.with("metrics").put("carbon", 40);
         state.with("metrics").put("satisfaction", 80);
@@ -1582,6 +1583,31 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void endTurnShouldNotDrawNextTurnCardsWhenSessionEnds() {
+        ObjectNode state = baseState();
+        state.put("turn", 30);
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.with("remainingPools").withArray("mid").add("card005");
+        state.withArray("policyUnlocked").add("card061");
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals(0, next.withArray("handCore").size());
+        assertEquals(0, next.withArray("handPolicy").size());
+        assertEquals(30, next.path("turn").asInt());
+    }
+
+    @Test
     void endTurnShouldUnlockAllPolicyCardsWhenAllConditionsMet() {
         ObjectNode state = baseState();
         state.put("eventCooldown", 2);
@@ -1781,7 +1807,7 @@ class GameServicePhase3Test {
     }
 
     private GameRuleConfigService.RuntimeParamConfig defaultRuntimeParam() {
-        return new GameRuleConfigService.RuntimeParamConfig(6, 2, 2, 30, 10, 2, 3, 2.0D, 200, 15);
+        return new GameRuleConfigService.RuntimeParamConfig(6, 2, 2, 30, 10, 2, 3, 2.0D, 200, 15, 5, true, 2);
     }
 
     private GameRuleConfigService.BalanceRuleConfig defaultBalanceRule() {

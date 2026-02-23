@@ -132,7 +132,7 @@ function ActivitiesPageContent() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white"
+                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900"
             >
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#30499B]/10 text-[#30499B] text-xs font-semibold mb-4 border border-[#30499B]/20">
                     <span className="relative flex h-2 w-2">
@@ -141,10 +141,10 @@ function ActivitiesPageContent() {
                     </span>
                     {t('subtitle', '参与绿色行动')}
                 </div>
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight">
                     {t('title', '环保活动')}
                 </h1>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4">
                     <div className="flex items-center gap-2">
                         <CalendarHeart className="w-5 h-5 text-[#30499B]" />
                         <span>{t('description', '参与各种环保活动，为可持续未来贡献力量')}</span>
@@ -161,7 +161,7 @@ function ActivitiesPageContent() {
                 className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-12"
             >
                 <div className="flex justify-center">
-                    <div className="flex gap-6 w-full max-w-4xl">
+                    <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl">
                         {/* Card 1: 热门活动 */}
                         <motion.div
                             onClick={scrollToActivities}
@@ -169,14 +169,14 @@ function ActivitiesPageContent() {
                             whileHover={hoverLift}
                             className="flex-1 group relative rounded-2xl transition-all duration-500 cursor-pointer"
                         >
-                            <div className="relative bg-white h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-lg shadow-[#EE4035]/5 border border-[#EE4035]/20">
-                                <div className="w-12 h-12 rounded-full bg-[#EE4035]/10 flex items-center justify-center text-[#EE4035] mb-4 group-hover:bg-[#EE4035] group-hover:text-white transition-colors">
+                            <div className="relative bg-white dark:bg-slate-800 h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-lg shadow-[#EE4035]/5 border border-[#EE4035]/20 dark:border-slate-700 dark:shadow-none">
+                                <div className="w-12 h-12 rounded-full bg-[#EE4035]/10 dark:bg-[#EE4035]/20 flex items-center justify-center text-[#EE4035] mb-4 group-hover:bg-[#EE4035] group-hover:text-white transition-colors">
                                     <Flame className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">
+                                <h3 className="text-xl text-[#30499B] dark:text-slate-200 font-serif font-semibold mb-1">
                                     {t('cards.popular.title', '热门活动')}
                                 </h3>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                     {t('cards.popular.subtitle', '最受欢迎的环保行动')}
                                 </p>
                             </div>
@@ -189,15 +189,17 @@ function ActivitiesPageContent() {
                             whileHover={hoverLift}
                             className="flex-1 group relative rounded-2xl transition-all duration-500 cursor-pointer"
                         >
-                            <div className="relative bg-gradient-to-br from-[#56B949] to-[#4aa840] h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-inner border border-white/20">
-                                <CalendarCheck className="w-10 h-10 text-white mb-3 opacity-90" />
-                                <h3 className="text-2xl text-white font-serif font-semibold leading-tight mb-2">
+                            <div className="relative bg-gradient-to-br from-[#56B949] to-[#4aa840] dark:from-slate-800 dark:to-slate-900 border border-transparent dark:border-[#56B949]/30 h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-inner">
+                                <CalendarCheck className="w-10 h-10 text-white dark:text-[#56B949] mb-3 opacity-90" />
+                                <h3 className="text-2xl text-white dark:text-[#56B949] font-serif font-semibold leading-tight mb-4">
                                     {t('cards.myActivities.title', '我的活动')}<br />
                                     {t('cards.myActivities.center', '中心')}
                                 </h3>
-                                <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full backdrop-blur-sm border border-white/30">
-                                    {t('cards.myActivities.action', '查看报名')}
-                                </span>
+                                <div>
+                                    <span className="px-4 py-1.5 bg-white/20 dark:bg-[#56B949]/10 text-white dark:text-[#56B949] text-xs font-medium rounded-full backdrop-blur-sm border border-white/30 dark:border-[#56B949]/30">
+                                        {t('cards.myActivities.action', '查看报名')}
+                                    </span>
+                                </div>
                             </div>
                         </motion.div>
 
@@ -208,14 +210,14 @@ function ActivitiesPageContent() {
                             whileHover={hoverLift}
                             className="flex-1 group relative rounded-2xl transition-all duration-500 cursor-pointer"
                         >
-                            <div className="relative bg-white h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-lg shadow-[#F0A32F]/5 border border-[#F0A32F]/20">
-                                <div className="w-12 h-12 rounded-full bg-[#F0A32F]/10 flex items-center justify-center text-[#F0A32F] mb-4 group-hover:bg-[#F0A32F] group-hover:text-white transition-colors">
+                            <div className="relative bg-white dark:bg-slate-800 h-56 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-lg shadow-[#F0A32F]/5 border border-[#F0A32F]/20 dark:border-slate-700 dark:shadow-none">
+                                <div className="w-12 h-12 rounded-full bg-[#F0A32F]/10 dark:bg-[#F0A32F]/20 flex items-center justify-center text-[#F0A32F] mb-4 group-hover:bg-[#F0A32F] group-hover:text-white transition-colors">
                                     <PlusCircle className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl text-[#30499B] font-serif font-semibold mb-1">
+                                <h3 className="text-xl text-[#30499B] dark:text-slate-200 font-serif font-semibold mb-1">
                                     {t('cards.create.title', '发布活动')}
                                 </h3>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                     {t('cards.create.subtitle', '组织你的环保活动')}
                                 </p>
                             </div>
@@ -231,7 +233,7 @@ function ActivitiesPageContent() {
                 whileInView="visible"
                 viewport={{ once: true, margin: '-50px' }}
                 variants={staggerContainer}
-                className="bg-white px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100"
+                className="bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100 dark:border-slate-800"
             >
                 <motion.div
                     variants={staggerItem}
@@ -243,17 +245,17 @@ function ActivitiesPageContent() {
                         className="lg:col-span-8 space-y-6"
                     >
                         {/* Categories Filter */}
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
+                        <div className="bg-white/60 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60 dark:border-slate-700">
                             <div className="flex flex-col gap-4">
-                                <h2 className="text-lg font-serif font-bold text-[#30499B]">
+                                <h2 className="text-lg font-serif font-bold text-[#30499B] dark:text-[#56B949]">
                                     {t('filters.title', '分类')}
                                 </h2>
                                 <div className="flex flex-wrap gap-x-2 gap-y-3">
                                     <button
                                         onClick={() => handleCategoryChange(undefined)}
                                         className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 ${selectedCategory === undefined
-                                            ? 'bg-[#30499B] text-white shadow-md shadow-[#30499B]/20'
-                                            : 'bg-white/80 text-slate-600 border border-slate-100 hover:bg-[#30499B]/10'
+                                            ? 'bg-[#30499B] dark:bg-[#56B949] text-white shadow-md shadow-[#30499B]/20 dark:shadow-[#56B949]/20'
+                                            : 'bg-white/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-600 hover:bg-[#30499B]/10 dark:hover:bg-slate-600'
                                             }`}
                                     >
                                         {t('filters.all', '全部')}
@@ -264,7 +266,7 @@ function ActivitiesPageContent() {
                                             onClick={() => handleCategoryChange(catId)}
                                             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${selectedCategory === catId
                                                 ? 'bg-[#56B949] text-white shadow-md shadow-[#56B949]/20'
-                                                : 'bg-white/80 text-slate-600 border border-slate-100 hover:bg-[#56B949] hover:text-white hover:border-[#56B949]'
+                                                : 'bg-white/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-600 hover:bg-[#56B949] hover:text-white hover:border-[#56B949] dark:hover:text-white dark:hover:border-[#56B949]'
                                                 }`}
                                         >
                                             {t(`categories.${activityApi.mapCategory(catId)}`)}
@@ -275,7 +277,7 @@ function ActivitiesPageContent() {
                         </div>
 
                         {/* Activity List Container */}
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 min-h-[600px] flex flex-col gap-6">
+                        <div className="bg-white/60 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 dark:border-slate-700 min-h-[600px] flex flex-col gap-6">
                             {loading ? (
                                 // 加载骨架屏
                                 Array.from({ length: 4 }).map((_, i) => (
@@ -328,22 +330,22 @@ function ActivitiesPageContent() {
 
                                     const getStatusColor = () => {
                                         if (activity.signupPolicy === 'CLOSED' || activity.status === 'COMPLETED') {
-                                            return 'text-slate-500 bg-slate-100';
+                                            return 'text-slate-500 bg-slate-100 dark:bg-slate-700 dark:text-slate-300';
                                         }
-                                        if (activity.status === 'ONGOING') return 'text-[#56B949] bg-[#56B949]/10';
-                                        return 'text-[#30499B] bg-[#30499B]/10';
+                                        if (activity.status === 'ONGOING') return 'text-[#56B949] bg-[#56B949]/10 dark:bg-[#56B949]/20';
+                                        return 'text-[#30499B] bg-[#30499B]/10 dark:bg-slate-700 dark:text-slate-100';
                                     };
 
                                     const canSignup = activity.signupPolicy !== 'CLOSED' && activity.status !== 'COMPLETED';
 
                                     return (
-                                        <div key={activity.id} className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg border border-transparent hover:shadow-[#56B949]/5 hover:border-[#56B949]/20">
+                                        <div key={activity.id} className="group flex flex-col sm:flex-row gap-6 p-4 rounded-xl hover:bg-white/80 dark:hover:bg-slate-700/50 transition-all duration-300 hover:shadow-lg border border-transparent hover:shadow-[#56B949]/5 dark:hover:shadow-none hover:border-[#56B949]/20 dark:hover:border-slate-600">
                                             <div className={`w-full sm:w-48 h-32 rounded-lg bg-gradient-to-br ${getGradient()} overflow-hidden relative flex-shrink-0`}>
                                                 {activity.coverImageUrl ? (
                                                     <img src={activity.coverImageUrl} alt={activity.title} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <>
-                                                        <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${getStatusColor()}`}>
+                                                        <div className={`absolute top-2 left-2 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${getStatusColor()}`}>
                                                             {getStatusText()}
                                                         </div>
                                                         <div className="w-full h-full flex items-center justify-center text-current opacity-40">
@@ -356,33 +358,33 @@ function ActivitiesPageContent() {
                                                 <div>
                                                     <h3
                                                         onClick={() => viewActivityDetails(activity.id)}
-                                                        className="text-lg font-serif font-semibold text-[#30499B] transition-colors tracking-tight mb-2 cursor-pointer hover:underline"
+                                                        className="text-lg font-serif font-semibold text-[#30499B] dark:text-slate-200 transition-colors tracking-tight mb-2 cursor-pointer hover:underline"
                                                     >
                                                         {activity.title}
                                                     </h3>
-                                                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                                                         {activity.summary || '点击查看详情...'}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center justify-between mt-4 border-t border-slate-100/50 pt-3">
-                                                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                                                        <span className="flex items-center gap-1">
+                                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 border-t border-slate-100/50 dark:border-slate-700/50 pt-4 gap-4 sm:gap-3">
+                                                    <div className="flex items-center justify-between w-full sm:w-auto text-xs text-slate-400 dark:text-slate-500">
+                                                        <span className="flex items-center gap-1 whitespace-nowrap">
                                                             <Calendar className="w-3 h-3" /> {new Date(activity.startTime).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', day: 'numeric' })}
                                                         </span>
                                                         <div className="flex items-center gap-3">
-                                                            <span className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer">
+                                                            <span className="flex items-center gap-1 hover:text-[#F0A32F] transition-colors cursor-pointer whitespace-nowrap">
                                                                 <Star className="w-3 h-3" /> {activity.viewCount}
                                                             </span>
-                                                            <span className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer">
+                                                            <span className="flex items-center gap-1 hover:text-[#EE4035] transition-colors cursor-pointer whitespace-nowrap">
                                                                 <ThumbsUp className="w-3 h-3" /> {activity.likeCount}
                                                             </span>
                                                         </div>
                                                     </div>
                                                     <button
                                                         onClick={() => canSignup ? registerActivity(activity.id) : viewActivityDetails(activity.id)}
-                                                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${canSignup
+                                                        className={`w-full sm:w-auto flex justify-center items-center whitespace-nowrap px-4 py-2 sm:py-1.5 rounded-lg text-sm sm:text-xs font-semibold transition-all ${canSignup
                                                             ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-0.5'
-                                                            : 'bg-white border border-[#30499B] text-[#30499B] hover:bg-[#30499B] hover:text-white'
+                                                            : 'bg-white dark:bg-slate-700 border border-[#30499B] dark:border-slate-600 text-[#30499B] dark:text-slate-300 hover:bg-[#30499B] hover:text-white dark:hover:bg-slate-600'
                                                             }`}
                                                     >
                                                         {canSignup ? t('actions.register', '一键报名') : t('actions.viewDetails', '了解详情')}

@@ -105,6 +105,9 @@
         <result column="base_carbon_price" property="baseCarbonPrice" jdbcType="DOUBLE"/>
         <result column="max_carbon_quota" property="maxCarbonQuota" jdbcType="INTEGER"/>
         <result column="domain_progress_card_cap" property="domainProgressCardCap" jdbcType="INTEGER"/>
+        <result column="ending_display_seconds" property="endingDisplaySeconds" jdbcType="INTEGER"/>
+        <result column="turn_transition_animation_enabled_default" property="turnTransitionAnimationEnabledDefault" jdbcType="BOOLEAN"/>
+        <result column="turn_transition_animation_seconds" property="turnTransitionAnimationSeconds" jdbcType="INTEGER"/>
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     </resultMap>
 
@@ -260,7 +263,9 @@
     <select id="selectEnabledRuntimeParamConfig" resultMap="RuntimeParamResultMap">
         SELECT config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
                hand_discard_decision_seconds, trade_window_interval, trade_window_seconds,
-               base_carbon_price, max_carbon_quota, domain_progress_card_cap, is_enabled
+               base_carbon_price, max_carbon_quota, domain_progress_card_cap,
+               ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
+               is_enabled
         FROM game.game_runtime_param_config
         WHERE is_enabled = TRUE
         ORDER BY config_id ASC
@@ -308,5 +313,402 @@
         WHERE is_enabled = TRUE
         ORDER BY ending_id ASC
     </select>
+
+    <insert id="upsertRuntimeParamConfig">
+        INSERT INTO game.game_runtime_param_config (
+            config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
+            hand_discard_decision_seconds, trade_window_interval, trade_window_seconds,
+            base_carbon_price, max_carbon_quota, domain_progress_card_cap,
+            ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
+            is_enabled
+        ) VALUES (
+            #{configId, jdbcType=INTEGER},
+            #{coreHandLimit, jdbcType=INTEGER},
+            #{policyHandLimit, jdbcType=INTEGER},
+            #{maxComboPerTurn, jdbcType=INTEGER},
+            #{maxTurn, jdbcType=INTEGER},
+            #{handDiscardDecisionSeconds, jdbcType=INTEGER},
+            #{tradeWindowInterval, jdbcType=INTEGER},
+            #{tradeWindowSeconds, jdbcType=INTEGER},
+            #{baseCarbonPrice, jdbcType=DOUBLE},
+            #{maxCarbonQuota, jdbcType=INTEGER},
+            #{domainProgressCardCap, jdbcType=INTEGER},
+            #{endingDisplaySeconds, jdbcType=INTEGER},
+            #{turnTransitionAnimationEnabledDefault, jdbcType=BOOLEAN},
+            #{turnTransitionAnimationSeconds, jdbcType=INTEGER},
+            TRUE
+        )
+        ON CONFLICT (config_id) DO UPDATE SET
+            core_hand_limit = EXCLUDED.core_hand_limit,
+            policy_hand_limit = EXCLUDED.policy_hand_limit,
+            max_combo_per_turn = EXCLUDED.max_combo_per_turn,
+            max_turn = EXCLUDED.max_turn,
+            hand_discard_decision_seconds = EXCLUDED.hand_discard_decision_seconds,
+            trade_window_interval = EXCLUDED.trade_window_interval,
+            trade_window_seconds = EXCLUDED.trade_window_seconds,
+            base_carbon_price = EXCLUDED.base_carbon_price,
+            max_carbon_quota = EXCLUDED.max_carbon_quota,
+            domain_progress_card_cap = EXCLUDED.domain_progress_card_cap,
+            ending_display_seconds = EXCLUDED.ending_display_seconds,
+            turn_transition_animation_enabled_default = EXCLUDED.turn_transition_animation_enabled_default,
+            turn_transition_animation_seconds = EXCLUDED.turn_transition_animation_seconds,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <insert id="upsertBalanceRuleConfig">
+        INSERT INTO game.game_balance_rule_config (
+            config_id, initial_phase, initial_event_cooldown, board_size, initial_industry, initial_tech, initial_population,
+            initial_green, initial_carbon, initial_satisfaction, initial_low_carbon_score, initial_quota,
+            initial_draw_early, draw_count_early, draw_count_mid, draw_count_late, event_cooldown_reset_turns,
+            settlement_base_industry_gain, settlement_base_tech_gain, settlement_base_population_gain, satisfaction_max,
+            carbon_quota_base_line, carbon_quota_per_n_over, carbon_industry_emission_per_card, carbon_ecology_reduction_per_card,
+            carbon_science_reduction_per_card, trade_random_base_min, trade_random_span, trade_high_carbon_threshold, trade_high_carbon_factor,
+            trade_low_carbon_threshold, trade_low_carbon_factor, failure_high_carbon_threshold, failure_high_carbon_streak_limit,
+            trade_failure_quota_exhausted_limit, trade_failure_profit_threshold, low_carbon_min_for_positive_ending, low_carbon_domain_threshold,
+            low_carbon_domain_bonus, low_carbon_policy_unlock_score, low_carbon_policy_unlock_all_count, low_carbon_policy_unlock_all_bonus,
+            low_carbon_event_resolved_score, low_carbon_event_triggered_penalty, low_carbon_over_limit_carbon_threshold,
+            low_carbon_over_limit_streak_threshold, low_carbon_over_limit_streak_penalty, low_carbon_trade_profit_divisor,
+            low_carbon_trade_profit_bonus, low_carbon_quota_exhausted_penalty, low_carbon_invalid_operation_penalty,
+            carbon_tier_1_max, carbon_tier_1_score, carbon_tier_2_max, carbon_tier_2_score, carbon_tier_3_max, carbon_tier_3_score,
+            carbon_tier_4_max, carbon_tier_4_score, carbon_tier_5_score, phase_early_max_cards, phase_early_max_score, phase_mid_min_cards,
+            phase_mid_max_cards, phase_mid_min_score, phase_mid_max_score, phase_late_min_cards, phase_late_min_score,
+            phase_late_remaining_cards_threshold, ending_event_resolve_rate_required, ending_innovation_min_science, ending_innovation_min_tech,
+            ending_innovation_min_low_carbon, ending_innovation_max_carbon, ending_innovation_min_profit, ending_ecology_min_ecology,
+            ending_ecology_min_green, ending_ecology_min_low_carbon, ending_ecology_max_carbon, ending_ecology_min_quota,
+            ending_doughnut_min_society, ending_doughnut_min_satisfaction, ending_doughnut_min_population, ending_doughnut_min_domain,
+            ending_doughnut_min_low_carbon, ending_doughnut_max_carbon, ending_doughnut_min_policy_usage_6768, is_enabled
+        ) VALUES (
+            #{configId, jdbcType=INTEGER}, #{initialPhase, jdbcType=VARCHAR}, #{initialEventCooldown, jdbcType=INTEGER}, #{boardSize, jdbcType=INTEGER},
+            #{initialIndustry, jdbcType=INTEGER}, #{initialTech, jdbcType=INTEGER}, #{initialPopulation, jdbcType=INTEGER},
+            #{initialGreen, jdbcType=INTEGER}, #{initialCarbon, jdbcType=INTEGER}, #{initialSatisfaction, jdbcType=INTEGER},
+            #{initialLowCarbonScore, jdbcType=INTEGER}, #{initialQuota, jdbcType=INTEGER}, #{initialDrawEarly, jdbcType=INTEGER},
+            #{drawCountEarly, jdbcType=INTEGER}, #{drawCountMid, jdbcType=INTEGER}, #{drawCountLate, jdbcType=INTEGER},
+            #{eventCooldownResetTurns, jdbcType=INTEGER}, #{settlementBaseIndustryGain, jdbcType=INTEGER},
+            #{settlementBaseTechGain, jdbcType=INTEGER}, #{settlementBasePopulationGain, jdbcType=INTEGER}, #{satisfactionMax, jdbcType=INTEGER},
+            #{carbonQuotaBaseLine, jdbcType=INTEGER}, #{carbonQuotaPerNOver, jdbcType=INTEGER}, #{carbonIndustryEmissionPerCard, jdbcType=INTEGER},
+            #{carbonEcologyReductionPerCard, jdbcType=INTEGER}, #{carbonScienceReductionPerCard, jdbcType=INTEGER},
+            #{tradeRandomBaseMin, jdbcType=DOUBLE}, #{tradeRandomSpan, jdbcType=DOUBLE}, #{tradeHighCarbonThreshold, jdbcType=INTEGER},
+            #{tradeHighCarbonFactor, jdbcType=DOUBLE}, #{tradeLowCarbonThreshold, jdbcType=INTEGER}, #{tradeLowCarbonFactor, jdbcType=DOUBLE},
+            #{failureHighCarbonThreshold, jdbcType=INTEGER}, #{failureHighCarbonStreakLimit, jdbcType=INTEGER},
+            #{tradeFailureQuotaExhaustedLimit, jdbcType=INTEGER}, #{tradeFailureProfitThreshold, jdbcType=DOUBLE},
+            #{lowCarbonMinForPositiveEnding, jdbcType=INTEGER}, #{lowCarbonDomainThreshold, jdbcType=INTEGER}, #{lowCarbonDomainBonus, jdbcType=INTEGER},
+            #{lowCarbonPolicyUnlockScore, jdbcType=INTEGER}, #{lowCarbonPolicyUnlockAllCount, jdbcType=INTEGER}, #{lowCarbonPolicyUnlockAllBonus, jdbcType=INTEGER},
+            #{lowCarbonEventResolvedScore, jdbcType=INTEGER}, #{lowCarbonEventTriggeredPenalty, jdbcType=INTEGER},
+            #{lowCarbonOverLimitCarbonThreshold, jdbcType=INTEGER}, #{lowCarbonOverLimitStreakThreshold, jdbcType=INTEGER},
+            #{lowCarbonOverLimitStreakPenalty, jdbcType=INTEGER}, #{lowCarbonTradeProfitDivisor, jdbcType=DOUBLE},
+            #{lowCarbonTradeProfitBonus, jdbcType=INTEGER}, #{lowCarbonQuotaExhaustedPenalty, jdbcType=INTEGER},
+            #{lowCarbonInvalidOperationPenalty, jdbcType=INTEGER}, #{carbonTier1Max, jdbcType=INTEGER}, #{carbonTier1Score, jdbcType=INTEGER},
+            #{carbonTier2Max, jdbcType=INTEGER}, #{carbonTier2Score, jdbcType=INTEGER}, #{carbonTier3Max, jdbcType=INTEGER}, #{carbonTier3Score, jdbcType=INTEGER},
+            #{carbonTier4Max, jdbcType=INTEGER}, #{carbonTier4Score, jdbcType=INTEGER}, #{carbonTier5Score, jdbcType=INTEGER},
+            #{phaseEarlyMaxCards, jdbcType=INTEGER}, #{phaseEarlyMaxScore, jdbcType=INTEGER}, #{phaseMidMinCards, jdbcType=INTEGER},
+            #{phaseMidMaxCards, jdbcType=INTEGER}, #{phaseMidMinScore, jdbcType=INTEGER}, #{phaseMidMaxScore, jdbcType=INTEGER},
+            #{phaseLateMinCards, jdbcType=INTEGER}, #{phaseLateMinScore, jdbcType=INTEGER}, #{phaseLateRemainingCardsThreshold, jdbcType=INTEGER},
+            #{endingEventResolveRateRequired, jdbcType=DOUBLE}, #{endingInnovationMinScience, jdbcType=INTEGER},
+            #{endingInnovationMinTech, jdbcType=INTEGER}, #{endingInnovationMinLowCarbon, jdbcType=INTEGER},
+            #{endingInnovationMaxCarbon, jdbcType=INTEGER}, #{endingInnovationMinProfit, jdbcType=DOUBLE}, #{endingEcologyMinEcology, jdbcType=INTEGER},
+            #{endingEcologyMinGreen, jdbcType=INTEGER}, #{endingEcologyMinLowCarbon, jdbcType=INTEGER}, #{endingEcologyMaxCarbon, jdbcType=INTEGER},
+            #{endingEcologyMinQuota, jdbcType=INTEGER}, #{endingDoughnutMinSociety, jdbcType=INTEGER},
+            #{endingDoughnutMinSatisfaction, jdbcType=INTEGER}, #{endingDoughnutMinPopulation, jdbcType=INTEGER},
+            #{endingDoughnutMinDomain, jdbcType=INTEGER}, #{endingDoughnutMinLowCarbon, jdbcType=INTEGER},
+            #{endingDoughnutMaxCarbon, jdbcType=INTEGER}, #{endingDoughnutMinPolicyUsage6768, jdbcType=INTEGER}, TRUE
+        )
+        ON CONFLICT (config_id) DO UPDATE SET
+            initial_phase = EXCLUDED.initial_phase,
+            initial_event_cooldown = EXCLUDED.initial_event_cooldown,
+            board_size = EXCLUDED.board_size,
+            initial_industry = EXCLUDED.initial_industry,
+            initial_tech = EXCLUDED.initial_tech,
+            initial_population = EXCLUDED.initial_population,
+            initial_green = EXCLUDED.initial_green,
+            initial_carbon = EXCLUDED.initial_carbon,
+            initial_satisfaction = EXCLUDED.initial_satisfaction,
+            initial_low_carbon_score = EXCLUDED.initial_low_carbon_score,
+            initial_quota = EXCLUDED.initial_quota,
+            initial_draw_early = EXCLUDED.initial_draw_early,
+            draw_count_early = EXCLUDED.draw_count_early,
+            draw_count_mid = EXCLUDED.draw_count_mid,
+            draw_count_late = EXCLUDED.draw_count_late,
+            event_cooldown_reset_turns = EXCLUDED.event_cooldown_reset_turns,
+            settlement_base_industry_gain = EXCLUDED.settlement_base_industry_gain,
+            settlement_base_tech_gain = EXCLUDED.settlement_base_tech_gain,
+            settlement_base_population_gain = EXCLUDED.settlement_base_population_gain,
+            satisfaction_max = EXCLUDED.satisfaction_max,
+            carbon_quota_base_line = EXCLUDED.carbon_quota_base_line,
+            carbon_quota_per_n_over = EXCLUDED.carbon_quota_per_n_over,
+            carbon_industry_emission_per_card = EXCLUDED.carbon_industry_emission_per_card,
+            carbon_ecology_reduction_per_card = EXCLUDED.carbon_ecology_reduction_per_card,
+            carbon_science_reduction_per_card = EXCLUDED.carbon_science_reduction_per_card,
+            trade_random_base_min = EXCLUDED.trade_random_base_min,
+            trade_random_span = EXCLUDED.trade_random_span,
+            trade_high_carbon_threshold = EXCLUDED.trade_high_carbon_threshold,
+            trade_high_carbon_factor = EXCLUDED.trade_high_carbon_factor,
+            trade_low_carbon_threshold = EXCLUDED.trade_low_carbon_threshold,
+            trade_low_carbon_factor = EXCLUDED.trade_low_carbon_factor,
+            failure_high_carbon_threshold = EXCLUDED.failure_high_carbon_threshold,
+            failure_high_carbon_streak_limit = EXCLUDED.failure_high_carbon_streak_limit,
+            trade_failure_quota_exhausted_limit = EXCLUDED.trade_failure_quota_exhausted_limit,
+            trade_failure_profit_threshold = EXCLUDED.trade_failure_profit_threshold,
+            low_carbon_min_for_positive_ending = EXCLUDED.low_carbon_min_for_positive_ending,
+            low_carbon_domain_threshold = EXCLUDED.low_carbon_domain_threshold,
+            low_carbon_domain_bonus = EXCLUDED.low_carbon_domain_bonus,
+            low_carbon_policy_unlock_score = EXCLUDED.low_carbon_policy_unlock_score,
+            low_carbon_policy_unlock_all_count = EXCLUDED.low_carbon_policy_unlock_all_count,
+            low_carbon_policy_unlock_all_bonus = EXCLUDED.low_carbon_policy_unlock_all_bonus,
+            low_carbon_event_resolved_score = EXCLUDED.low_carbon_event_resolved_score,
+            low_carbon_event_triggered_penalty = EXCLUDED.low_carbon_event_triggered_penalty,
+            low_carbon_over_limit_carbon_threshold = EXCLUDED.low_carbon_over_limit_carbon_threshold,
+            low_carbon_over_limit_streak_threshold = EXCLUDED.low_carbon_over_limit_streak_threshold,
+            low_carbon_over_limit_streak_penalty = EXCLUDED.low_carbon_over_limit_streak_penalty,
+            low_carbon_trade_profit_divisor = EXCLUDED.low_carbon_trade_profit_divisor,
+            low_carbon_trade_profit_bonus = EXCLUDED.low_carbon_trade_profit_bonus,
+            low_carbon_quota_exhausted_penalty = EXCLUDED.low_carbon_quota_exhausted_penalty,
+            low_carbon_invalid_operation_penalty = EXCLUDED.low_carbon_invalid_operation_penalty,
+            carbon_tier_1_max = EXCLUDED.carbon_tier_1_max,
+            carbon_tier_1_score = EXCLUDED.carbon_tier_1_score,
+            carbon_tier_2_max = EXCLUDED.carbon_tier_2_max,
+            carbon_tier_2_score = EXCLUDED.carbon_tier_2_score,
+            carbon_tier_3_max = EXCLUDED.carbon_tier_3_max,
+            carbon_tier_3_score = EXCLUDED.carbon_tier_3_score,
+            carbon_tier_4_max = EXCLUDED.carbon_tier_4_max,
+            carbon_tier_4_score = EXCLUDED.carbon_tier_4_score,
+            carbon_tier_5_score = EXCLUDED.carbon_tier_5_score,
+            phase_early_max_cards = EXCLUDED.phase_early_max_cards,
+            phase_early_max_score = EXCLUDED.phase_early_max_score,
+            phase_mid_min_cards = EXCLUDED.phase_mid_min_cards,
+            phase_mid_max_cards = EXCLUDED.phase_mid_max_cards,
+            phase_mid_min_score = EXCLUDED.phase_mid_min_score,
+            phase_mid_max_score = EXCLUDED.phase_mid_max_score,
+            phase_late_min_cards = EXCLUDED.phase_late_min_cards,
+            phase_late_min_score = EXCLUDED.phase_late_min_score,
+            phase_late_remaining_cards_threshold = EXCLUDED.phase_late_remaining_cards_threshold,
+            ending_event_resolve_rate_required = EXCLUDED.ending_event_resolve_rate_required,
+            ending_innovation_min_science = EXCLUDED.ending_innovation_min_science,
+            ending_innovation_min_tech = EXCLUDED.ending_innovation_min_tech,
+            ending_innovation_min_low_carbon = EXCLUDED.ending_innovation_min_low_carbon,
+            ending_innovation_max_carbon = EXCLUDED.ending_innovation_max_carbon,
+            ending_innovation_min_profit = EXCLUDED.ending_innovation_min_profit,
+            ending_ecology_min_ecology = EXCLUDED.ending_ecology_min_ecology,
+            ending_ecology_min_green = EXCLUDED.ending_ecology_min_green,
+            ending_ecology_min_low_carbon = EXCLUDED.ending_ecology_min_low_carbon,
+            ending_ecology_max_carbon = EXCLUDED.ending_ecology_max_carbon,
+            ending_ecology_min_quota = EXCLUDED.ending_ecology_min_quota,
+            ending_doughnut_min_society = EXCLUDED.ending_doughnut_min_society,
+            ending_doughnut_min_satisfaction = EXCLUDED.ending_doughnut_min_satisfaction,
+            ending_doughnut_min_population = EXCLUDED.ending_doughnut_min_population,
+            ending_doughnut_min_domain = EXCLUDED.ending_doughnut_min_domain,
+            ending_doughnut_min_low_carbon = EXCLUDED.ending_doughnut_min_low_carbon,
+            ending_doughnut_max_carbon = EXCLUDED.ending_doughnut_max_carbon,
+            ending_doughnut_min_policy_usage_6768 = EXCLUDED.ending_doughnut_min_policy_usage_6768,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllEventRules">
+        UPDATE game.game_event_rule_config
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertEventRule">
+        INSERT INTO game.game_event_rule_config (
+            event_type, trigger_probability_pct, min_green, min_carbon, max_satisfaction, min_population, require_even_turn,
+            weight, duration_turns, green_delta, carbon_delta, satisfaction_delta, green_pct_delta, population_pct_delta,
+            quota_delta, display_name, effect_summary, resolution_hint, resolvable_policy_ids_csv, is_enabled
+        ) VALUES (
+            #{eventType, jdbcType=VARCHAR}, #{triggerProbabilityPct, jdbcType=INTEGER}, #{minGreen, jdbcType=INTEGER},
+            #{minCarbon, jdbcType=INTEGER}, #{maxSatisfaction, jdbcType=INTEGER}, #{minPopulation, jdbcType=INTEGER},
+            #{requireEvenTurn, jdbcType=BOOLEAN}, #{weight, jdbcType=INTEGER}, #{durationTurns, jdbcType=INTEGER},
+            #{greenDelta, jdbcType=INTEGER}, #{carbonDelta, jdbcType=INTEGER}, #{satisfactionDelta, jdbcType=INTEGER},
+            #{greenPctDelta, jdbcType=INTEGER}, #{populationPctDelta, jdbcType=INTEGER}, #{quotaDelta, jdbcType=INTEGER},
+            #{displayName, jdbcType=VARCHAR}, #{effectSummary, jdbcType=VARCHAR}, #{resolutionHint, jdbcType=VARCHAR},
+            #{resolvablePolicyIdsCsv, jdbcType=VARCHAR}, TRUE
+        )
+        ON CONFLICT (event_type) DO UPDATE SET
+            trigger_probability_pct = EXCLUDED.trigger_probability_pct,
+            min_green = EXCLUDED.min_green,
+            min_carbon = EXCLUDED.min_carbon,
+            max_satisfaction = EXCLUDED.max_satisfaction,
+            min_population = EXCLUDED.min_population,
+            require_even_turn = EXCLUDED.require_even_turn,
+            weight = EXCLUDED.weight,
+            duration_turns = EXCLUDED.duration_turns,
+            green_delta = EXCLUDED.green_delta,
+            carbon_delta = EXCLUDED.carbon_delta,
+            satisfaction_delta = EXCLUDED.satisfaction_delta,
+            green_pct_delta = EXCLUDED.green_pct_delta,
+            population_pct_delta = EXCLUDED.population_pct_delta,
+            quota_delta = EXCLUDED.quota_delta,
+            display_name = EXCLUDED.display_name,
+            effect_summary = EXCLUDED.effect_summary,
+            resolution_hint = EXCLUDED.resolution_hint,
+            resolvable_policy_ids_csv = EXCLUDED.resolvable_policy_ids_csv,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllComboRules">
+        UPDATE game.game_combo_rule_config
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertComboRule">
+        INSERT INTO game.game_combo_rule_config (
+            combo_id, priority_order, required_policy_id, min_industry, min_ecology, min_science, min_society,
+            min_low_carbon_industry, min_shenzhen_ecology, min_link_cards, min_industry_low_carbon_adjacent_pairs,
+            min_science_science_adjacent_pairs, min_science_industry_adjacent_pairs, min_industry_ecology_adjacent_pairs,
+            min_society_ecology_adjacent_pairs, effect_industry_delta, effect_tech_delta, effect_population_delta,
+            effect_green_delta, effect_carbon_delta, effect_satisfaction_delta, effect_quota_delta, effect_low_carbon_delta,
+            effect_tech_pct, effect_population_pct, effect_industry_pct, effect_low_carbon_pct, effect_green_pct, effect_global_pct, is_enabled
+        ) VALUES (
+            #{comboId, jdbcType=VARCHAR}, #{priorityOrder, jdbcType=INTEGER}, #{requiredPolicyId, jdbcType=VARCHAR},
+            #{minIndustry, jdbcType=INTEGER}, #{minEcology, jdbcType=INTEGER}, #{minScience, jdbcType=INTEGER}, #{minSociety, jdbcType=INTEGER},
+            #{minLowCarbonIndustry, jdbcType=INTEGER}, #{minShenzhenEcology, jdbcType=INTEGER}, #{minLinkCards, jdbcType=INTEGER},
+            #{minIndustryLowCarbonAdjacentPairs, jdbcType=INTEGER}, #{minScienceScienceAdjacentPairs, jdbcType=INTEGER},
+            #{minScienceIndustryAdjacentPairs, jdbcType=INTEGER}, #{minIndustryEcologyAdjacentPairs, jdbcType=INTEGER},
+            #{minSocietyEcologyAdjacentPairs, jdbcType=INTEGER}, #{effectIndustryDelta, jdbcType=INTEGER}, #{effectTechDelta, jdbcType=INTEGER},
+            #{effectPopulationDelta, jdbcType=INTEGER}, #{effectGreenDelta, jdbcType=INTEGER}, #{effectCarbonDelta, jdbcType=INTEGER},
+            #{effectSatisfactionDelta, jdbcType=INTEGER}, #{effectQuotaDelta, jdbcType=INTEGER}, #{effectLowCarbonDelta, jdbcType=INTEGER},
+            #{effectTechPct, jdbcType=INTEGER}, #{effectPopulationPct, jdbcType=INTEGER}, #{effectIndustryPct, jdbcType=INTEGER},
+            #{effectLowCarbonPct, jdbcType=INTEGER}, #{effectGreenPct, jdbcType=INTEGER}, #{effectGlobalPct, jdbcType=INTEGER}, TRUE
+        )
+        ON CONFLICT (combo_id) DO UPDATE SET
+            priority_order = EXCLUDED.priority_order,
+            required_policy_id = EXCLUDED.required_policy_id,
+            min_industry = EXCLUDED.min_industry,
+            min_ecology = EXCLUDED.min_ecology,
+            min_science = EXCLUDED.min_science,
+            min_society = EXCLUDED.min_society,
+            min_low_carbon_industry = EXCLUDED.min_low_carbon_industry,
+            min_shenzhen_ecology = EXCLUDED.min_shenzhen_ecology,
+            min_link_cards = EXCLUDED.min_link_cards,
+            min_industry_low_carbon_adjacent_pairs = EXCLUDED.min_industry_low_carbon_adjacent_pairs,
+            min_science_science_adjacent_pairs = EXCLUDED.min_science_science_adjacent_pairs,
+            min_science_industry_adjacent_pairs = EXCLUDED.min_science_industry_adjacent_pairs,
+            min_industry_ecology_adjacent_pairs = EXCLUDED.min_industry_ecology_adjacent_pairs,
+            min_society_ecology_adjacent_pairs = EXCLUDED.min_society_ecology_adjacent_pairs,
+            effect_industry_delta = EXCLUDED.effect_industry_delta,
+            effect_tech_delta = EXCLUDED.effect_tech_delta,
+            effect_population_delta = EXCLUDED.effect_population_delta,
+            effect_green_delta = EXCLUDED.effect_green_delta,
+            effect_carbon_delta = EXCLUDED.effect_carbon_delta,
+            effect_satisfaction_delta = EXCLUDED.effect_satisfaction_delta,
+            effect_quota_delta = EXCLUDED.effect_quota_delta,
+            effect_low_carbon_delta = EXCLUDED.effect_low_carbon_delta,
+            effect_tech_pct = EXCLUDED.effect_tech_pct,
+            effect_population_pct = EXCLUDED.effect_population_pct,
+            effect_industry_pct = EXCLUDED.effect_industry_pct,
+            effect_low_carbon_pct = EXCLUDED.effect_low_carbon_pct,
+            effect_green_pct = EXCLUDED.effect_green_pct,
+            effect_global_pct = EXCLUDED.effect_global_pct,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllPolicyUnlockRules">
+        UPDATE game.game_policy_unlock_rule_config
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertPolicyUnlockRule">
+        INSERT INTO game.game_policy_unlock_rule_config (
+            policy_id, priority_order, min_industry, min_ecology, min_science, min_society,
+            min_industry_resource, min_tech_resource, min_population_resource, min_green, min_carbon,
+            max_carbon, min_satisfaction, min_tagged_cards, required_tag, is_enabled
+        ) VALUES (
+            #{policyId, jdbcType=VARCHAR}, #{priorityOrder, jdbcType=INTEGER}, #{minIndustry, jdbcType=INTEGER},
+            #{minEcology, jdbcType=INTEGER}, #{minScience, jdbcType=INTEGER}, #{minSociety, jdbcType=INTEGER},
+            #{minIndustryResource, jdbcType=INTEGER}, #{minTechResource, jdbcType=INTEGER}, #{minPopulationResource, jdbcType=INTEGER},
+            #{minGreen, jdbcType=INTEGER}, #{minCarbon, jdbcType=INTEGER}, #{maxCarbon, jdbcType=INTEGER},
+            #{minSatisfaction, jdbcType=INTEGER}, #{minTaggedCards, jdbcType=INTEGER}, #{requiredTag, jdbcType=VARCHAR}, TRUE
+        )
+        ON CONFLICT (policy_id) DO UPDATE SET
+            priority_order = EXCLUDED.priority_order,
+            min_industry = EXCLUDED.min_industry,
+            min_ecology = EXCLUDED.min_ecology,
+            min_science = EXCLUDED.min_science,
+            min_society = EXCLUDED.min_society,
+            min_industry_resource = EXCLUDED.min_industry_resource,
+            min_tech_resource = EXCLUDED.min_tech_resource,
+            min_population_resource = EXCLUDED.min_population_resource,
+            min_green = EXCLUDED.min_green,
+            min_carbon = EXCLUDED.min_carbon,
+            max_carbon = EXCLUDED.max_carbon,
+            min_satisfaction = EXCLUDED.min_satisfaction,
+            min_tagged_cards = EXCLUDED.min_tagged_cards,
+            required_tag = EXCLUDED.required_tag,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllCoreSpecialConditions">
+        UPDATE game.game_core_special_condition_config
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertCoreSpecialCondition">
+        INSERT INTO game.game_core_special_condition_config (
+            card_id, required_event_type, min_industry_cards, min_ecology_cards, min_science_cards, min_society_cards, is_enabled
+        ) VALUES (
+            #{cardId, jdbcType=VARCHAR}, #{requiredEventType, jdbcType=VARCHAR}, #{minIndustryCards, jdbcType=INTEGER},
+            #{minEcologyCards, jdbcType=INTEGER}, #{minScienceCards, jdbcType=INTEGER}, #{minSocietyCards, jdbcType=INTEGER}, TRUE
+        )
+        ON CONFLICT (card_id) DO UPDATE SET
+            required_event_type = EXCLUDED.required_event_type,
+            min_industry_cards = EXCLUDED.min_industry_cards,
+            min_ecology_cards = EXCLUDED.min_ecology_cards,
+            min_science_cards = EXCLUDED.min_science_cards,
+            min_society_cards = EXCLUDED.min_society_cards,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllCardTags">
+        UPDATE game.game_card_tag_map
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertCardTag">
+        INSERT INTO game.game_card_tag_map (
+            card_id, tag_code, is_enabled
+        ) VALUES (
+            #{cardId, jdbcType=VARCHAR}, #{tagCode, jdbcType=VARCHAR}, TRUE
+        )
+        ON CONFLICT (card_id, tag_code) DO UPDATE SET
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
+
+    <update id="disableAllEndingContents">
+        UPDATE game.game_ending_content_config
+        SET is_enabled = FALSE,
+            updated_at = now()
+    </update>
+
+    <insert id="upsertEndingContent">
+        INSERT INTO game.game_ending_content_config (
+            ending_id, ending_name, image_key, default_reason, failure_reason_high_carbon,
+            failure_reason_trade, failure_reason_low_score, failure_reason_boundary_default, is_enabled
+        ) VALUES (
+            #{endingId, jdbcType=VARCHAR}, #{endingName, jdbcType=VARCHAR}, #{imageKey, jdbcType=VARCHAR},
+            #{defaultReason, jdbcType=VARCHAR}, #{failureReasonHighCarbon, jdbcType=VARCHAR},
+            #{failureReasonTrade, jdbcType=VARCHAR}, #{failureReasonLowScore, jdbcType=VARCHAR},
+            #{failureReasonBoundaryDefault, jdbcType=VARCHAR}, TRUE
+        )
+        ON CONFLICT (ending_id) DO UPDATE SET
+            ending_name = EXCLUDED.ending_name,
+            image_key = EXCLUDED.image_key,
+            default_reason = EXCLUDED.default_reason,
+            failure_reason_high_carbon = EXCLUDED.failure_reason_high_carbon,
+            failure_reason_trade = EXCLUDED.failure_reason_trade,
+            failure_reason_low_score = EXCLUDED.failure_reason_low_score,
+            failure_reason_boundary_default = EXCLUDED.failure_reason_boundary_default,
+            is_enabled = TRUE,
+            updated_at = now()
+    </insert>
 
 </mapper>

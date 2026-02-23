@@ -294,7 +294,7 @@ function PointsPageContent() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#F0A32F]/5 to-white"
+                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#F0A32F]/5 to-white dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900"
             >
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-semibold mb-4 border border-[#F0A32F]/20">
                     <span className="relative flex h-2 w-2">
@@ -303,10 +303,10 @@ function PointsPageContent() {
                     </span>
                     {t('badge', '积分奖励系统')}
                 </div>
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] mb-6 drop-shadow-sm leading-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight">
                     {t('title', '积分')}<span className="text-[#F0A32F]">{t('paradise', '乐园')}</span>
                 </h1>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 font-normal max-w-lg mx-auto leading-relaxed px-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4">
                     <div className="flex items-center gap-2">
                         <Coins className="w-5 h-5 text-[#F0A32F]" />
                         <span>{t('subtitle.complete', '完成')}<span className="text-[#F0A32F] font-medium border-b-2 border-[#F0A32F]/30">{t('subtitle.tasks', '任务')}</span>{t('subtitle.earnPoints', '赚积分，')}</span>
@@ -321,13 +321,13 @@ function PointsPageContent() {
                 whileInView="visible"
                 viewport={{ once: true, margin: '-50px' }}
                 variants={staggerContainer}
-                className="bg-white px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100"
+                className="bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100 dark:border-slate-800"
             >
 
                 {/* 1. 用户积分概览 User Overview */}
                 <motion.section
                     variants={staggerItem}
-                    className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden"
+                    className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden"
                 >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#F0A32F]/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
@@ -339,7 +339,7 @@ function PointsPageContent() {
                         <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
                             {/* 头像区 */}
                             <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg shadow-slate-200 flex items-center justify-center overflow-hidden">
+                                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-slate-100 dark:bg-slate-700 border-4 border-white dark:border-slate-800 shadow-lg shadow-slate-200 dark:shadow-none flex items-center justify-center overflow-hidden">
                                     {user?.avatarUrl ? (
                                         <img src={user.avatarUrl} alt={user.nickname} className="w-full h-full object-cover" />
                                     ) : (
@@ -354,7 +354,7 @@ function PointsPageContent() {
                             {/* 积分与进度 */}
                             <div className="flex-1 w-full space-y-4">
                                 <div className="flex items-baseline gap-2 relative">
-                                    <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B] transition-all duration-300">
+                                    <span className="text-4xl md:text-5xl font-serif font-bold text-[#30499B] dark:text-[#56B949] transition-all duration-300">
                                         {displayPoints}
                                     </span>
                                     <div className="px-2 py-0.5 rounded bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-bold border border-[#F0A32F]/20 flex items-center gap-1">
@@ -377,7 +377,7 @@ function PointsPageContent() {
                                         <span>{t('progress.current', '当前进度')}</span>
                                         <span>{t('progress.nextLevel', '距离下一级还需')} <span className="text-[#F0A32F] font-bold">{pointsAccount?.pointsToNextLevel || 0}</span> {t('points', '积分')}</span>
                                     </div>
-                                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                                         {(() => {
                                             const current = pointsAccount?.totalPoints || 0;
                                             const nextMin = pointsAccount?.nextLevelMinPoints || 100;
@@ -442,7 +442,7 @@ function PointsPageContent() {
                                     </button>
                                 </Link>
                                 <Link href={`/${locale}/points/history`} className="flex-1 w-full">
-                                    <button className="w-full px-2 sm:px-6 py-3 md:py-2.5 rounded-xl bg-white text-[#30499B] border border-slate-200 text-xs sm:text-sm font-semibold hover:border-[#30499B]/30 transition-all hover:bg-slate-50 truncate">
+                                    <button className="w-full px-2 sm:px-6 py-3 md:py-2.5 rounded-xl bg-white dark:bg-slate-800 text-[#30499B] dark:text-[#56B949] border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold hover:border-[#30499B]/30 dark:hover:border-[#56B949]/50 transition-all hover:bg-slate-50 dark:hover:bg-slate-700 truncate">
                                         {t('pointsHistory', '积分记录')}
                                     </button>
                                 </Link>
@@ -461,7 +461,7 @@ function PointsPageContent() {
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: '-80px' }}
-                        className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
+                        className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-[#30499B] font-serif">
@@ -473,7 +473,7 @@ function PointsPageContent() {
                         </div>
 
                         {/* 日历可视区域 */}
-                        <div className="bg-slate-50 rounded-xl p-6 flex-1 flex flex-col items-center justify-center relative overflow-hidden border border-slate-100">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 flex-1 flex flex-col items-center justify-center relative overflow-hidden border border-slate-100 dark:border-slate-700">
                             {/* 装饰背景 */}
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#56B949]/20 via-[#F0A32F]/20 to-[#30499B]/20"></div>
 
@@ -522,7 +522,7 @@ function PointsPageContent() {
                                                 key={index}
                                                 onClick={handleCheckIn}
                                                 className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all duration-300 ${todaySignin
-                                                    ? 'bg-white border border-[#56B949]/30 hover:shadow-md cursor-default'
+                                                    ? 'bg-white dark:bg-slate-800 border border-[#56B949]/30 hover:shadow-md cursor-default'
                                                     : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
                                                     }`}
                                             >
@@ -596,7 +596,7 @@ function PointsPageContent() {
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: '-80px' }}
-                        className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full"
+                        className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-full"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-[#30499B] font-serif">{t('dailyTasks', '每日任务')}</h3>
@@ -619,10 +619,10 @@ function PointsPageContent() {
                                     <div
                                         key={task.id}
                                         className={`flex items-center justify-between p-3 sm:p-4 rounded-xl transition-colors border ${task.status === 3
-                                            ? 'bg-slate-50 border-transparent'
+                                            ? 'bg-slate-50 dark:bg-slate-700/50 border-transparent'
                                             : task.progress >= task.target
                                                 ? 'bg-[#F0A32F]/5 border-[#F0A32F]/20 relative overflow-hidden'
-                                                : 'bg-slate-50 hover:bg-[#30499B]/5 group border-transparent hover:border-[#30499B]/10'
+                                                : 'bg-slate-50 dark:bg-slate-700/50 hover:bg-[#30499B]/5 dark:hover:bg-slate-600 group border-transparent hover:border-[#30499B]/10 dark:hover:border-slate-500'
                                             }`}
                                     >
                                         {task.progress >= task.target && task.status !== 3 && (
@@ -710,7 +710,7 @@ function PointsPageContent() {
                         {true && (
                             <motion.div
                                 variants={staggerItem}
-                                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden md:col-span-2 lg:col-span-3"
+                                className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden md:col-span-2 lg:col-span-3"
                             >
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#56B949]/5 rounded-bl-full"></div>
                                 <div className="relative z-10">

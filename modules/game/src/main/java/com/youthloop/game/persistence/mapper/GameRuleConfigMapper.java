@@ -33,4 +33,32 @@ public interface GameRuleConfigMapper {
     GameBalanceRuleConfigEntity selectEnabledBalanceRuleConfig();
 
     List<GameEndingContentConfigEntity> selectEnabledEndingContents();
+
+    int upsertRuntimeParamConfig(GameRuntimeParamConfigEntity entity);
+
+    int upsertBalanceRuleConfig(GameBalanceRuleConfigEntity entity);
+
+    int disableAllEventRules();
+
+    int upsertEventRule(GameEventRuleConfigEntity entity);
+
+    int disableAllComboRules();
+
+    int upsertComboRule(GameComboRuleConfigEntity entity);
+
+    int disableAllPolicyUnlockRules();
+
+    int upsertPolicyUnlockRule(GamePolicyUnlockRuleConfigEntity entity);
+
+    int disableAllCoreSpecialConditions();
+
+    int upsertCoreSpecialCondition(GameCoreSpecialConditionConfigEntity entity);
+
+    int disableAllCardTags();
+
+    int upsertCardTag(GameCardTagMapEntity entity);
+
+    int disableAllEndingContents();
+
+    int upsertEndingContent(GameEndingContentConfigEntity entity);
 }

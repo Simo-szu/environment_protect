@@ -40,13 +40,13 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
     return (
         <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
+            <div className="bg-white/60 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60 dark:border-slate-700">
+                <h3 className="text-lg font-serif font-bold text-[#30499B] dark:text-[#56B949] mb-4">
                     {t('stats.title', '活动统计')}
                 </h3>
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
                             {t('stats.monthlyActivities', '本月活动')}
                         </span>
                         <span className="text-lg font-bold text-[#56B949]">
@@ -54,15 +54,15 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
                             {t('stats.participants', '参与人数')}
                         </span>
-                        <span className="text-lg font-bold text-[#30499B]">
+                        <span className="text-lg font-bold text-[#30499B] dark:text-slate-200">
                             {loading ? '...' : (summary?.monthlyParticipantCount?.toLocaleString() ?? '-')}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
                             {t('stats.myRegistrations', '我的报名')}
                         </span>
                         <span className="text-lg font-bold text-[#F0A32F]">
@@ -73,8 +73,8 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
             </div>
 
             {/* Popular Categories */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60">
-                <h3 className="text-lg font-serif font-bold text-[#30499B] mb-4">
+            <div className="bg-white/60 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/60 dark:border-slate-700">
+                <h3 className="text-lg font-serif font-bold text-[#30499B] dark:text-[#56B949] mb-4">
                     {t('categories.title', '热门分类')}
                 </h3>
                 <div className="space-y-3">
@@ -85,9 +85,9 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
                             <div
                                 key={cat.category}
                                 onClick={() => onCategorySelect?.(cat.category)}
-                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors cursor-pointer group"
+                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
                             >
-                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm border border-slate-100/50">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-slate-600 transition-colors shadow-sm border border-slate-100/50 dark:border-slate-600">
                                     {/* Rotate icons for variety */}
                                     {cat.category === 1 && <Trees className="w-4 h-4 text-[#56B949]" />}
                                     {cat.category === 2 && <Heart className="w-4 h-4 text-[#EE4035]" />}
@@ -99,10 +99,10 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
                                     {cat.category === 8 && <Sun className="w-4 h-4 text-[#56B949]" />}
                                     {cat.category > 8 && <Leaf className="w-4 h-4 text-slate-400" />}
                                 </div>
-                                <span className="text-sm text-slate-600 font-medium">
+                                <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">
                                     {t(`categories.${activityApi.mapCategory(cat.category)}`)}
                                 </span>
-                                <span className="ml-auto text-xs text-slate-400 bg-slate-100/50 px-2 py-0.5 rounded-full">{cat.activityCount}</span>
+                                <span className="ml-auto text-xs text-slate-400 dark:text-slate-400 bg-slate-100/50 dark:bg-slate-700 px-2 py-0.5 rounded-full">{cat.activityCount}</span>
                             </div>
                         ))
                     ) : (
