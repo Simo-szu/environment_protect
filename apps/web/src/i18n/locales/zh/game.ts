@@ -167,6 +167,7 @@ const game = {
         board: {
             title: '棋盘',
             tile: '格子',
+            target: '当前卡牌',
             placementHint: '落点提示：格子上的 +N 代表与已放置卡牌的相邻数量，通常更容易形成联动。',
             adjacencyRule: '规则：首张卡可放任意空位；后续每张核心卡必须与已放置卡正交相邻。',
             freePlacementRule: '规则：当前模式下，可在任意空白格放置核心卡。',
@@ -199,6 +200,9 @@ const game = {
             title: '政策手牌',
         },
         discard: {
+            title: '需要弃牌',
+            instruction: '手牌数量已超过上限，请点击下方手牌进行弃置。',
+            requiredHint: '还需弃置 {count} 张，弃置后手牌保持为 {limit} 张。',
             inlineHint: '当前手牌超上限：请直接点击下方手牌进行弃置，直到恢复上限。',
             clickCore: '点击弃置这张核心卡',
             clickPolicy: '点击弃置这张政策卡',

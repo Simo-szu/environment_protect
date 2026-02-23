@@ -35,6 +35,9 @@ type PlayOverlaysProps = Pick<
   | 'handleOpenArchive'
   | 'handleRestartSession'
   | 'handleExitSession'
+  | 'setGuidedTutorialActive'
+  | 'setError'
+  | 'setLastMessage'
 >;
 
 export default function PlayOverlays(props: PlayOverlaysProps) {
@@ -69,26 +72,80 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     eventStats,
     handleOpenArchive,
     handleRestartSession,
-    handleExitSession
+    handleExitSession,
+    setGuidedTutorialActive,
+    setError,
+    setLastMessage
   } = props;
 
   return (
     <>
       {guidedGateEnabled && currentGuidedTask && (
-        <div className="fixed inset-0 z-30 pointer-events-none">
-          <div className="absolute inset-0 bg-slate-900/25" />
-          <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[min(92vw,720px)] rounded-xl border border-amber-300 bg-white/95 px-4 py-3 shadow-lg">
-            <div className="text-xs font-semibold text-amber-700">{t('play.guided.overlayTitle', '操作引导')}</div>
-            <div className="text-sm text-slate-700 mt-1">{guidedOverlayMessage}</div>
-            <div className="text-xs text-slate-500 mt-1">{currentGuidedTask.detail}</div>
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,500px)] animate-in slide-in-from-top-4 duration-500">
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-amber-500/30 p-5 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative overflow-hidden">
+            {/* Mission Badge */}
+            <div className="absolute -top-1 -right-1">
+              <div className="bg-amber-500 text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest text-black shadow-lg">
+                Active Mission
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
+                <span className="text-amber-400 font-black text-xs">!</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">
+                  {t('play.guided.overlayTitle', '操作引导')}
+                </h4>
+                <div className="text-sm font-black text-slate-100 mb-1 leading-tight">
+                  {guidedOverlayMessage}
+                </div>
+                <div className="text-[11px] font-medium text-slate-400 leading-relaxed italic">
+                  {currentGuidedTask.detail}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">In Progress</span>
+              </div>
+              <button
+                onClick={() => setGuidedTutorialActive(false)}
+                className="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-[9px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
+              >
+                {t('play.guided.pause', 'Pause Guide')}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {(error || lastMessage) && (
-        <div className="px-6 pb-6 text-sm">
-          {error && <div className="text-red-600">{error}</div>}
-          {lastMessage && <div className="text-slate-600 mt-1">{lastMessage}</div>}
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className={`bg-white rounded-[2.5rem] border p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] text-center max-w-sm w-full animate-in zoom-in-95 duration-300 ${error ? 'border-rose-100' : 'border-emerald-100'}`}>
+            <div className={`w-20 h-20 rounded-full mx-auto mb-8 flex items-center justify-center ${error ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
+              {error ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+              )}
+            </div>
+            <h3 className={`text-xl font-black uppercase tracking-[0.2em] mb-3 ${error ? 'text-rose-950' : 'text-emerald-950'}`}>
+              {error ? 'System Alert' : 'Notification'}
+            </h3>
+            <p className="text-sm font-medium text-slate-500 leading-relaxed mb-10">
+              {error || lastMessage}
+            </p>
+            <button
+              onClick={() => { setError(null); setLastMessage(''); }}
+              className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg ${error ? 'bg-rose-600 text-white shadow-rose-900/20 hover:bg-rose-700 hover:-translate-y-1 active:translate-y-0' : 'bg-emerald-600 text-white shadow-emerald-900/20 hover:bg-emerald-700 hover:-translate-y-1 active:translate-y-0'}`}
+            >
+              Acknowledge
+            </button>
+          </div>
         </div>
       )}
 
@@ -176,7 +233,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
               </button>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setOnboardingStep((prev) => Math.max(0, prev - 1))}
+                  onClick={() => setOnboardingStep((prev: number) => Math.max(0, prev - 1))}
                   disabled={onboardingStep <= 0}
                   className="px-3 py-1.5 rounded border border-slate-300 text-sm disabled:opacity-40"
                 >
@@ -184,7 +241,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 </button>
                 {onboardingStep < onboardingSteps.length - 1 ? (
                   <button
-                    onClick={() => setOnboardingStep((prev) => Math.min(onboardingSteps.length - 1, prev + 1))}
+                    onClick={() => setOnboardingStep((prev: number) => Math.min(onboardingSteps.length - 1, prev + 1))}
                     className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm"
                   >
                     {t('play.onboarding.next', '下一步')}

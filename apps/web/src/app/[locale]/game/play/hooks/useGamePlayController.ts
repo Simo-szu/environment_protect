@@ -150,6 +150,10 @@ export function useGamePlayController() {
   const boardOccupied = (pondState?.boardOccupied || {}) as Record<string, string>;
   const pendingDiscard = (pondState?.pendingDiscard || {}) as PendingDiscardState;
   const pendingDiscardActive = Boolean(pendingDiscard.active);
+  const pendingDiscardCoreRequired = Math.max(0, Number(pendingDiscard.coreRequired ?? 0));
+  const pendingDiscardPolicyRequired = Math.max(0, Number(pendingDiscard.policyRequired ?? 0));
+  const pendingDiscardRequiredTotal = pendingDiscardCoreRequired + pendingDiscardPolicyRequired;
+  const pendingDiscardTargetHandSize = Math.max(0, handCore.length + handPolicy.length - pendingDiscardRequiredTotal);
   const pendingDiscardBlocking = pendingDiscardActive;
   const carbonTrade = (pondState?.carbonTrade || {}) as CarbonTradeState;
   const activeNegativeEvents = Array.isArray(pondState?.activeNegativeEvents) ? (pondState?.activeNegativeEvents as EventRecord[]) : [];
@@ -833,6 +837,8 @@ export function useGamePlayController() {
     resolvePolicyIdsByEvent,
     handPolicySet,
     pendingDiscardBlocking,
+    pendingDiscardRequiredTotal,
+    pendingDiscardTargetHandSize,
     selectPolicyForEvent,
     timelineItems,
     boardViewMode,
@@ -856,6 +862,7 @@ export function useGamePlayController() {
     setDraggingCoreId,
     setSelectedCoreId,
     setError,
+    setLastMessage,
     handCoreCards,
     pendingDiscardActive,
     canPlaceCoreCard,
@@ -891,7 +898,9 @@ export function useGamePlayController() {
     policyHistory,
     uniquePoliciesUsed,
     settlementHistory,
-    eventStats
+    eventStats,
+    catalog,
+    locale
   };
 }
 

@@ -17,6 +17,8 @@ export interface MetricState extends UnknownRecord {
 
 export interface PendingDiscardState extends UnknownRecord {
   active?: boolean;
+  coreRequired?: number;
+  policyRequired?: number;
 }
 
 export interface TradeRecord extends UnknownRecord {
