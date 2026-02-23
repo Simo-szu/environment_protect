@@ -54,6 +54,9 @@ public class GameRuleAdminService {
             if (runtimeParam.getConfigId() == null) {
                 runtimeParam.setConfigId(1);
             }
+            if (runtimeParam.getFreePlacementEnabled() == null) {
+                runtimeParam.setFreePlacementEnabled(true);
+            }
             gameRuleConfigMapper.upsertRuntimeParamConfig(runtimeParam);
         }
 
@@ -142,4 +145,3 @@ public class GameRuleAdminService {
         }
     }
 }
-

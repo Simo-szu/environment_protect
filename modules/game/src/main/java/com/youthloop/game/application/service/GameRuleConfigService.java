@@ -260,6 +260,7 @@ public class GameRuleConfigService {
             defaultDouble(entity.getBaseCarbonPrice()),
             Math.max(1, defaultInt(entity.getMaxCarbonQuota())),
             Math.max(1, defaultInt(entity.getDomainProgressCardCap())),
+            defaultBoolean(entity.getFreePlacementEnabled(), true),
             Math.max(1, entity.getEndingDisplaySeconds() == null ? 5 : entity.getEndingDisplaySeconds()),
             defaultBoolean(entity.getTurnTransitionAnimationEnabledDefault(), true),
             Math.max(1, entity.getTurnTransitionAnimationSeconds() == null ? 2 : entity.getTurnTransitionAnimationSeconds())
@@ -502,6 +503,7 @@ public class GameRuleConfigService {
         double baseCarbonPrice,
         int maxCarbonQuota,
         int domainProgressCardCap,
+        boolean freePlacementEnabled,
         int endingDisplaySeconds,
         boolean turnTransitionAnimationEnabledDefault,
         int turnTransitionAnimationSeconds

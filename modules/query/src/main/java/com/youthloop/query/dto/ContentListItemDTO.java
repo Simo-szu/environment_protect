@@ -50,7 +50,10 @@ public class ContentListItemDTO {
     
     @Schema(description = "评论数")
     private Integer commentCount;
-    
+
+    @Schema(description = "浏览数")
+    private Long viewCount;
+
     @Schema(description = "热度分数")
     private Long hotScore;
     

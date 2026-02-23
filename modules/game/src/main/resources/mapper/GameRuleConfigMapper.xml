@@ -103,6 +103,7 @@
         <result column="base_carbon_price" property="baseCarbonPrice" jdbcType="DOUBLE"/>
         <result column="max_carbon_quota" property="maxCarbonQuota" jdbcType="INTEGER"/>
         <result column="domain_progress_card_cap" property="domainProgressCardCap" jdbcType="INTEGER"/>
+        <result column="free_placement_enabled" property="freePlacementEnabled" jdbcType="BOOLEAN"/>
         <result column="ending_display_seconds" property="endingDisplaySeconds" jdbcType="INTEGER"/>
         <result column="turn_transition_animation_enabled_default" property="turnTransitionAnimationEnabledDefault" jdbcType="BOOLEAN"/>
         <result column="turn_transition_animation_seconds" property="turnTransitionAnimationSeconds" jdbcType="INTEGER"/>
@@ -262,6 +263,7 @@
         SELECT config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
                trade_window_interval,
                base_carbon_price, max_carbon_quota, domain_progress_card_cap,
+               free_placement_enabled,
                ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
                is_enabled
         FROM game.game_runtime_param_config
@@ -317,6 +319,7 @@
             config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
             trade_window_interval,
             base_carbon_price, max_carbon_quota, domain_progress_card_cap,
+            free_placement_enabled,
             ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
             is_enabled
         ) VALUES (
@@ -329,6 +332,7 @@
             #{baseCarbonPrice, jdbcType=DOUBLE},
             #{maxCarbonQuota, jdbcType=INTEGER},
             #{domainProgressCardCap, jdbcType=INTEGER},
+            #{freePlacementEnabled, jdbcType=BOOLEAN},
             #{endingDisplaySeconds, jdbcType=INTEGER},
             #{turnTransitionAnimationEnabledDefault, jdbcType=BOOLEAN},
             #{turnTransitionAnimationSeconds, jdbcType=INTEGER},
@@ -343,6 +347,7 @@
             base_carbon_price = EXCLUDED.base_carbon_price,
             max_carbon_quota = EXCLUDED.max_carbon_quota,
             domain_progress_card_cap = EXCLUDED.domain_progress_card_cap,
+            free_placement_enabled = EXCLUDED.free_placement_enabled,
             ending_display_seconds = EXCLUDED.ending_display_seconds,
             turn_transition_animation_enabled_default = EXCLUDED.turn_transition_animation_enabled_default,
             turn_transition_animation_seconds = EXCLUDED.turn_transition_animation_seconds,

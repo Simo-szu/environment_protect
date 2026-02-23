@@ -41,6 +41,7 @@ const admin = {
             endingDisplaySeconds: '结局展示时长 (秒)',
             turnTransitionAnimationSeconds: '回合切换动画时长 (秒)',
             turnTransitionAnimationEnabled: '默认启用回合切换动画',
+            freePlacementEnabled: '允许核心卡自由放置（任意空白格）',
         },
         errors: {
             isRequired: '{{field}} 为必填项',
@@ -54,6 +55,7 @@ const admin = {
         saveSuccess: '保存成功，规则已热重载',
         saveFailed: '保存失败',
         sections: {
+            runtimeParam: '运行参数',
             balanceRule: '平衡规则',
             eventRules: '事件规则',
             comboRules: '连击规则',
@@ -62,6 +64,11 @@ const admin = {
             cardTags: '卡牌标签',
             endingContents: '结局内容',
         },
+        eventRules: { addItem: '添加事件' },
+        comboRules: { addItem: '添加连击' },
+        policyUnlockRules: { addItem: '添加政策解锁' },
+        coreSpecialConditions: { addItem: '添加核心条件' },
+        endingContents: { addItem: '添加结局' },
         balance: {
             groups: {
                 initialState: '初始状态',

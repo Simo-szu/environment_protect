@@ -106,3 +106,18 @@ export async function tradeCarbon(payload: {
 export async function endSession(sessionId: string): Promise<GameActionResponse> {
   return apiPost<GameActionResponse>(`/api/v1/game/sessions/${sessionId}/end`, {}, true);
 }
+
+export async function removeCoreCard(payload: {
+  sessionId: string;
+  row: number;
+  col: number;
+}): Promise<GameActionResponse> {
+  return performAction({
+    sessionId: payload.sessionId,
+    actionType: 6,
+    actionData: {
+      row: payload.row,
+      col: payload.col,
+    },
+  });
+}

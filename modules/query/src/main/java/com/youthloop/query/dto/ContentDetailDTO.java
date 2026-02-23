@@ -65,10 +65,13 @@ public class ContentDetailDTO {
     
     @Schema(description = "评论数")
     private Integer commentCount;
-    
+
+    @Schema(description = "浏览数")
+    private Long viewCount;
+
     @Schema(description = "热度分数")
     private Long hotScore;
-    
+
     // === 用户状态（登录时返回）===
     @Schema(description = "用户状态（未登录时为 null）")
     private UserState userState;

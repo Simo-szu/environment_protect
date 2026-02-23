@@ -41,6 +41,7 @@ const admin = {
             endingDisplaySeconds: 'Ending Display (sec)',
             turnTransitionAnimationSeconds: 'Turn Transition Animation (sec)',
             turnTransitionAnimationEnabled: 'Enable Turn Transition Animation by Default',
+            freePlacementEnabled: 'Allow free core placement (any empty tile)',
         },
         errors: {
             isRequired: '{{field}} is required',
@@ -54,6 +55,7 @@ const admin = {
         saveSuccess: 'Game rules saved and hot reloaded',
         saveFailed: 'Failed to save game rules',
         sections: {
+            runtimeParam: 'Runtime Params',
             balanceRule: 'Balance Rules',
             eventRules: 'Event Rules',
             comboRules: 'Combo Rules',
@@ -62,6 +64,11 @@ const admin = {
             cardTags: 'Card Tags',
             endingContents: 'Ending Contents',
         },
+        eventRules: { addItem: 'Add Event' },
+        comboRules: { addItem: 'Add Combo' },
+        policyUnlockRules: { addItem: 'Add Policy Unlock' },
+        coreSpecialConditions: { addItem: 'Add Condition' },
+        endingContents: { addItem: 'Add Ending' },
         balance: {
             groups: {
                 initialState: 'Initial State',

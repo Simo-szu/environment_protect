@@ -11,6 +11,7 @@
     <result column="fav_count" property="favCount" jdbcType="INTEGER"/>
     <result column="down_count" property="downCount" jdbcType="INTEGER"/>
     <result column="comment_count" property="commentCount" jdbcType="INTEGER"/>
+    <result column="view_count" property="viewCount" jdbcType="BIGINT"/>
     <result column="hot_score" property="hotScore" jdbcType="BIGINT"/>
     <result column="hot_rule_id" property="hotRuleId" jdbcType="OTHER" typeHandler="com.youthloop.common.persistence.UuidTypeHandler"/>
     <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
@@ -18,8 +19,8 @@
 
   <!-- Base Column List -->
   <sql id="Base_Column_List">
-    content_id, like_count, fav_count, down_count, comment_count, 
-    hot_score, hot_rule_id, updated_at
+    content_id, like_count, fav_count, down_count, comment_count,
+    view_count, hot_score, hot_rule_id, updated_at
   </sql>
 
   <!-- 根据内容 ID 查询 -->
@@ -43,10 +44,10 @@
   <insert id="insert">
     INSERT INTO social.content_stats (
       content_id, like_count, fav_count, down_count, comment_count,
-      hot_score, hot_rule_id, updated_at
+      view_count, hot_score, hot_rule_id, updated_at
     ) VALUES (
       #{contentId}::uuid, #{likeCount}, #{favCount}, #{downCount}, #{commentCount},
-      #{hotScore}, #{hotRuleId}::uuid, #{updatedAt}
+      #{viewCount}, #{hotScore}, #{hotRuleId}::uuid, #{updatedAt}
     )
   </insert>
 
@@ -58,6 +59,7 @@
       <if test="favCount != null">fav_count = #{favCount},</if>
       <if test="downCount != null">down_count = #{downCount},</if>
       <if test="commentCount != null">comment_count = #{commentCount},</if>
+      <if test="viewCount != null">view_count = #{viewCount},</if>
       <if test="hotScore != null">hot_score = #{hotScore},</if>
       <if test="hotRuleId != null">hot_rule_id = #{hotRuleId}::uuid,</if>
       updated_at = #{updatedAt}

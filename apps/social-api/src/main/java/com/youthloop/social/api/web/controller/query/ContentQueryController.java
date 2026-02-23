@@ -6,6 +6,7 @@ import com.youthloop.common.api.contract.ApiPageData;
 import com.youthloop.common.api.contract.ApiResponseContract;
 import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.security.OptionalAuth;
+import com.youthloop.content.application.service.ContentStatsUpdateService;
 import com.youthloop.query.dto.CommentTreeDTO;
 import com.youthloop.query.dto.ContentDetailDTO;
 import com.youthloop.query.dto.ContentListItemDTO;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class ContentQueryController {
 
     private final QueryFacade queryFacade;
+    private final ContentStatsUpdateService contentStatsUpdateService;
 
     @Operation(summary = "查询内容列表", description = "聚合查询内容列表")
     @GetMapping
@@ -58,6 +60,9 @@ public class ContentQueryController {
         @Parameter(description = "内容 ID") @PathVariable("id") UUID id
     ) {
         ContentDetailDTO detail = queryFacade.getContentDetail(id);
+        if (detail != null) {
+            contentStatsUpdateService.incrementViewCount(id);
+        }
         return ApiSpecResponse.ok(detail);
     }
 

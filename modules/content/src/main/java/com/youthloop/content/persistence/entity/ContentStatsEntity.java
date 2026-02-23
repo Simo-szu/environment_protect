@@ -37,6 +37,11 @@ public class ContentStatsEntity {
     private Integer commentCount;
     
     /**
+     * 浏览数
+     */
+    private Long viewCount;
+
+    /**
      * 热度分数
      */
     private Long hotScore;

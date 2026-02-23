@@ -18,6 +18,7 @@
       COALESCE(s.like_count, 0) AS like_count,
       COALESCE(s.fav_count, 0) AS fav_count,
       COALESCE(s.comment_count, 0) AS comment_count,
+      COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
@@ -72,6 +73,7 @@
       COALESCE(s.fav_count, 0) AS fav_count,
       COALESCE(s.down_count, 0) AS down_count,
       COALESCE(s.comment_count, 0) AS comment_count,
+      COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id
@@ -109,6 +111,7 @@
       COALESCE(s.like_count, 0) AS like_count,
       COALESCE(s.fav_count, 0) AS fav_count,
       COALESCE(s.comment_count, 0) AS comment_count,
+      COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
     LEFT JOIN social.content_stats s ON c.id = s.content_id

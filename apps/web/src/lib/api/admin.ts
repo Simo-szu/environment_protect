@@ -366,6 +366,7 @@ export interface AdminGameRuntimeParam {
   baseCarbonPrice?: number;
   maxCarbonQuota?: number;
   domainProgressCardCap?: number;
+  freePlacementEnabled?: boolean;
   endingDisplaySeconds?: number;
   turnTransitionAnimationEnabledDefault?: boolean;
   turnTransitionAnimationSeconds?: number;

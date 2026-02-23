@@ -1805,7 +1805,7 @@ class GameServicePhase3Test {
     }
 
     private GameRuleConfigService.RuntimeParamConfig defaultRuntimeParam() {
-        return new GameRuleConfigService.RuntimeParamConfig(6, 2, 2, 30, 10, 2, 3, 2.0D, 200, 15, 5, true, 2);
+        return new GameRuleConfigService.RuntimeParamConfig(6, 2, 2, 30, 2, 2.0D, 200, 15, true, 5, true, 2);
     }
 
     private GameRuleConfigService.BalanceRuleConfig defaultBalanceRule() {

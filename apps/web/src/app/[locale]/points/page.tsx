@@ -159,8 +159,8 @@ function PointsPageContent() {
     useEffect(() => {
         const loadDailyTasks = async () => {
             try {
-                const tasks = await pointsApi.getDailyTasks();
-                setDailyTasks(tasks);
+                const response = await pointsApi.getDailyTasks();
+                setDailyTasks(response.items || []);
             } catch (error) {
                 console.error('Failed to load daily tasks:', error);
                 // 失败时不设置 loading 状态

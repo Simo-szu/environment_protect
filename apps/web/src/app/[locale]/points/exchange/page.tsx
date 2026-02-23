@@ -58,11 +58,11 @@ export default function ExchangeStorePage() {
         const loadData = async () => {
             try {
                 setLoading(true);
-                const [goodsData, accountData] = await Promise.all([
+                const [goodsResponse, accountData] = await Promise.all([
                     pointsApi.getExchangeGoods(),
                     pointsApi.getPointsAccount()
                 ]);
-                setGoods(goodsData);
+                setGoods(goodsResponse.items || []);
                 setUserPoints(accountData.availablePoints);
             } catch (error) {
                 console.error('Failed to load store data:', error);
@@ -149,23 +149,23 @@ export default function ExchangeStorePage() {
                                 <ArrowLeft className="w-6 h-6" />
                             </button>
                             <div>
-                                <h1 className="text-3xl sm:text-4xl font-bold text-[#30499B] font-serif">
+                                <h1 className="text-3xl sm:text-4xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">
                                     {t('exchange.title', '兑换商城')}
                                 </h1>
-                                <p className="text-slate-500 mt-1">
+                                <p className="text-slate-500 dark:text-slate-400 mt-1">
                                     {t('exchange.subtitle', '用您的积分换取精美环保礼品')}
                                 </p>
                             </div>
                         </div>
 
                         {/* Points Display Card */}
-                        <div className="bg-gradient-to-br from-[#F0A32F] to-[#ee9511] p-0.5 rounded-2xl shadow-lg shadow-[#F0A32F]/20 self-start md:self-auto">
-                            <div className="bg-white/95 backdrop-blur-sm px-6 py-3 rounded-[0.9rem] flex items-center gap-4">
+                        <div className="bg-gradient-to-br from-[#F0A32F] to-[#ee9511] p-0.5 rounded-2xl shadow-lg shadow-[#F0A32F]/20 self-start md:self-auto transition-transform hover:scale-105">
+                            <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm px-6 py-3 rounded-[0.9rem] flex items-center gap-4 border border-white/20 dark:border-slate-700/50">
                                 <div className="w-10 h-10 rounded-full bg-[#F0A32F]/10 flex items-center justify-center text-[#F0A32F]">
                                     <Coins className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t('exchange.availablePoints', '可用积分')}</div>
+                                    <div className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">{t('exchange.availablePoints', '可用积分')}</div>
                                     <div className="text-2xl font-black text-[#F0A32F] tabular-nums">{userPoints}</div>
                                 </div>
                             </div>
@@ -176,11 +176,11 @@ export default function ExchangeStorePage() {
                     {loading ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                             {[1, 2, 3, 4, 5, 6].map(i => (
-                                <div key={i} className="bg-white rounded-3xl border border-slate-100 p-4 h-80 animate-pulse">
-                                    <div className="bg-slate-100 rounded-2xl h-40 mb-4" />
-                                    <div className="h-6 bg-slate-100 rounded w-2/3 mb-2" />
-                                    <div className="h-4 bg-slate-100 rounded w-full mb-4" />
-                                    <div className="h-10 bg-slate-100 rounded-xl w-full" />
+                                <div key={i} className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-4 h-96 animate-pulse">
+                                    <div className="bg-slate-100 dark:bg-slate-700 rounded-2xl h-48 mb-4" />
+                                    <div className="h-6 bg-slate-100 dark:bg-slate-700 rounded w-2/3 mb-2" />
+                                    <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-full mb-6" />
+                                    <div className="h-12 bg-slate-100 dark:bg-slate-700 rounded-2xl w-full" />
                                 </div>
                             ))}
                         </div>
@@ -195,7 +195,7 @@ export default function ExchangeStorePage() {
                                 <motion.div
                                     key={good.id}
                                     variants={staggerItem}
-                                    className="group bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-[#30499B]/5 transition-all duration-500 overflow-hidden flex flex-col"
+                                    className="group bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-2xl hover:shadow-[#30499B]/10 dark:hover:shadow-black/20 transition-all duration-500 overflow-hidden flex flex-col"
                                 >
                                     {/* Product Image */}
                                     <div className="relative h-56 overflow-hidden">
@@ -205,7 +205,7 @@ export default function ExchangeStorePage() {
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
                                         <div className="absolute top-4 left-4">
-                                            <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-[#F0A32F] flex items-center gap-1.5 shadow-sm">
+                                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-[#F0A32F] flex items-center gap-1.5 shadow-sm border border-white/20 dark:border-slate-700/30">
                                                 <Coins className="w-3.5 h-3.5" />
                                                 {good.pointsCost}
                                             </div>
@@ -221,15 +221,15 @@ export default function ExchangeStorePage() {
 
                                     {/* Product Info */}
                                     <div className="p-6 flex flex-col flex-grow">
-                                        <h3 className="text-xl font-bold text-[#30499B] mb-2 group-hover:text-[#56B949] transition-colors">
+                                        <h3 className="text-xl font-bold text-[#30499B] dark:text-slate-100 mb-2 group-hover:text-[#56B949] transition-colors line-clamp-1">
                                             {good.title}
                                         </h3>
-                                        <p className="text-sm text-slate-500 mb-6 line-clamp-2 flex-grow">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 flex-grow leading-relaxed">
                                             {good.description}
                                         </p>
 
                                         <div className="flex items-center justify-between mb-4">
-                                            <span className="text-xs font-semibold text-slate-400">
+                                            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                                 {t('exchange.stock', '库存: {count}', { count: good.stock })}
                                             </span>
                                             {good.stock === 0 && (
@@ -244,7 +244,7 @@ export default function ExchangeStorePage() {
                                                 w-full py-3.5 rounded-2xl font-bold transition-all flex items-center justify-center gap-2
                                                 ${good.stock > 0
                                                     ? 'bg-[#56B949] text-white shadow-lg shadow-[#56B949]/20 hover:bg-[#4aa840] hover:-translate-y-1 active:scale-95'
-                                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                                                 }
                                             `}
                                         >
@@ -273,27 +273,30 @@ export default function ExchangeStorePage() {
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-lg w-full p-8 overflow-hidden max-h-[90vh] overflow-y-auto"
+                                className="relative bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-lg w-full p-8 overflow-hidden max-h-[90vh] overflow-y-auto border border-white/20 dark:border-slate-700/50"
                             >
                                 {/* Close Button */}
                                 <button
                                     onClick={() => setSelectedGood(null)}
-                                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                                    className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                                 >
-                                    <X className="w-5 h-5 text-slate-400" />
+                                    <X className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                                 </button>
 
                                 {/* Header */}
                                 <div className="mb-6">
-                                    <h2 className="text-2xl font-bold text-[#30499B] mb-2">填写收货信息</h2>
-                                    <p className="text-slate-500 text-sm">兑换商品：{selectedGood.title}</p>
-                                    <p className="text-[#F0A32F] font-bold text-sm mt-1">消耗积分：{selectedGood.pointsCost}</p>
+                                    <h2 className="text-2xl font-bold text-[#30499B] dark:text-[#56B949] mb-2">填写收货信息</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm">兑换商品：{selectedGood.title}</p>
+                                    <p className="text-[#F0A32F] font-bold text-sm mt-1 flex items-center gap-1.5">
+                                        <Coins className="w-4 h-4" />
+                                        消耗积分：{selectedGood.pointsCost}
+                                    </p>
                                 </div>
 
                                 {/* Form */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                             收货人姓名 <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -301,7 +304,7 @@ export default function ExchangeStorePage() {
                                             value={shippingInfo.recipientName}
                                             onChange={(e) => setShippingInfo({ ...shippingInfo, recipientName: e.target.value })}
                                             placeholder="请输入收货人姓名"
-                                            className={`w-full px-4 py-3 rounded-xl border ${formErrors.recipientName ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949]`}
+                                            className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 ${formErrors.recipientName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] transition-all`}
                                         />
                                         {formErrors.recipientName && (
                                             <p className="text-red-500 text-xs mt-1">{formErrors.recipientName}</p>
@@ -309,7 +312,7 @@ export default function ExchangeStorePage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                             手机号 <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -317,7 +320,7 @@ export default function ExchangeStorePage() {
                                             value={shippingInfo.recipientPhone}
                                             onChange={(e) => setShippingInfo({ ...shippingInfo, recipientPhone: e.target.value })}
                                             placeholder="请输入手机号"
-                                            className={`w-full px-4 py-3 rounded-xl border ${formErrors.recipientPhone ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949]`}
+                                            className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 ${formErrors.recipientPhone ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] transition-all`}
                                         />
                                         {formErrors.recipientPhone && (
                                             <p className="text-red-500 text-xs mt-1">{formErrors.recipientPhone}</p>
@@ -325,7 +328,7 @@ export default function ExchangeStorePage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                             收货地址 <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
@@ -333,7 +336,7 @@ export default function ExchangeStorePage() {
                                             onChange={(e) => setShippingInfo({ ...shippingInfo, shippingAddress: e.target.value })}
                                             placeholder="请输入详细收货地址"
                                             rows={3}
-                                            className={`w-full px-4 py-3 rounded-xl border ${formErrors.shippingAddress ? 'border-red-500' : 'border-slate-200'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] resize-none`}
+                                            className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 ${formErrors.shippingAddress ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] resize-none transition-all`}
                                         />
                                         {formErrors.shippingAddress && (
                                             <p className="text-red-500 text-xs mt-1">{formErrors.shippingAddress}</p>
@@ -341,7 +344,7 @@ export default function ExchangeStorePage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                             备注信息（选填）
                                         </label>
                                         <textarea
@@ -349,7 +352,7 @@ export default function ExchangeStorePage() {
                                             onChange={(e) => setShippingInfo({ ...shippingInfo, shippingNote: e.target.value })}
                                             placeholder="如有特殊要求请在此填写"
                                             rows={2}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] resize-none"
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#56B949]/20 focus:border-[#56B949] resize-none transition-all"
                                         />
                                     </div>
                                 </div>
@@ -359,7 +362,7 @@ export default function ExchangeStorePage() {
                                     <button
                                         onClick={() => setSelectedGood(null)}
                                         disabled={exchanging}
-                                        className="flex-1 py-3.5 rounded-2xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         取消
                                     </button>
@@ -398,18 +401,18 @@ export default function ExchangeStorePage() {
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-8 text-center overflow-hidden"
+                                className="relative bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-sm w-full p-8 text-center overflow-hidden border border-white/20 dark:border-slate-700/50"
                             >
                                 {/* Modal Background Decoration */}
                                 <div className={`absolute top-0 left-0 w-full h-2 ${modal.type === 'success' ? 'bg-[#56B949]' : 'bg-[#EE4035]'}`} />
 
-                                <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${modal.type === 'success' ? 'bg-green-50 text-[#56B949]' : 'bg-red-50 text-[#EE4035]'}`}>
+                                <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${modal.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-[#56B949]' : 'bg-red-50 dark:bg-red-900/20 text-[#EE4035]'}`}>
                                     {modal.type === 'success' ? <CheckCircle2 className="w-10 h-10" /> : <XCircle className="w-10 h-10" />}
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                                     {modal.type === 'success' ? t('exchange.success', '兑换成功！') : t('exchange.failed', '兑换失败')}
                                 </h3>
-                                <p className="text-slate-500 mb-8">
+                                <p className="text-slate-500 dark:text-slate-400 mb-8">
                                     {modal.message}
                                 </p>
                                 <button

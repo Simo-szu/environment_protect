@@ -40,6 +40,7 @@ public class GameService {
     private static final int ACTION_USE_POLICY_CARD = 3;
     private static final int ACTION_TRADE_CARBON = 4;
     private static final int ACTION_DISCARD_CARD = 5;
+    private static final int ACTION_REMOVE_CORE_CARD = 6;
 
     private static final int SESSION_ACTIVE = 1;
     private static final int SESSION_ENDED = 3;
@@ -181,6 +182,9 @@ public class GameService {
         } else if (request.getActionType() == ACTION_DISCARD_CARD) {
             pointsEarned = handleDiscardCard(state, request.getActionData());
             summary = "Card discarded";
+        } else if (request.getActionType() == ACTION_REMOVE_CORE_CARD) {
+            pointsEarned = handleRemoveCoreCard(state, request.getActionData());
+            summary = "Core card removed";
         } else if (request.getActionType() == ACTION_END_TURN) {
             pointsEarned = handleEndTurn(state);
             summary = "Turn ended";
@@ -301,6 +305,7 @@ public class GameService {
         runtimeConfig.put("endingDisplaySeconds", endingDisplaySeconds());
         runtimeConfig.put("turnTransitionAnimationEnabledDefault", turnTransitionAnimationEnabledDefault());
         runtimeConfig.put("turnTransitionAnimationSeconds", turnTransitionAnimationSeconds());
+        runtimeConfig.put("freePlacementEnabled", freePlacementEnabled());
 
         ObjectNode resources = root.putObject("resources");
         resources.put("industry", balance.initialIndustry());
@@ -440,6 +445,60 @@ public class GameService {
         } else {
             discardFromHand(state.withArray("handPolicy"), state.withArray("discardPolicy"), state, handType, cardId, "player_discard");
         }
+        refreshPendingDiscardState(state);
+        return 0;
+    }
+
+    private int handleRemoveCoreCard(ObjectNode state, JsonNode actionData) {
+        int row = readRequiredInt(actionData, "row");
+        int col = readRequiredInt(actionData, "col");
+        int boardSize = state.path("boardSize").asInt(balanceRule().boardSize());
+        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "Tile is out of board range");
+        }
+
+        ObjectNode occupied = state.with("boardOccupied");
+        String key = boardKey(row, col);
+        if (!occupied.has(key)) {
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Tile has no placed core card");
+        }
+
+        String cardId = occupied.path(key).asText();
+        GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+        if (!"core".equals(card.getCardType())) {
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Only core cards can be removed");
+        }
+
+        int placedIndex = indexOf(state.withArray("placedCore"), cardId);
+        if (placedIndex < 0) {
+            throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Placed core card record not found");
+        }
+
+        GameCardMetaDTO.UnlockCost cost = card.getUnlockCost();
+        int industryRefund = safeCost(cost.getIndustry());
+        int techRefund = safeCost(cost.getTech());
+        int populationRefund = safeCost(cost.getPopulation());
+        int greenRefund = safeCost(cost.getGreen());
+        int costReductionPct = resolveCorePlacementCostReductionPct(state, card.getDomain());
+        industryRefund = applyPercentage(industryRefund, -costReductionPct);
+        techRefund = applyPercentage(techRefund, -costReductionPct);
+        populationRefund = applyPercentage(populationRefund, -costReductionPct);
+        greenRefund = applyPercentage(greenRefund, -costReductionPct);
+
+        ObjectNode resources = state.with("resources");
+        ObjectNode metrics = state.with("metrics");
+        resources.put("industry", resources.path("industry").asInt() + industryRefund);
+        resources.put("tech", resources.path("tech").asInt() + techRefund);
+        resources.put("population", resources.path("population").asInt() + populationRefund);
+        metrics.put("green", metrics.path("green").asInt() + greenRefund);
+
+        occupied.remove(key);
+        state.withArray("placedCore").remove(placedIndex);
+        state.withArray("handCore").add(cardId);
+        metrics.put("lowCarbonScore", Math.max(0, metrics.path("lowCarbonScore").asInt() - 1));
+
+        int placedCount = state.withArray("placedCore").size();
+        updatePhaseByProgress(state, placedCount, metrics.path("lowCarbonScore").asInt());
         refreshPendingDiscardState(state);
         return 0;
     }
@@ -610,6 +669,9 @@ public class GameService {
         String key = boardKey(row, col);
         if (occupied.has(key)) {
             throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Tile already occupied");
+        }
+        if (freePlacementEnabled()) {
+            return;
         }
         if (occupied.isEmpty()) {
             return;
@@ -1250,25 +1312,21 @@ public class GameService {
         ObjectNode metrics = state.with("metrics");
         ObjectNode resources = state.with("resources");
         int turn = state.path("turn").asInt();
-        int remainingCoreCards = state.withArray("handCore").size()
-            + state.with("remainingPools").withArray("early").size()
-            + state.with("remainingPools").withArray("mid").size()
-            + state.with("remainingPools").withArray("late").size();
-        boolean boundaryReached = remainingCoreCards == 0 || turn >= maxTurn();
+        boolean boundaryReached = turn >= maxTurn();
         GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
+        if (!boundaryReached) {
+            return;
+        }
+
         boolean immediateFailure = state.path("highCarbonStreak").asInt() >= balance.failureHighCarbonStreakLimit();
         boolean tradeFailure = state.with("carbonTrade").path("quotaExhaustedCount").asInt(0) >= balance.tradeFailureQuotaExhaustedLimit()
             && state.with("carbonTrade").path("profit").asDouble(0D) < balance.tradeFailureProfitThreshold();
-
         if (immediateFailure) {
             setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_HIGH_CARBON));
             return;
         }
         if (tradeFailure) {
             setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_TRADE));
-            return;
-        }
-        if (!boundaryReached) {
             return;
         }
 
@@ -2435,6 +2493,10 @@ public class GameService {
 
     private int turnTransitionAnimationSeconds() {
         return runtimeParam().turnTransitionAnimationSeconds();
+    }
+
+    private boolean freePlacementEnabled() {
+        return runtimeParam().freePlacementEnabled();
     }
 
     private UUID resolveCurrentUserId() {

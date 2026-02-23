@@ -9,6 +9,7 @@ import {
   getSessionById,
   listCards,
   performAction,
+  removeCoreCard,
   startSession,
   tradeCarbon
 } from '@/lib/api/game';
@@ -54,6 +55,25 @@ interface CoreCardAffordability {
   needGreen: number;
 }
 
+interface TileSynergyNeighbor {
+  position: string;
+  cardId: string;
+  cardName: string;
+  domain: string;
+  phaseBucket: string;
+  sameDomain: boolean;
+  samePhase: boolean;
+}
+
+interface TileSynergyBreakdown {
+  totalScore: number;
+  adjacencyBonus: number;
+  sameDomainBonus: number;
+  samePhaseBonus: number;
+  diversityBonus: number;
+  neighbors: TileSynergyNeighbor[];
+}
+
 interface TurnFlowStep {
   id: 'select_core' | 'select_tile' | 'place_core' | 'optional_actions' | 'end_turn';
   label: string;
@@ -62,6 +82,7 @@ interface TurnFlowStep {
 }
 
 type GuidedAction = 'select_core' | 'select_tile' | 'place_core' | 'end_turn' | 'policy' | 'trade';
+type BoardViewMode = 'smart' | 'adjacency' | 'placeable';
 
 type TransitionKind =
   | 'industry_growth'
@@ -270,6 +291,7 @@ export default function GamePlayPage() {
   const [selectedCoreId, setSelectedCoreId] = useState('');
   const [selectedPolicyId, setSelectedPolicyId] = useState('');
   const [selectedTile, setSelectedTile] = useState<string>('');
+  const [selectedOccupiedTile, setSelectedOccupiedTile] = useState<string>('');
   const [ending, setEnding] = useState<EndingView | null>(null);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [tradeAmount, setTradeAmount] = useState(1);
@@ -281,6 +303,8 @@ export default function GamePlayPage() {
   const [guidedTutorialActive, setGuidedTutorialActive] = useState(false);
   const [draggingCoreId, setDraggingCoreId] = useState('');
   const [dragOverTile, setDragOverTile] = useState('');
+  const [boardViewMode, setBoardViewMode] = useState<BoardViewMode>('smart');
+  const [corePeekOpen, setCorePeekOpen] = useState(false);
   const previousSettlementLengthRef = useRef(0);
   const transitionTimerRef = useRef<number | null>(null);
   const endingTimerRef = useRef<number | null>(null);
@@ -326,6 +350,7 @@ export default function GamePlayPage() {
   const endingDisplaySeconds = Math.max(1, Number(runtimeConfig.endingDisplaySeconds || 5));
   const turnTransitionAnimationDefault = runtimeConfig.turnTransitionAnimationEnabledDefault !== false;
   const turnTransitionAnimationSeconds = Math.max(1, Number(runtimeConfig.turnTransitionAnimationSeconds || 2));
+  const freePlacementEnabled = runtimeConfig.freePlacementEnabled !== false;
 
   const handCoreCards = useMemo(
     () => handCore.map((id) => catalog.get(id)).filter(Boolean) as GameCardMeta[],
@@ -376,6 +401,44 @@ export default function GamePlayPage() {
       satisfaction: Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0)
     };
   }, [selectedCoreCard]);
+  const selectedCorePlacementPreview = useMemo(() => {
+    if (!selectedCoreCard) {
+      return null;
+    }
+    const currentIndustry = Number(resources.industry ?? 0);
+    const currentTech = Number(resources.tech ?? 0);
+    const currentPopulation = Number(resources.population ?? 0);
+    const currentGreen = Number(metrics.green ?? 0);
+    const currentCarbon = Number(metrics.carbon ?? 0);
+    const currentSatisfaction = Number(metrics.satisfaction ?? 0);
+    const costIndustry = Number(selectedCoreCard.unlockCost.industry ?? 0);
+    const costTech = Number(selectedCoreCard.unlockCost.tech ?? 0);
+    const costPopulation = Number(selectedCoreCard.unlockCost.population ?? 0);
+    const costGreen = Number(selectedCoreCard.unlockCost.green ?? 0);
+    const deltaIndustry = Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0);
+    const deltaTech = Number(selectedCoreCard.coreContinuousTechDelta ?? 0);
+    const deltaPopulation = Number(selectedCoreCard.coreContinuousPopulationDelta ?? 0);
+    const deltaGreen = Number(selectedCoreCard.coreContinuousGreenDelta ?? 0);
+    const deltaCarbon = Number(selectedCoreCard.coreContinuousCarbonDelta ?? 0);
+    const deltaSatisfaction = Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0);
+    return {
+      industry: currentIndustry - costIndustry + deltaIndustry,
+      tech: currentTech - costTech + deltaTech,
+      population: currentPopulation - costPopulation + deltaPopulation,
+      green: currentGreen - costGreen + deltaGreen,
+      carbon: currentCarbon + deltaCarbon,
+      satisfaction: currentSatisfaction + deltaSatisfaction,
+      delta: {
+        industry: deltaIndustry - costIndustry,
+        tech: deltaTech - costTech,
+        population: deltaPopulation - costPopulation,
+        green: deltaGreen - costGreen,
+        carbon: deltaCarbon,
+        satisfaction: deltaSatisfaction
+      }
+    };
+  }, [selectedCoreCard, resources.industry, resources.tech, resources.population, metrics.green, metrics.carbon, metrics.satisfaction]);
+  const selectedCorePreviewReady = Boolean(selectedCoreId && selectedTile && selectedCorePlacementPreview);
   const selectedCoreHasProjectedDelta = useMemo(() => {
     if (!selectedCoreProjectedDelta) {
       return false;
@@ -462,7 +525,7 @@ export default function GamePlayPage() {
     return result;
   }, [selectedCoreId, boardSize, boardOccupied]);
   const occupiedTileCount = useMemo(() => Object.keys(boardOccupied).length, [boardOccupied]);
-  const adjacencyRequired = occupiedTileCount > 0;
+  const adjacencyRequired = !freePlacementEnabled && occupiedTileCount > 0;
   const placeableTileKeySet = useMemo(() => {
     const result = new Set<string>();
     for (let row = 0; row < boardSize; row += 1) {
@@ -484,20 +547,84 @@ export default function GamePlayPage() {
     return result;
   }, [boardSize, boardOccupied, adjacencyRequired, tileAdjacencyScoreMap]);
   const selectedTilePlaceable = selectedTile ? placeableTileKeySet.has(selectedTile) : false;
+  const selectedTileAdjacency = selectedTile ? (tileAdjacencyScoreMap.get(selectedTile) || 0) : 0;
+  const tileSynergyBreakdownMap = useMemo(() => {
+    const result = new Map<string, TileSynergyBreakdown>();
+    if (!selectedCoreCard) {
+      return result;
+    }
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+    for (let row = 0; row < boardSize; row += 1) {
+      for (let col = 0; col < boardSize; col += 1) {
+        const key = `${row},${col}`;
+        if (boardOccupied[key]) {
+          continue;
+        }
+        const neighbors: TileSynergyNeighbor[] = [];
+        for (const [dr, dc] of dirs) {
+          const nr = row + dr;
+          const nc = col + dc;
+          if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+            continue;
+          }
+          const neighborKey = `${nr},${nc}`;
+          const neighborCardId = String(boardOccupied[neighborKey] || '');
+          if (!neighborCardId) {
+            continue;
+          }
+          const neighborCard = catalog.get(neighborCardId);
+          const neighborDomain = String(neighborCard?.domain || 'unknown');
+          const neighborPhase = String(neighborCard?.phaseBucket || 'unknown');
+          neighbors.push({
+            position: neighborKey,
+            cardId: neighborCardId,
+            cardName: String(neighborCard?.chineseName || neighborCardId),
+            domain: neighborDomain,
+            phaseBucket: neighborPhase,
+            sameDomain: neighborDomain === selectedCoreCard.domain,
+            samePhase: neighborPhase === selectedCoreCard.phaseBucket
+          });
+        }
+        const adjacencyBonus = neighbors.length;
+        const sameDomainBonus = neighbors.filter((item) => item.sameDomain).length;
+        const samePhaseBonus = neighbors.filter((item) => item.samePhase).length;
+        const diversityBonus = new Set(neighbors.map((item) => item.domain)).size >= 2 ? 1 : 0;
+        result.set(key, {
+          totalScore: adjacencyBonus + sameDomainBonus + samePhaseBonus + diversityBonus,
+          adjacencyBonus,
+          sameDomainBonus,
+          samePhaseBonus,
+          diversityBonus,
+          neighbors
+        });
+      }
+    }
+    return result;
+  }, [selectedCoreCard, boardSize, boardOccupied, catalog]);
+  const selectedTileSynergyBreakdown = selectedTile ? (tileSynergyBreakdownMap.get(selectedTile) || null) : null;
   const recommendedTile = useMemo(() => {
-    if (!selectedCoreId || tileAdjacencyScoreMap.size === 0) {
+    if (!selectedCoreId || tileSynergyBreakdownMap.size === 0) {
       return '';
     }
     let bestKey = '';
     let bestScore = -1;
-    for (const [key, score] of tileAdjacencyScoreMap.entries()) {
-      if (score > bestScore || (score === bestScore && key < bestKey)) {
+    let bestAdjacency = -1;
+    for (const [key, breakdown] of tileSynergyBreakdownMap.entries()) {
+      const score = Number(breakdown.totalScore || 0);
+      const adjacency = Number(breakdown.adjacencyBonus || 0);
+      if (
+        score > bestScore ||
+        (score === bestScore && adjacency > bestAdjacency) ||
+        (score === bestScore && adjacency === bestAdjacency && key < bestKey)
+      ) {
         bestKey = key;
         bestScore = score;
+        bestAdjacency = adjacency;
       }
     }
-    return bestScore > 0 ? bestKey : '';
-  }, [selectedCoreId, tileAdjacencyScoreMap]);
+    return bestScore >= 0 ? bestKey : '';
+  }, [selectedCoreId, tileSynergyBreakdownMap]);
+  const recommendedTileScore = recommendedTile ? (tileSynergyBreakdownMap.get(recommendedTile)?.totalScore ?? 0) : 0;
   const tradeDoneThisTurn = useMemo(() => {
     return tradeHistory.some((record) => {
       const recordTurn = Number(record.turn || 0);
@@ -625,6 +752,21 @@ export default function GamePlayPage() {
     () => guidedTaskProgress.every((task) => task.done),
     [guidedTaskProgress]
   );
+  const removeActionBlockedReason = useMemo(() => {
+    if (pendingDiscardBlocking) {
+      return t('play.actions.blocked.discardFirst', '请先完成弃牌。');
+    }
+    if (!!ending) {
+      return t('play.actions.blocked.sessionEnded', '当前对局已结束。');
+    }
+    if (guidedGateEnabled && !guidedTutorialCompleted) {
+      return t('play.actions.blocked.guideRemoveLocked', '引导未完成前暂不开放移除操作。');
+    }
+    if (!selectedOccupiedTile) {
+      return t('play.actions.blocked.selectOccupiedTile', '请先选择一个已放置核心卡的棋盘格。');
+    }
+    return '';
+  }, [pendingDiscardBlocking, ending, guidedGateEnabled, guidedTutorialCompleted, selectedOccupiedTile, t]);
   const guidedOverlayMessage = useMemo(() => {
     if (!guidedGateEnabled || !currentGuidedTask) {
       return '';
@@ -647,6 +789,15 @@ export default function GamePlayPage() {
     }
     setSelectedTile('');
   }, [selectedTile, placeableTileKeySet]);
+  useEffect(() => {
+    if (!selectedOccupiedTile) {
+      return;
+    }
+    if (boardOccupied[selectedOccupiedTile]) {
+      return;
+    }
+    setSelectedOccupiedTile('');
+  }, [selectedOccupiedTile, boardOccupied]);
 
   const timelineItems = useMemo(() => {
     const items: TimelineItem[] = [];
@@ -851,6 +1002,10 @@ export default function GamePlayPage() {
     return `${DEFAULT_STORAGE_BASE}/${imageKey}`;
   }
 
+  function formatDelta(value: number): string {
+    return `${value > 0 ? '+' : ''}${value}`;
+  }
+
   function applyActionResult(response: GameActionResponse) {
     const nextState = (response.newPondState || {}) as PondState;
     setPondState(nextState);
@@ -860,6 +1015,8 @@ export default function GamePlayPage() {
     setLastMessage(response.message || '');
     setSelectedCoreId('');
     setSelectedPolicyId('');
+    setSelectedTile('');
+    setSelectedOccupiedTile('');
 
     const endingState = (nextState.ending || null) as EndingView | null;
     if (endingState?.endingId) {
@@ -943,6 +1100,27 @@ export default function GamePlayPage() {
       applyActionResult(response);
     } catch (e: any) {
       setError(e?.message || 'Carbon trade failed');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function runRemoveCoreAction() {
+    if (!sessionId || !selectedOccupiedTile) {
+      return;
+    }
+    const [row, col] = selectedOccupiedTile.split(',').map((v) => Number(v));
+    if (!Number.isInteger(row) || !Number.isInteger(col)) {
+      setError(t('play.actions.blocked.selectOccupiedTile', '请先选择一个已放置核心卡的棋盘格。'));
+      return;
+    }
+    setActionLoading(true);
+    setError(null);
+    try {
+      const response = await removeCoreCard({ sessionId, row, col });
+      applyActionResult(response);
+    } catch (e: any) {
+      setError(e?.message || t('play.errors.removeFailed', '移除核心卡失败'));
     } finally {
       setActionLoading(false);
     }
@@ -1035,7 +1213,7 @@ export default function GamePlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-800 flex flex-col">
       <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={handleBack} className="px-3 py-1.5 rounded border border-slate-300 text-sm">
@@ -1089,7 +1267,7 @@ export default function GamePlayPage() {
         </div>
       </header>
 
-      <main className="p-6 grid grid-cols-12 gap-4">
+      <main className="flex-1 min-h-0 overflow-hidden p-4 grid grid-cols-12 gap-4">
         {guidedTutorialActive && !guidedTutorialCompleted && (
           <section className="col-span-12 rounded border border-amber-300 bg-amber-50 p-4">
             <div className="flex items-start justify-between gap-3">
@@ -1149,7 +1327,7 @@ export default function GamePlayPage() {
             </div>
           )}
         </section>
-        <section className="col-span-3 bg-white rounded border p-4 space-y-2">
+        <section className="col-span-3 bg-white rounded border p-4 space-y-2 min-h-0 overflow-y-auto">
           <div className="font-semibold">{t('play.resources.title', '资源')}</div>
           <div className="text-sm">{t('play.resources.industry', '产业值')}: {resources.industry ?? 0}</div>
           <div className="text-sm">{t('play.resources.tech', '科创点')}: {resources.tech ?? 0}</div>
@@ -1158,6 +1336,65 @@ export default function GamePlayPage() {
           <div className="text-sm">{t('play.metrics.green', '绿建度')}: {metrics.green ?? 0}</div>
           <div className="text-sm">{t('play.metrics.carbon', '碳排放')}: {metrics.carbon ?? 0}</div>
           <div className="text-sm">{t('play.metrics.satisfaction', '满意度')}: {metrics.satisfaction ?? 0}</div>
+          {selectedCorePlacementPreview && (
+            <div className={`pt-3 mt-3 border-t border-slate-200 ${selectedCorePreviewReady ? 'text-slate-700' : 'text-slate-500'}`}>
+              <div className="font-semibold">{t('play.preview.selectedProjection', '选中落点预估')}</div>
+              {!selectedCorePreviewReady && (
+                <div className="text-xs mt-1">{t('play.preview.selectTileFirst', '先选择一张核心卡和一个棋盘空位以查看预估变化。')}</div>
+              )}
+              {selectedCorePreviewReady && (
+                <div className="mt-1 space-y-1 text-xs">
+                  <div>{t('play.resources.industry', '产业值')}: {selectedCorePlacementPreview.industry} ({formatDelta(selectedCorePlacementPreview.delta.industry)})</div>
+                  <div>{t('play.resources.tech', '科创点')}: {selectedCorePlacementPreview.tech} ({formatDelta(selectedCorePlacementPreview.delta.tech)})</div>
+                  <div>{t('play.resources.population', '人口')}: {selectedCorePlacementPreview.population} ({formatDelta(selectedCorePlacementPreview.delta.population)})</div>
+                  <div>{t('play.metrics.green', '绿建度')}: {selectedCorePlacementPreview.green} ({formatDelta(selectedCorePlacementPreview.delta.green)})</div>
+                  <div>{t('play.metrics.carbon', '碳排放')}: {selectedCorePlacementPreview.carbon} ({formatDelta(selectedCorePlacementPreview.delta.carbon)})</div>
+                  <div>{t('play.metrics.satisfaction', '满意度')}: {selectedCorePlacementPreview.satisfaction} ({formatDelta(selectedCorePlacementPreview.delta.satisfaction)})</div>
+                  <div className="pt-1 mt-1 border-t border-slate-200">
+                    <div className="font-semibold">{t('play.preview.breakdownTitle', '变化分解')}</div>
+                    <div>{t('play.preview.costImpact', '放置成本')}: I {formatDelta(-Number(selectedCoreCard?.unlockCost.industry ?? 0))} / T {formatDelta(-Number(selectedCoreCard?.unlockCost.tech ?? 0))} / P {formatDelta(-Number(selectedCoreCard?.unlockCost.population ?? 0))} / G {formatDelta(-Number(selectedCoreCard?.unlockCost.green ?? 0))}</div>
+                    <div>{t('play.preview.baseEffect', '基础持续')}: I {formatDelta(Number(selectedCoreCard?.coreContinuousIndustryDelta ?? 0))} / T {formatDelta(Number(selectedCoreCard?.coreContinuousTechDelta ?? 0))} / P {formatDelta(Number(selectedCoreCard?.coreContinuousPopulationDelta ?? 0))} / G {formatDelta(Number(selectedCoreCard?.coreContinuousGreenDelta ?? 0))} / C {formatDelta(Number(selectedCoreCard?.coreContinuousCarbonDelta ?? 0))} / S {formatDelta(Number(selectedCoreCard?.coreContinuousSatisfactionDelta ?? 0))}</div>
+                    <div>
+                      {t('play.preview.tilePotential', '落点联动潜力')}: {selectedTileAdjacency} {t('play.board.adjacentUnit', '相邻')}
+                      {selectedTile && selectedTile === recommendedTile ? ` (${t('play.preview.recommendedTag', '推荐')})` : ''}
+                    </div>
+                    {selectedTileSynergyBreakdown && (
+                      <div className="pt-1 mt-1 border-t border-slate-200 space-y-1">
+                        <div className="font-semibold">
+                          {t('play.preview.synergyTitle', '联动解释')}
+                          : {selectedTileSynergyBreakdown.totalScore}
+                        </div>
+                        <div>
+                          {t('play.preview.synergyFormula', '总潜力 = 邻接 + 同板块 + 同阶段 + 多样性')}
+                        </div>
+                        <div>
+                          {t('play.preview.synergyAdjacency', '邻接')} {selectedTileSynergyBreakdown.adjacencyBonus}
+                          {' / '}
+                          {t('play.preview.synergyDomain', '同板块')} {selectedTileSynergyBreakdown.sameDomainBonus}
+                          {' / '}
+                          {t('play.preview.synergyPhase', '同阶段')} {selectedTileSynergyBreakdown.samePhaseBonus}
+                          {' / '}
+                          {t('play.preview.synergyDiversity', '多样性')} {selectedTileSynergyBreakdown.diversityBonus}
+                        </div>
+                        {selectedTileSynergyBreakdown.neighbors.length > 0 && (
+                          <div className="space-y-1">
+                            {selectedTileSynergyBreakdown.neighbors.map((item) => (
+                              <div key={`${item.position}-${item.cardId}`}>
+                                [{item.position}] {item.cardName}
+                                {item.sameDomain ? ` / ${t('play.preview.sameDomainTag', '同板块')}` : ''}
+                                {item.samePhase ? ` / ${t('play.preview.samePhaseTag', '同阶段')}` : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500">{t('play.preview.applyHint', '按基础规则估算：已包含放置成本与基础持续值，不包含组合技/政策/事件修正。')}</div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="pt-2 text-xs text-slate-500">{t('play.metrics.placedCore', '已放置核心卡')}: {placedCore.length}</div>
           <div className={`text-xs ${corePlacedThisTurn ? 'text-amber-600' : 'text-slate-500'}`}>
             {corePlacedThisTurn
@@ -1236,16 +1473,43 @@ export default function GamePlayPage() {
           </div>
         </section>
 
-        <section className="col-span-6 bg-white rounded border p-4">
-          <div className="font-semibold mb-3">{t('play.board.title', '棋盘')}</div>
+        <section className="col-span-6 bg-white rounded border p-4 min-h-0 overflow-y-auto">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="font-semibold">{t('play.board.title', '棋盘')}</div>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setBoardViewMode('smart')}
+                className={`px-2 py-1 rounded border text-[11px] ${boardViewMode === 'smart' ? 'border-slate-700 bg-slate-700 text-white' : 'border-slate-300 text-slate-600'}`}
+              >
+                {t('play.board.viewMode.smart', '智能')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBoardViewMode('adjacency')}
+                className={`px-2 py-1 rounded border text-[11px] ${boardViewMode === 'adjacency' ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-300 text-slate-600'}`}
+              >
+                {t('play.board.viewMode.adjacency', '相邻热力')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBoardViewMode('placeable')}
+                className={`px-2 py-1 rounded border text-[11px] ${boardViewMode === 'placeable' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 text-slate-600'}`}
+              >
+                {t('play.board.viewMode.placeable', '可放置')}
+              </button>
+            </div>
+          </div>
           {selectedCoreId && (
             <div className="mb-2 rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700">
               <div>{t('play.board.placementHint', '落点提示：格子上的 +N 代表与已放置卡牌的相邻数量，通常更容易形成联动。')}</div>
-              {adjacencyRequired && (
-                <div className="mt-1">{t('play.board.adjacencyRule', '规则：首张卡可放任意空位；后续每张核心卡必须与已放置卡正交相邻。')}</div>
-              )}
+              <div className="mt-1">
+                {freePlacementEnabled
+                  ? t('play.board.freePlacementRule', '规则：当前模式下，可在任意空白格放置核心卡。')
+                  : t('play.board.adjacencyRule', '规则：首张卡可放任意空位；后续每张核心卡必须与已放置卡正交相邻。')}
+              </div>
               {recommendedTile && (
-                <div className="mt-1">{t('play.board.recommended', '推荐落点')}: {recommendedTile}</div>
+                <div className="mt-1">{t('play.board.recommended', '推荐落点')}: {recommendedTile} ({t('play.board.synergyScore', '联动分')} {recommendedTileScore})</div>
               )}
             </div>
           )}
@@ -1263,7 +1527,9 @@ export default function GamePlayPage() {
               const key = `${row},${col}`;
               const occupied = boardOccupied[key];
               const selected = selectedTile === key;
+              const selectedOccupied = selectedOccupiedTile === key;
               const adjacency = tileAdjacencyScoreMap.get(key) || 0;
+              const synergyBreakdown = tileSynergyBreakdownMap.get(key) || null;
               const recommended = key === recommendedTile;
               const placeableTile = placeableTileKeySet.has(key);
               const dragOver = key === dragOverTile;
@@ -1271,12 +1537,18 @@ export default function GamePlayPage() {
                 <button
                   key={key}
                   type="button"
-                  disabled={!!occupied || !!ending || pendingDiscardBlocking || !guidedActionAllowed('select_tile') || !placeableTile}
+                  disabled={!!ending || pendingDiscardBlocking || (!occupied && (!guidedActionAllowed('select_tile') || !placeableTile))}
                   onClick={() => {
+                    if (occupied) {
+                      setSelectedOccupiedTile((current) => (current === key ? '' : key));
+                      setSelectedTile('');
+                      return;
+                    }
                     if (!placeableTile) {
                       return;
                     }
-                    setSelectedTile(key);
+                    setSelectedTile((current) => (current === key ? '' : key));
+                    setSelectedOccupiedTile('');
                   }}
                   onDragOver={(event) => {
                     if (occupied || pendingDiscardBlocking || !!ending || !draggingCoreId || !placeableTile) {
@@ -1302,13 +1574,29 @@ export default function GamePlayPage() {
                   }}
                   className={`h-8 rounded border text-[10px] ${
                     occupied
-                      ? 'bg-slate-200 border-slate-300 text-slate-500'
+                      ? selectedOccupied
+                        ? 'bg-amber-100 border-amber-500 text-amber-700'
+                        : 'bg-slate-200 border-slate-300 text-slate-500'
                       : !guidedActionAllowed('select_tile')
                         ? 'bg-slate-100 border-slate-200 text-slate-300'
                       : !placeableTile
                         ? 'bg-slate-100 border-slate-200 text-slate-300'
                       : dragOver
                         ? 'bg-blue-200 border-blue-500 text-blue-800'
+                      : boardViewMode === 'placeable'
+                        ? selected
+                          ? 'bg-blue-100 border-blue-500 text-blue-700'
+                          : 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                      : boardViewMode === 'adjacency'
+                        ? selected
+                          ? 'bg-blue-100 border-blue-500 text-blue-700'
+                          : adjacency >= 3
+                            ? 'bg-orange-100 border-orange-400 text-orange-800'
+                            : adjacency === 2
+                              ? 'bg-sky-100 border-sky-400 text-sky-800'
+                              : adjacency === 1
+                                ? 'bg-cyan-50 border-cyan-300 text-cyan-700'
+                                : 'bg-white border-slate-300 text-slate-500'
                       : recommended
                         ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
                       : boardPlacementMode
@@ -1321,13 +1609,21 @@ export default function GamePlayPage() {
                   }`}
                   title={
                     occupied
-                      ? occupied
+                      ? `${occupied} (${t('play.actions.selectToRemove', '点击以选择移除')})`
                       : !placeableTile
                         ? adjacencyRequired
                           ? t('play.actions.blocked.mustBeAdjacent', '该格子必须与已放置卡牌正交相邻。')
                           : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。')
                       : `${t('play.board.tile', '格子')} ${key}${
                         adjacency > 0 ? ` (${t('play.board.adjacentUnit', '相邻')} ${adjacency})` : ''
+                      }${
+                        selectedCoreId && synergyBreakdown
+                          ? `\n${t('play.board.synergyScore', '联动分')}: ${synergyBreakdown.totalScore}\n${
+                            t('play.preview.synergyAdjacency', '邻接')
+                          }: ${synergyBreakdown.adjacencyBonus} / ${t('play.preview.synergyDomain', '同板块')}: ${synergyBreakdown.sameDomainBonus} / ${
+                            t('play.preview.synergyPhase', '同阶段')
+                          }: ${synergyBreakdown.samePhaseBonus} / ${t('play.preview.synergyDiversity', '多样性')}: ${synergyBreakdown.diversityBonus}`
+                          : ''
                       }`
                   }
                 >
@@ -1338,6 +1634,17 @@ export default function GamePlayPage() {
           </div>
 
           <div className="font-semibold mb-3">{t('play.coreHand.title', '核心手牌')}</div>
+          {selectedCoreCard && (
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => setCorePeekOpen(true)}
+                className="px-2 py-1 rounded border border-blue-300 bg-blue-50 text-[11px] text-blue-700"
+              >
+                {t('play.coreHand.openPeek', '固定查看选中卡详情')}
+              </button>
+            </div>
+          )}
           {!pendingDiscardActive && (
             <div className="mb-2 text-[11px] text-slate-500">
               {t('play.coreHand.dragHint', '可拖拽“可放置”核心卡到棋盘空位，或先点选再点击“放置核心卡”。')}
@@ -1376,9 +1683,9 @@ export default function GamePlayPage() {
                   if (!guidedActionAllowed('select_core')) {
                     return;
                   }
-                  setSelectedCoreId(card.cardId);
+                  setSelectedCoreId((current) => (current === card.cardId ? '' : card.cardId));
                 }}
-                className={`text-left border rounded p-2 ${
+                className={`group relative text-left border rounded p-2 ${
                   pendingDiscardActive
                     ? 'border-amber-400 bg-amber-50 hover:bg-amber-100'
                     : !guidedActionAllowed('select_core')
@@ -1403,6 +1710,22 @@ export default function GamePlayPage() {
                     {coreAffordabilityMap.get(card.cardId)?.canPlace
                       ? t('play.afford.canPlace', '可放置')
                       : t('play.afford.insufficient', '资源不足')}
+                  </div>
+                )}
+                {!pendingDiscardActive && (
+                  <div className="pointer-events-none absolute left-2 right-2 top-2 z-10 rounded border border-slate-300 bg-white/95 p-2 text-[11px] text-slate-700 shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+                    <div className="font-semibold">{card.chineseName}</div>
+                    <div className="mt-1">
+                      I {Number(card.unlockCost.industry ?? 0)} / T {Number(card.unlockCost.tech ?? 0)} / P {Number(card.unlockCost.population ?? 0)} / G {Number(card.unlockCost.green ?? 0)}
+                    </div>
+                    <div className="mt-1">
+                      {t('play.preview.industry', '产业')} {formatDelta(Number(card.coreContinuousIndustryDelta ?? 0))} /
+                      {' '}{t('play.preview.tech', '科创')} {formatDelta(Number(card.coreContinuousTechDelta ?? 0))} /
+                      {' '}{t('play.preview.population', '人口')} {formatDelta(Number(card.coreContinuousPopulationDelta ?? 0))} /
+                      {' '}{t('play.preview.green', '绿建')} {formatDelta(Number(card.coreContinuousGreenDelta ?? 0))} /
+                      {' '}{t('play.preview.carbon', '碳排')} {formatDelta(Number(card.coreContinuousCarbonDelta ?? 0))} /
+                      {' '}{t('play.preview.satisfaction', '满意度')} {formatDelta(Number(card.coreContinuousSatisfactionDelta ?? 0))}
+                    </div>
                   </div>
                 )}
               </button>
@@ -1435,9 +1758,38 @@ export default function GamePlayPage() {
             >
               {t('play.actions.placeCore', '放置核心卡')}
             </button>
+            <button
+              onClick={() => {
+                setSelectedCoreId('');
+                setSelectedTile('');
+                setSelectedOccupiedTile('');
+              }}
+              type="button"
+              className="px-3 py-1.5 rounded border border-slate-300 text-sm"
+            >
+              {t('play.actions.clearSelection', '取消选择')}
+            </button>
+            <button
+              onClick={() => {
+                void runRemoveCoreAction();
+              }}
+              disabled={
+                actionLoading ||
+                !selectedOccupiedTile ||
+                !!ending ||
+                pendingDiscardBlocking ||
+                (guidedGateEnabled && !guidedTutorialCompleted)
+              }
+              className="px-3 py-1.5 rounded bg-amber-600 text-white text-sm disabled:opacity-50"
+            >
+              {t('play.actions.removeCore', '移除核心卡')}
+            </button>
           </div>
           {placeActionBlockedReason && (
             <div className="mt-2 text-xs text-amber-700">{placeActionBlockedReason}</div>
+          )}
+          {removeActionBlockedReason && (
+            <div className="mt-1 text-xs text-amber-700">{removeActionBlockedReason}</div>
           )}
           {!pendingDiscardActive && selectedCoreId && selectedCoreAffordability && !selectedCoreAffordability.canPlace && (
             <div className="mt-2 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
@@ -1517,7 +1869,7 @@ export default function GamePlayPage() {
           )}
         </section>
 
-        <section className="col-span-3 bg-white rounded border p-4">
+        <section className="col-span-3 bg-white rounded border p-4 min-h-0 overflow-y-auto">
           <div className="font-semibold mb-3">{t('play.policyHand.title', '政策手牌')}</div>
           <div className="space-y-2">
             {handPolicyCards.map((card) => (
@@ -1531,7 +1883,7 @@ export default function GamePlayPage() {
                   if (!guidedActionAllowed('policy')) {
                     return;
                   }
-                  setSelectedPolicyId(card.cardId);
+                  setSelectedPolicyId((current) => (current === card.cardId ? '' : card.cardId));
                 }}
                 className={`w-full text-left border rounded p-2 ${
                   pendingDiscardActive
@@ -1778,6 +2130,34 @@ export default function GamePlayPage() {
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {corePeekOpen && selectedCoreCard && (
+        <div className="fixed bottom-4 right-4 z-40 w-[min(92vw,360px)] rounded-xl border border-blue-300 bg-white shadow-lg">
+          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+            <div className="text-sm font-semibold">{t('play.coreHand.peekTitle', '核心卡详情（固定）')}</div>
+            <button
+              type="button"
+              onClick={() => setCorePeekOpen(false)}
+              className="px-2 py-1 rounded border border-slate-300 text-xs text-slate-600"
+            >
+              {t('play.coreHand.closePeek', '关闭')}
+            </button>
+          </div>
+          <div className="p-3 text-xs space-y-2">
+            <div className="font-semibold text-sm">{selectedCoreCard.chineseName}</div>
+            <div className="text-slate-500">{selectedCoreCard.cardId}</div>
+            <div>I {Number(selectedCoreCard.unlockCost.industry ?? 0)} / T {Number(selectedCoreCard.unlockCost.tech ?? 0)} / P {Number(selectedCoreCard.unlockCost.population ?? 0)} / G {Number(selectedCoreCard.unlockCost.green ?? 0)}</div>
+            <div>
+              {t('play.preview.industry', '产业')} {formatDelta(Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0))} /
+              {' '}{t('play.preview.tech', '科创')} {formatDelta(Number(selectedCoreCard.coreContinuousTechDelta ?? 0))} /
+              {' '}{t('play.preview.population', '人口')} {formatDelta(Number(selectedCoreCard.coreContinuousPopulationDelta ?? 0))} /
+              {' '}{t('play.preview.green', '绿建')} {formatDelta(Number(selectedCoreCard.coreContinuousGreenDelta ?? 0))} /
+              {' '}{t('play.preview.carbon', '碳排')} {formatDelta(Number(selectedCoreCard.coreContinuousCarbonDelta ?? 0))} /
+              {' '}{t('play.preview.satisfaction', '满意度')} {formatDelta(Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0))}
             </div>
           </div>
         </div>

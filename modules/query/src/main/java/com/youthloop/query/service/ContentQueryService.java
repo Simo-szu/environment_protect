@@ -152,20 +152,21 @@ public class ContentQueryService {
         dto.setType((Integer) row.get("type"));
         dto.setTitle((String) row.get("title"));
         dto.setSummary((String) row.get("summary"));
-        dto.setCoverUrl((String) row.get("coverUrl"));
-        dto.setPublishedAt(toLocalDateTime(row.get("publishedAt")));
+        dto.setCoverUrl((String) row.get("cover_url"));
+        dto.setPublishedAt(toLocalDateTime(row.get("published_at")));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
-        
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
+
         // 统计信息（安全转换）
-        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
-        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
-        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
-        dto.setHotScore(row.get("hotScore") != null ? ((Number) row.get("hotScore")).longValue() : 0L);
-        
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        dto.setViewCount(row.get("view_count") != null ? ((Number) row.get("view_count")).longValue() : 0L);
+        dto.setHotScore(row.get("hot_score") != null ? ((Number) row.get("hot_score")).longValue() : 0L);
+
         return dto;
     }
-    
+
     /**
      * 映射到内容详情 DTO
      */
@@ -175,22 +176,23 @@ public class ContentQueryService {
         dto.setType((Integer) row.get("type"));
         dto.setTitle((String) row.get("title"));
         dto.setSummary((String) row.get("summary"));
-        dto.setCoverUrl((String) row.get("coverUrl"));
+        dto.setCoverUrl((String) row.get("cover_url"));
         dto.setBody((String) row.get("body"));
-        dto.setSourceType((Integer) row.get("sourceType"));
-        dto.setSourceUrl((String) row.get("sourceUrl"));
-        dto.setPublishedAt(toLocalDateTime(row.get("publishedAt")));
+        dto.setSourceType((Integer) row.get("source_type"));
+        dto.setSourceUrl((String) row.get("source_url"));
+        dto.setPublishedAt(toLocalDateTime(row.get("published_at")));
         dto.setStatus((Integer) row.get("status"));
-        dto.setCreatedAt(toLocalDateTime(row.get("createdAt")));
-        dto.setUpdatedAt(toLocalDateTime(row.get("updatedAt")));
-        
+        dto.setCreatedAt(toLocalDateTime(row.get("created_at")));
+        dto.setUpdatedAt(toLocalDateTime(row.get("updated_at")));
+
         // 统计信息（安全转换）
-        dto.setLikeCount(row.get("likeCount") != null ? ((Number) row.get("likeCount")).intValue() : 0);
-        dto.setFavCount(row.get("favCount") != null ? ((Number) row.get("favCount")).intValue() : 0);
-        dto.setDownCount(row.get("downCount") != null ? ((Number) row.get("downCount")).intValue() : 0);
-        dto.setCommentCount(row.get("commentCount") != null ? ((Number) row.get("commentCount")).intValue() : 0);
-        dto.setHotScore(row.get("hotScore") != null ? ((Number) row.get("hotScore")).longValue() : 0L);
-        
+        dto.setLikeCount(row.get("like_count") != null ? ((Number) row.get("like_count")).intValue() : 0);
+        dto.setFavCount(row.get("fav_count") != null ? ((Number) row.get("fav_count")).intValue() : 0);
+        dto.setDownCount(row.get("down_count") != null ? ((Number) row.get("down_count")).intValue() : 0);
+        dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
+        dto.setViewCount(row.get("view_count") != null ? ((Number) row.get("view_count")).longValue() : 0L);
+        dto.setHotScore(row.get("hot_score") != null ? ((Number) row.get("hot_score")).longValue() : 0L);
+
         return dto;
     }
 }

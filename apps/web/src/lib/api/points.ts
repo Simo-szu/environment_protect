@@ -108,8 +108,8 @@ export async function getTodaySignin(): Promise<SigninRecord | null> {
 /**
  * 获取每日任务列表
  */
-export async function getDailyTasks(): Promise<DailyTask[]> {
-  return apiGet<DailyTask[]>('/api/v1/points/tasks');
+export async function getDailyTasks(): Promise<PageResponse<DailyTask>> {
+  return apiGet<PageResponse<DailyTask>>('/api/v1/points/tasks');
 }
 
 /**
@@ -142,8 +142,8 @@ export async function submitQuizAnswer(
 /**
  * 获取可兑换商品
  */
-export async function getExchangeGoods(): Promise<any[]> {
-  return apiGet<any[]>('/api/v1/points/exchange/goods');
+export async function getExchangeGoods(): Promise<PageResponse<any>> {
+  return apiGet<PageResponse<any>>('/api/v1/points/exchange/goods');
 }
 
 /**

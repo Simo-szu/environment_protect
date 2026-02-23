@@ -87,7 +87,7 @@ export default function HostVerificationPage() {
     if (loading) {
         return (
             <Layout>
-                <div className="max-w-3xl mx-auto px-4 py-10 text-slate-600">{t('loading', 'Loading...')}</div>
+                <div className="max-w-3xl mx-auto px-4 py-10 text-slate-600 dark:text-slate-400">{t('loading', 'Loading...')}</div>
             </Layout>
         );
     }
@@ -95,56 +95,56 @@ export default function HostVerificationPage() {
     return (
         <Layout>
             <div className="max-w-3xl mx-auto px-4 py-10">
-                <h1 className="text-2xl font-semibold text-slate-800 mb-6">
+                <h1 className="text-2xl font-semibold text-slate-800 dark:text-white mb-6">
                     {t('verification.title', 'Host Verification')}
                 </h1>
 
                 {existing && (
-                    <div className="mb-6 p-4 rounded-lg border border-slate-200 bg-slate-50">
-                        <p className="text-sm text-slate-600">
-                            {t('verification.currentStatus', 'Current status')}: <span className="font-medium">{statusLabel(existing.status, t)}</span>
+                    <div className="mb-6 p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {t('verification.currentStatus', 'Current status')}: <span className="font-medium text-slate-800 dark:text-slate-100">{statusLabel(existing.status, t)}</span>
                         </p>
                         {existing.reviewNote && (
-                            <p className="text-sm text-slate-600 mt-1">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                 {t('verification.reviewNote', 'Review note')}: {existing.reviewNote}
                             </p>
                         )}
                     </div>
                 )}
 
-                <div className="space-y-4 bg-white border border-slate-200 rounded-xl p-6">
+                <div className="space-y-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
                     <div>
-                        <label className="block text-sm text-slate-600 mb-2">{t('verification.orgName', 'Organization Name')} *</label>
+                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-2">{t('verification.orgName', 'Organization Name')} *</label>
                         <input
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#30499B]/20 outline-none transition-all"
                             value={form.orgName}
                             onChange={(e) => setForm((prev) => ({ ...prev, orgName: e.target.value }))}
                             disabled={isApproved || submitting}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-slate-600 mb-2">{t('verification.contactName', 'Contact Name')} *</label>
+                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-2">{t('verification.contactName', 'Contact Name')} *</label>
                         <input
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#30499B]/20 outline-none transition-all"
                             value={form.contactName}
                             onChange={(e) => setForm((prev) => ({ ...prev, contactName: e.target.value }))}
                             disabled={isApproved || submitting}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-slate-600 mb-2">{t('verification.contactPhone', 'Contact Phone')} *</label>
+                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-2">{t('verification.contactPhone', 'Contact Phone')} *</label>
                         <input
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#30499B]/20 outline-none transition-all"
                             value={form.contactPhone}
                             onChange={(e) => setForm((prev) => ({ ...prev, contactPhone: e.target.value }))}
                             disabled={isApproved || submitting}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-slate-600 mb-2">{t('verification.docUrls', 'Document URLs (one per line)')}</label>
+                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-2">{t('verification.docUrls', 'Document URLs (one per line)')}</label>
                         <textarea
                             rows={4}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#30499B]/20 outline-none transition-all"
                             value={form.docUrlsText}
                             onChange={(e) => setForm((prev) => ({ ...prev, docUrlsText: e.target.value }))}
                             disabled={isApproved || submitting}
@@ -161,7 +161,7 @@ export default function HostVerificationPage() {
                         </button>
                         <button
                             onClick={() => router.push(`/${locale}/host/activities`)}
-                            className="px-4 py-2 border border-slate-200 rounded-lg"
+                            className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                         >
                             {t('back', 'Back')}
                         </button>

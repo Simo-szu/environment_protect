@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import type {
     AdminBalanceRule,
@@ -10,13 +10,77 @@ import type {
     AdminEndingContent,
     AdminEventRule,
     AdminGameRulesConfig,
+    AdminGameRuntimeParam,
     AdminPolicyUnlockRule,
 } from '@/lib/api/admin';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Runtime param types (merged from AdminGameRuntimeTab) ────────────────────
+
+type RuntimeField = keyof Pick<
+    AdminGameRuntimeParam,
+    | 'coreHandLimit'
+    | 'policyHandLimit'
+    | 'maxComboPerTurn'
+    | 'maxTurn'
+    | 'tradeWindowInterval'
+    | 'baseCarbonPrice'
+    | 'maxCarbonQuota'
+    | 'domainProgressCardCap'
+    | 'endingDisplaySeconds'
+    | 'turnTransitionAnimationSeconds'
+>;
+
+type RuntimeFormState = Record<RuntimeField, string> & {
+    turnTransitionAnimationEnabledDefault: boolean;
+    freePlacementEnabled: boolean;
+};
+
+const DEFAULT_RUNTIME_FORM: RuntimeFormState = {
+    coreHandLimit: '6',
+    policyHandLimit: '2',
+    maxComboPerTurn: '2',
+    maxTurn: '30',
+    tradeWindowInterval: '2',
+    baseCarbonPrice: '2',
+    maxCarbonQuota: '200',
+    domainProgressCardCap: '15',
+    endingDisplaySeconds: '5',
+    turnTransitionAnimationSeconds: '2',
+    turnTransitionAnimationEnabledDefault: true,
+    freePlacementEnabled: true,
+};
+
+interface RuntimeFieldConfig {
+    key: RuntimeField;
+    labelKey: string;
+    min: number;
+    step: number;
+    integerOnly?: boolean;
+}
+
+const RUNTIME_FIELD_CONFIGS: RuntimeFieldConfig[] = [
+    { key: 'coreHandLimit', labelKey: 'gameRuntime.fields.coreHandLimit', min: 1, step: 1, integerOnly: true },
+    { key: 'policyHandLimit', labelKey: 'gameRuntime.fields.policyHandLimit', min: 1, step: 1, integerOnly: true },
+    { key: 'maxComboPerTurn', labelKey: 'gameRuntime.fields.maxComboPerTurn', min: 1, step: 1, integerOnly: true },
+    { key: 'maxTurn', labelKey: 'gameRuntime.fields.maxTurn', min: 1, step: 1, integerOnly: true },
+    { key: 'tradeWindowInterval', labelKey: 'gameRuntime.fields.tradeWindowInterval', min: 1, step: 1, integerOnly: true },
+    { key: 'baseCarbonPrice', labelKey: 'gameRuntime.fields.baseCarbonPrice', min: 0.1, step: 0.1 },
+    { key: 'maxCarbonQuota', labelKey: 'gameRuntime.fields.maxCarbonQuota', min: 1, step: 1, integerOnly: true },
+    { key: 'domainProgressCardCap', labelKey: 'gameRuntime.fields.domainProgressCardCap', min: 1, step: 1, integerOnly: true },
+    { key: 'endingDisplaySeconds', labelKey: 'gameRuntime.fields.endingDisplaySeconds', min: 1, step: 1, integerOnly: true },
+    { key: 'turnTransitionAnimationSeconds', labelKey: 'gameRuntime.fields.turnTransitionAnimationSeconds', min: 1, step: 1, integerOnly: true },
+];
+
+function normalizeRuntimeNumber(value: number, integerOnly: boolean): number {
+    if (!Number.isFinite(value)) return 0;
+    return integerOnly ? Math.floor(value) : value;
+}
+
+// ─── Section key ──────────────────────────────────────────────────────────────
 
 type SectionKey =
+    | 'runtimeParam'
     | 'balanceRule'
     | 'eventRules'
     | 'comboRules'
@@ -26,6 +90,7 @@ type SectionKey =
     | 'endingContents';
 
 const SECTION_KEYS: SectionKey[] = [
+    'runtimeParam',
     'balanceRule',
     'eventRules',
     'comboRules',
@@ -45,17 +110,20 @@ function NumberInput({
     value,
     onChange,
     step = 1,
+    min,
     placeholder,
 }: {
     value: number | null | undefined;
     onChange: (v: number | null) => void;
     step?: number;
+    min?: number;
     placeholder?: string;
 }) {
     return (
         <input
             type="number"
             step={step}
+            min={min}
             placeholder={placeholder ?? ''}
             value={value == null ? '' : value}
             onChange={(e) => {
@@ -161,24 +229,30 @@ function CardPanel({
     badge,
     enabled,
     onToggleEnabled,
+    onRemove,
+    defaultOpen = false,
     children,
 }: {
     title: string;
     badge?: string;
     enabled?: boolean;
     onToggleEnabled?: (v: boolean) => void;
+    onRemove?: () => void;
+    defaultOpen?: boolean;
     children: React.ReactNode;
 }) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(defaultOpen);
     return (
         <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 dark:bg-slate-800">
+            <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800">
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
                     className="flex-1 flex items-center gap-3 text-left min-w-0"
                 >
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{title}</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                        {title || <span className="text-slate-400 italic">New item</span>}
+                    </span>
                     {badge && (
                         <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                             {badge}
@@ -195,6 +269,16 @@ function CardPanel({
                         className="accent-[#30499B] dark:accent-[#56B949] shrink-0"
                     />
                 )}
+                {onRemove && (
+                    <button
+                        type="button"
+                        onClick={onRemove}
+                        title="Remove"
+                        className="shrink-0 text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-400 text-lg font-bold leading-none"
+                    >
+                        ×
+                    </button>
+                )}
             </div>
             {open && <div className="p-5 space-y-4">{children}</div>}
         </div>
@@ -209,6 +293,74 @@ function SubSection({ label }: { label: string }) {
     return (
         <div className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pt-2">
             {label}
+        </div>
+    );
+}
+
+function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="px-4 py-2 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-[#30499B] dark:hover:border-[#56B949] hover:text-[#30499B] dark:hover:text-[#56B949] text-sm transition-colors"
+        >
+            + {label}
+        </button>
+    );
+}
+
+// ─── Runtime Param Section ────────────────────────────────────────────────────
+
+function RuntimeParamSection({
+    form,
+    onChange,
+    validationError,
+}: {
+    form: RuntimeFormState;
+    onChange: (f: RuntimeFormState) => void;
+    validationError: string;
+}) {
+    const { t } = useSafeTranslation('admin');
+    return (
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {RUNTIME_FIELD_CONFIGS.map((field) => (
+                    <label key={field.key} className="space-y-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {t(field.labelKey, field.labelKey.split('.').pop() || field.labelKey)}
+                        </div>
+                        <input
+                            type="number"
+                            min={field.min}
+                            step={field.step}
+                            value={form[field.key]}
+                            onChange={(e) => onChange({ ...form, [field.key]: e.target.value })}
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20 transition-colors"
+                        />
+                    </label>
+                ))}
+            </div>
+            <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={form.turnTransitionAnimationEnabledDefault}
+                    onChange={(e) => onChange({ ...form, turnTransitionAnimationEnabledDefault: e.target.checked })}
+                    className="accent-[#30499B] dark:accent-[#56B949]"
+                />
+                {t('gameRuntime.fields.turnTransitionAnimationEnabled', '默认启用回合切换动画')}
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={form.freePlacementEnabled}
+                    onChange={(e) => onChange({ ...form, freePlacementEnabled: e.target.checked })}
+                    className="accent-[#30499B] dark:accent-[#56B949]"
+                />
+                {t('gameRuntime.fields.freePlacementEnabled', '允许核心卡自由放置（任意空白格）')}
+            </label>
+            {validationError && (
+                <div className="text-xs text-red-600 dark:text-red-400">{validationError}</div>
+            )}
         </div>
     );
 }
@@ -401,19 +553,31 @@ function EventRulesSection({
         next[i] = { ...next[i], ...patch };
         onChange(next);
     };
+    const remove = (i: number) => onChange(data.filter((_, idx) => idx !== i));
+    const add = () => onChange([...data, {
+        eventType: '', displayName: '', isEnabled: true,
+        triggerProbabilityPct: 30, weight: 1, durationTurns: 1, requireEvenTurn: false,
+        greenDelta: 0, carbonDelta: 0, satisfactionDelta: 0, greenPctDelta: 0, populationPctDelta: 0, quotaDelta: 0,
+    }]);
 
     return (
         <div className="space-y-3">
             {data.map((ev, i) => (
                 <CardPanel
-                    key={ev.eventType}
+                    key={i}
+                    defaultOpen={!ev.eventType}
                     title={ev.displayName || ev.eventType}
-                    badge={ev.eventType}
+                    badge={ev.eventType || undefined}
                     enabled={ev.isEnabled}
                     onToggleEnabled={(v) => update(i, { isEnabled: v })}
+                    onRemove={() => remove(i)}
                 >
                     <SubSection label={t('gameRules.events.triggerConditions', 'Trigger Conditions')} />
                     <FieldGrid>
+                        <div>
+                            <FieldLabel label={f('eventType')} />
+                            <TextInput value={ev.eventType} onChange={(v) => update(i, { eventType: v })} mono placeholder="event_type_id" />
+                        </div>
                         <div>
                             <FieldLabel label={f('triggerProbabilityPct')} />
                             <NumberInput value={ev.triggerProbabilityPct} onChange={(v) => update(i, { triggerProbabilityPct: v ?? 0 })} />
@@ -480,6 +644,7 @@ function EventRulesSection({
                     </div>
                 </CardPanel>
             ))}
+            <AddRowButton label={t('gameRules.eventRules.addItem', 'Add Event')} onClick={add} />
         </div>
     );
 }
@@ -500,18 +665,26 @@ function ComboRulesSection({
         next[i] = { ...next[i], ...patch };
         onChange(next);
     };
+    const remove = (i: number) => onChange(data.filter((_, idx) => idx !== i));
+    const add = () => onChange([...data, { comboId: '', priorityOrder: 1, isEnabled: true }]);
 
     return (
         <div className="space-y-3">
             {data.map((combo, i) => (
                 <CardPanel
-                    key={combo.comboId}
+                    key={i}
+                    defaultOpen={!combo.comboId}
                     title={combo.comboId}
-                    badge={`#${combo.priorityOrder}`}
+                    badge={combo.priorityOrder != null ? `#${combo.priorityOrder}` : undefined}
                     enabled={combo.isEnabled}
                     onToggleEnabled={(v) => update(i, { isEnabled: v })}
+                    onRemove={() => remove(i)}
                 >
                     <FieldGrid>
+                        <div>
+                            <FieldLabel label={f('comboId')} />
+                            <TextInput value={combo.comboId} onChange={(v) => update(i, { comboId: v })} mono placeholder="combo_id" />
+                        </div>
                         <div>
                             <FieldLabel label={f('priorityOrder')} />
                             <NumberInput value={combo.priorityOrder} onChange={(v) => update(i, { priorityOrder: v ?? 1 })} />
@@ -543,6 +716,7 @@ function ComboRulesSection({
                     </FieldGrid>
                 </CardPanel>
             ))}
+            <AddRowButton label={t('gameRules.comboRules.addItem', 'Add Combo')} onClick={add} />
         </div>
     );
 }
@@ -563,21 +737,31 @@ function PolicyUnlockSection({
         next[i] = { ...next[i], ...patch };
         onChange(next);
     };
+    const remove = (i: number) => onChange(data.filter((_, idx) => idx !== i));
+    const add = () => onChange([...data, { policyId: '', priorityOrder: 1, isEnabled: true }]);
 
     return (
         <div className="space-y-3">
             {data.map((rule, i) => (
                 <CardPanel
-                    key={rule.policyId}
+                    key={i}
+                    defaultOpen={!rule.policyId}
                     title={rule.policyId}
-                    badge={`#${rule.priorityOrder}`}
+                    badge={rule.priorityOrder != null ? `#${rule.priorityOrder}` : undefined}
                     enabled={rule.isEnabled}
                     onToggleEnabled={(v) => update(i, { isEnabled: v })}
+                    onRemove={() => remove(i)}
                 >
-                    <div className="mb-3">
-                        <FieldLabel label={f('priorityOrder')} />
-                        <NumberInput value={rule.priorityOrder} onChange={(v) => update(i, { priorityOrder: v ?? 1 })} />
-                    </div>
+                    <FieldGrid>
+                        <div>
+                            <FieldLabel label={f('policyId')} />
+                            <TextInput value={rule.policyId} onChange={(v) => update(i, { policyId: v })} mono placeholder="policy_id" />
+                        </div>
+                        <div>
+                            <FieldLabel label={f('priorityOrder')} />
+                            <NumberInput value={rule.priorityOrder} onChange={(v) => update(i, { priorityOrder: v ?? 1 })} />
+                        </div>
+                    </FieldGrid>
 
                     <SubSection label={t('gameRules.policyUnlock.domainMin', 'Domain Minimums')} />
                     <FieldGrid>
@@ -632,6 +816,7 @@ function PolicyUnlockSection({
                     </FieldGrid>
                 </CardPanel>
             ))}
+            <AddRowButton label={t('gameRules.policyUnlockRules.addItem', 'Add Policy Unlock')} onClick={add} />
         </div>
     );
 }
@@ -652,20 +837,24 @@ function CoreConditionsSection({
         next[i] = { ...next[i], ...patch };
         onChange(next);
     };
+    const remove = (i: number) => onChange(data.filter((_, idx) => idx !== i));
+    const add = () => onChange([...data, { cardId: '', isEnabled: true }]);
 
     return (
         <div className="space-y-3">
             {data.map((cond, i) => (
                 <CardPanel
-                    key={cond.cardId}
+                    key={i}
+                    defaultOpen={!cond.cardId}
                     title={cond.cardId}
                     enabled={cond.isEnabled}
                     onToggleEnabled={(v) => update(i, { isEnabled: v })}
+                    onRemove={() => remove(i)}
                 >
                     <FieldGrid>
                         <div>
                             <FieldLabel label={f('cardId')} />
-                            <TextInput value={cond.cardId} readOnly mono />
+                            <TextInput value={cond.cardId} onChange={(v) => update(i, { cardId: v })} mono placeholder="card_id" />
                         </div>
                         <div>
                             <FieldLabel label={f('requiredEventType')} />
@@ -680,6 +869,7 @@ function CoreConditionsSection({
                     </FieldGrid>
                 </CardPanel>
             ))}
+            <AddRowButton label={t('gameRules.coreSpecialConditions.addItem', 'Add Condition')} onClick={add} />
         </div>
     );
 }
@@ -741,13 +931,7 @@ function CardTagsSection({
                     )}
                 </div>
             </div>
-            <button
-                type="button"
-                onClick={add}
-                className="px-4 py-2 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-[#30499B] dark:hover:border-[#56B949] hover:text-[#30499B] dark:hover:text-[#56B949] text-sm transition-colors"
-            >
-                + {t('gameRules.cardTags.addRow', 'Add Tag')}
-            </button>
+            <AddRowButton label={t('gameRules.cardTags.addRow', 'Add Tag')} onClick={add} />
         </div>
     );
 }
@@ -768,21 +952,25 @@ function EndingContentsSection({
         next[i] = { ...next[i], ...patch };
         onChange(next);
     };
+    const remove = (i: number) => onChange(data.filter((_, idx) => idx !== i));
+    const add = () => onChange([...data, { endingId: '', endingName: '', isEnabled: true }]);
 
     return (
         <div className="space-y-3">
             {data.map((ending, i) => (
                 <CardPanel
-                    key={ending.endingId}
+                    key={i}
+                    defaultOpen={!ending.endingId}
                     title={ending.endingName || ending.endingId}
-                    badge={ending.endingId}
+                    badge={ending.endingId || undefined}
                     enabled={ending.isEnabled}
                     onToggleEnabled={(v) => update(i, { isEnabled: v })}
+                    onRemove={() => remove(i)}
                 >
                     <FieldGrid>
                         <div>
                             <FieldLabel label={f('endingId')} />
-                            <TextInput value={ending.endingId} readOnly mono />
+                            <TextInput value={ending.endingId} onChange={(v) => update(i, { endingId: v })} mono placeholder="ending_id" />
                         </div>
                         <div>
                             <FieldLabel label={f('endingName')} />
@@ -803,6 +991,7 @@ function EndingContentsSection({
                     </div>
                 </CardPanel>
             ))}
+            <AddRowButton label={t('gameRules.endingContents.addItem', 'Add Ending')} onClick={add} />
         </div>
     );
 }
@@ -814,8 +1003,13 @@ export function AdminGameRulesTab() {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
-    const [activeSection, setActiveSection] = useState<SectionKey>('balanceRule');
+    const [activeSection, setActiveSection] = useState<SectionKey>('runtimeParam');
 
+    // Runtime param state
+    const [runtimeConfigId, setRuntimeConfigId] = useState<number>(1);
+    const [runtimeForm, setRuntimeForm] = useState<RuntimeFormState>(DEFAULT_RUNTIME_FORM);
+
+    // Rule sections state
     const [balanceRule, setBalanceRule] = useState<AdminBalanceRule | null>(null);
     const [eventRules, setEventRules] = useState<AdminEventRule[]>([]);
     const [comboRules, setComboRules] = useState<AdminComboRule[]>([]);
@@ -824,16 +1018,44 @@ export function AdminGameRulesTab() {
     const [cardTags, setCardTags] = useState<AdminCardTag[]>([]);
     const [endingContents, setEndingContents] = useState<AdminEndingContent[]>([]);
 
-    // Keep runtimeParam to avoid accidental reset via null in save payload
-    // (backend null-checks each section before updating, so omitting is fine)
-    const [_cachedRuntimeParam, setCachedRuntimeParam] = useState<AdminGameRulesConfig['runtimeParam']>(null);
+    const runtimeValidationError = useMemo(() => {
+        for (const field of RUNTIME_FIELD_CONFIGS) {
+            const raw = runtimeForm[field.key].trim();
+            const label = t(field.labelKey, field.labelKey.split('.').pop() || field.labelKey);
+            if (!raw) return t('gameRuntime.errors.isRequired', `${label} 为必填项`).replace('{{field}}', label);
+            const parsed = Number(raw);
+            if (!Number.isFinite(parsed)) return t('gameRuntime.errors.mustBeNumber', `${label} 必须是有效数字`).replace('{{field}}', label);
+            const normalized = normalizeRuntimeNumber(parsed, Boolean(field.integerOnly));
+            if (normalized < field.min) {
+                return t('gameRuntime.errors.mustBeMin', `${label} 必须 ≥ ${field.min}`)
+                    .replace('{{field}}', label)
+                    .replace('{{min}}', String(field.min));
+            }
+        }
+        return '';
+    }, [runtimeForm, t]);
 
     const loadRules = async () => {
         setLoading(true);
         setMessage('');
         try {
             const rules = await adminApi.getAdminGameRules();
-            setCachedRuntimeParam(rules.runtimeParam);
+            const runtime = (rules.runtimeParam ?? {}) as AdminGameRuntimeParam;
+            setRuntimeConfigId(Number((runtime as AdminGameRulesConfig['runtimeParam'] & { configId?: number })?.configId ?? 1));
+            setRuntimeForm({
+                coreHandLimit: String(runtime.coreHandLimit ?? DEFAULT_RUNTIME_FORM.coreHandLimit),
+                policyHandLimit: String(runtime.policyHandLimit ?? DEFAULT_RUNTIME_FORM.policyHandLimit),
+                maxComboPerTurn: String(runtime.maxComboPerTurn ?? DEFAULT_RUNTIME_FORM.maxComboPerTurn),
+                maxTurn: String(runtime.maxTurn ?? DEFAULT_RUNTIME_FORM.maxTurn),
+                tradeWindowInterval: String(runtime.tradeWindowInterval ?? DEFAULT_RUNTIME_FORM.tradeWindowInterval),
+                baseCarbonPrice: String(runtime.baseCarbonPrice ?? DEFAULT_RUNTIME_FORM.baseCarbonPrice),
+                maxCarbonQuota: String(runtime.maxCarbonQuota ?? DEFAULT_RUNTIME_FORM.maxCarbonQuota),
+                domainProgressCardCap: String(runtime.domainProgressCardCap ?? DEFAULT_RUNTIME_FORM.domainProgressCardCap),
+                endingDisplaySeconds: String(runtime.endingDisplaySeconds ?? DEFAULT_RUNTIME_FORM.endingDisplaySeconds),
+                turnTransitionAnimationSeconds: String(runtime.turnTransitionAnimationSeconds ?? DEFAULT_RUNTIME_FORM.turnTransitionAnimationSeconds),
+                turnTransitionAnimationEnabledDefault: runtime.turnTransitionAnimationEnabledDefault ?? true,
+                freePlacementEnabled: runtime.freePlacementEnabled ?? true,
+            });
             setBalanceRule(rules.balanceRule);
             setEventRules(rules.eventRules ?? []);
             setComboRules(rules.comboRules ?? []);
@@ -850,11 +1072,30 @@ export function AdminGameRulesTab() {
 
     useEffect(() => { loadRules(); }, []);
 
+    const buildRuntimePayload = (): AdminGameRuntimeParam => {
+        const payload: AdminGameRuntimeParam = {
+            configId: runtimeConfigId,
+            turnTransitionAnimationEnabledDefault: runtimeForm.turnTransitionAnimationEnabledDefault,
+            freePlacementEnabled: runtimeForm.freePlacementEnabled,
+        };
+        for (const field of RUNTIME_FIELD_CONFIGS) {
+            const parsed = Number(runtimeForm[field.key]);
+            (payload as Record<string, number>)[field.key] = normalizeRuntimeNumber(parsed, Boolean(field.integerOnly));
+        }
+        return payload;
+    };
+
     const saveRules = async () => {
+        if (runtimeValidationError) {
+            setMessage(runtimeValidationError);
+            setActiveSection('runtimeParam');
+            return;
+        }
         setSaving(true);
         setMessage('');
         try {
             await adminApi.updateAdminGameRules({
+                runtimeParam: buildRuntimePayload(),
                 balanceRule,
                 eventRules,
                 comboRules,
@@ -871,9 +1112,6 @@ export function AdminGameRulesTab() {
         }
     };
 
-    const getSectionLabel = (key: SectionKey) =>
-        t(`gameRules.sections.${key}`, key);
-
     const renderSection = () => {
         if (loading) {
             return (
@@ -883,6 +1121,14 @@ export function AdminGameRulesTab() {
             );
         }
         switch (activeSection) {
+            case 'runtimeParam':
+                return (
+                    <RuntimeParamSection
+                        form={runtimeForm}
+                        onChange={setRuntimeForm}
+                        validationError={runtimeValidationError}
+                    />
+                );
             case 'balanceRule':
                 return <BalanceRuleSection data={balanceRule} onChange={setBalanceRule} />;
             case 'eventRules':
@@ -905,7 +1151,7 @@ export function AdminGameRulesTab() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
                     <h2 className="text-xl font-medium text-slate-800 dark:text-slate-200 tracking-tight">
-                        {t('tabs.gameRules', '游戏规则')}
+                        {t('tabs.gameRules', '游戏配置')}
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {t('gameRules.subtitle', '可直接修改数据库中的规则配置，保存后立即生效于新回合计算')}
@@ -930,7 +1176,7 @@ export function AdminGameRulesTab() {
             </div>
 
             {message && (
-                <div className={`text-xs px-3 py-2 rounded-lg ${message.includes('失败') || message.includes('Failed')
+                <div className={`text-xs px-3 py-2 rounded-lg ${message.includes('失败') || message.includes('Failed') || runtimeValidationError
                     ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
                     : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
                     }`}>
@@ -949,7 +1195,7 @@ export function AdminGameRulesTab() {
                                 : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                 }`}
                         >
-                            {getSectionLabel(key)}
+                            {t(`gameRules.sections.${key}`, key)}
                         </button>
                     ))}
                 </div>

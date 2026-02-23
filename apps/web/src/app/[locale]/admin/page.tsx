@@ -9,9 +9,8 @@ import { AdminBannersTab } from './components/AdminBannersTab';
 import { AdminGameCardsTab } from './components/AdminGameCardsTab';
 import { AdminContentsTab } from './components/AdminContentsTab';
 import { AdminGameRulesTab } from './components/AdminGameRulesTab';
-import { AdminGameRuntimeTab } from './components/AdminGameRuntimeTab';
 
-type AdminTab = 'verifications' | 'banners' | 'gameCards' | 'gameRuntime' | 'gameRules' | 'contents';
+type AdminTab = 'verifications' | 'banners' | 'gameCards' | 'gameRules' | 'contents';
 
 export default function AdminPage({ params }: { params: { locale: string } }) {
     const router = useRouter();
@@ -41,7 +40,6 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
 
                 {/* Tabs Navigation */}
                 <div className="relative mb-8">
-                    {/* Background track for tabs */}
                     <div className="absolute bottom-0 left-0 right-0 h-px bg-slate-200 dark:bg-slate-700" />
 
                     <div className="flex flex-wrap gap-x-6 gap-y-2 relative z-10">
@@ -73,15 +71,6 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                             {t('tabs.gameCards', '游戏卡牌')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('gameRuntime')}
-                            className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'gameRuntime'
-                                ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
-                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                }`}
-                        >
-                            {t('tabs.gameRuntime', '游戏运行参数')}
-                        </button>
-                        <button
                             onClick={() => setActiveTab('contents')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'contents'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
@@ -97,7 +86,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                                 }`}
                         >
-                            {t('tabs.gameRules', '游戏规则')}
+                            {t('tabs.gameRules', '游戏配置')}
                         </button>
                     </div>
                 </div>
@@ -107,7 +96,6 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                     {activeTab === 'verifications' && <AdminVerificationsTab />}
                     {activeTab === 'banners' && <AdminBannersTab />}
                     {activeTab === 'gameCards' && <AdminGameCardsTab />}
-                    {activeTab === 'gameRuntime' && <AdminGameRuntimeTab />}
                     {activeTab === 'gameRules' && <AdminGameRulesTab />}
                     {activeTab === 'contents' && <AdminContentsTab />}
                 </div>
