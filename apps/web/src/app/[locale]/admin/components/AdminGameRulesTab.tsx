@@ -14,6 +14,8 @@ import type {
     AdminPolicyUnlockRule,
 } from '@/lib/api/admin';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { Switch } from '@/components/ui/switch';
+
 
 // ─── Runtime param types (merged from AdminGameRuntimeTab) ────────────────────
 
@@ -23,7 +25,9 @@ type RuntimeField = keyof Pick<
     | 'policyHandLimit'
     | 'maxComboPerTurn'
     | 'maxTurn'
+    | 'handDiscardDecisionSeconds'
     | 'tradeWindowInterval'
+    | 'tradeWindowSeconds'
     | 'baseCarbonPrice'
     | 'maxCarbonQuota'
     | 'domainProgressCardCap'
@@ -41,7 +45,9 @@ const DEFAULT_RUNTIME_FORM: RuntimeFormState = {
     policyHandLimit: '2',
     maxComboPerTurn: '2',
     maxTurn: '30',
+    handDiscardDecisionSeconds: '10',
     tradeWindowInterval: '2',
+    tradeWindowSeconds: '3',
     baseCarbonPrice: '2',
     maxCarbonQuota: '200',
     domainProgressCardCap: '15',
@@ -64,7 +70,9 @@ const RUNTIME_FIELD_CONFIGS: RuntimeFieldConfig[] = [
     { key: 'policyHandLimit', labelKey: 'gameRuntime.fields.policyHandLimit', min: 1, step: 1, integerOnly: true },
     { key: 'maxComboPerTurn', labelKey: 'gameRuntime.fields.maxComboPerTurn', min: 1, step: 1, integerOnly: true },
     { key: 'maxTurn', labelKey: 'gameRuntime.fields.maxTurn', min: 1, step: 1, integerOnly: true },
+    { key: 'handDiscardDecisionSeconds', labelKey: 'gameRuntime.fields.handDiscardDecisionSeconds', min: 1, step: 1, integerOnly: true },
     { key: 'tradeWindowInterval', labelKey: 'gameRuntime.fields.tradeWindowInterval', min: 1, step: 1, integerOnly: true },
+    { key: 'tradeWindowSeconds', labelKey: 'gameRuntime.fields.tradeWindowSeconds', min: 1, step: 1, integerOnly: true },
     { key: 'baseCarbonPrice', labelKey: 'gameRuntime.fields.baseCarbonPrice', min: 0.1, step: 0.1 },
     { key: 'maxCarbonQuota', labelKey: 'gameRuntime.fields.maxCarbonQuota', min: 1, step: 1, integerOnly: true },
     { key: 'domainProgressCardCap', labelKey: 'gameRuntime.fields.domainProgressCardCap', min: 1, step: 1, integerOnly: true },
@@ -157,9 +165,9 @@ function TextInput({
             onChange={(e) => onChange?.(e.target.value)}
             className={`w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none transition-colors
         ${readOnly
-                ? 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default'
-                : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20'
-            }
+                    ? 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default'
+                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#30499B]/20 dark:focus:ring-[#56B949]/20'
+                }
         ${mono ? 'font-mono text-xs' : ''}`}
         />
     );
@@ -195,15 +203,19 @@ function CheckboxField({
     label: string;
 }) {
     return (
-        <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-            <input
-                type="checkbox"
+        <div
+            className="flex items-center justify-between gap-4 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer group"
+            onClick={() => onChange(!checked)}
+        >
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                {label}
+            </span>
+            <Switch
                 checked={!!checked}
-                onChange={(e) => onChange(e.target.checked)}
-                className="accent-[#30499B] dark:accent-[#56B949]"
+                onCheckedChange={onChange}
+                onClick={(e) => e.stopPropagation()}
             />
-            {label}
-        </label>
+        </div>
     );
 }
 
@@ -261,12 +273,11 @@ function CardPanel({
                     <span className="shrink-0 ml-auto text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
                 </button>
                 {onToggleEnabled !== undefined && (
-                    <input
-                        type="checkbox"
+                    <Switch
                         checked={!!enabled}
-                        onChange={(e) => onToggleEnabled(e.target.checked)}
+                        onCheckedChange={onToggleEnabled}
                         title="Enabled"
-                        className="accent-[#30499B] dark:accent-[#56B949] shrink-0"
+                        className="shrink-0 scale-75 origin-right"
                     />
                 )}
                 {onRemove && (
@@ -340,24 +351,18 @@ function RuntimeParamSection({
                     </label>
                 ))}
             </div>
-            <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input
-                    type="checkbox"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                <CheckboxField
                     checked={form.turnTransitionAnimationEnabledDefault}
-                    onChange={(e) => onChange({ ...form, turnTransitionAnimationEnabledDefault: e.target.checked })}
-                    className="accent-[#30499B] dark:accent-[#56B949]"
+                    onChange={(v) => onChange({ ...form, turnTransitionAnimationEnabledDefault: v })}
+                    label={t('gameRuntime.fields.turnTransitionAnimationEnabled', '默认启用回合切换动画')}
                 />
-                {t('gameRuntime.fields.turnTransitionAnimationEnabled', '默认启用回合切换动画')}
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input
-                    type="checkbox"
+                <CheckboxField
                     checked={form.freePlacementEnabled}
-                    onChange={(e) => onChange({ ...form, freePlacementEnabled: e.target.checked })}
-                    className="accent-[#30499B] dark:accent-[#56B949]"
+                    onChange={(v) => onChange({ ...form, freePlacementEnabled: v })}
+                    label={t('gameRuntime.fields.freePlacementEnabled', '允许核心卡自由放置 (任意空白格)')}
                 />
-                {t('gameRuntime.fields.freePlacementEnabled', '允许核心卡自由放置（任意空白格）')}
-            </label>
+            </div>
             {validationError && (
                 <div className="text-xs text-red-600 dark:text-red-400">{validationError}</div>
             )}
@@ -1022,14 +1027,15 @@ export function AdminGameRulesTab() {
         for (const field of RUNTIME_FIELD_CONFIGS) {
             const raw = runtimeForm[field.key].trim();
             const label = t(field.labelKey, field.labelKey.split('.').pop() || field.labelKey);
-            if (!raw) return t('gameRuntime.errors.isRequired', `${label} 为必填项`).replace('{{field}}', label);
+            if (!raw) return t('gameRuntime.errors.isRequired', '{field} 为必填项', { field: label });
             const parsed = Number(raw);
-            if (!Number.isFinite(parsed)) return t('gameRuntime.errors.mustBeNumber', `${label} 必须是有效数字`).replace('{{field}}', label);
+            if (!Number.isFinite(parsed)) return t('gameRuntime.errors.mustBeNumber', '{field} 必须是有效数字', { field: label });
             const normalized = normalizeRuntimeNumber(parsed, Boolean(field.integerOnly));
             if (normalized < field.min) {
-                return t('gameRuntime.errors.mustBeMin', `${label} 必须 ≥ ${field.min}`)
-                    .replace('{{field}}', label)
-                    .replace('{{min}}', String(field.min));
+                return t('gameRuntime.errors.mustBeMin', '{field} 必须 ≥ {min}', {
+                    field: label,
+                    min: field.min
+                });
             }
         }
         return '';
@@ -1047,7 +1053,9 @@ export function AdminGameRulesTab() {
                 policyHandLimit: String(runtime.policyHandLimit ?? DEFAULT_RUNTIME_FORM.policyHandLimit),
                 maxComboPerTurn: String(runtime.maxComboPerTurn ?? DEFAULT_RUNTIME_FORM.maxComboPerTurn),
                 maxTurn: String(runtime.maxTurn ?? DEFAULT_RUNTIME_FORM.maxTurn),
+                handDiscardDecisionSeconds: String(runtime.handDiscardDecisionSeconds ?? DEFAULT_RUNTIME_FORM.handDiscardDecisionSeconds),
                 tradeWindowInterval: String(runtime.tradeWindowInterval ?? DEFAULT_RUNTIME_FORM.tradeWindowInterval),
+                tradeWindowSeconds: String(runtime.tradeWindowSeconds ?? DEFAULT_RUNTIME_FORM.tradeWindowSeconds),
                 baseCarbonPrice: String(runtime.baseCarbonPrice ?? DEFAULT_RUNTIME_FORM.baseCarbonPrice),
                 maxCarbonQuota: String(runtime.maxCarbonQuota ?? DEFAULT_RUNTIME_FORM.maxCarbonQuota),
                 domainProgressCardCap: String(runtime.domainProgressCardCap ?? DEFAULT_RUNTIME_FORM.domainProgressCardCap),
@@ -1085,6 +1093,10 @@ export function AdminGameRulesTab() {
         return payload;
     };
 
+    // 辅助函数：空数组传 undefined，避免触发后端 disableAll 清空数据
+    const listOrUndefined = <T,>(arr: T[]): T[] | undefined =>
+        arr.length > 0 ? arr : undefined;
+
     const saveRules = async () => {
         if (runtimeValidationError) {
             setMessage(runtimeValidationError);
@@ -1097,12 +1109,12 @@ export function AdminGameRulesTab() {
             await adminApi.updateAdminGameRules({
                 runtimeParam: buildRuntimePayload(),
                 balanceRule,
-                eventRules,
-                comboRules,
-                policyUnlockRules,
-                coreSpecialConditions,
-                cardTags,
-                endingContents,
+                eventRules: listOrUndefined(eventRules),
+                comboRules: listOrUndefined(comboRules),
+                policyUnlockRules: listOrUndefined(policyUnlockRules),
+                coreSpecialConditions: listOrUndefined(coreSpecialConditions),
+                cardTags: listOrUndefined(cardTags),
+                endingContents: listOrUndefined(endingContents),
             });
             setMessage(t('gameRules.saveSuccess', '保存成功，规则已热重载'));
         } catch {

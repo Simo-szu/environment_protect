@@ -28,17 +28,17 @@ function buildImageUrl(imageKey: string | undefined): string | null {
 
 type GameCardFormState = {
     cardId: string;
-    cardNo: number;
+    cardNo: number | string;
     chineseName: string;
     englishName: string;
     cardType: 'core' | 'policy';
     domain: 'industry' | 'ecology' | 'science' | 'society' | 'policy';
     star: number;
     phaseBucket: 'early' | 'mid' | 'late' | 'policy';
-    unlockCostIndustry: number;
-    unlockCostTech: number;
-    unlockCostPopulation: number;
-    unlockCostGreen: number;
+    unlockCostIndustry: number | string;
+    unlockCostTech: number | string;
+    unlockCostPopulation: number | string;
+    unlockCostGreen: number | string;
     imageKey: string;
     advancedImageKey: string;
     isEnabled: boolean;
@@ -148,7 +148,14 @@ export function AdminGameCardsTab() {
                     alert(t('gameCards.required', '卡牌 ID、中文名称、英文名称为必填项'));
                     return;
                 }
-                payload = { ...formState };
+                payload = {
+                    ...formState,
+                    cardNo: Number(formState.cardNo) || 1,
+                    unlockCostIndustry: Number(formState.unlockCostIndustry) || 0,
+                    unlockCostTech: Number(formState.unlockCostTech) || 0,
+                    unlockCostPopulation: Number(formState.unlockCostPopulation) || 0,
+                    unlockCostGreen: Number(formState.unlockCostGreen) || 0,
+                };
                 payload.imageKey = payload.imageKey.trim() || undefined as any;
                 payload.advancedImageKey = payload.advancedImageKey.trim() || undefined as any;
             }
@@ -358,7 +365,7 @@ export function AdminGameCardsTab() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.cardNo')}</Label>
-                                                <input type="number" value={formState.cardNo} onChange={e => setFormState(p => ({ ...p, cardNo: Number(e.target.value) || 1 }))} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
+                                                <input type="number" value={formState.cardNo} onChange={e => setFormState(p => ({ ...p, cardNo: e.target.value }))} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono text-sm" />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-bold text-slate-700 ml-1">{t('gameCards.chineseName')}</Label>
@@ -432,10 +439,18 @@ export function AdminGameCardsTab() {
 
                                             <div className="space-y-2">
                                                 <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">{t('gameCards.star')}</Label>
-                                                <div className="relative">
-                                                    <input type="number" value={formState.star} onChange={e => setFormState(p => ({ ...p, star: Number(e.target.value) || 1 }))} className="w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-center" />
-                                                    <span className="absolute right-4 top-3 text-lg">⭐</span>
-                                                </div>
+                                                <Select value={formState.star.toString()} onValueChange={v => setFormState(p => ({ ...p, star: Number(v) }))}>
+                                                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                                                        <SelectValue>
+                                                            {formState.star === 1 ? `⭐ ${t('gameCards.star1', '1星 (早期)')}` : formState.star === 2 ? `⭐⭐ ${t('gameCards.star2', '2星 (中期)')}` : `⭐⭐⭐ ${t('gameCards.star3', '3星 (后期)')}`}
+                                                        </SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl">
+                                                        <SelectItem value="1">⭐ {t('gameCards.star1', '1星 (早期)')}</SelectItem>
+                                                        <SelectItem value="2">⭐⭐ {t('gameCards.star2', '2星 (中期)')}</SelectItem>
+                                                        <SelectItem value="3">⭐⭐⭐ {t('gameCards.star3', '3星 (后期)')}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                         </div>
                                     </section>
@@ -452,28 +467,28 @@ export function AdminGameCardsTab() {
                                                     <span className="text-[10px] p-1 bg-blue-100 text-blue-600 rounded-md font-black">IND</span>
                                                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costIndustry')}</Label>
                                                 </div>
-                                                <input type="number" value={formState.unlockCostIndustry} onChange={e => setFormState(p => ({ ...p, unlockCostIndustry: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-blue-500 transition-all outline-none" />
+                                                <input type="number" value={formState.unlockCostIndustry} onChange={e => setFormState(p => ({ ...p, unlockCostIndustry: e.target.value }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-blue-500 transition-all outline-none" />
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2 px-1">
                                                     <span className="text-[10px] p-1 bg-purple-100 text-purple-600 rounded-md font-black">TEC</span>
                                                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costTech')}</Label>
                                                 </div>
-                                                <input type="number" value={formState.unlockCostTech} onChange={e => setFormState(p => ({ ...p, unlockCostTech: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-purple-500 transition-all outline-none" />
+                                                <input type="number" value={formState.unlockCostTech} onChange={e => setFormState(p => ({ ...p, unlockCostTech: e.target.value }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-purple-500 transition-all outline-none" />
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2 px-1">
                                                     <span className="text-[10px] p-1 bg-amber-100 text-amber-600 rounded-md font-black">POP</span>
                                                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costPopulation')}</Label>
                                                 </div>
-                                                <input type="number" value={formState.unlockCostPopulation} onChange={e => setFormState(p => ({ ...p, unlockCostPopulation: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-amber-500 transition-all outline-none" />
+                                                <input type="number" value={formState.unlockCostPopulation} onChange={e => setFormState(p => ({ ...p, unlockCostPopulation: e.target.value }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-amber-500 transition-all outline-none" />
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2 px-1">
                                                     <span className="text-[10px] p-1 bg-green-100 text-green-600 rounded-md font-black">GRN</span>
                                                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costGreen')}</Label>
                                                 </div>
-                                                <input type="number" value={formState.unlockCostGreen} onChange={e => setFormState(p => ({ ...p, unlockCostGreen: Number(e.target.value) || 0 }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-green-500 transition-all outline-none" />
+                                                <input type="number" value={formState.unlockCostGreen} onChange={e => setFormState(p => ({ ...p, unlockCostGreen: e.target.value }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-green-500 transition-all outline-none" />
                                             </div>
                                         </div>
                                     </section>

@@ -82,6 +82,10 @@ const game = {
             back: '返回',
             archive: '档案',
             refresh: '刷新',
+            restartSession: '再玩一次',
+            exitSession: '退出对局',
+            confirmRestart: '确认结束当前对局并开始新对局？',
+            confirmExit: '确认退出当前对局？未结算回合进度将丢失。',
             guide: '引导',
             turnAnimation: '回合动效',
             endTurn: '结束回合',
@@ -169,6 +173,12 @@ const game = {
             recommended: '推荐落点',
             synergyScore: '联动分',
             adjacentUnit: '相邻',
+            selection: {
+                title: '当前放置目标',
+                card: '卡牌',
+                tile: '坐标',
+                confirm: '将 {card} 放置到 {tile}',
+            },
             viewMode: {
                 smart: '智能',
                 adjacency: '相邻热力',
@@ -181,6 +191,9 @@ const game = {
             openPeek: '固定查看选中卡详情',
             peekTitle: '核心卡详情（固定）',
             closePeek: '关闭',
+        },
+        hand: {
+            title: '综合手牌',
         },
         policyHand: {
             title: '政策手牌',
@@ -293,6 +306,7 @@ const game = {
             removeFailed: '移除核心卡失败',
             noPendingDiscard: '当前没有待弃牌任务，界面已同步最新状态。',
             refreshFailed: '刷新失败',
+            endSessionFailed: '结束对局失败',
         },
     },
     // archive / leaderboard / tech-tree pages

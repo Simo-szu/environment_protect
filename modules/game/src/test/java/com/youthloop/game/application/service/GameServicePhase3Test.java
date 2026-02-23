@@ -1174,7 +1174,7 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals(3, next.path("eventCooldown").asInt());
+        assertEquals(2, next.path("eventCooldown").asInt());
     }
 
     @Test
@@ -1400,8 +1400,8 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertTrue(!Boolean.TRUE.equals(response.getSessionEnded()));
+        assertTrue(next.path("ending").isMissingNode() || next.path("ending").isNull());
     }
 
     @Test

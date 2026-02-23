@@ -88,6 +88,7 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         ObjectNode state = ensureStateObject(session.getPondState());
+        syncRuntimeConfigForSession(state);
         processPendingDiscardTimeout(state);
         processTradeWindowTimeout(state);
         session.setPondState(state);
@@ -108,6 +109,7 @@ public class GameService {
                 throw new BizException(ErrorCode.GAME_SESSION_INVALID);
             }
             ObjectNode state = ensureStateObject(session.getPondState());
+            syncRuntimeConfigForSession(state);
             processPendingDiscardTimeout(state);
             processTradeWindowTimeout(state);
             session.setPondState(state);
@@ -121,6 +123,7 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         ObjectNode guestState = ensureStateObject(guestSession.getPondState());
+        syncRuntimeConfigForSession(guestState);
         processPendingDiscardTimeout(guestState);
         processTradeWindowTimeout(guestState);
         guestSession.setPondState(guestState);
@@ -161,6 +164,7 @@ public class GameService {
         }
 
         ObjectNode state = ensureStateObject(session.getPondState());
+        syncRuntimeConfigForSession(state);
         processPendingDiscardTimeout(state);
         processTradeWindowTimeout(state);
         if (state.path("pendingDiscard").path("active").asBoolean(false)
@@ -670,7 +674,7 @@ public class GameService {
         if (occupied.has(key)) {
             throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Tile already occupied");
         }
-        if (freePlacementEnabled()) {
+        if (freePlacementEnabled(state)) {
             return;
         }
         if (occupied.isEmpty()) {
@@ -2497,6 +2501,19 @@ public class GameService {
 
     private boolean freePlacementEnabled() {
         return runtimeParam().freePlacementEnabled();
+    }
+
+    private boolean freePlacementEnabled(ObjectNode state) {
+        JsonNode stateValue = state.path("runtimeConfig").path("freePlacementEnabled");
+        if (!stateValue.isMissingNode() && !stateValue.isNull()) {
+            return stateValue.asBoolean();
+        }
+        return freePlacementEnabled();
+    }
+
+    private void syncRuntimeConfigForSession(ObjectNode state) {
+        ObjectNode runtimeConfig = state.with("runtimeConfig");
+        runtimeConfig.put("freePlacementEnabled", freePlacementEnabled());
     }
 
     private UUID resolveCurrentUserId() {

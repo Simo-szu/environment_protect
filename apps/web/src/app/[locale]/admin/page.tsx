@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
@@ -12,10 +12,27 @@ import { AdminGameRulesTab } from './components/AdminGameRulesTab';
 
 type AdminTab = 'verifications' | 'banners' | 'gameCards' | 'gameRules' | 'contents';
 
+const VALID_TABS: AdminTab[] = ['verifications', 'banners', 'gameCards', 'contents', 'gameRules'];
+
 export default function AdminPage({ params }: { params: { locale: string } }) {
     const router = useRouter();
     const { t } = useSafeTranslation('admin');
+
+    // SSR 初始值固定为 'verifications'，避免水合不匹配
     const [activeTab, setActiveTab] = useState<AdminTab>('verifications');
+
+    // 纯客户端：挂载后从 URL hash 恢复 tab
+    useEffect(() => {
+        const hash = window.location.hash.replace('#', '') as AdminTab;
+        if (VALID_TABS.includes(hash)) {
+            setActiveTab(hash);
+        }
+    }, []);
+
+    const switchTab = (tab: AdminTab) => {
+        setActiveTab(tab);
+        window.location.hash = tab;
+    };
 
     return (
         <Layout>
@@ -44,7 +61,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
 
                     <div className="flex flex-wrap gap-x-6 gap-y-2 relative z-10">
                         <button
-                            onClick={() => setActiveTab('verifications')}
+                            onClick={() => switchTab('verifications')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'verifications'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -53,7 +70,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                             {t('tabs.verifications', '主办方认证')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('banners')}
+                            onClick={() => switchTab('banners')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'banners'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -62,7 +79,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                             {t('tabs.banners', '首页横幅')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('gameCards')}
+                            onClick={() => switchTab('gameCards')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'gameCards'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -71,7 +88,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                             {t('tabs.gameCards', '游戏卡牌')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('contents')}
+                            onClick={() => switchTab('contents')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'contents'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -80,7 +97,7 @@ export default function AdminPage({ params }: { params: { locale: string } }) {
                             {t('tabs.contents', '内容管理')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('gameRules')}
+                            onClick={() => switchTab('gameRules')}
                             className={`pb-3 px-2 whitespace-nowrap text-sm font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'gameRules'
                                 ? 'border-[#30499B] dark:border-[#56B949] text-[#30499B] dark:text-[#56B949]'
                                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'

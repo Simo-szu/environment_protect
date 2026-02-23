@@ -22,14 +22,14 @@ type ContentFormState = {
 };
 
 const defaultContentForm: ContentFormState = {
-    type: 1, title: '', summary: '', coverUrl: '', body: '', sourceType: 2, sourceUrl: '', status: 1,
+    type: 1, title: '', summary: '', coverUrl: '', body: '', sourceType: 2, sourceUrl: '', status: 2,
 };
 
 type IngestionSettingsFormState = {
     cron: string; zone: string; enabled: boolean; publishStatus: number;
-    requestTimeoutMs: number; requestIntervalMs: number;
-    earthEnabled: boolean; earthMaxPages: number; earthMaxArticles: number;
-    ecoepnEnabled: boolean; ecoepnMaxPages: number; ecoepnMaxArticles: number;
+    requestTimeoutMs: number | string; requestIntervalMs: number | string;
+    earthEnabled: boolean; earthMaxPages: number | string; earthMaxArticles: number | string;
+    ecoepnEnabled: boolean; ecoepnMaxPages: number | string; ecoepnMaxArticles: number | string;
 };
 
 const defaultIngestionSettingsForm: IngestionSettingsFormState = {
@@ -109,10 +109,11 @@ export function AdminContentsTab() {
             setSavingIngestionSettings(true);
             const updated = await adminApi.updateAdminIngestionSettings({
                 cron: ingestionSettings.cron, zone: ingestionSettings.zone, enabled: ingestionSettings.enabled,
-                publishStatus: ingestionSettings.publishStatus, requestTimeoutMs: ingestionSettings.requestTimeoutMs,
-                requestIntervalMs: ingestionSettings.requestIntervalMs,
-                earth: { enabled: ingestionSettings.earthEnabled, maxPages: ingestionSettings.earthMaxPages, maxArticles: ingestionSettings.earthMaxArticles },
-                ecoepn: { enabled: ingestionSettings.ecoepnEnabled, maxPages: ingestionSettings.ecoepnMaxPages, maxArticles: ingestionSettings.ecoepnMaxArticles },
+                publishStatus: ingestionSettings.publishStatus,
+                requestTimeoutMs: Number(ingestionSettings.requestTimeoutMs) || 0,
+                requestIntervalMs: Number(ingestionSettings.requestIntervalMs) || 0,
+                earth: { enabled: ingestionSettings.earthEnabled, maxPages: Number(ingestionSettings.earthMaxPages) || 0, maxArticles: Number(ingestionSettings.earthMaxArticles) || 0 },
+                ecoepn: { enabled: ingestionSettings.ecoepnEnabled, maxPages: Number(ingestionSettings.ecoepnMaxPages) || 0, maxArticles: Number(ingestionSettings.ecoepnMaxArticles) || 0 },
             });
             alert(t('contents.ingestionSettingsSaved'));
         } catch (error) {
@@ -269,12 +270,12 @@ export function AdminContentsTab() {
                                 <Select value={ingestionSettings.publishStatus.toString()} onValueChange={v => setIngestionSettings(p => ({ ...p, publishStatus: Number(v) }))}>
                                     <SelectTrigger className="w-full h-12 rounded-2xl border-slate-200 shadow-none">
                                         <SelectValue>
-                                            {ingestionSettings.publishStatus === 1 ? t('contents.draft') : t('contents.published')}
+                                            {ingestionSettings.publishStatus === 1 ? t('contents.published') : t('contents.draft')}
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl">
-                                        <SelectItem value="1">{t('contents.draft')}</SelectItem>
-                                        <SelectItem value="2">{t('contents.published')}</SelectItem>
+                                        <SelectItem value="1">{t('contents.published')}</SelectItem>
+                                        <SelectItem value="2">{t('contents.draft')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <p className="text-[10px] text-slate-400 px-1">{t('contents.publishStatusHelp')}</p>
@@ -283,7 +284,7 @@ export function AdminContentsTab() {
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('contents.requestTimeoutMs')}</Label>
                                 <div className="relative">
-                                    <input className="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono" type="number" value={ingestionSettings.requestTimeoutMs} onChange={e => setIngestionSettings(p => ({ ...p, requestTimeoutMs: Number(e.target.value) }))} />
+                                    <input className="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono" type="number" value={ingestionSettings.requestTimeoutMs} onChange={e => setIngestionSettings(p => ({ ...p, requestTimeoutMs: e.target.value }))} />
                                     <span className="absolute right-5 top-3.5 text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase">ms</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 px-1">{t('contents.requestTimeoutMsHelp')}</p>
@@ -292,7 +293,7 @@ export function AdminContentsTab() {
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('contents.requestIntervalMs')}</Label>
                                 <div className="relative">
-                                    <input className="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono" type="number" value={ingestionSettings.requestIntervalMs} onChange={e => setIngestionSettings(p => ({ ...p, requestIntervalMs: Number(e.target.value) }))} />
+                                    <input className="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono" type="number" value={ingestionSettings.requestIntervalMs} onChange={e => setIngestionSettings(p => ({ ...p, requestIntervalMs: e.target.value }))} />
                                     <span className="absolute right-5 top-3.5 text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase">ms</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 px-1">{t('contents.requestIntervalMsHelp')}</p>
@@ -322,11 +323,11 @@ export function AdminContentsTab() {
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">{t('contents.pageLimit')}</p>
-                                            <input className="w-full h-12 px-5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl text-center font-bold text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 outline-none transition-all" type="number" value={src.maxP} onChange={e => setIngestionSettings(p => ({ ...p, [`${src.id}MaxPages`]: Number(e.target.value) }))} />
+                                            <input className="w-full h-12 px-5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl text-center font-bold text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 outline-none transition-all" type="number" value={src.maxP} onChange={e => setIngestionSettings(p => ({ ...p, [`${src.id}MaxPages`]: e.target.value }))} />
                                         </div>
                                         <div className="space-y-2">
                                             <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">{t('contents.totalLimit')}</p>
-                                            <input className="w-full h-12 px-5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl text-center font-bold text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 outline-none transition-all" type="number" value={src.maxA} onChange={e => setIngestionSettings(p => ({ ...p, [`${src.id}MaxArticles`]: Number(e.target.value) }))} />
+                                            <input className="w-full h-12 px-5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl text-center font-bold text-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 outline-none transition-all" type="number" value={src.maxA} onChange={e => setIngestionSettings(p => ({ ...p, [`${src.id}MaxArticles`]: e.target.value }))} />
                                         </div>
                                     </div>
                                 </div>
@@ -357,13 +358,13 @@ export function AdminContentsTab() {
                         <Select className="w-[140px]" value={contentStatusFilter?.toString() ?? ''} onValueChange={v => setContentStatusFilter(v ? Number(v) : undefined)}>
                             <SelectTrigger className="h-9">
                                 <SelectValue placeholder={t('contents.allStatus')}>
-                                    {contentStatusFilter === 1 ? t('contents.draft') : contentStatusFilter === 2 ? t('contents.published') : null}
+                                    {contentStatusFilter === 1 ? t('contents.published') : contentStatusFilter === 2 ? t('contents.draft') : null}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">{t('contents.allStatus')}</SelectItem>
-                                <SelectItem value="1">{t('contents.draft')}</SelectItem>
-                                <SelectItem value="2">{t('contents.published')}</SelectItem>
+                                <SelectItem value="1">{t('contents.published')}</SelectItem>
+                                <SelectItem value="2">{t('contents.draft')}</SelectItem>
                             </SelectContent>
                         </Select>
                         <div className="flex">
@@ -383,14 +384,14 @@ export function AdminContentsTab() {
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded select-none">{item.type === 1 ? t('contents.news') : item.type === 2 ? t('contents.policy') : t('contents.encyclopedia')}</span>
-                                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded select-none ${item.status === 2 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'}`}>{item.status === 2 ? t('contents.published') : t('contents.draft')}</span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded select-none ${item.status === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'}`}>{item.status === 1 ? t('contents.published') : t('contents.draft')}</span>
                                     <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">{item.publishedAt || t('contents.notPublished')}</span>
                                 </div>
                                 <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-base">{item.title}</h4>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{item.summary}</p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                                {item.status !== 2 && <button onClick={async () => { await adminApi.publishAdminContent(item.id); loadContents(); }} className="px-3 py-1.5 text-sm bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/60 rounded-lg transition-colors">{t('contents.publish')}</button>}
+                                {item.status !== 1 && <button onClick={async () => { await adminApi.publishAdminContent(item.id); loadContents(); }} className="px-3 py-1.5 text-sm bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/60 rounded-lg transition-colors">{t('contents.publish')}</button>}
                                 <button onClick={() => startEdit(item.id)} className="px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">{t('contents.edit')}</button>
                                 <button onClick={() => deleteContent(item.id)} className="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-lg transition-colors">{t('contents.delete')}</button>
                             </div>
@@ -440,8 +441,8 @@ export function AdminContentsTab() {
                                         <SelectValue placeholder={t('contents.status')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1">{t('contents.draft')}</SelectItem>
-                                        <SelectItem value="2">{t('contents.published')}</SelectItem>
+                                        <SelectItem value="1">{t('contents.published')}</SelectItem>
+                                        <SelectItem value="2">{t('contents.draft')}</SelectItem>
                                         <SelectItem value="3">{t('contents.archived')}</SelectItem>
                                     </SelectContent>
                                 </Select>

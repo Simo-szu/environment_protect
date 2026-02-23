@@ -99,7 +99,9 @@
         <result column="policy_hand_limit" property="policyHandLimit" jdbcType="INTEGER"/>
         <result column="max_combo_per_turn" property="maxComboPerTurn" jdbcType="INTEGER"/>
         <result column="max_turn" property="maxTurn" jdbcType="INTEGER"/>
+        <result column="hand_discard_decision_seconds" property="handDiscardDecisionSeconds" jdbcType="INTEGER"/>
         <result column="trade_window_interval" property="tradeWindowInterval" jdbcType="INTEGER"/>
+        <result column="trade_window_seconds" property="tradeWindowSeconds" jdbcType="INTEGER"/>
         <result column="base_carbon_price" property="baseCarbonPrice" jdbcType="DOUBLE"/>
         <result column="max_carbon_quota" property="maxCarbonQuota" jdbcType="INTEGER"/>
         <result column="domain_progress_card_cap" property="domainProgressCardCap" jdbcType="INTEGER"/>
@@ -261,7 +263,9 @@
 
     <select id="selectEnabledRuntimeParamConfig" resultMap="RuntimeParamResultMap">
         SELECT config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
+               hand_discard_decision_seconds,
                trade_window_interval,
+               trade_window_seconds,
                base_carbon_price, max_carbon_quota, domain_progress_card_cap,
                free_placement_enabled,
                ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
@@ -317,25 +321,29 @@
     <insert id="upsertRuntimeParamConfig">
         INSERT INTO game.game_runtime_param_config (
             config_id, core_hand_limit, policy_hand_limit, max_combo_per_turn, max_turn,
+            hand_discard_decision_seconds,
             trade_window_interval,
+            trade_window_seconds,
             base_carbon_price, max_carbon_quota, domain_progress_card_cap,
             free_placement_enabled,
             ending_display_seconds, turn_transition_animation_enabled_default, turn_transition_animation_seconds,
             is_enabled
         ) VALUES (
-            #{configId, jdbcType=INTEGER},
-            #{coreHandLimit, jdbcType=INTEGER},
-            #{policyHandLimit, jdbcType=INTEGER},
-            #{maxComboPerTurn, jdbcType=INTEGER},
-            #{maxTurn, jdbcType=INTEGER},
-            #{tradeWindowInterval, jdbcType=INTEGER},
-            #{baseCarbonPrice, jdbcType=DOUBLE},
-            #{maxCarbonQuota, jdbcType=INTEGER},
-            #{domainProgressCardCap, jdbcType=INTEGER},
-            #{freePlacementEnabled, jdbcType=BOOLEAN},
-            #{endingDisplaySeconds, jdbcType=INTEGER},
-            #{turnTransitionAnimationEnabledDefault, jdbcType=BOOLEAN},
-            #{turnTransitionAnimationSeconds, jdbcType=INTEGER},
+            COALESCE(#{configId, jdbcType=INTEGER}, 1),
+            COALESCE(#{coreHandLimit, jdbcType=INTEGER}, 6),
+            COALESCE(#{policyHandLimit, jdbcType=INTEGER}, 2),
+            COALESCE(#{maxComboPerTurn, jdbcType=INTEGER}, 2),
+            COALESCE(#{maxTurn, jdbcType=INTEGER}, 30),
+            COALESCE(#{handDiscardDecisionSeconds, jdbcType=INTEGER}, 10),
+            COALESCE(#{tradeWindowInterval, jdbcType=INTEGER}, 2),
+            COALESCE(#{tradeWindowSeconds, jdbcType=INTEGER}, 3),
+            COALESCE(#{baseCarbonPrice, jdbcType=DOUBLE}, 2.0),
+            COALESCE(#{maxCarbonQuota, jdbcType=INTEGER}, 200),
+            COALESCE(#{domainProgressCardCap, jdbcType=INTEGER}, 15),
+            COALESCE(#{freePlacementEnabled, jdbcType=BOOLEAN}, TRUE),
+            COALESCE(#{endingDisplaySeconds, jdbcType=INTEGER}, 5),
+            COALESCE(#{turnTransitionAnimationEnabledDefault, jdbcType=BOOLEAN}, TRUE),
+            COALESCE(#{turnTransitionAnimationSeconds, jdbcType=INTEGER}, 2),
             TRUE
         )
         ON CONFLICT (config_id) DO UPDATE SET
@@ -343,7 +351,9 @@
             policy_hand_limit = EXCLUDED.policy_hand_limit,
             max_combo_per_turn = EXCLUDED.max_combo_per_turn,
             max_turn = EXCLUDED.max_turn,
+            hand_discard_decision_seconds = EXCLUDED.hand_discard_decision_seconds,
             trade_window_interval = EXCLUDED.trade_window_interval,
+            trade_window_seconds = EXCLUDED.trade_window_seconds,
             base_carbon_price = EXCLUDED.base_carbon_price,
             max_carbon_quota = EXCLUDED.max_carbon_quota,
             domain_progress_card_cap = EXCLUDED.domain_progress_card_cap,

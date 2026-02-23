@@ -362,7 +362,9 @@ export interface AdminGameRuntimeParam {
   policyHandLimit?: number;
   maxComboPerTurn?: number;
   maxTurn?: number;
+  handDiscardDecisionSeconds?: number;
   tradeWindowInterval?: number;
+  tradeWindowSeconds?: number;
   baseCarbonPrice?: number;
   maxCarbonQuota?: number;
   domainProgressCardCap?: number;

@@ -14,6 +14,7 @@ const admin = {
     noRecords: '暂无记录',
     cancel: '取消',
     save: '保存',
+    saving: '保存中...',
     tabs: {
         verifications: '主办方认证',
         activities: '全站活动',
@@ -34,7 +35,9 @@ const admin = {
             policyHandLimit: '政策手牌上限',
             maxComboPerTurn: '每回合最大连击',
             maxTurn: '最大回合数',
+            handDiscardDecisionSeconds: '弃牌决策时长 (秒)',
             tradeWindowInterval: '交易窗口间隔',
+            tradeWindowSeconds: '交易窗口时长 (秒)',
             baseCarbonPrice: '基础碳价',
             maxCarbonQuota: '最大碳配额',
             domainProgressCardCap: '领域进度卡牌上限',
@@ -44,9 +47,9 @@ const admin = {
             freePlacementEnabled: '允许核心卡自由放置（任意空白格）',
         },
         errors: {
-            isRequired: '{{field}} 为必填项',
-            mustBeNumber: '{{field}} 必须是有效数字',
-            mustBeMin: '{{field}} 必须大于等于 {{min}}',
+            isRequired: '{field} 为必填项',
+            mustBeNumber: '{field} 必须是有效数字',
+            mustBeMin: '{field} 必须大于等于 {min}',
         },
     },
     gameRules: {
@@ -354,6 +357,7 @@ const admin = {
         updateFailed: '更新游戏卡牌失败',
         deleteFailed: '删除游戏卡牌失败',
         loadDetailFailed: '获取卡牌详情失败',
+        saveFailed: '保存卡牌失败',
         empty: '暂无游戏卡牌',
         edit: '编辑',
         delete: '删除',
@@ -399,6 +403,9 @@ const admin = {
         chineseNamePlaceholder: '请输入中文标题',
         englishNamePlaceholder: '请输入英文标题',
         saving: '保存中...',
+        star1: '1星 (早期)',
+        star2: '2星 (中期)',
+        star3: '3星 (后期)',
     },
     contents: {
         ingestionControl: '数据采集控制',

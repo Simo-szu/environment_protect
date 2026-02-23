@@ -83,6 +83,10 @@ const game = {
             back: 'Back',
             archive: 'Archive',
             refresh: 'Refresh',
+            restartSession: 'Play Again',
+            exitSession: 'Exit Session',
+            confirmRestart: 'End this session and start a new one?',
+            confirmExit: 'Exit this session now? Unsettled turn progress will be lost.',
             guide: 'Guide',
             turnAnimation: 'Turn Animation',
             endTurn: 'End Turn',
@@ -170,6 +174,12 @@ const game = {
             recommended: 'Recommended tile',
             synergyScore: 'Synergy',
             adjacentUnit: 'adjacent',
+            selection: {
+                title: 'Current Placement Target',
+                card: 'Card',
+                tile: 'Tile',
+                confirm: 'Place {card} on {tile}',
+            },
             viewMode: {
                 smart: 'Smart',
                 adjacency: 'Adjacency Heat',
@@ -182,6 +192,9 @@ const game = {
             openPeek: 'Pin selected card detail',
             peekTitle: 'Pinned Core Card Detail',
             closePeek: 'Close',
+        },
+        hand: {
+            title: 'Combined Hand',
         },
         policyHand: {
             title: 'Policy Cards in Hand',
@@ -294,6 +307,7 @@ const game = {
             removeFailed: 'Failed to remove core card',
             noPendingDiscard: 'No pending discard task now. The view has been synced.',
             refreshFailed: 'Refresh failed',
+            endSessionFailed: 'Failed to end session',
         },
     },
     archive: {
