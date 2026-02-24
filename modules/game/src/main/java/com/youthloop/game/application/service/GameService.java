@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.common.util.SecurityUtil;
+import com.youthloop.game.api.dto.GameActionLogDTO;
 import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
 import com.youthloop.game.api.dto.GameCardMetaDTO;
@@ -137,6 +139,36 @@ public class GameService {
 
     public List<GameCardMetaDTO> listCards(boolean includePolicy) {
         return cardCatalogService.listCards(includePolicy);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<GameActionLogDTO> listActions(UUID sessionId, int page, int size) {
+        if (sessionId == null) {
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "sessionId is required");
+        }
+        UUID userId = resolveCurrentUserIdOptional();
+        if (userId == null) {
+            GameSessionEntity guestSession = resolveGuestSession(sessionId);
+            if (guestSession == null) {
+                throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
+            }
+            return PageResponse.of(List.of(), 0L, Math.max(1, page), Math.min(100, Math.max(1, size)));
+        }
+
+        GameSessionEntity session = gameSessionMapper.selectById(sessionId);
+        if (session == null || !userId.equals(session.getUserId())) {
+            throw new BizException(ErrorCode.GAME_SESSION_INVALID);
+        }
+
+        int validPage = Math.max(1, page);
+        int validSize = Math.min(100, Math.max(1, size));
+        int offset = (validPage - 1) * validSize;
+        long total = gameActionMapper.countBySessionId(sessionId);
+        List<GameActionLogDTO> items = gameActionMapper.selectBySessionId(sessionId, offset, validSize)
+            .stream()
+            .map(this::toActionLogDTO)
+            .toList();
+        return PageResponse.of(items, total, validPage, validSize);
     }
 
     @Transactional
@@ -2174,34 +2206,7 @@ public class GameService {
         ObjectNode resources,
         ObjectNode metrics
     ) {
-        GameRuleConfigService.CoreSpecialConditionConfig condition = gameRuleConfigService.coreSpecialConditionMap().get(cardId);
-        if (condition != null) {
-            if (!condition.requiredEventType().isBlank() && !hasEventInHistory(state, condition.requiredEventType())) {
-                return false;
-            }
-            if (counts.industry < condition.minIndustryCards()) {
-                return false;
-            }
-            if (counts.ecology < condition.minEcologyCards()) {
-                return false;
-            }
-            if (counts.science < condition.minScienceCards()) {
-                return false;
-            }
-            if (counts.society < condition.minSocietyCards()) {
-                return false;
-            }
-        }
         return isCoreEffectConditionMatched(cardId, card, state, counts, resources, metrics);
-    }
-
-    private boolean hasEventInHistory(ObjectNode state, String eventType) {
-        for (JsonNode node : state.withArray("eventHistory")) {
-            if (eventType.equals(node.path("eventType").asText())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean isCoreEffectConditionMatched(
@@ -2232,6 +2237,12 @@ public class GameService {
             return false;
         }
         if (state.with("domainProgress").path("industry").asInt(0) < condition.minIndustryProgressPct()) {
+            return false;
+        }
+        if (metrics.path("green").asInt() < condition.minGreen()) {
+            return false;
+        }
+        if (state.with("domainProgress").path("society").asInt(0) < condition.minSocietyProgressPct()) {
             return false;
         }
         if (condition.minTaggedCards() <= 0) {
@@ -2307,6 +2318,8 @@ public class GameService {
             card.getCoreConditionMaxCarbon() == null ? Integer.MAX_VALUE : card.getCoreConditionMaxCarbon(),
             defaultInt(card.getCoreConditionMinIndustryCards()),
             defaultInt(card.getCoreConditionMinIndustryProgressPct()),
+            defaultInt(card.getCoreConditionMinGreen()),
+            defaultInt(card.getCoreConditionMinSocietyProgressPct()),
             defaultInt(card.getCoreConditionMinTaggedCards()),
             card.getCoreConditionRequiredTag() == null ? "" : card.getCoreConditionRequiredTag()
         );
@@ -2421,6 +2434,8 @@ public class GameService {
         int maxCarbon,
         int minIndustryCards,
         int minIndustryProgressPct,
+        int minGreen,
+        int minSocietyProgressPct,
         int minTaggedCards,
         String requiredTag
     ) {
@@ -2577,6 +2592,18 @@ public class GameService {
             .startedAt(entity.getStartedAt())
             .lastActionAt(entity.getLastActionAt())
             .status(entity.getStatus())
+            .build();
+    }
+
+    private GameActionLogDTO toActionLogDTO(GameActionEntity entity) {
+        return GameActionLogDTO.builder()
+            .id(entity.getId())
+            .sessionId(entity.getSessionId())
+            .userId(entity.getUserId())
+            .actionType(entity.getActionType())
+            .actionData(entity.getActionData())
+            .pointsEarned(entity.getPointsEarned())
+            .createdAt(entity.getCreatedAt())
             .build();
     }
 

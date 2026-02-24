@@ -1,12 +1,16 @@
 package com.youthloop.game.application.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.game.api.dto.AdminCreateGameCardRequest;
 import com.youthloop.game.api.dto.AdminUpdateGameCardRequest;
 import com.youthloop.game.api.dto.GameCardMetaDTO;
 import com.youthloop.game.persistence.entity.GameCardEntity;
+import com.youthloop.game.persistence.entity.GameCardUpgradeRequirementEntity;
 import com.youthloop.game.persistence.mapper.GameCardMapper;
+import com.youthloop.game.persistence.mapper.GameCardUpgradeRequirementMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +27,7 @@ import java.util.Objects;
 public class GameCardAdminService {
 
     private final GameCardMapper gameCardMapper;
+    private final GameCardUpgradeRequirementMapper gameCardUpgradeRequirementMapper;
     private final CardCatalogService cardCatalogService;
 
     @Transactional(readOnly = true)
@@ -110,6 +115,8 @@ public class GameCardAdminService {
         entity.setCoreConditionMaxCarbon(request.getCoreConditionMaxCarbon() == null ? Integer.MAX_VALUE : request.getCoreConditionMaxCarbon());
         entity.setCoreConditionMinIndustryCards(defaultInt(request.getCoreConditionMinIndustryCards()));
         entity.setCoreConditionMinIndustryProgressPct(defaultInt(request.getCoreConditionMinIndustryProgressPct()));
+        entity.setCoreConditionMinGreen(defaultInt(request.getCoreConditionMinGreen()));
+        entity.setCoreConditionMinSocietyProgressPct(defaultInt(request.getCoreConditionMinSocietyProgressPct()));
         entity.setCoreConditionMinTaggedCards(defaultInt(request.getCoreConditionMinTaggedCards()));
         entity.setCoreConditionRequiredTag(defaultString(request.getCoreConditionRequiredTag()));
         entity.setCoreSpecialEcologyCardCostReductionPct(defaultInt(request.getCoreSpecialEcologyCardCostReductionPct()));
@@ -117,8 +124,34 @@ public class GameCardAdminService {
         entity.setCoreSpecialFloodResistancePct(defaultInt(request.getCoreSpecialFloodResistancePct()));
         entity.setCoreSpecialNewEnergyIndustryPct(defaultInt(request.getCoreSpecialNewEnergyIndustryPct()));
         entity.setCoreSpecialEcologyCarbonSinkPerTenGreen(defaultInt(request.getCoreSpecialEcologyCarbonSinkPerTenGreen()));
+        entity.setUpgradeDeltaIndustry(defaultInt(request.getUpgradeDeltaIndustry()));
+        entity.setUpgradeDeltaTech(defaultInt(request.getUpgradeDeltaTech()));
+        entity.setUpgradeDeltaPopulation(defaultInt(request.getUpgradeDeltaPopulation()));
+        entity.setUpgradeDeltaGreen(defaultInt(request.getUpgradeDeltaGreen()));
+        entity.setUpgradeDeltaCarbon(defaultInt(request.getUpgradeDeltaCarbon()));
+        entity.setUpgradeDeltaSatisfaction(defaultInt(request.getUpgradeDeltaSatisfaction()));
+        entity.setUpgradeDeltaQuota(defaultInt(request.getUpgradeDeltaQuota()));
+        entity.setUpgradeDeltaLowCarbon(defaultInt(request.getUpgradeDeltaLowCarbon()));
+        entity.setUpgradeDeltaSectorProgressPct(defaultInt(request.getUpgradeDeltaSectorProgressPct()));
+        entity.setUpgradeDeltaIndustryPct(defaultInt(request.getUpgradeDeltaIndustryPct()));
+        entity.setUpgradeDeltaGreenPct(defaultInt(request.getUpgradeDeltaGreenPct()));
+        entity.setUpgradeDeltaGlobalPct(defaultInt(request.getUpgradeDeltaGlobalPct()));
+        entity.setUpgradeDeltaTechPct(defaultInt(request.getUpgradeDeltaTechPct()));
+        entity.setUpgradeDeltaIndustryCarbonReductionPct(defaultInt(request.getUpgradeDeltaIndustryCarbonReductionPct()));
+        entity.setUpgradeDeltaCarbonDeltaReductionPct(defaultInt(request.getUpgradeDeltaCarbonDeltaReductionPct()));
+        entity.setUpgradeDeltaTradePricePct(defaultInt(request.getUpgradeDeltaTradePricePct()));
+        entity.setUpgradeDeltaComboPct(defaultInt(request.getUpgradeDeltaComboPct()));
+        entity.setUpgradeDeltaSharedMobilityPct(defaultInt(request.getUpgradeDeltaSharedMobilityPct()));
+        entity.setUpgradeDeltaEcologyCardCostPct(defaultInt(request.getUpgradeDeltaEcologyCardCostPct()));
+        entity.setUpgradeDeltaScienceCardCostPct(defaultInt(request.getUpgradeDeltaScienceCardCostPct()));
+        entity.setUpgradeDeltaFloodResistancePct(defaultInt(request.getUpgradeDeltaFloodResistancePct()));
+        entity.setUpgradeDeltaNewEnergyPct(defaultInt(request.getUpgradeDeltaNewEnergyPct()));
+        entity.setUpgradeDeltaEcologySink(defaultInt(request.getUpgradeDeltaEcologySink()));
+        entity.setUpgradeDeltaTradUpgradePct(defaultInt(request.getUpgradeDeltaTradUpgradePct()));
+        entity.setUpgradeDeltaUpgradeCostPct(defaultInt(request.getUpgradeDeltaUpgradeCostPct()));
         entity.setIsEnabled(request.getIsEnabled() == null || request.getIsEnabled());
         gameCardMapper.insert(entity);
+        upsertUpgradeRequirementOnCreate(request, entity);
         cardCatalogService.reloadFromDatabase();
         return entity.getCardId();
     }
@@ -209,6 +242,10 @@ public class GameCardAdminService {
         if (request.getCoreConditionMinIndustryProgressPct() != null) {
             entity.setCoreConditionMinIndustryProgressPct(request.getCoreConditionMinIndustryProgressPct());
         }
+        if (request.getCoreConditionMinGreen() != null) entity.setCoreConditionMinGreen(request.getCoreConditionMinGreen());
+        if (request.getCoreConditionMinSocietyProgressPct() != null) {
+            entity.setCoreConditionMinSocietyProgressPct(request.getCoreConditionMinSocietyProgressPct());
+        }
         if (request.getCoreConditionMinTaggedCards() != null) entity.setCoreConditionMinTaggedCards(request.getCoreConditionMinTaggedCards());
         if (request.getCoreConditionRequiredTag() != null) entity.setCoreConditionRequiredTag(request.getCoreConditionRequiredTag());
         if (request.getCoreSpecialEcologyCardCostReductionPct() != null) {
@@ -226,9 +263,53 @@ public class GameCardAdminService {
         if (request.getCoreSpecialEcologyCarbonSinkPerTenGreen() != null) {
             entity.setCoreSpecialEcologyCarbonSinkPerTenGreen(request.getCoreSpecialEcologyCarbonSinkPerTenGreen());
         }
+        if (request.getUpgradeDeltaIndustry() != null) entity.setUpgradeDeltaIndustry(request.getUpgradeDeltaIndustry());
+        if (request.getUpgradeDeltaTech() != null) entity.setUpgradeDeltaTech(request.getUpgradeDeltaTech());
+        if (request.getUpgradeDeltaPopulation() != null) entity.setUpgradeDeltaPopulation(request.getUpgradeDeltaPopulation());
+        if (request.getUpgradeDeltaGreen() != null) entity.setUpgradeDeltaGreen(request.getUpgradeDeltaGreen());
+        if (request.getUpgradeDeltaCarbon() != null) entity.setUpgradeDeltaCarbon(request.getUpgradeDeltaCarbon());
+        if (request.getUpgradeDeltaSatisfaction() != null) entity.setUpgradeDeltaSatisfaction(request.getUpgradeDeltaSatisfaction());
+        if (request.getUpgradeDeltaQuota() != null) entity.setUpgradeDeltaQuota(request.getUpgradeDeltaQuota());
+        if (request.getUpgradeDeltaLowCarbon() != null) entity.setUpgradeDeltaLowCarbon(request.getUpgradeDeltaLowCarbon());
+        if (request.getUpgradeDeltaSectorProgressPct() != null) {
+            entity.setUpgradeDeltaSectorProgressPct(request.getUpgradeDeltaSectorProgressPct());
+        }
+        if (request.getUpgradeDeltaIndustryPct() != null) entity.setUpgradeDeltaIndustryPct(request.getUpgradeDeltaIndustryPct());
+        if (request.getUpgradeDeltaGreenPct() != null) entity.setUpgradeDeltaGreenPct(request.getUpgradeDeltaGreenPct());
+        if (request.getUpgradeDeltaGlobalPct() != null) entity.setUpgradeDeltaGlobalPct(request.getUpgradeDeltaGlobalPct());
+        if (request.getUpgradeDeltaTechPct() != null) entity.setUpgradeDeltaTechPct(request.getUpgradeDeltaTechPct());
+        if (request.getUpgradeDeltaIndustryCarbonReductionPct() != null) {
+            entity.setUpgradeDeltaIndustryCarbonReductionPct(request.getUpgradeDeltaIndustryCarbonReductionPct());
+        }
+        if (request.getUpgradeDeltaCarbonDeltaReductionPct() != null) {
+            entity.setUpgradeDeltaCarbonDeltaReductionPct(request.getUpgradeDeltaCarbonDeltaReductionPct());
+        }
+        if (request.getUpgradeDeltaTradePricePct() != null) entity.setUpgradeDeltaTradePricePct(request.getUpgradeDeltaTradePricePct());
+        if (request.getUpgradeDeltaComboPct() != null) entity.setUpgradeDeltaComboPct(request.getUpgradeDeltaComboPct());
+        if (request.getUpgradeDeltaSharedMobilityPct() != null) {
+            entity.setUpgradeDeltaSharedMobilityPct(request.getUpgradeDeltaSharedMobilityPct());
+        }
+        if (request.getUpgradeDeltaEcologyCardCostPct() != null) {
+            entity.setUpgradeDeltaEcologyCardCostPct(request.getUpgradeDeltaEcologyCardCostPct());
+        }
+        if (request.getUpgradeDeltaScienceCardCostPct() != null) {
+            entity.setUpgradeDeltaScienceCardCostPct(request.getUpgradeDeltaScienceCardCostPct());
+        }
+        if (request.getUpgradeDeltaFloodResistancePct() != null) {
+            entity.setUpgradeDeltaFloodResistancePct(request.getUpgradeDeltaFloodResistancePct());
+        }
+        if (request.getUpgradeDeltaNewEnergyPct() != null) entity.setUpgradeDeltaNewEnergyPct(request.getUpgradeDeltaNewEnergyPct());
+        if (request.getUpgradeDeltaEcologySink() != null) entity.setUpgradeDeltaEcologySink(request.getUpgradeDeltaEcologySink());
+        if (request.getUpgradeDeltaTradUpgradePct() != null) {
+            entity.setUpgradeDeltaTradUpgradePct(request.getUpgradeDeltaTradUpgradePct());
+        }
+        if (request.getUpgradeDeltaUpgradeCostPct() != null) {
+            entity.setUpgradeDeltaUpgradeCostPct(request.getUpgradeDeltaUpgradeCostPct());
+        }
         if (request.getIsEnabled() != null) entity.setIsEnabled(request.getIsEnabled());
 
         gameCardMapper.update(entity);
+        upsertUpgradeRequirementOnUpdate(request, entity);
         cardCatalogService.reloadFromDatabase();
     }
 
@@ -237,11 +318,13 @@ public class GameCardAdminService {
         if (gameCardMapper.selectByCardId(cardId) == null) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Unknown card id: " + cardId);
         }
+        gameCardUpgradeRequirementMapper.deleteByCardId(cardId);
         gameCardMapper.deleteByCardId(cardId);
         cardCatalogService.reloadFromDatabase();
     }
 
     private GameCardMetaDTO toDTO(GameCardEntity entity) {
+        GameCardUpgradeRequirementEntity requirement = gameCardUpgradeRequirementMapper.selectEnabledByCardId(entity.getCardId());
         return GameCardMetaDTO.builder()
             .cardId(entity.getCardId())
             .cardNo(entity.getCardNo())
@@ -307,6 +390,8 @@ public class GameCardAdminService {
             .coreConditionMaxCarbon(entity.getCoreConditionMaxCarbon() == null ? Integer.MAX_VALUE : entity.getCoreConditionMaxCarbon())
             .coreConditionMinIndustryCards(defaultInt(entity.getCoreConditionMinIndustryCards()))
             .coreConditionMinIndustryProgressPct(defaultInt(entity.getCoreConditionMinIndustryProgressPct()))
+            .coreConditionMinGreen(defaultInt(entity.getCoreConditionMinGreen()))
+            .coreConditionMinSocietyProgressPct(defaultInt(entity.getCoreConditionMinSocietyProgressPct()))
             .coreConditionMinTaggedCards(defaultInt(entity.getCoreConditionMinTaggedCards()))
             .coreConditionRequiredTag(defaultString(entity.getCoreConditionRequiredTag()))
             .coreSpecialEcologyCardCostReductionPct(defaultInt(entity.getCoreSpecialEcologyCardCostReductionPct()))
@@ -314,6 +399,47 @@ public class GameCardAdminService {
             .coreSpecialFloodResistancePct(defaultInt(entity.getCoreSpecialFloodResistancePct()))
             .coreSpecialNewEnergyIndustryPct(defaultInt(entity.getCoreSpecialNewEnergyIndustryPct()))
             .coreSpecialEcologyCarbonSinkPerTenGreen(defaultInt(entity.getCoreSpecialEcologyCarbonSinkPerTenGreen()))
+            .upgradeDeltaIndustry(defaultInt(entity.getUpgradeDeltaIndustry()))
+            .upgradeDeltaTech(defaultInt(entity.getUpgradeDeltaTech()))
+            .upgradeDeltaPopulation(defaultInt(entity.getUpgradeDeltaPopulation()))
+            .upgradeDeltaGreen(defaultInt(entity.getUpgradeDeltaGreen()))
+            .upgradeDeltaCarbon(defaultInt(entity.getUpgradeDeltaCarbon()))
+            .upgradeDeltaSatisfaction(defaultInt(entity.getUpgradeDeltaSatisfaction()))
+            .upgradeDeltaQuota(defaultInt(entity.getUpgradeDeltaQuota()))
+            .upgradeDeltaLowCarbon(defaultInt(entity.getUpgradeDeltaLowCarbon()))
+            .upgradeDeltaSectorProgressPct(defaultInt(entity.getUpgradeDeltaSectorProgressPct()))
+            .upgradeDeltaIndustryPct(defaultInt(entity.getUpgradeDeltaIndustryPct()))
+            .upgradeDeltaGreenPct(defaultInt(entity.getUpgradeDeltaGreenPct()))
+            .upgradeDeltaGlobalPct(defaultInt(entity.getUpgradeDeltaGlobalPct()))
+            .upgradeDeltaTechPct(defaultInt(entity.getUpgradeDeltaTechPct()))
+            .upgradeDeltaIndustryCarbonReductionPct(defaultInt(entity.getUpgradeDeltaIndustryCarbonReductionPct()))
+            .upgradeDeltaCarbonDeltaReductionPct(defaultInt(entity.getUpgradeDeltaCarbonDeltaReductionPct()))
+            .upgradeDeltaTradePricePct(defaultInt(entity.getUpgradeDeltaTradePricePct()))
+            .upgradeDeltaComboPct(defaultInt(entity.getUpgradeDeltaComboPct()))
+            .upgradeDeltaSharedMobilityPct(defaultInt(entity.getUpgradeDeltaSharedMobilityPct()))
+            .upgradeDeltaEcologyCardCostPct(defaultInt(entity.getUpgradeDeltaEcologyCardCostPct()))
+            .upgradeDeltaScienceCardCostPct(defaultInt(entity.getUpgradeDeltaScienceCardCostPct()))
+            .upgradeDeltaFloodResistancePct(defaultInt(entity.getUpgradeDeltaFloodResistancePct()))
+            .upgradeDeltaNewEnergyPct(defaultInt(entity.getUpgradeDeltaNewEnergyPct()))
+            .upgradeDeltaEcologySink(defaultInt(entity.getUpgradeDeltaEcologySink()))
+            .upgradeDeltaTradUpgradePct(defaultInt(entity.getUpgradeDeltaTradUpgradePct()))
+            .upgradeDeltaUpgradeCostPct(defaultInt(entity.getUpgradeDeltaUpgradeCostPct()))
+            .upgradeEffect(entity.getUpgradeEffect())
+            .upgradeRequirement(
+                requirement == null ? null : GameCardMetaDTO.UpgradeRequirement.builder()
+                    .fromStar(defaultInt(requirement.getFromStar()))
+                    .toStar(defaultInt(requirement.getToStar()))
+                    .reqDomain1(defaultString(requirement.getReqDomain1()))
+                    .reqDomain1MinPct(defaultInt(requirement.getReqDomain1MinPct()))
+                    .reqDomain2(defaultString(requirement.getReqDomain2()))
+                    .reqDomain2MinPct(defaultInt(requirement.getReqDomain2MinPct()))
+                    .costIndustry(defaultInt(requirement.getCostIndustry()))
+                    .costTech(defaultInt(requirement.getCostTech()))
+                    .costPopulation(defaultInt(requirement.getCostPopulation()))
+                    .costGreen(defaultInt(requirement.getCostGreen()))
+                    .configSnapshot(requirement.getConfigSnapshot())
+                    .build()
+            )
             .build();
     }
 
@@ -323,5 +449,124 @@ public class GameCardAdminService {
 
     private String defaultString(String value) {
         return Objects.requireNonNullElse(value, "");
+    }
+
+    private void upsertUpgradeRequirementOnCreate(AdminCreateGameCardRequest request, GameCardEntity entity) {
+        if (!hasUpgradeRequirementInput(request)) {
+            return;
+        }
+        int fromStar = request.getUpgradeReqFromStar() != null ? request.getUpgradeReqFromStar() : Math.max(1, defaultInt(entity.getStar()));
+        int toStar = request.getUpgradeReqToStar() != null ? request.getUpgradeReqToStar() : fromStar + 1;
+        if (toStar <= fromStar) {
+            toStar = fromStar + 1;
+        }
+        GameCardUpgradeRequirementEntity requirement = new GameCardUpgradeRequirementEntity();
+        requirement.setCardId(entity.getCardId());
+        requirement.setFromStar(fromStar);
+        requirement.setToStar(toStar);
+        requirement.setReqDomain1(normalizeDomain(request.getUpgradeReqDomain1()));
+        requirement.setReqDomain1MinPct(defaultInt(request.getUpgradeReqDomain1MinPct()));
+        requirement.setReqDomain2(normalizeDomain(request.getUpgradeReqDomain2()));
+        requirement.setReqDomain2MinPct(defaultInt(request.getUpgradeReqDomain2MinPct()));
+        requirement.setCostIndustry(defaultInt(request.getUpgradeReqCostIndustry()));
+        requirement.setCostTech(defaultInt(request.getUpgradeReqCostTech()));
+        requirement.setCostPopulation(defaultInt(request.getUpgradeReqCostPopulation()));
+        requirement.setCostGreen(defaultInt(request.getUpgradeReqCostGreen()));
+        requirement.setConfigSnapshot(defaultJson(request.getUpgradeReqConfigSnapshot()));
+        requirement.setIsEnabled(request.getUpgradeReqEnabled() == null || request.getUpgradeReqEnabled());
+        gameCardUpgradeRequirementMapper.upsert(requirement);
+    }
+
+    private void upsertUpgradeRequirementOnUpdate(AdminUpdateGameCardRequest request, GameCardEntity entity) {
+        if (!hasUpgradeRequirementInput(request)) {
+            return;
+        }
+        GameCardUpgradeRequirementEntity existing = gameCardUpgradeRequirementMapper.selectEnabledByCardId(entity.getCardId());
+        int fromStar = request.getUpgradeReqFromStar() != null
+            ? request.getUpgradeReqFromStar()
+            : (existing != null ? defaultInt(existing.getFromStar()) : Math.max(1, defaultInt(entity.getStar())));
+        int toStar = request.getUpgradeReqToStar() != null
+            ? request.getUpgradeReqToStar()
+            : (existing != null ? defaultInt(existing.getToStar()) : fromStar + 1);
+        if (toStar <= fromStar) {
+            toStar = fromStar + 1;
+        }
+        GameCardUpgradeRequirementEntity requirement = new GameCardUpgradeRequirementEntity();
+        requirement.setCardId(entity.getCardId());
+        requirement.setFromStar(fromStar);
+        requirement.setToStar(toStar);
+        requirement.setReqDomain1(request.getUpgradeReqDomain1() != null
+            ? normalizeDomain(request.getUpgradeReqDomain1())
+            : (existing != null ? normalizeDomain(existing.getReqDomain1()) : null));
+        requirement.setReqDomain1MinPct(request.getUpgradeReqDomain1MinPct() != null
+            ? request.getUpgradeReqDomain1MinPct()
+            : (existing != null ? defaultInt(existing.getReqDomain1MinPct()) : 0));
+        requirement.setReqDomain2(request.getUpgradeReqDomain2() != null
+            ? normalizeDomain(request.getUpgradeReqDomain2())
+            : (existing != null ? normalizeDomain(existing.getReqDomain2()) : null));
+        requirement.setReqDomain2MinPct(request.getUpgradeReqDomain2MinPct() != null
+            ? request.getUpgradeReqDomain2MinPct()
+            : (existing != null ? defaultInt(existing.getReqDomain2MinPct()) : 0));
+        requirement.setCostIndustry(request.getUpgradeReqCostIndustry() != null
+            ? request.getUpgradeReqCostIndustry()
+            : (existing != null ? defaultInt(existing.getCostIndustry()) : 0));
+        requirement.setCostTech(request.getUpgradeReqCostTech() != null
+            ? request.getUpgradeReqCostTech()
+            : (existing != null ? defaultInt(existing.getCostTech()) : 0));
+        requirement.setCostPopulation(request.getUpgradeReqCostPopulation() != null
+            ? request.getUpgradeReqCostPopulation()
+            : (existing != null ? defaultInt(existing.getCostPopulation()) : 0));
+        requirement.setCostGreen(request.getUpgradeReqCostGreen() != null
+            ? request.getUpgradeReqCostGreen()
+            : (existing != null ? defaultInt(existing.getCostGreen()) : 0));
+        requirement.setConfigSnapshot(request.getUpgradeReqConfigSnapshot() != null
+            ? request.getUpgradeReqConfigSnapshot()
+            : defaultJson(existing != null ? existing.getConfigSnapshot() : null));
+        requirement.setIsEnabled(request.getUpgradeReqEnabled() != null
+            ? request.getUpgradeReqEnabled()
+            : (existing == null || Boolean.TRUE.equals(existing.getIsEnabled())));
+        gameCardUpgradeRequirementMapper.upsert(requirement);
+    }
+
+    private boolean hasUpgradeRequirementInput(AdminCreateGameCardRequest request) {
+        return request.getUpgradeReqFromStar() != null
+            || request.getUpgradeReqToStar() != null
+            || request.getUpgradeReqDomain1() != null
+            || request.getUpgradeReqDomain1MinPct() != null
+            || request.getUpgradeReqDomain2() != null
+            || request.getUpgradeReqDomain2MinPct() != null
+            || request.getUpgradeReqCostIndustry() != null
+            || request.getUpgradeReqCostTech() != null
+            || request.getUpgradeReqCostPopulation() != null
+            || request.getUpgradeReqCostGreen() != null
+            || request.getUpgradeReqConfigSnapshot() != null
+            || request.getUpgradeReqEnabled() != null;
+    }
+
+    private boolean hasUpgradeRequirementInput(AdminUpdateGameCardRequest request) {
+        return request.getUpgradeReqFromStar() != null
+            || request.getUpgradeReqToStar() != null
+            || request.getUpgradeReqDomain1() != null
+            || request.getUpgradeReqDomain1MinPct() != null
+            || request.getUpgradeReqDomain2() != null
+            || request.getUpgradeReqDomain2MinPct() != null
+            || request.getUpgradeReqCostIndustry() != null
+            || request.getUpgradeReqCostTech() != null
+            || request.getUpgradeReqCostPopulation() != null
+            || request.getUpgradeReqCostGreen() != null
+            || request.getUpgradeReqConfigSnapshot() != null
+            || request.getUpgradeReqEnabled() != null;
+    }
+
+    private String normalizeDomain(String domain) {
+        if (domain == null) {
+            return null;
+        }
+        String normalized = domain.trim().toLowerCase();
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    private JsonNode defaultJson(JsonNode node) {
+        return node == null ? JsonNodeFactory.instance.objectNode() : node;
     }
 }

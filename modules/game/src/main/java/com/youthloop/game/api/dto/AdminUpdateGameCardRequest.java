@@ -1,5 +1,6 @@
 package com.youthloop.game.api.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
@@ -86,6 +87,8 @@ public class AdminUpdateGameCardRequest {
     private Integer coreConditionMaxCarbon;
     private Integer coreConditionMinIndustryCards;
     private Integer coreConditionMinIndustryProgressPct;
+    private Integer coreConditionMinGreen;
+    private Integer coreConditionMinSocietyProgressPct;
     private Integer coreConditionMinTaggedCards;
     private String coreConditionRequiredTag;
     private Integer coreSpecialEcologyCardCostReductionPct;
@@ -93,6 +96,43 @@ public class AdminUpdateGameCardRequest {
     private Integer coreSpecialFloodResistancePct;
     private Integer coreSpecialNewEnergyIndustryPct;
     private Integer coreSpecialEcologyCarbonSinkPerTenGreen;
+    private Integer upgradeDeltaIndustry;
+    private Integer upgradeDeltaTech;
+    private Integer upgradeDeltaPopulation;
+    private Integer upgradeDeltaGreen;
+    private Integer upgradeDeltaCarbon;
+    private Integer upgradeDeltaSatisfaction;
+    private Integer upgradeDeltaQuota;
+    private Integer upgradeDeltaLowCarbon;
+    private Integer upgradeDeltaSectorProgressPct;
+    private Integer upgradeDeltaIndustryPct;
+    private Integer upgradeDeltaGreenPct;
+    private Integer upgradeDeltaGlobalPct;
+    private Integer upgradeDeltaTechPct;
+    private Integer upgradeDeltaIndustryCarbonReductionPct;
+    private Integer upgradeDeltaCarbonDeltaReductionPct;
+    private Integer upgradeDeltaTradePricePct;
+    private Integer upgradeDeltaComboPct;
+    private Integer upgradeDeltaSharedMobilityPct;
+    private Integer upgradeDeltaEcologyCardCostPct;
+    private Integer upgradeDeltaScienceCardCostPct;
+    private Integer upgradeDeltaFloodResistancePct;
+    private Integer upgradeDeltaNewEnergyPct;
+    private Integer upgradeDeltaEcologySink;
+    private Integer upgradeDeltaTradUpgradePct;
+    private Integer upgradeDeltaUpgradeCostPct;
+    private Integer upgradeReqFromStar;
+    private Integer upgradeReqToStar;
+    private String upgradeReqDomain1;
+    private Integer upgradeReqDomain1MinPct;
+    private String upgradeReqDomain2;
+    private Integer upgradeReqDomain2MinPct;
+    private Integer upgradeReqCostIndustry;
+    private Integer upgradeReqCostTech;
+    private Integer upgradeReqCostPopulation;
+    private Integer upgradeReqCostGreen;
+    private JsonNode upgradeReqConfigSnapshot;
+    private Boolean upgradeReqEnabled;
 
     private Boolean isEnabled;
 }

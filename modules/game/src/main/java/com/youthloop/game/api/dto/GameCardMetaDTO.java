@@ -1,5 +1,6 @@
 package com.youthloop.game.api.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -70,6 +71,8 @@ public class GameCardMetaDTO {
     private Integer coreConditionMaxCarbon;
     private Integer coreConditionMinIndustryCards;
     private Integer coreConditionMinIndustryProgressPct;
+    private Integer coreConditionMinGreen;
+    private Integer coreConditionMinSocietyProgressPct;
     private Integer coreConditionMinTaggedCards;
     private String coreConditionRequiredTag;
     private Integer coreSpecialEcologyCardCostReductionPct;
@@ -77,6 +80,33 @@ public class GameCardMetaDTO {
     private Integer coreSpecialFloodResistancePct;
     private Integer coreSpecialNewEnergyIndustryPct;
     private Integer coreSpecialEcologyCarbonSinkPerTenGreen;
+    private Integer upgradeDeltaIndustry;
+    private Integer upgradeDeltaTech;
+    private Integer upgradeDeltaPopulation;
+    private Integer upgradeDeltaGreen;
+    private Integer upgradeDeltaCarbon;
+    private Integer upgradeDeltaSatisfaction;
+    private Integer upgradeDeltaQuota;
+    private Integer upgradeDeltaLowCarbon;
+    private Integer upgradeDeltaSectorProgressPct;
+    private Integer upgradeDeltaIndustryPct;
+    private Integer upgradeDeltaGreenPct;
+    private Integer upgradeDeltaGlobalPct;
+    private Integer upgradeDeltaTechPct;
+    private Integer upgradeDeltaIndustryCarbonReductionPct;
+    private Integer upgradeDeltaCarbonDeltaReductionPct;
+    private Integer upgradeDeltaTradePricePct;
+    private Integer upgradeDeltaComboPct;
+    private Integer upgradeDeltaSharedMobilityPct;
+    private Integer upgradeDeltaEcologyCardCostPct;
+    private Integer upgradeDeltaScienceCardCostPct;
+    private Integer upgradeDeltaFloodResistancePct;
+    private Integer upgradeDeltaNewEnergyPct;
+    private Integer upgradeDeltaEcologySink;
+    private Integer upgradeDeltaTradUpgradePct;
+    private Integer upgradeDeltaUpgradeCostPct;
+    private JsonNode upgradeEffect;
+    private UpgradeRequirement upgradeRequirement;
 
     @Data
     @Builder
@@ -87,5 +117,23 @@ public class GameCardMetaDTO {
         private Integer tech;
         private Integer population;
         private Integer green;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpgradeRequirement {
+        private Integer fromStar;
+        private Integer toStar;
+        private String reqDomain1;
+        private Integer reqDomain1MinPct;
+        private String reqDomain2;
+        private Integer reqDomain2MinPct;
+        private Integer costIndustry;
+        private Integer costTech;
+        private Integer costPopulation;
+        private Integer costGreen;
+        private JsonNode configSnapshot;
     }
 }

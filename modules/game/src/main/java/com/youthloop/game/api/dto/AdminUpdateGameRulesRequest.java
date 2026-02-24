@@ -3,7 +3,6 @@ package com.youthloop.game.api.dto;
 import com.youthloop.game.persistence.entity.GameBalanceRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GameCardTagMapEntity;
 import com.youthloop.game.persistence.entity.GameComboRuleConfigEntity;
-import com.youthloop.game.persistence.entity.GameCoreSpecialConditionConfigEntity;
 import com.youthloop.game.persistence.entity.GameEndingContentConfigEntity;
 import com.youthloop.game.persistence.entity.GameEventRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GamePolicyUnlockRuleConfigEntity;
@@ -22,8 +21,6 @@ public class AdminUpdateGameRulesRequest {
     private List<GameEventRuleConfigEntity> eventRules;
     private List<GameComboRuleConfigEntity> comboRules;
     private List<GamePolicyUnlockRuleConfigEntity> policyUnlockRules;
-    private List<GameCoreSpecialConditionConfigEntity> coreSpecialConditions;
     private List<GameCardTagMapEntity> cardTags;
     private List<GameEndingContentConfigEntity> endingContents;
 }
-

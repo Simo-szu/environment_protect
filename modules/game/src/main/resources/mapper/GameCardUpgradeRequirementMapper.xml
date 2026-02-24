@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.game.persistence.mapper.GameCardUpgradeRequirementMapper">
+
+    <resultMap id="BaseResultMap" type="com.youthloop.game.persistence.entity.GameCardUpgradeRequirementEntity">
+        <id column="card_id" property="cardId" jdbcType="VARCHAR"/>
+        <result column="from_star" property="fromStar" jdbcType="INTEGER"/>
+        <result column="to_star" property="toStar" jdbcType="INTEGER"/>
+        <result column="req_domain_1" property="reqDomain1" jdbcType="VARCHAR"/>
+        <result column="req_domain_1_min_pct" property="reqDomain1MinPct" jdbcType="INTEGER"/>
+        <result column="req_domain_2" property="reqDomain2" jdbcType="VARCHAR"/>
+        <result column="req_domain_2_min_pct" property="reqDomain2MinPct" jdbcType="INTEGER"/>
+        <result column="cost_industry" property="costIndustry" jdbcType="INTEGER"/>
+        <result column="cost_tech" property="costTech" jdbcType="INTEGER"/>
+        <result column="cost_population" property="costPopulation" jdbcType="INTEGER"/>
+        <result column="cost_green" property="costGreen" jdbcType="INTEGER"/>
+        <result column="config_snapshot" property="configSnapshot" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <select id="selectAllEnabled" resultMap="BaseResultMap">
+        SELECT card_id, from_star, to_star,
+               req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
+               cost_industry, cost_tech, cost_population, cost_green,
+               config_snapshot, is_enabled
+        FROM game.game_card_upgrade_requirement
+        WHERE is_enabled = TRUE
+        ORDER BY card_id ASC
+    </select>
+
+    <select id="selectEnabledByCardId" resultMap="BaseResultMap">
+        SELECT card_id, from_star, to_star,
+               req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
+               cost_industry, cost_tech, cost_population, cost_green,
+               config_snapshot, is_enabled
+        FROM game.game_card_upgrade_requirement
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+          AND is_enabled = TRUE
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO game.game_card_upgrade_requirement (
+            card_id, from_star, to_star,
+            req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
+            cost_industry, cost_tech, cost_population, cost_green,
+            config_snapshot, is_enabled
+        ) VALUES (
+            #{cardId, jdbcType=VARCHAR},
+            #{fromStar, jdbcType=INTEGER},
+            #{toStar, jdbcType=INTEGER},
+            #{reqDomain1, jdbcType=VARCHAR},
+            #{reqDomain1MinPct, jdbcType=INTEGER},
+            #{reqDomain2, jdbcType=VARCHAR},
+            #{reqDomain2MinPct, jdbcType=INTEGER},
+            #{costIndustry, jdbcType=INTEGER},
+            #{costTech, jdbcType=INTEGER},
+            #{costPopulation, jdbcType=INTEGER},
+            #{costGreen, jdbcType=INTEGER},
+            #{configSnapshot, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{isEnabled, jdbcType=BOOLEAN}
+        )
+        ON CONFLICT (card_id) DO UPDATE SET
+            from_star = EXCLUDED.from_star,
+            to_star = EXCLUDED.to_star,
+            req_domain_1 = EXCLUDED.req_domain_1,
+            req_domain_1_min_pct = EXCLUDED.req_domain_1_min_pct,
+            req_domain_2 = EXCLUDED.req_domain_2,
+            req_domain_2_min_pct = EXCLUDED.req_domain_2_min_pct,
+            cost_industry = EXCLUDED.cost_industry,
+            cost_tech = EXCLUDED.cost_tech,
+            cost_population = EXCLUDED.cost_population,
+            cost_green = EXCLUDED.cost_green,
+            config_snapshot = EXCLUDED.config_snapshot,
+            is_enabled = EXCLUDED.is_enabled,
+            updated_at = now()
+    </insert>
+
+    <delete id="deleteByCardId">
+        DELETE FROM game.game_card_upgrade_requirement
+        WHERE card_id = #{cardId, jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

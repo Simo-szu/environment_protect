@@ -1,11 +1,14 @@
 package com.youthloop.game.api.web.controller;
 
 import com.youthloop.common.api.UnifiedRequest;
+import com.youthloop.common.api.PageResponse;
 import com.youthloop.common.api.contract.ApiEndpointKind;
+import com.youthloop.common.api.contract.ApiPageData;
 import com.youthloop.common.api.contract.ApiResponseContract;
 import com.youthloop.common.api.contract.ApiSpecResponse;
 import com.youthloop.common.security.AllowGuest;
 import com.youthloop.common.security.RequireAuth;
+import com.youthloop.game.api.dto.GameActionLogDTO;
 import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
 import com.youthloop.game.api.dto.GameCardCatalogDTO;
@@ -74,6 +77,19 @@ public class GameController {
         @PathVariable("sessionId") UUID sessionId
     ) {
         return ApiSpecResponse.ok(gameFacade.getSessionById(sessionId));
+    }
+
+    @Operation(summary = "List gameplay actions for one session")
+    @GetMapping("/sessions/{sessionId}/actions")
+    @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
+    public ApiSpecResponse<ApiPageData<GameActionLogDTO>> listSessionActions(
+        @PathVariable("sessionId") UUID sessionId,
+        @Parameter(description = "Page number") @RequestParam(defaultValue = "1") int page,
+        @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size
+    ) {
+        PageResponse<GameActionLogDTO> result = gameFacade.listActions(sessionId, page, size);
+        ApiPageData<GameActionLogDTO> pageData = new ApiPageData<>(result.getPage(), result.getSize(), result.getTotal(), result.getItems());
+        return ApiSpecResponse.ok(pageData);
     }
 
     @Operation(summary = "Perform one gameplay action")

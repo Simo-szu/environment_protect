@@ -7,7 +7,6 @@ import com.youthloop.game.api.dto.AdminUpdateGameRulesRequest;
 import com.youthloop.game.persistence.entity.GameBalanceRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GameCardTagMapEntity;
 import com.youthloop.game.persistence.entity.GameComboRuleConfigEntity;
-import com.youthloop.game.persistence.entity.GameCoreSpecialConditionConfigEntity;
 import com.youthloop.game.persistence.entity.GameEndingContentConfigEntity;
 import com.youthloop.game.persistence.entity.GameEventRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GamePolicyUnlockRuleConfigEntity;
@@ -37,7 +36,6 @@ public class GameRuleAdminService {
         dto.setEventRules(gameRuleConfigMapper.selectEnabledEventRules());
         dto.setComboRules(gameRuleConfigMapper.selectEnabledComboRules());
         dto.setPolicyUnlockRules(gameRuleConfigMapper.selectEnabledPolicyUnlockRules());
-        dto.setCoreSpecialConditions(gameRuleConfigMapper.selectEnabledCoreSpecialConditions());
         dto.setCardTags(gameRuleConfigMapper.selectEnabledCardTags());
         dto.setEndingContents(gameRuleConfigMapper.selectEnabledEndingContents());
         return dto;
@@ -77,9 +75,6 @@ public class GameRuleAdminService {
         if (request.getPolicyUnlockRules() != null) {
             replacePolicyUnlockRules(request.getPolicyUnlockRules());
         }
-        if (request.getCoreSpecialConditions() != null) {
-            replaceCoreSpecialConditions(request.getCoreSpecialConditions());
-        }
         if (request.getCardTags() != null) {
             replaceCardTags(request.getCardTags());
         }
@@ -111,14 +106,6 @@ public class GameRuleAdminService {
         for (GamePolicyUnlockRuleConfigEntity rule : rules) {
             requireText(rule.getPolicyId(), "policyId");
             gameRuleConfigMapper.upsertPolicyUnlockRule(rule);
-        }
-    }
-
-    private void replaceCoreSpecialConditions(List<GameCoreSpecialConditionConfigEntity> rules) {
-        gameRuleConfigMapper.disableAllCoreSpecialConditions();
-        for (GameCoreSpecialConditionConfigEntity rule : rules) {
-            requireText(rule.getCardId(), "cardId");
-            gameRuleConfigMapper.upsertCoreSpecialCondition(rule);
         }
     }
 

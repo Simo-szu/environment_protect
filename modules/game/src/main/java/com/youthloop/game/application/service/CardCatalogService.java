@@ -4,7 +4,9 @@ import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
 import com.youthloop.game.api.dto.GameCardMetaDTO;
 import com.youthloop.game.persistence.entity.GameCardEntity;
+import com.youthloop.game.persistence.entity.GameCardUpgradeRequirementEntity;
 import com.youthloop.game.persistence.mapper.GameCardMapper;
+import com.youthloop.game.persistence.mapper.GameCardUpgradeRequirementMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class CardCatalogService {
 
     private final GameCardMapper gameCardMapper;
+    private final GameCardUpgradeRequirementMapper gameCardUpgradeRequirementMapper;
 
     private volatile List<GameCardMetaDTO> cards = List.of();
     private volatile Map<String, GameCardMetaDTO> cardMap = Map.of();
@@ -37,8 +40,11 @@ public class CardCatalogService {
     public synchronized void reloadFromDatabase() {
         try {
             List<GameCardEntity> dbCards = gameCardMapper.selectAllEnabled();
+            Map<String, GameCardUpgradeRequirementEntity> requirementMap = gameCardUpgradeRequirementMapper.selectAllEnabled()
+                .stream()
+                .collect(Collectors.toMap(GameCardUpgradeRequirementEntity::getCardId, value -> value, (a, b) -> a));
             List<GameCardMetaDTO> loaded = new ArrayList<>(dbCards.stream()
-                .map(this::toDTO)
+                .map(card -> toDTO(card, requirementMap.get(card.getCardId())))
                 .toList());
             loaded.sort(Comparator.comparing(GameCardMetaDTO::getCardNo));
             this.cards = Collections.unmodifiableList(new ArrayList<>(loaded));
@@ -79,7 +85,7 @@ public class CardCatalogService {
         return gameCardMapper.selectCoreCardIdsByPhase(phaseBucket);
     }
 
-    private GameCardMetaDTO toDTO(GameCardEntity entity) {
+    private GameCardMetaDTO toDTO(GameCardEntity entity, GameCardUpgradeRequirementEntity requirement) {
         return GameCardMetaDTO.builder()
             .cardId(entity.getCardId())
             .cardNo(entity.getCardNo())
@@ -145,6 +151,8 @@ public class CardCatalogService {
             .coreConditionMaxCarbon(entity.getCoreConditionMaxCarbon())
             .coreConditionMinIndustryCards(entity.getCoreConditionMinIndustryCards())
             .coreConditionMinIndustryProgressPct(entity.getCoreConditionMinIndustryProgressPct())
+            .coreConditionMinGreen(entity.getCoreConditionMinGreen())
+            .coreConditionMinSocietyProgressPct(entity.getCoreConditionMinSocietyProgressPct())
             .coreConditionMinTaggedCards(entity.getCoreConditionMinTaggedCards())
             .coreConditionRequiredTag(entity.getCoreConditionRequiredTag())
             .coreSpecialEcologyCardCostReductionPct(entity.getCoreSpecialEcologyCardCostReductionPct())
@@ -152,6 +160,47 @@ public class CardCatalogService {
             .coreSpecialFloodResistancePct(entity.getCoreSpecialFloodResistancePct())
             .coreSpecialNewEnergyIndustryPct(entity.getCoreSpecialNewEnergyIndustryPct())
             .coreSpecialEcologyCarbonSinkPerTenGreen(entity.getCoreSpecialEcologyCarbonSinkPerTenGreen())
+            .upgradeDeltaIndustry(entity.getUpgradeDeltaIndustry())
+            .upgradeDeltaTech(entity.getUpgradeDeltaTech())
+            .upgradeDeltaPopulation(entity.getUpgradeDeltaPopulation())
+            .upgradeDeltaGreen(entity.getUpgradeDeltaGreen())
+            .upgradeDeltaCarbon(entity.getUpgradeDeltaCarbon())
+            .upgradeDeltaSatisfaction(entity.getUpgradeDeltaSatisfaction())
+            .upgradeDeltaQuota(entity.getUpgradeDeltaQuota())
+            .upgradeDeltaLowCarbon(entity.getUpgradeDeltaLowCarbon())
+            .upgradeDeltaSectorProgressPct(entity.getUpgradeDeltaSectorProgressPct())
+            .upgradeDeltaIndustryPct(entity.getUpgradeDeltaIndustryPct())
+            .upgradeDeltaGreenPct(entity.getUpgradeDeltaGreenPct())
+            .upgradeDeltaGlobalPct(entity.getUpgradeDeltaGlobalPct())
+            .upgradeDeltaTechPct(entity.getUpgradeDeltaTechPct())
+            .upgradeDeltaIndustryCarbonReductionPct(entity.getUpgradeDeltaIndustryCarbonReductionPct())
+            .upgradeDeltaCarbonDeltaReductionPct(entity.getUpgradeDeltaCarbonDeltaReductionPct())
+            .upgradeDeltaTradePricePct(entity.getUpgradeDeltaTradePricePct())
+            .upgradeDeltaComboPct(entity.getUpgradeDeltaComboPct())
+            .upgradeDeltaSharedMobilityPct(entity.getUpgradeDeltaSharedMobilityPct())
+            .upgradeDeltaEcologyCardCostPct(entity.getUpgradeDeltaEcologyCardCostPct())
+            .upgradeDeltaScienceCardCostPct(entity.getUpgradeDeltaScienceCardCostPct())
+            .upgradeDeltaFloodResistancePct(entity.getUpgradeDeltaFloodResistancePct())
+            .upgradeDeltaNewEnergyPct(entity.getUpgradeDeltaNewEnergyPct())
+            .upgradeDeltaEcologySink(entity.getUpgradeDeltaEcologySink())
+            .upgradeDeltaTradUpgradePct(entity.getUpgradeDeltaTradUpgradePct())
+            .upgradeDeltaUpgradeCostPct(entity.getUpgradeDeltaUpgradeCostPct())
+            .upgradeEffect(entity.getUpgradeEffect())
+            .upgradeRequirement(
+                requirement == null ? null : GameCardMetaDTO.UpgradeRequirement.builder()
+                    .fromStar(requirement.getFromStar())
+                    .toStar(requirement.getToStar())
+                    .reqDomain1(requirement.getReqDomain1())
+                    .reqDomain1MinPct(requirement.getReqDomain1MinPct())
+                    .reqDomain2(requirement.getReqDomain2())
+                    .reqDomain2MinPct(requirement.getReqDomain2MinPct())
+                    .costIndustry(requirement.getCostIndustry())
+                    .costTech(requirement.getCostTech())
+                    .costPopulation(requirement.getCostPopulation())
+                    .costGreen(requirement.getCostGreen())
+                    .configSnapshot(requirement.getConfigSnapshot())
+                    .build()
+            )
             .build();
     }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { getSessionById } from '@/lib/api/game';
+import { GameActionLogItem, getSessionById, listSessionActions } from '@/lib/api/game';
 import { ArrowLeft, Archive, Clock, AlertTriangle } from 'lucide-react';
 
 type AnyRecord = Record<string, any>;
@@ -32,6 +32,16 @@ function resolveEventText(record: AnyRecord): string {
   return `Triggered ${eventType || '-'}`;
 }
 
+function resolveActionTypeLabel(actionType: number): string {
+  if (actionType === 1) return 'Place Core Card';
+  if (actionType === 2) return 'End Turn';
+  if (actionType === 3) return 'Use Policy Card';
+  if (actionType === 4) return 'Trade Carbon';
+  if (actionType === 5) return 'Discard Card';
+  if (actionType === 6) return 'Remove Core Card';
+  return `Action ${actionType}`;
+}
+
 export default function GameArchivePage() {
   const router = useRouter();
   const params = useParams();
@@ -42,6 +52,7 @@ export default function GameArchivePage() {
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<AnyRecord | null>(null);
   const [selectedTurn, setSelectedTurn] = useState<number>(1);
+  const [actions, setActions] = useState<GameActionLogItem[]>([]);
 
   const sessionIdFromUrl = searchParams.get('sessionId') || '';
 
@@ -57,9 +68,21 @@ export default function GameArchivePage() {
           return;
         }
         const session = await getSessionById(sessionId);
+        const actionItems: GameActionLogItem[] = [];
+        let page = 1;
+        const size = 100;
+        while (true) {
+          const response = await listSessionActions(sessionId, page, size);
+          actionItems.push(...response.items);
+          if (actionItems.length >= response.total || response.items.length < size) {
+            break;
+          }
+          page += 1;
+        }
         if (canceled) {
           return;
         }
+        setActions(actionItems);
         const pondState = (session.pondState || {}) as AnyRecord;
         setState(pondState);
         const settlementHistory: AnyRecord[] = pondState.settlementHistory || [];
@@ -103,6 +126,10 @@ export default function GameArchivePage() {
   const selectedEvents = eventHistory.filter((item) => Number(item?.turn || 0) === selectedTurn);
   const selectedCombos = comboHistory.find((item) => Number(item?.turn || 0) === selectedTurn)?.combos || [];
   const selectedPolicies = policyHistory.filter((item) => Number(item?.turn || 0) === selectedTurn);
+  const selectedTurnActions = actions.filter((item) => {
+    const turn = Number((item.actionData as AnyRecord | undefined)?.turn || 0);
+    return turn === selectedTurn;
+  });
 
   function handleBack() {
     router.push(`/${locale}/game/play`);
@@ -208,6 +235,29 @@ export default function GameArchivePage() {
                     <div className="text-slate-700">{selectedCombos.join(', ')}</div>
                   )}
                 </div>
+              </section>
+
+              <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 className="text-sm font-semibold text-slate-800 mb-3">Turn {selectedTurn} Actions</h2>
+                {selectedTurnActions.length === 0 ? (
+                  <div className="text-sm text-slate-500">No action logs for this turn.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedTurnActions.map((item) => (
+                      <div key={item.id} className="rounded border border-slate-200 p-3 text-sm">
+                        <div className="font-semibold text-slate-700">{resolveActionTypeLabel(item.actionType)}</div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          Points {item.pointsEarned} | {new Date(item.createdAt).toLocaleString()}
+                        </div>
+                        {item.actionData && (
+                          <pre className="mt-2 text-xs text-slate-600 bg-slate-50 rounded p-2 overflow-x-auto">
+                            {JSON.stringify(item.actionData, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </>
           )}

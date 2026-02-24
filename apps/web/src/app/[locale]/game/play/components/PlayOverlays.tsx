@@ -80,6 +80,29 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     setTransitionNotice
   } = props;
 
+  const upgradeDeltaItems = selectedCoreCard ? [
+    ['I', Number(selectedCoreCard.upgradeDeltaIndustry ?? 0)],
+    ['T', Number(selectedCoreCard.upgradeDeltaTech ?? 0)],
+    ['P', Number(selectedCoreCard.upgradeDeltaPopulation ?? 0)],
+    ['G', Number(selectedCoreCard.upgradeDeltaGreen ?? 0)],
+    ['C', Number(selectedCoreCard.upgradeDeltaCarbon ?? 0)],
+    ['S', Number(selectedCoreCard.upgradeDeltaSatisfaction ?? 0)],
+    ['Q', Number(selectedCoreCard.upgradeDeltaQuota ?? 0)],
+    ['LC', Number(selectedCoreCard.upgradeDeltaLowCarbon ?? 0)],
+    ['SP', Number(selectedCoreCard.upgradeDeltaSectorProgressPct ?? 0)]
+  ].filter((item) => item[1] !== 0) : [];
+
+  const upgradeRequirementSummary = selectedCoreCard?.upgradeRequirement
+    ? [
+      selectedCoreCard.upgradeRequirement.reqDomain1
+        ? `${selectedCoreCard.upgradeRequirement.reqDomain1}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain1MinPct ?? 0)}%`
+        : '',
+      selectedCoreCard.upgradeRequirement.reqDomain2
+        ? `${selectedCoreCard.upgradeRequirement.reqDomain2}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain2MinPct ?? 0)}%`
+        : ''
+    ].filter(Boolean).join(' + ')
+    : '';
+
   return (
     <>
       {guidedGateEnabled && currentGuidedTask && (
@@ -236,6 +259,28 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
           <div className="p-3 text-xs space-y-2">
             <div className="font-semibold text-sm">{selectedCoreCard.chineseName}</div>
             <div className="text-slate-500">{selectedCoreCard.cardId}</div>
+            {selectedCoreCard.upgradeRequirement && (
+              <div className="pt-2 border-t border-slate-100 space-y-1">
+                <div className="text-[11px] font-semibold text-slate-700">Upgrade Requirement</div>
+                <div className="text-[11px] text-slate-600">
+                  ★{Number(selectedCoreCard.upgradeRequirement.fromStar ?? 0)} → ★{Number(selectedCoreCard.upgradeRequirement.toStar ?? 0)}
+                </div>
+                {upgradeRequirementSummary && (
+                  <div className="text-[11px] text-slate-600">{upgradeRequirementSummary}</div>
+                )}
+                <div className="text-[11px] text-slate-600">
+                  Cost I {Number(selectedCoreCard.upgradeRequirement.costIndustry ?? 0)} / T {Number(selectedCoreCard.upgradeRequirement.costTech ?? 0)} / P {Number(selectedCoreCard.upgradeRequirement.costPopulation ?? 0)} / G {Number(selectedCoreCard.upgradeRequirement.costGreen ?? 0)}
+                </div>
+              </div>
+            )}
+            {upgradeDeltaItems.length > 0 && (
+              <div className="pt-2 border-t border-slate-100 space-y-1">
+                <div className="text-[11px] font-semibold text-slate-700">Upgrade Effect</div>
+                <div className="text-[11px] text-slate-600">
+                  {upgradeDeltaItems.map((item) => `${item[0]} ${formatDelta(item[1] as number)}`).join(' / ')}
+                </div>
+              </div>
+            )}
             <div>I {Number(selectedCoreCard.unlockCost.industry ?? 0)} / T {Number(selectedCoreCard.unlockCost.tech ?? 0)} / P {Number(selectedCoreCard.unlockCost.population ?? 0)} / G {Number(selectedCoreCard.unlockCost.green ?? 0)}</div>
             <div>
               {t('play.preview.industry', '产业')} {formatDelta(Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0))} /

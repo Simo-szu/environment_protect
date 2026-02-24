@@ -5,7 +5,6 @@ import com.youthloop.common.exception.BizException;
 import com.youthloop.game.persistence.entity.GameComboRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GameCardTagMapEntity;
 import com.youthloop.game.persistence.entity.GameBalanceRuleConfigEntity;
-import com.youthloop.game.persistence.entity.GameCoreSpecialConditionConfigEntity;
 import com.youthloop.game.persistence.entity.GameEventRuleConfigEntity;
 import com.youthloop.game.persistence.entity.GameEndingContentConfigEntity;
 import com.youthloop.game.persistence.entity.GamePolicyUnlockRuleConfigEntity;
@@ -35,7 +34,6 @@ public class GameRuleConfigService {
     private volatile Map<String, EventRuleConfig> eventRuleMap = Map.of();
     private volatile Map<String, List<String>> cardTagMap = Map.of();
     private volatile List<PolicyUnlockRuleConfig> policyUnlockRules = List.of();
-    private volatile Map<String, CoreSpecialConditionConfig> coreSpecialConditionMap = Map.of();
     private volatile RuntimeParamConfig runtimeParam;
     private volatile BalanceRuleConfig balanceRule;
     private volatile Map<String, EndingContentConfig> endingContentMap = Map.of();
@@ -52,7 +50,6 @@ public class GameRuleConfigService {
             List<GameEventRuleConfigEntity> eventEntities = gameRuleConfigMapper.selectEnabledEventRules();
             List<GameCardTagMapEntity> cardTagEntities = gameRuleConfigMapper.selectEnabledCardTags();
             List<GamePolicyUnlockRuleConfigEntity> policyUnlockEntities = gameRuleConfigMapper.selectEnabledPolicyUnlockRules();
-            List<GameCoreSpecialConditionConfigEntity> coreSpecialConditionEntities = gameRuleConfigMapper.selectEnabledCoreSpecialConditions();
             GameRuntimeParamConfigEntity runtimeParamEntity = gameRuleConfigMapper.selectEnabledRuntimeParamConfig();
             GameBalanceRuleConfigEntity balanceRuleEntity = gameRuleConfigMapper.selectEnabledBalanceRuleConfig();
             List<GameEndingContentConfigEntity> endingContentEntities = gameRuleConfigMapper.selectEnabledEndingContents();
@@ -89,13 +86,6 @@ public class GameRuleConfigService {
 
             List<PolicyUnlockRuleConfig> loadedUnlockRules = policyUnlockEntities.stream().map(this::toPolicyUnlockRule).toList();
             this.policyUnlockRules = Collections.unmodifiableList(new ArrayList<>(loadedUnlockRules));
-
-            LinkedHashMap<String, CoreSpecialConditionConfig> loadedCoreSpecialConditionMap = new LinkedHashMap<>();
-            for (GameCoreSpecialConditionConfigEntity entity : coreSpecialConditionEntities) {
-                CoreSpecialConditionConfig config = toCoreSpecialCondition(entity);
-                loadedCoreSpecialConditionMap.put(config.cardId(), config);
-            }
-            this.coreSpecialConditionMap = Collections.unmodifiableMap(loadedCoreSpecialConditionMap);
 
             if (runtimeParamEntity == null) {
                 throw new BizException(ErrorCode.SYSTEM_ERROR, "Missing enabled runtime parameter config");
@@ -137,10 +127,6 @@ public class GameRuleConfigService {
 
     public List<PolicyUnlockRuleConfig> listPolicyUnlockRules() {
         return policyUnlockRules;
-    }
-
-    public Map<String, CoreSpecialConditionConfig> coreSpecialConditionMap() {
-        return coreSpecialConditionMap;
     }
 
     public RuntimeParamConfig runtimeParam() {
@@ -236,17 +222,6 @@ public class GameRuleConfigService {
             entity.getMinSatisfaction(),
             defaultInt(entity.getMinTaggedCards()),
             defaultString(entity.getRequiredTag())
-        );
-    }
-
-    private CoreSpecialConditionConfig toCoreSpecialCondition(GameCoreSpecialConditionConfigEntity entity) {
-        return new CoreSpecialConditionConfig(
-            entity.getCardId(),
-            defaultString(entity.getRequiredEventType()),
-            defaultInt(entity.getMinIndustryCards()),
-            defaultInt(entity.getMinEcologyCards()),
-            defaultInt(entity.getMinScienceCards()),
-            defaultInt(entity.getMinSocietyCards())
         );
     }
 
@@ -481,16 +456,6 @@ public class GameRuleConfigService {
         Integer minSatisfaction,
         int minTaggedCards,
         String requiredTag
-    ) {
-    }
-
-    public record CoreSpecialConditionConfig(
-        String cardId,
-        String requiredEventType,
-        int minIndustryCards,
-        int minEcologyCards,
-        int minScienceCards,
-        int minSocietyCards
     ) {
     }
 

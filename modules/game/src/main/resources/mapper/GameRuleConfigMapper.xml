@@ -83,16 +83,6 @@
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     </resultMap>
 
-    <resultMap id="CoreSpecialConditionResultMap" type="com.youthloop.game.persistence.entity.GameCoreSpecialConditionConfigEntity">
-        <id column="card_id" property="cardId" jdbcType="VARCHAR"/>
-        <result column="required_event_type" property="requiredEventType" jdbcType="VARCHAR"/>
-        <result column="min_industry_cards" property="minIndustryCards" jdbcType="INTEGER"/>
-        <result column="min_ecology_cards" property="minEcologyCards" jdbcType="INTEGER"/>
-        <result column="min_science_cards" property="minScienceCards" jdbcType="INTEGER"/>
-        <result column="min_society_cards" property="minSocietyCards" jdbcType="INTEGER"/>
-        <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
-    </resultMap>
-
     <resultMap id="RuntimeParamResultMap" type="com.youthloop.game.persistence.entity.GameRuntimeParamConfigEntity">
         <id column="config_id" property="configId" jdbcType="INTEGER"/>
         <result column="core_hand_limit" property="coreHandLimit" jdbcType="INTEGER"/>
@@ -252,13 +242,6 @@
         FROM game.game_policy_unlock_rule_config
         WHERE is_enabled = TRUE
         ORDER BY priority_order ASC, policy_id ASC
-    </select>
-
-    <select id="selectEnabledCoreSpecialConditions" resultMap="CoreSpecialConditionResultMap">
-        SELECT card_id, required_event_type, min_industry_cards, min_ecology_cards, min_science_cards, min_society_cards, is_enabled
-        FROM game.game_core_special_condition_config
-        WHERE is_enabled = TRUE
-        ORDER BY card_id ASC
     </select>
 
     <select id="selectEnabledRuntimeParamConfig" resultMap="RuntimeParamResultMap">
@@ -648,29 +631,6 @@
             min_satisfaction = EXCLUDED.min_satisfaction,
             min_tagged_cards = EXCLUDED.min_tagged_cards,
             required_tag = EXCLUDED.required_tag,
-            is_enabled = TRUE,
-            updated_at = now()
-    </insert>
-
-    <update id="disableAllCoreSpecialConditions">
-        UPDATE game.game_core_special_condition_config
-        SET is_enabled = FALSE,
-            updated_at = now()
-    </update>
-
-    <insert id="upsertCoreSpecialCondition">
-        INSERT INTO game.game_core_special_condition_config (
-            card_id, required_event_type, min_industry_cards, min_ecology_cards, min_science_cards, min_society_cards, is_enabled
-        ) VALUES (
-            #{cardId, jdbcType=VARCHAR}, #{requiredEventType, jdbcType=VARCHAR}, #{minIndustryCards, jdbcType=INTEGER},
-            #{minEcologyCards, jdbcType=INTEGER}, #{minScienceCards, jdbcType=INTEGER}, #{minSocietyCards, jdbcType=INTEGER}, TRUE
-        )
-        ON CONFLICT (card_id) DO UPDATE SET
-            required_event_type = EXCLUDED.required_event_type,
-            min_industry_cards = EXCLUDED.min_industry_cards,
-            min_ecology_cards = EXCLUDED.min_ecology_cards,
-            min_science_cards = EXCLUDED.min_science_cards,
-            min_society_cards = EXCLUDED.min_society_cards,
             is_enabled = TRUE,
             updated_at = now()
     </insert>

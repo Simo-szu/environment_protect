@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.youthloop.common.exception.BizException;
+import com.youthloop.game.api.dto.GameActionLogDTO;
 import com.youthloop.game.api.dto.GameActionRequest;
 import com.youthloop.game.api.dto.GameActionResponse;
 import com.youthloop.game.api.dto.GameCardMetaDTO;
 import com.youthloop.game.api.dto.GameSessionDTO;
+import com.youthloop.common.api.PageResponse;
+import com.youthloop.game.persistence.entity.GameActionEntity;
 import com.youthloop.game.persistence.entity.GameSessionEntity;
 import com.youthloop.game.persistence.mapper.GameActionMapper;
 import com.youthloop.game.persistence.mapper.GameSessionMapper;
@@ -73,7 +76,6 @@ class GameServicePhase3Test {
         lenient().when(gameRuleConfigService.eventTriggerProbabilityPct()).thenReturn(30);
         lenient().when(gameRuleConfigService.cardTagMap()).thenReturn(defaultCardTagMap());
         lenient().when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(defaultPolicyUnlockRules());
-        lenient().when(gameRuleConfigService.coreSpecialConditionMap()).thenReturn(defaultCoreSpecialConditionMap());
         lenient().when(gameRuleConfigService.runtimeParam()).thenReturn(defaultRuntimeParam());
         lenient().when(gameRuleConfigService.balanceRule()).thenReturn(defaultBalanceRule());
         lenient().when(gameRuleConfigService.endingContentMap()).thenReturn(defaultEndingContentMap());
@@ -82,6 +84,33 @@ class GameServicePhase3Test {
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void listActionsShouldReturnPagedItemsForOwnedSession() {
+        GameSessionEntity session = activeSession(baseState());
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionEntity action = new GameActionEntity();
+        action.setId(UUID.fromString("33333333-3333-3333-3333-333333333333"));
+        action.setSessionId(sessionId);
+        action.setUserId(userId);
+        action.setActionType(2);
+        action.setActionData(objectMapper.createObjectNode().put("turn", 2));
+        action.setPointsEarned(5);
+        action.setCreatedAt(OffsetDateTime.now());
+
+        when(gameActionMapper.countBySessionId(sessionId)).thenReturn(1L);
+        when(gameActionMapper.selectBySessionId(sessionId, 0, 20)).thenReturn(List.of(action));
+
+        PageResponse<GameActionLogDTO> result = gameService.listActions(sessionId, 1, 20);
+
+        assertEquals(1L, result.getTotal());
+        assertEquals(1, result.getItems().size());
+        assertEquals(2, result.getItems().get(0).getActionType());
+        assertEquals(5, result.getItems().get(0).getPointsEarned());
+        verify(gameActionMapper).countBySessionId(sessionId);
+        verify(gameActionMapper).selectBySessionId(sessionId, 0, 20);
     }
 
     @Test
@@ -474,7 +503,7 @@ class GameServicePhase3Test {
     }
 
     @Test
-    void placeCoreCardShouldNotApplyCard056EcologyCostReductionWithoutFloodHistory() {
+    void placeCoreCardShouldApplyCard056EcologyCostReductionWithoutFloodHistory() {
         ObjectNode state = baseState();
         state.withArray("placedCore").add("card056");
         state.withArray("handCore").add("eco201");
@@ -492,7 +521,7 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals(20, next.with("resources").path("industry").asInt());
+        assertEquals(25, next.with("resources").path("industry").asInt());
     }
 
     @Test
@@ -519,12 +548,10 @@ class GameServicePhase3Test {
     }
 
     @Test
-    void placeCoreCardShouldIgnoreCard056FloodConstraintWhenNoSpecialConditionConfig() {
+    void placeCoreCardShouldNotRequireLegacySpecialConditionMap() {
         ObjectNode state = baseState();
         state.withArray("placedCore").add("card056");
         state.withArray("handCore").add("eco203");
-
-        when(gameRuleConfigService.coreSpecialConditionMap()).thenReturn(Map.of());
         GameSessionEntity session = activeSession(state);
         when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
         when(cardCatalogService.getRequiredCard("card056")).thenReturn(coreCard("card056", "ecology"));
@@ -1761,13 +1788,6 @@ class GameServicePhase3Test {
             policyUnlockRule("card067", 0, 5, 0, 5, 0, 0, 0, null, null, null, 75, 0, ""),
             policyUnlockRule("card068", 0, 0, 0, 6, 0, 0, 60, null, null, null, null, 0, "")
         );
-    }
-
-    private Map<String, GameRuleConfigService.CoreSpecialConditionConfig> defaultCoreSpecialConditionMap() {
-        LinkedHashMap<String, GameRuleConfigService.CoreSpecialConditionConfig> map = new LinkedHashMap<>();
-        map.put("card056", new GameRuleConfigService.CoreSpecialConditionConfig("card056", "flood", 0, 0, 0, 0));
-        map.put("card059", new GameRuleConfigService.CoreSpecialConditionConfig("card059", "", 0, 2, 0, 0));
-        return map;
     }
 
     private GameRuleConfigService.PolicyUnlockRuleConfig policyUnlockRule(

@@ -1,5 +1,6 @@
 package com.youthloop.game.persistence.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
 /**
@@ -67,6 +68,8 @@ public class GameCardEntity {
     private Integer coreConditionMaxCarbon;
     private Integer coreConditionMinIndustryCards;
     private Integer coreConditionMinIndustryProgressPct;
+    private Integer coreConditionMinGreen;
+    private Integer coreConditionMinSocietyProgressPct;
     private Integer coreConditionMinTaggedCards;
     private String coreConditionRequiredTag;
     private Integer coreSpecialEcologyCardCostReductionPct;
@@ -74,5 +77,31 @@ public class GameCardEntity {
     private Integer coreSpecialFloodResistancePct;
     private Integer coreSpecialNewEnergyIndustryPct;
     private Integer coreSpecialEcologyCarbonSinkPerTenGreen;
+    private Integer upgradeDeltaIndustry;
+    private Integer upgradeDeltaTech;
+    private Integer upgradeDeltaPopulation;
+    private Integer upgradeDeltaGreen;
+    private Integer upgradeDeltaCarbon;
+    private Integer upgradeDeltaSatisfaction;
+    private Integer upgradeDeltaQuota;
+    private Integer upgradeDeltaLowCarbon;
+    private Integer upgradeDeltaSectorProgressPct;
+    private Integer upgradeDeltaIndustryPct;
+    private Integer upgradeDeltaGreenPct;
+    private Integer upgradeDeltaGlobalPct;
+    private Integer upgradeDeltaTechPct;
+    private Integer upgradeDeltaIndustryCarbonReductionPct;
+    private Integer upgradeDeltaCarbonDeltaReductionPct;
+    private Integer upgradeDeltaTradePricePct;
+    private Integer upgradeDeltaComboPct;
+    private Integer upgradeDeltaSharedMobilityPct;
+    private Integer upgradeDeltaEcologyCardCostPct;
+    private Integer upgradeDeltaScienceCardCostPct;
+    private Integer upgradeDeltaFloodResistancePct;
+    private Integer upgradeDeltaNewEnergyPct;
+    private Integer upgradeDeltaEcologySink;
+    private Integer upgradeDeltaTradUpgradePct;
+    private Integer upgradeDeltaUpgradeCostPct;
+    private JsonNode upgradeEffect;
     private Boolean isEnabled;
 }

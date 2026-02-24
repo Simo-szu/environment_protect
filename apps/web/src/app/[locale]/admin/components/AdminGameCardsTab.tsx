@@ -41,6 +41,22 @@ type GameCardFormState = {
     unlockCostGreen: number | string;
     imageKey: string;
     advancedImageKey: string;
+    upgradeDeltaIndustry: number | string;
+    upgradeDeltaTech: number | string;
+    upgradeDeltaPopulation: number | string;
+    upgradeDeltaGreen: number | string;
+    upgradeDeltaCarbon: number | string;
+    upgradeDeltaSatisfaction: number | string;
+    upgradeReqFromStar: number | string;
+    upgradeReqToStar: number | string;
+    upgradeReqDomain1: 'industry' | 'ecology' | 'science' | 'society' | 'none';
+    upgradeReqDomain1MinPct: number | string;
+    upgradeReqDomain2: 'industry' | 'ecology' | 'science' | 'society' | 'none';
+    upgradeReqDomain2MinPct: number | string;
+    upgradeReqCostIndustry: number | string;
+    upgradeReqCostTech: number | string;
+    upgradeReqCostPopulation: number | string;
+    upgradeReqCostGreen: number | string;
     isEnabled: boolean;
 };
 
@@ -48,6 +64,9 @@ const defaultGameCardForm: GameCardFormState = {
     cardId: '', cardNo: 1, chineseName: '', englishName: '',
     cardType: 'core', domain: 'industry', star: 1, phaseBucket: 'early',
     unlockCostIndustry: 0, unlockCostTech: 0, unlockCostPopulation: 0, unlockCostGreen: 0,
+    upgradeDeltaIndustry: 0, upgradeDeltaTech: 0, upgradeDeltaPopulation: 0, upgradeDeltaGreen: 0, upgradeDeltaCarbon: 0, upgradeDeltaSatisfaction: 0,
+    upgradeReqFromStar: 1, upgradeReqToStar: 2, upgradeReqDomain1: 'none', upgradeReqDomain1MinPct: 0,
+    upgradeReqDomain2: 'none', upgradeReqDomain2MinPct: 0, upgradeReqCostIndustry: 0, upgradeReqCostTech: 0, upgradeReqCostPopulation: 0, upgradeReqCostGreen: 0,
     imageKey: '', advancedImageKey: '', isEnabled: true,
 };
 
@@ -100,6 +119,22 @@ export function AdminGameCardsTab() {
         cardType: c.cardType, domain: c.domain, star: c.star, phaseBucket: c.phaseBucket,
         unlockCostIndustry: c.unlockCost?.industry ?? 0, unlockCostTech: c.unlockCost?.tech ?? 0,
         unlockCostPopulation: c.unlockCost?.population ?? 0, unlockCostGreen: c.unlockCost?.green ?? 0,
+        upgradeDeltaIndustry: c.upgradeDeltaIndustry ?? 0,
+        upgradeDeltaTech: c.upgradeDeltaTech ?? 0,
+        upgradeDeltaPopulation: c.upgradeDeltaPopulation ?? 0,
+        upgradeDeltaGreen: c.upgradeDeltaGreen ?? 0,
+        upgradeDeltaCarbon: c.upgradeDeltaCarbon ?? 0,
+        upgradeDeltaSatisfaction: c.upgradeDeltaSatisfaction ?? 0,
+        upgradeReqFromStar: c.upgradeRequirement?.fromStar ?? 1,
+        upgradeReqToStar: c.upgradeRequirement?.toStar ?? 2,
+        upgradeReqDomain1: c.upgradeRequirement?.reqDomain1 ?? 'none',
+        upgradeReqDomain1MinPct: c.upgradeRequirement?.reqDomain1MinPct ?? 0,
+        upgradeReqDomain2: c.upgradeRequirement?.reqDomain2 ?? 'none',
+        upgradeReqDomain2MinPct: c.upgradeRequirement?.reqDomain2MinPct ?? 0,
+        upgradeReqCostIndustry: c.upgradeRequirement?.costIndustry ?? 0,
+        upgradeReqCostTech: c.upgradeRequirement?.costTech ?? 0,
+        upgradeReqCostPopulation: c.upgradeRequirement?.costPopulation ?? 0,
+        upgradeReqCostGreen: c.upgradeRequirement?.costGreen ?? 0,
         imageKey: c.imageKey || '', advancedImageKey: c.advancedImageKey || '', isEnabled: true,
     }), []);
 
@@ -155,6 +190,22 @@ export function AdminGameCardsTab() {
                     unlockCostTech: Number(formState.unlockCostTech) || 0,
                     unlockCostPopulation: Number(formState.unlockCostPopulation) || 0,
                     unlockCostGreen: Number(formState.unlockCostGreen) || 0,
+                    upgradeDeltaIndustry: Number(formState.upgradeDeltaIndustry) || 0,
+                    upgradeDeltaTech: Number(formState.upgradeDeltaTech) || 0,
+                    upgradeDeltaPopulation: Number(formState.upgradeDeltaPopulation) || 0,
+                    upgradeDeltaGreen: Number(formState.upgradeDeltaGreen) || 0,
+                    upgradeDeltaCarbon: Number(formState.upgradeDeltaCarbon) || 0,
+                    upgradeDeltaSatisfaction: Number(formState.upgradeDeltaSatisfaction) || 0,
+                    upgradeReqFromStar: Number(formState.upgradeReqFromStar) || 0,
+                    upgradeReqToStar: Number(formState.upgradeReqToStar) || 0,
+                    upgradeReqDomain1: formState.upgradeReqDomain1 === 'none' ? undefined : formState.upgradeReqDomain1,
+                    upgradeReqDomain1MinPct: Number(formState.upgradeReqDomain1MinPct) || 0,
+                    upgradeReqDomain2: formState.upgradeReqDomain2 === 'none' ? undefined : formState.upgradeReqDomain2,
+                    upgradeReqDomain2MinPct: Number(formState.upgradeReqDomain2MinPct) || 0,
+                    upgradeReqCostIndustry: Number(formState.upgradeReqCostIndustry) || 0,
+                    upgradeReqCostTech: Number(formState.upgradeReqCostTech) || 0,
+                    upgradeReqCostPopulation: Number(formState.upgradeReqCostPopulation) || 0,
+                    upgradeReqCostGreen: Number(formState.upgradeReqCostGreen) || 0,
                 };
                 payload.imageKey = payload.imageKey.trim() || undefined as any;
                 payload.advancedImageKey = payload.advancedImageKey.trim() || undefined as any;
@@ -489,6 +540,104 @@ export function AdminGameCardsTab() {
                                                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">{t('gameCards.costGreen')}</Label>
                                                 </div>
                                                 <input type="number" value={formState.unlockCostGreen} onChange={e => setFormState(p => ({ ...p, unlockCostGreen: e.target.value }))} className="w-full h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 text-center font-black text-xl text-slate-700 focus:bg-white focus:border-green-500 transition-all outline-none" />
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* Section 4: Upgrade Config */}
+                                    <section className="space-y-6">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-1.5 h-6 bg-amber-500 rounded-full"></span>
+                                            <h4 className="font-bold text-slate-800 text-lg uppercase tracking-wider">Upgrade Config</h4>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Industry</Label>
+                                                <input type="number" value={formState.upgradeDeltaIndustry} onChange={e => setFormState(p => ({ ...p, upgradeDeltaIndustry: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Tech</Label>
+                                                <input type="number" value={formState.upgradeDeltaTech} onChange={e => setFormState(p => ({ ...p, upgradeDeltaTech: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Population</Label>
+                                                <input type="number" value={formState.upgradeDeltaPopulation} onChange={e => setFormState(p => ({ ...p, upgradeDeltaPopulation: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Green</Label>
+                                                <input type="number" value={formState.upgradeDeltaGreen} onChange={e => setFormState(p => ({ ...p, upgradeDeltaGreen: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Carbon</Label>
+                                                <input type="number" value={formState.upgradeDeltaCarbon} onChange={e => setFormState(p => ({ ...p, upgradeDeltaCarbon: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Delta Satisfaction</Label>
+                                                <input type="number" value={formState.upgradeDeltaSatisfaction} onChange={e => setFormState(p => ({ ...p, upgradeDeltaSatisfaction: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50/60 p-8 rounded-3xl border border-slate-200">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">From Star</Label>
+                                                <input type="number" value={formState.upgradeReqFromStar} onChange={e => setFormState(p => ({ ...p, upgradeReqFromStar: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">To Star</Label>
+                                                <input type="number" value={formState.upgradeReqToStar} onChange={e => setFormState(p => ({ ...p, upgradeReqToStar: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Domain 1</Label>
+                                                <Select value={formState.upgradeReqDomain1} onValueChange={v => setFormState(p => ({ ...p, upgradeReqDomain1: v as GameCardFormState['upgradeReqDomain1'] }))}>
+                                                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-white">
+                                                        <SelectValue>{formState.upgradeReqDomain1}</SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-xl">
+                                                        <SelectItem value="none">none</SelectItem>
+                                                        <SelectItem value="industry">industry</SelectItem>
+                                                        <SelectItem value="ecology">ecology</SelectItem>
+                                                        <SelectItem value="science">science</SelectItem>
+                                                        <SelectItem value="society">society</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Domain 1 Min %</Label>
+                                                <input type="number" value={formState.upgradeReqDomain1MinPct} onChange={e => setFormState(p => ({ ...p, upgradeReqDomain1MinPct: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Domain 2</Label>
+                                                <Select value={formState.upgradeReqDomain2} onValueChange={v => setFormState(p => ({ ...p, upgradeReqDomain2: v as GameCardFormState['upgradeReqDomain2'] }))}>
+                                                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-white">
+                                                        <SelectValue>{formState.upgradeReqDomain2}</SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-xl">
+                                                        <SelectItem value="none">none</SelectItem>
+                                                        <SelectItem value="industry">industry</SelectItem>
+                                                        <SelectItem value="ecology">ecology</SelectItem>
+                                                        <SelectItem value="science">science</SelectItem>
+                                                        <SelectItem value="society">society</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Domain 2 Min %</Label>
+                                                <input type="number" value={formState.upgradeReqDomain2MinPct} onChange={e => setFormState(p => ({ ...p, upgradeReqDomain2MinPct: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Cost Industry</Label>
+                                                <input type="number" value={formState.upgradeReqCostIndustry} onChange={e => setFormState(p => ({ ...p, upgradeReqCostIndustry: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Cost Tech</Label>
+                                                <input type="number" value={formState.upgradeReqCostTech} onChange={e => setFormState(p => ({ ...p, upgradeReqCostTech: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Cost Population</Label>
+                                                <input type="number" value={formState.upgradeReqCostPopulation} onChange={e => setFormState(p => ({ ...p, upgradeReqCostPopulation: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Req Cost Green</Label>
+                                                <input type="number" value={formState.upgradeReqCostGreen} onChange={e => setFormState(p => ({ ...p, upgradeReqCostGreen: e.target.value }))} className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 text-center font-semibold text-slate-700 outline-none focus:border-amber-500" />
                                             </div>
                                         </div>
                                     </section>

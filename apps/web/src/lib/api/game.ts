@@ -3,12 +3,27 @@
  */
 
 import { apiGet, apiPost } from '../api-client';
+import { PageResponse } from '../api-types';
 
 export interface GameCardUnlockCost {
   industry: number;
   tech: number;
   population: number;
   green: number;
+}
+
+export interface GameCardUpgradeRequirement {
+  fromStar?: number;
+  toStar?: number;
+  reqDomain1?: 'industry' | 'ecology' | 'science' | 'society';
+  reqDomain1MinPct?: number;
+  reqDomain2?: 'industry' | 'ecology' | 'science' | 'society';
+  reqDomain2MinPct?: number;
+  costIndustry?: number;
+  costTech?: number;
+  costPopulation?: number;
+  costGreen?: number;
+  configSnapshot?: Record<string, unknown>;
 }
 
 export interface GameCardMeta {
@@ -35,6 +50,76 @@ export interface GameCardMeta {
   policyImmediateGreenDelta?: number;
   policyImmediateCarbonDelta?: number;
   policyImmediateSatisfactionDelta?: number;
+  policyImmediateQuotaDelta?: number;
+  policyImmediateGroup?: string;
+  policyImmediateTurns?: number;
+  policyContinuousIndustryDelta?: number;
+  policyContinuousTechDelta?: number;
+  policyContinuousPopulationDelta?: number;
+  policyContinuousGreenDelta?: number;
+  policyContinuousCarbonDelta?: number;
+  policyContinuousSatisfactionDelta?: number;
+  policyContinuousLowCarbonDelta?: number;
+  policyContinuousGreenPct?: number;
+  policyContinuousTechPct?: number;
+  policyContinuousPopulationPct?: number;
+  policyContinuousIndustryPct?: number;
+  policyContinuousIndustryCarbonReductionPct?: number;
+  coreDomainProgressBonus?: number;
+  coreContinuousQuotaDelta?: number;
+  coreContinuousLowCarbonDelta?: number;
+  coreContinuousIndustryPct?: number;
+  coreContinuousTechPct?: number;
+  coreContinuousPopulationPct?: number;
+  coreContinuousGreenPct?: number;
+  coreContinuousGlobalPct?: number;
+  coreContinuousLowCarbonPct?: number;
+  coreContinuousIndustryCarbonReductionPct?: number;
+  coreContinuousCarbonDeltaReductionPct?: number;
+  coreContinuousTradePricePct?: number;
+  coreContinuousComboPct?: number;
+  coreConditionMinTurn?: number;
+  coreConditionMinIndustryResource?: number;
+  coreConditionMinTechResource?: number;
+  coreConditionMaxCarbon?: number;
+  coreConditionMinIndustryCards?: number;
+  coreConditionMinIndustryProgressPct?: number;
+  coreConditionMinGreen?: number;
+  coreConditionMinSocietyProgressPct?: number;
+  coreConditionMinTaggedCards?: number;
+  coreConditionRequiredTag?: string;
+  coreSpecialEcologyCardCostReductionPct?: number;
+  coreSpecialScienceCardCostReductionPct?: number;
+  coreSpecialFloodResistancePct?: number;
+  coreSpecialNewEnergyIndustryPct?: number;
+  coreSpecialEcologyCarbonSinkPerTenGreen?: number;
+  upgradeDeltaIndustry?: number;
+  upgradeDeltaTech?: number;
+  upgradeDeltaPopulation?: number;
+  upgradeDeltaGreen?: number;
+  upgradeDeltaCarbon?: number;
+  upgradeDeltaSatisfaction?: number;
+  upgradeDeltaQuota?: number;
+  upgradeDeltaLowCarbon?: number;
+  upgradeDeltaSectorProgressPct?: number;
+  upgradeDeltaIndustryPct?: number;
+  upgradeDeltaGreenPct?: number;
+  upgradeDeltaGlobalPct?: number;
+  upgradeDeltaTechPct?: number;
+  upgradeDeltaIndustryCarbonReductionPct?: number;
+  upgradeDeltaCarbonDeltaReductionPct?: number;
+  upgradeDeltaTradePricePct?: number;
+  upgradeDeltaComboPct?: number;
+  upgradeDeltaSharedMobilityPct?: number;
+  upgradeDeltaEcologyCardCostPct?: number;
+  upgradeDeltaScienceCardCostPct?: number;
+  upgradeDeltaFloodResistancePct?: number;
+  upgradeDeltaNewEnergyPct?: number;
+  upgradeDeltaEcologySink?: number;
+  upgradeDeltaTradUpgradePct?: number;
+  upgradeDeltaUpgradeCostPct?: number;
+  upgradeEffect?: Record<string, unknown>;
+  upgradeRequirement?: GameCardUpgradeRequirement;
 }
 
 export interface GameCardCatalog {
@@ -64,6 +149,16 @@ export interface GameActionResponse {
   endingImageKey?: string;
 }
 
+export interface GameActionLogItem {
+  id: string;
+  sessionId: string;
+  userId: string;
+  actionType: number;
+  actionData?: Record<string, unknown>;
+  pointsEarned: number;
+  createdAt: string;
+}
+
 export async function listCards(includePolicy: boolean = true): Promise<GameCardCatalog> {
   return apiGet<GameCardCatalog>('/api/v1/game/cards', { includePolicy });
 }
@@ -78,6 +173,14 @@ export async function getCurrentSession(): Promise<GameSession> {
 
 export async function getSessionById(sessionId: string): Promise<GameSession> {
   return apiGet<GameSession>(`/api/v1/game/sessions/${sessionId}`);
+}
+
+export async function listSessionActions(
+  sessionId: string,
+  page: number = 1,
+  size: number = 50
+): Promise<PageResponse<GameActionLogItem>> {
+  return apiGet<PageResponse<GameActionLogItem>>(`/api/v1/game/sessions/${sessionId}/actions`, { page, size });
 }
 
 export async function performAction(payload: {
