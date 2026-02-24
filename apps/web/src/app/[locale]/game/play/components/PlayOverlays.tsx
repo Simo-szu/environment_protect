@@ -38,6 +38,7 @@ type PlayOverlaysProps = Pick<
   | 'setGuidedTutorialActive'
   | 'setError'
   | 'setLastMessage'
+  | 'setTransitionNotice'
 >;
 
 export default function PlayOverlays(props: PlayOverlaysProps) {
@@ -75,7 +76,8 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     handleExitSession,
     setGuidedTutorialActive,
     setError,
-    setLastMessage
+    setLastMessage,
+    setTransitionNotice
   } = props;
 
   return (
@@ -108,10 +110,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
             </div>
 
             <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">In Progress</span>
-              </div>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">In Progress</div>
               <button
                 onClick={() => setGuidedTutorialActive(false)}
                 className="px-3 py-1.5 rounded bg-white/5 border border-white/10 text-[9px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
@@ -123,25 +122,19 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
         </div>
       )}
 
-      {(error || lastMessage) && (
+      {error && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className={`bg-white rounded-[2.5rem] border p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] text-center max-w-sm w-full animate-in zoom-in-95 duration-300 ${error ? 'border-rose-100' : 'border-emerald-100'}`}>
-            <div className={`w-20 h-20 rounded-full mx-auto mb-8 flex items-center justify-center ${error ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
-              {error ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-              )}
+          <div className="bg-white rounded-[2.5rem] border border-rose-100 p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] text-center max-w-sm w-full animate-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 rounded-full mx-auto mb-8 flex items-center justify-center bg-rose-50 text-rose-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             </div>
-            <h3 className={`text-xl font-black uppercase tracking-[0.2em] mb-3 ${error ? 'text-rose-950' : 'text-emerald-950'}`}>
-              {error ? 'System Alert' : 'Notification'}
-            </h3>
+            <h3 className="text-xl font-black uppercase tracking-[0.2em] mb-3 text-rose-950">System Alert</h3>
             <p className="text-sm font-medium text-slate-500 leading-relaxed mb-10">
-              {error || lastMessage}
+              {error}
             </p>
             <button
               onClick={() => { setError(null); setLastMessage(''); }}
-              className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg ${error ? 'bg-rose-600 text-white shadow-rose-900/20 hover:bg-rose-700 hover:-translate-y-1 active:translate-y-0' : 'bg-emerald-600 text-white shadow-emerald-900/20 hover:bg-emerald-700 hover:-translate-y-1 active:translate-y-0'}`}
+              className="w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg bg-rose-600 text-white shadow-rose-900/20 hover:bg-rose-700 hover:-translate-y-1 active:translate-y-0"
             >
               Acknowledge
             </button>
@@ -151,59 +144,19 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
 
       {transitionNotice && (
         <div className="fixed inset-0 z-40 pointer-events-none">
-          <div className="absolute inset-0 overflow-hidden">
-            {transitionNotice.kind === 'industry_growth' && (
-              <>
-                <div className="absolute bottom-0 left-[12%] h-28 w-8 bg-sky-400/40 animate-pulse rounded-t" />
-                <div className="absolute bottom-0 left-[20%] h-36 w-10 bg-sky-500/40 animate-pulse rounded-t" />
-                <div className="absolute bottom-0 left-[29%] h-24 w-7 bg-sky-300/40 animate-pulse rounded-t" />
-              </>
-            )}
-            {transitionNotice.kind === 'green_growth' && (
-              <>
-                <div className="absolute bottom-12 left-[16%] h-10 w-10 rounded-full bg-emerald-300/40 animate-bounce" />
-                <div className="absolute bottom-20 left-[26%] h-8 w-8 rounded-full bg-emerald-400/40 animate-bounce" />
-                <div className="absolute bottom-8 left-[34%] h-9 w-9 rounded-full bg-emerald-500/40 animate-bounce" />
-              </>
-            )}
-            {transitionNotice.kind === 'tech_burst' && (
-              <>
-                <div className="absolute top-20 left-[18%] h-16 w-16 border border-violet-400/50 rotate-45 animate-pulse" />
-                <div className="absolute top-28 left-[30%] h-12 w-12 border border-indigo-400/50 rotate-45 animate-pulse" />
-                <div className="absolute top-16 left-[40%] h-10 w-10 border border-sky-400/50 rotate-45 animate-pulse" />
-              </>
-            )}
-            {transitionNotice.kind === 'satisfaction_growth' && (
-              <>
-                <div className="absolute top-24 left-[16%] h-3 w-3 rounded-full bg-amber-400/70 animate-ping" />
-                <div className="absolute top-32 left-[24%] h-3 w-3 rounded-full bg-amber-300/70 animate-ping" />
-                <div className="absolute top-20 left-[34%] h-3 w-3 rounded-full bg-orange-300/70 animate-ping" />
-              </>
-            )}
-            {transitionNotice.kind === 'carbon_optimized' && (
-              <>
-                <div className="absolute top-24 left-[15%] h-1.5 w-12 rounded bg-emerald-400/60 -rotate-12 animate-pulse" />
-                <div className="absolute top-30 left-[26%] h-1.5 w-14 rounded bg-emerald-500/60 -rotate-12 animate-pulse" />
-                <div className="absolute top-18 left-[36%] h-1.5 w-10 rounded bg-teal-400/60 -rotate-12 animate-pulse" />
-              </>
-            )}
-            {transitionNotice.kind === 'balanced_growth' && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-200/30 to-transparent animate-pulse" />
-            )}
-            {transitionNotice.kind === 'carbon_disaster' && (
-              <>
-                <div className="absolute inset-0 bg-rose-900/10 animate-pulse" />
-                <div className="absolute top-24 left-[18%] h-12 w-20 rounded-full bg-slate-500/40 blur-sm animate-pulse" />
-                <div className="absolute top-30 left-[30%] h-10 w-16 rounded-full bg-slate-600/40 blur-sm animate-pulse" />
-                <div className="absolute top-18 left-[38%] h-14 w-24 rounded-full bg-slate-700/40 blur-sm animate-pulse" />
-              </>
-            )}
-          </div>
           <div className="absolute inset-x-0 top-20 flex justify-center px-4">
             <div
               key={transitionNotice.token}
-              className={`rounded-xl border px-5 py-3 shadow-lg ${transitionNotice.toneClass}`}
+              className={`relative rounded-xl border px-5 py-3 pr-10 shadow-lg pointer-events-auto ${transitionNotice.toneClass}`}
             >
+              <button
+                type="button"
+                onClick={() => setTransitionNotice(null)}
+                className="absolute top-2 right-2 text-xs opacity-60 hover:opacity-100 transition-opacity"
+                aria-label="Close notice"
+              >
+                ×
+              </button>
               <div className="text-sm font-semibold">{transitionNotice.title}</div>
               <div className="text-xs opacity-80">{transitionNotice.subtitle}</div>
               <div className="text-[11px] opacity-70 mt-1">Turn {transitionNotice.turn} settled</div>

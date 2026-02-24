@@ -524,7 +524,7 @@ export function useGamePlayController() {
     if (sessionId) {
       window.sessionStorage.setItem('game:lastSessionId', sessionId);
     }
-    setLastMessage(response.message || '');
+    setLastMessage('');
     setSelectedCoreId('');
     setSelectedPolicyId('');
     setSelectedTile('');
@@ -863,6 +863,7 @@ export function useGamePlayController() {
     setSelectedCoreId,
     setError,
     setLastMessage,
+    setTransitionNotice,
     handCoreCards,
     pendingDiscardActive,
     canPlaceCoreCard,

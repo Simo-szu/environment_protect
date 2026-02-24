@@ -43,6 +43,8 @@ export default function GamePlayPage() {
         runTradeAction={controller.runTradeAction}
         tradeActionDisabled={controller.tradeActionDisabled}
         tradeActionBlockedReason={controller.tradeActionBlockedReason}
+        boardViewMode={controller.boardViewMode}
+        setBoardViewMode={controller.setBoardViewMode}
       />
 
       <main className="flex-1 min-h-0 overflow-hidden p-4 flex gap-5">
@@ -77,7 +79,7 @@ export default function GamePlayPage() {
           />
         </aside>
 
-        <section className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative">
+        <section className="flex-1 min-w-0 h-full flex flex-col overflow-visible relative">
           <PlayBoardAndHandsPanel
             t={controller.t}
             boardViewMode={controller.boardViewMode}
@@ -168,6 +170,7 @@ export default function GamePlayPage() {
         setOnboardingStep={controller.setOnboardingStep}
         setError={controller.setError}
         setLastMessage={controller.setLastMessage}
+        setTransitionNotice={controller.setTransitionNotice}
         corePeekOpen={controller.corePeekOpen}
         selectedCoreCard={controller.selectedCoreCard}
         setCorePeekOpen={controller.setCorePeekOpen}

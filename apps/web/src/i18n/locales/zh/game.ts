@@ -204,6 +204,7 @@ const game = {
             instruction: '手牌数量已超过上限，请点击下方手牌进行弃置。',
             requiredHint: '还需弃置 {count} 张，弃置后手牌保持为 {limit} 张。',
             inlineHint: '当前手牌超上限：请直接点击下方手牌进行弃置，直到恢复上限。',
+            action: '弃置',
             clickCore: '点击弃置这张核心卡',
             clickPolicy: '点击弃置这张政策卡',
         },

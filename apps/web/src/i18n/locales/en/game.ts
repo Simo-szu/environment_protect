@@ -205,6 +205,7 @@ const game = {
             instruction: 'Your hand size exceeds the limit. Please select cards to discard.',
             requiredHint: 'Discard {count} card(s) to keep {limit} in hand.',
             inlineHint: 'Hand size exceeds limit: click cards in hand directly to discard until you are back within limit.',
+            action: 'Discard',
             clickCore: 'Click to discard this core card',
             clickPolicy: 'Click to discard this policy card',
         },

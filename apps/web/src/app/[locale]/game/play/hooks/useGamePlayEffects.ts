@@ -195,10 +195,11 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
     if (transitionTimerRef.current !== null) {
       window.clearTimeout(transitionTimerRef.current);
     }
+    const noticeDurationMs = Math.min(6000, Math.max(1200, turnTransitionAnimationSeconds * 1000));
     transitionTimerRef.current = window.setTimeout(() => {
       setTransitionNotice(null);
       transitionTimerRef.current = null;
-    }, turnTransitionAnimationSeconds * 1000);
+    }, noticeDurationMs);
     return () => {
       if (transitionTimerRef.current !== null) {
         window.clearTimeout(transitionTimerRef.current);
@@ -206,6 +207,17 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
       }
     };
   }, [settlementHistory, activeNegativeEvents, transitionAnimationEnabled, turnTransitionAnimationSeconds, ending, turn]);
+
+  useEffect(() => {
+    if (transitionAnimationEnabled && !ending) {
+      return;
+    }
+    setTransitionNotice(null);
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+  }, [transitionAnimationEnabled, ending]);
 
   useEffect(() => {
     if (!guidedTutorialActive || !guidedTutorialCompleted) {
