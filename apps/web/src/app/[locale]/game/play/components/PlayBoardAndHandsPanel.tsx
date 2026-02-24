@@ -73,6 +73,13 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'runTradeAction'
   | 'tradeActionDisabled'
   | 'tradeActionBlockedReason'
+  | 'tradeWindowOpened'
+  | 'tradeWindowInterval'
+  | 'tradeQuota'
+  | 'tradeLastPrice'
+  | 'tradeProfit'
+  | 'latestTradeRecord'
+  | 'turn'
   | 'catalog'
   | 'locale'
 >;
@@ -120,6 +127,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     selectedPolicyId,
     runAction,
     policyUsedThisTurn,
+    strictGuideMode,
     selectedTileSynergyBreakdown,
     selectedTileAdjacency,
     boardViewMode,
@@ -131,9 +139,17 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,
+    tradeWindowOpened,
+    tradeWindowInterval,
+    tradeQuota,
+    tradeLastPrice,
+    tradeProfit,
+    latestTradeRecord,
+    turn,
     catalog,
     locale
   } = props;
+  const [showTradeSummary, setShowTradeSummary] = useState(false);
 
   const [hoveredTileKey, setHoveredTileKey] = useState('');
   const activeInfoKey = hoveredTileKey || selectedOccupiedTile || selectedTile;
@@ -211,6 +227,27 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     selectedCorePhase
   ]);
 
+  const roundsUntilTradeOpen = useMemo(() => {
+    if (tradeWindowOpened) {
+      return 0;
+    }
+    if (strictGuideMode) {
+      return Math.max(0, 4 - turn);
+    }
+    const interval = Number(tradeWindowInterval || 0);
+    if (!Number.isFinite(interval) || interval <= 0) {
+      return 0;
+    }
+    const remainder = turn % interval;
+    return remainder === 0 ? interval : interval - remainder;
+  }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
+
+  const tradedThisTurn = useMemo(() => {
+    const recordTurn = Number(latestTradeRecord?.turn ?? 0);
+    const action = String(latestTradeRecord?.action ?? '').toLowerCase();
+    return recordTurn === turn && (action === 'buy' || action === 'sell');
+  }, [latestTradeRecord, turn]);
+
   return (
     <section className="h-full flex flex-col relative bg-transparent overflow-visible gap-4 p-0 transition-all duration-500">
 
@@ -220,12 +257,12 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       <div className={`flex-[5] flex gap-4 min-h-0 transition-all duration-500 ${pendingDiscardActive ? 'grayscale opacity-60 pointer-events-none' : ''}`}>
 
         {/* Left 50%: Board (Grid) */}
-        <div className="flex-1 bg-white/60 backdrop-blur-md rounded-[2rem] border border-slate-200 p-4 relative z-[60] shadow-sm overflow-visible flex flex-col">
+        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-4 relative z-[60] shadow-sm overflow-visible flex flex-col">
           <div className="mb-2 flex items-center justify-between z-10 px-2 min-h-[24px]">
-            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40">
+            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
               {t('play.board.title', 'PLANNING GRID')}
             </h2>
-            <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-400">
               {t('play.board.viewMode.smart', boardViewMode)}
             </div>
           </div>
@@ -233,7 +270,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           <div className="flex-1 min-h-0 relative flex items-center justify-center">
             <div className="h-full aspect-square max-h-full max-w-full relative z-[70]">
               <div
-                className={`grid gap-1 w-full h-full rounded-[1.5rem] p-1.5 shrink-0 bg-slate-100/40 border border-slate-200/40 ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile'
+                className={`grid gap-1 w-full h-full rounded-[1.5rem] p-1.5 shrink-0 bg-slate-100/40 dark:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700 ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile'
                   ? 'ring-4 ring-emerald-400/30'
                   : ''
                   }`}
@@ -259,21 +296,21 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
                   const styleClasses = `group w-full h-full rounded-xl border transition-all duration-300 relative overflow-hidden flex items-center justify-center ${occupied
                     ? selectedOccupied
-                      ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                      : 'bg-white border-slate-100 hover:border-emerald-300 shadow-sm'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 text-emerald-800 dark:text-emerald-200'
+                      : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-300 shadow-sm'
                     : selected
                       ? 'bg-emerald-500 border-emerald-600 text-white shadow-md scale-105 z-10'
-                      : dragOver && placeableTile
-                        ? 'bg-emerald-50 border-emerald-500 scale-110 z-10'
+                    : dragOver && placeableTile
+                        ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 scale-110 z-10'
                         : boardViewMode === 'placeable' && !placeableTile
                           ? 'bg-transparent border-transparent opacity-10'
                           : boardViewMode === 'adjacency' && !occupied
                             ? adjacencyScore > 0
-                              ? 'bg-emerald-50 border-emerald-300'
-                              : 'bg-slate-50 border-slate-200'
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300'
+                              : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
                           : recommended
-                            ? 'bg-emerald-50 border-emerald-300 text-emerald-600'
-                            : 'bg-white border-slate-100 hover:border-emerald-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-600 dark:text-emerald-300'
+                            : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-200'
                     }`;
 
                   return (
@@ -324,14 +361,14 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     >
                       {occupied ? (
                         <div className="flex flex-col items-center px-1 overflow-hidden w-full h-full justify-center">
-                          <span className="text-[11px] leading-[1] text-center font-black uppercase tracking-tight text-slate-800 break-words line-clamp-2 px-0.5">
+                          <span className="text-[11px] leading-[1] text-center font-black uppercase tracking-tight text-slate-800 dark:text-slate-200 break-words line-clamp-2 px-0.5">
                             {displayName}
                           </span>
                         </div>
                       ) : selected ? (
                         <div className="w-2 h-2 rounded-full bg-white" />
                       ) : boardViewMode === 'adjacency' && !occupied && adjacencyScore > 0 ? (
-                        <span className="text-[10px] font-black text-emerald-700">{adjacencyScore}</span>
+                        <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">{adjacencyScore}</span>
                       ) : null}
                     </button>
                   );
@@ -346,25 +383,25 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     transform: activeTileInfo.row <= 1 ? 'translate(-50%, 8%)' : 'translate(-50%, -102%)'
                   }}
                 >
-                  <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 bg-white/95 backdrop-blur px-3 py-2 shadow-lg">
-                    <div className="text-[10px] font-black text-slate-800 uppercase tracking-wider">
+                  <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-3 py-2 shadow-lg">
+                    <div className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
                       {activeTileInfo.occupiedCardId ? (activeTileInfo.occupiedName || activeTileInfo.occupiedCardId) : t('play.board.selection.title', 'Current Placement Target')}
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{activeTileInfo.key}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{activeTileInfo.key}</div>
                     {activeTileInfo.occupiedCard && (
                       <div className="mt-1 space-y-1">
-                        <div className="text-[10px] text-slate-600">
+                        <div className="text-[10px] text-slate-600 dark:text-slate-300">
                           {String(activeTileInfo.occupiedCard.domain).toUpperCase()} | {String(activeTileInfo.occupiedCard.phaseBucket).toUpperCase()} | ★{activeTileInfo.occupiedCard.star}
                         </div>
                         {activeTileInfo.occupiedEffects.length > 0 ? (
-                          <div className="text-[10px] text-slate-700">
+                          <div className="text-[10px] text-slate-700 dark:text-slate-200">
                             Buff/Debuff: {activeTileInfo.occupiedEffects.join('  ')}
                           </div>
                         ) : (
                           <div className="text-[10px] text-slate-400">Buff/Debuff: none in base continuous fields</div>
                         )}
                         {activeTileInfo.occupiedRelationToSelectedCore && (
-                          <div className="text-[10px] text-slate-700">
+                          <div className="text-[10px] text-slate-700 dark:text-slate-200">
                             {selectedCoreName ? `${selectedCoreName}` : 'Selected core'} relation:
                             {' '}
                             <span className={activeTileInfo.occupiedRelationToSelectedCore.sameDomain ? 'text-emerald-700 font-black' : 'text-slate-400'}>same domain</span>
@@ -375,7 +412,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       </div>
                     )}
                     {!activeTileInfo.occupiedCardId && (
-                      <div className="text-[10px] text-slate-600 mt-1 space-y-1">
+                      <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 space-y-1">
                         <div>
                           {t('play.preview.synergyAdjacency', 'Adjacency')}: {activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}
                           {' | '}
@@ -385,11 +422,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                           {' | '}
                           {t('play.preview.synergyDiversity', 'Diversity')}: {activeTileInfo.tileBreakdown?.diversityBonus ?? 0}
                         </div>
-                        <div className="font-black text-slate-700">
+                        <div className="font-black text-slate-700 dark:text-slate-200">
                           {t('play.board.synergyScore', 'Synergy')}: {activeTileInfo.synergyScore}
                         </div>
                         {activeTileInfo.tileBreakdown?.neighbors?.length ? (
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">
                             Neighbors: {activeTileInfo.tileBreakdown.neighbors.map((neighbor) => {
                               const marks = [
                                 neighbor.sameDomain ? 'D+' : '',
@@ -410,7 +447,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     )}
                     {!activeTileInfo.occupiedCardId && (
                       <div className="text-[10px] mt-1 font-black uppercase tracking-wider">
-                        <span className={activeTileInfo.placeable ? 'text-emerald-700' : 'text-slate-400'}>
+                        <span className={activeTileInfo.placeable ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}>
                           {activeTileInfo.placeable ? t('play.afford.canPlace', '可放置') : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。')}
                         </span>
                       </div>
@@ -423,20 +460,124 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         </div>
 
         {/* Right 50%: Carbon Trade */}
-        <div className="flex-1 bg-white/60 backdrop-blur-md rounded-[2rem] border border-slate-200 p-8 relative shadow-sm overflow-hidden flex flex-col justify-between">
+        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-8 relative shadow-sm overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40">
+            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
               {t('play.trade.title', 'CARBON MARKET')}
             </h2>
           </div>
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <div className="text-slate-300 text-[10px] font-black uppercase tracking-widest italic">Section Locked</div>
-          </div>
+          {tradeWindowOpened ? (
+            <div className="flex-1 flex flex-col justify-center gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <TradeCell label={t('play.trade.quota', 'Quota')} value={String(tradeQuota)} />
+                <TradeCell label={t('play.trade.currentPrice', 'Current Price')} value={tradeLastPrice.toFixed(1)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTradeType('buy')}
+                  className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'buy'
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                    }`}
+                >
+                  {t('play.trade.buy', 'Buy Quota')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTradeType('sell')}
+                  className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'sell'
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                    }`}
+                >
+                  {t('play.trade.sell', 'Sell Quota')}
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={tradeAmount}
+                  onChange={(event) => setTradeAmount(Math.max(1, Number(event.target.value || 1)))}
+                  className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 px-2 py-1 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => { void runTradeAction(); }}
+                  disabled={tradeActionDisabled}
+                  className="flex-1 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest py-2 disabled:opacity-40"
+                >
+                  {t('play.trade.execute', 'Execute Trade')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col justify-center items-center gap-3">
+              {tradedThisTurn ? (
+                <>
+                  <div className="text-[12px] font-black tracking-wide text-emerald-600 dark:text-emerald-300">
+                    {locale === 'zh' ? '\u672c\u56de\u5408\u5df2\u4ea4\u6613' : 'Trade completed this turn'}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTradeSummary((current) => !current)}
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-[10px] font-black tracking-wide text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                  >
+                    {showTradeSummary
+                      ? (locale === 'zh' ? '\u6536\u8d77\u4ea4\u6613\u53d8\u5316' : 'Hide trade changes')
+                      : (locale === 'zh' ? '\u67e5\u770b\u672c\u56de\u5408\u4ea4\u6613\u53d8\u5316' : 'View trade changes')}
+                  </button>
+                  {showTradeSummary && (
+                    <div className="w-full max-w-[340px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/70 px-4 py-3 space-y-1.5 text-[11px] text-slate-700 dark:text-slate-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u4ea4\u6613\u65b9\u5411' : 'Action'}</span>
+                        <span className="font-black">
+                          {String(latestTradeRecord?.action || '').toLowerCase() === 'buy'
+                            ? (locale === 'zh' ? '\u4e70\u5165\u914d\u989d' : 'Buy quota')
+                            : (locale === 'zh' ? '\u5356\u51fa\u914d\u989d' : 'Sell quota')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u6570\u91cf' : 'Amount'}</span>
+                        <span className="font-black">{Number(latestTradeRecord?.amount || 0)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u4ef7\u683c' : 'Price'}</span>
+                        <span className="font-black">{tradeLastPrice.toFixed(1)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u7d2f\u8ba1\u6536\u76ca' : 'Total profit'}</span>
+                        <span className={`font-black ${tradeProfit >= 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'}`}>
+                          {tradeProfit >= 0 ? '+' : ''}{tradeProfit.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] font-black tracking-wide text-slate-500 dark:text-slate-300">
+                    {locale === 'zh'
+                      ? roundsUntilTradeOpen > 0
+                        ? `\u78b3\u4ea4\u6613\u533a\u9501\u5b9a \u00b7 \u8fd8\u9700 ${roundsUntilTradeOpen} \u56de\u5408`
+                        : '\u78b3\u4ea4\u6613\u533a\u9501\u5b9a'
+                      : roundsUntilTradeOpen > 0
+                        ? `Carbon market locked ? available in ${roundsUntilTradeOpen} turns`
+                        : 'Carbon market locked'}
+                  </div>
+                  <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                    {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* --- BOTTOM ZONE: Cards In Hand (焦点区域) --- */}
-      <div className="flex-[5] bg-white/40 rounded-[2.5rem] border border-slate-200/60 p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+      <div className="flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
 
         {/* 指示条：非侵入式提示 */}
         <div className="mb-2 flex items-center justify-between px-4">
@@ -453,7 +594,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               </span>
             </div>
           ) : (
-            <h2 className="font-black text-[10px] uppercase tracking-[0.3em] text-emerald-900/30">
+            <h2 className="font-black text-[10px] uppercase tracking-[0.3em] text-emerald-900/30 dark:text-emerald-200/40">
               {t('play.coreHand.title', 'CARDS IN HANDS')}
             </h2>
           )}
@@ -495,12 +636,12 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               );
             })}
 
-            <div className="w-[1px] h-24 bg-slate-200/50 self-center mx-8 z-10" />
+            <div className="w-[1px] h-24 bg-slate-200/50 dark:bg-slate-700 self-center mx-8 z-10" />
 
             <div className="flex -space-x-12 hover:-space-x-4 transition-all duration-700 py-4">
               {handPolicyCards.map((card) => {
                 const isSelected = selectedPolicyId === card.cardId;
-                const cardFrameStyles = !pendingDiscardActive && isSelected ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50' : 'border-slate-100 bg-white';
+                const cardFrameStyles = !pendingDiscardActive && isSelected ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
 
                 return (
                   <button
@@ -515,7 +656,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       {card.domain}
                     </div>
                     <div className="flex-1" />
-                    <div className="text-[11px] font-black text-slate-400 pt-4 border-t border-slate-50 uppercase tracking-tighter">Policy</div>
+                    <div className="text-[11px] font-black text-slate-400 dark:text-slate-300 pt-4 border-t border-slate-50 dark:border-slate-700 uppercase tracking-tighter">Policy</div>
                   </button>
                 );
               })}
@@ -552,5 +693,14 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       </div>
 
     </section>
+  );
+}
+
+function TradeCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+      <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</div>
+      <div className="text-[14px] font-black text-slate-700 dark:text-slate-100">{value}</div>
+    </div>
   );
 }

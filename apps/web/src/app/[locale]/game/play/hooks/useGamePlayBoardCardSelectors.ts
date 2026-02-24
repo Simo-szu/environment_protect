@@ -89,14 +89,20 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     const costTech = Number(selectedCoreCard.unlockCost.tech ?? 0);
     const costPopulation = Number(selectedCoreCard.unlockCost.population ?? 0);
     const costGreen = Number(selectedCoreCard.unlockCost.green ?? 0);
-    // Placement preview should reflect immediate placement resolution:
-    // core card placement consumes resources/green only.
-    const deltaIndustry = -costIndustry;
-    const deltaTech = -costTech;
-    const deltaPopulation = -costPopulation;
-    const deltaGreen = -costGreen;
-    const deltaCarbon = 0;
-    const deltaSatisfaction = 0;
+    // Preview combines placement cost with the card's base continuous effect.
+    // It intentionally excludes combo/policy/event modifiers.
+    const continuousIndustry = Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0);
+    const continuousTech = Number(selectedCoreCard.coreContinuousTechDelta ?? 0);
+    const continuousPopulation = Number(selectedCoreCard.coreContinuousPopulationDelta ?? 0);
+    const continuousGreen = Number(selectedCoreCard.coreContinuousGreenDelta ?? 0);
+    const continuousCarbon = Number(selectedCoreCard.coreContinuousCarbonDelta ?? 0);
+    const continuousSatisfaction = Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0);
+    const deltaIndustry = -costIndustry + continuousIndustry;
+    const deltaTech = -costTech + continuousTech;
+    const deltaPopulation = -costPopulation + continuousPopulation;
+    const deltaGreen = -costGreen + continuousGreen;
+    const deltaCarbon = continuousCarbon;
+    const deltaSatisfaction = continuousSatisfaction;
     return {
       industry: currentIndustry + deltaIndustry,
       tech: currentTech + deltaTech,

@@ -341,6 +341,7 @@ public class GameService {
         runtimeConfig.put("endingDisplaySeconds", endingDisplaySeconds());
         runtimeConfig.put("turnTransitionAnimationEnabledDefault", turnTransitionAnimationEnabledDefault());
         runtimeConfig.put("turnTransitionAnimationSeconds", turnTransitionAnimationSeconds());
+        runtimeConfig.put("tradeWindowInterval", tradeWindowInterval());
         runtimeConfig.put("freePlacementEnabled", freePlacementEnabled());
 
         ObjectNode resources = root.putObject("resources");
@@ -2639,6 +2640,7 @@ public class GameService {
 
     private void syncRuntimeConfigForSession(ObjectNode state) {
         ObjectNode runtimeConfig = state.with("runtimeConfig");
+        runtimeConfig.put("tradeWindowInterval", tradeWindowInterval());
         runtimeConfig.put("freePlacementEnabled", freePlacementEnabled());
     }
 

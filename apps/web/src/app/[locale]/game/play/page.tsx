@@ -14,13 +14,13 @@ export default function GamePlayPage() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#f4f7f4] text-slate-800 flex flex-col font-sans">
+    <div className="h-screen w-screen overflow-hidden bg-[#f4f7f4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <PlayHeader
         t={controller.t}
         turn={controller.turn}
         maxTurn={controller.maxTurn}
-        resources={controller.resources}
-        metrics={controller.metrics}
+        phase={controller.phase}
+        domainProgress={controller.domainProgress}
         turnFlowSteps={controller.turnFlowSteps}
         strictGuideMode={controller.strictGuideMode}
         handleBack={controller.handleBack}
@@ -36,13 +36,6 @@ export default function GamePlayPage() {
         endTurnDisabled={controller.endTurnDisabled}
         guidedTutorialActive={controller.guidedTutorialActive}
         currentGuidedTaskId={controller.currentGuidedTask?.id}
-        tradeType={controller.tradeType}
-        setTradeType={controller.setTradeType}
-        tradeAmount={controller.tradeAmount}
-        setTradeAmount={controller.setTradeAmount}
-        runTradeAction={controller.runTradeAction}
-        tradeActionDisabled={controller.tradeActionDisabled}
-        tradeActionBlockedReason={controller.tradeActionBlockedReason}
         boardViewMode={controller.boardViewMode}
         setBoardViewMode={controller.setBoardViewMode}
       />
@@ -53,7 +46,7 @@ export default function GamePlayPage() {
             t={controller.t}
             resources={controller.resources}
             metrics={controller.metrics}
-            selectedCorePlacementPreview={controller.selectedCorePlacementPreview}
+            lowCarbonScore={controller.lowCarbonScore}
             selectedCorePreviewReady={controller.selectedCorePreviewReady}
             formatDelta={controller.formatDelta}
             selectedCoreCard={controller.selectedCoreCard}
@@ -62,20 +55,13 @@ export default function GamePlayPage() {
             recommendedTile={controller.recommendedTile}
             selectedTileSynergyBreakdown={controller.selectedTileSynergyBreakdown}
             placedCore={controller.placedCore}
-            corePlacedThisTurn={controller.corePlacedThisTurn}
-            tradeQuota={controller.tradeQuota}
-            tradeLastPrice={controller.tradeLastPrice}
-            tradeProfit={controller.tradeProfit}
-            latestTradeRecord={controller.latestTradeRecord}
-            tradeWindowOpened={controller.tradeWindowOpened}
+            catalog={controller.catalog}
             activeNegativeEvents={controller.activeNegativeEvents}
             resolveEventLabel={controller.resolveEventLabel}
             resolvePolicyHintByEvent={controller.resolvePolicyHintByEvent}
             resolvePolicyIdsByEvent={controller.resolvePolicyIdsByEvent}
             handPolicySet={controller.handPolicySet}
-            pendingDiscardBlocking={controller.pendingDiscardBlocking}
             selectPolicyForEvent={controller.selectPolicyForEvent}
-            timelineItems={controller.timelineItems}
           />
         </aside>
 
@@ -148,6 +134,13 @@ export default function GamePlayPage() {
             runTradeAction={controller.runTradeAction}
             tradeActionDisabled={controller.tradeActionDisabled}
             tradeActionBlockedReason={controller.tradeActionBlockedReason}
+            tradeWindowOpened={controller.tradeWindowOpened}
+            tradeWindowInterval={controller.tradeWindowInterval}
+            tradeQuota={controller.tradeQuota}
+            tradeLastPrice={controller.tradeLastPrice}
+            tradeProfit={controller.tradeProfit}
+            latestTradeRecord={controller.latestTradeRecord}
+            turn={controller.turn}
             catalog={controller.catalog}
             locale={controller.locale}
           />

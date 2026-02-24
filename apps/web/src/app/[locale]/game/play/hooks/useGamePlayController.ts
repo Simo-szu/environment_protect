@@ -147,7 +147,9 @@ export function useGamePlayController() {
   const corePlacedThisTurn = Boolean(pondState?.corePlacedThisTurn);
   const policyUsedThisTurn = Boolean(pondState?.policyUsedThisTurn);
   const boardSize = Number(pondState?.boardSize || 6);
+  const phase = String(pondState?.phase || 'early');
   const boardOccupied = (pondState?.boardOccupied || {}) as Record<string, string>;
+  const domainProgress = (pondState?.domainProgress || {}) as UnknownRecord;
   const pendingDiscard = (pondState?.pendingDiscard || {}) as PendingDiscardState;
   const pendingDiscardActive = Boolean(pendingDiscard.active);
   const pendingDiscardCoreRequired = Math.max(0, Number(pendingDiscard.coreRequired ?? 0));
@@ -161,8 +163,10 @@ export function useGamePlayController() {
   const comboHistory = Array.isArray(pondState?.comboHistory) ? (pondState?.comboHistory as ComboRecord[]) : [];
   const policyHistory = Array.isArray(pondState?.policyHistory) ? (pondState?.policyHistory as PolicyRecord[]) : [];
   const settlementHistory = Array.isArray(pondState?.settlementHistory) ? (pondState?.settlementHistory as SettlementRecord[]) : [];
+  const policyUnlocked = Array.isArray(pondState?.policyUnlocked) ? (pondState?.policyUnlocked as string[]) : [];
   const eventStats = (pondState?.eventStats || {}) as UnknownRecord;
   const runtimeConfig = (pondState?.runtimeConfig || {}) as UnknownRecord;
+  const lowCarbonScore = Number(metrics.lowCarbonScore ?? 0);
 
   const tradeWindowOpened = Boolean(carbonTrade.windowOpened);
   const tradeLastPrice = Number(carbonTrade.lastPrice || 2);
@@ -178,6 +182,10 @@ export function useGamePlayController() {
   const turnTransitionAnimationDefault = runtimeConfig.turnTransitionAnimationEnabledDefault !== false;
   const turnTransitionAnimationSeconds = Math.max(1, Number(runtimeConfig.turnTransitionAnimationSeconds || 2));
   const freePlacementEnabled = runtimeConfig.freePlacementEnabled !== false;
+  const rawTradeWindowInterval = Number(runtimeConfig.tradeWindowInterval);
+  const tradeWindowInterval = Number.isFinite(rawTradeWindowInterval) && rawTradeWindowInterval > 0
+    ? Math.floor(rawTradeWindowInterval)
+    : 0;
 
   const {
     handCoreCards,
@@ -524,7 +532,7 @@ export function useGamePlayController() {
     if (sessionId) {
       window.sessionStorage.setItem('game:lastSessionId', sessionId);
     }
-    setLastMessage('');
+    setLastMessage(typeof response.message === 'string' ? response.message : '');
     setSelectedCoreId('');
     setSelectedPolicyId('');
     setSelectedTile('');
@@ -790,6 +798,7 @@ export function useGamePlayController() {
     lastMessage,
     turn,
     maxTurn,
+    phase,
     turnFlowSteps,
     strictGuideMode,
     handleBack,
@@ -811,11 +820,14 @@ export function useGamePlayController() {
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,
+    tradeWindowInterval,
     guidedTaskProgress,
     guidedTutorialCompleted,
     setGuidedTutorialActive,
     resources,
     metrics,
+    lowCarbonScore,
+    domainProgress,
     selectedCorePlacementPreview,
     selectedCorePreviewReady,
     formatDelta,
@@ -897,6 +909,7 @@ export function useGamePlayController() {
     corePeekOpen,
     endingCountdown,
     policyHistory,
+    policyUnlockedCount: policyUnlocked.length,
     uniquePoliciesUsed,
     settlementHistory,
     eventStats,
