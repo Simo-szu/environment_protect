@@ -12,6 +12,7 @@ import {
   tradeCarbon
 } from '@/lib/api/game';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { getPublicSystemConfig } from '@/lib/api/system';
 import { useGamePlayEffects } from './useGamePlayEffects';
 import {
   BoardViewMode,
@@ -38,8 +39,7 @@ import {
   TransitionNotice,
   TURN_ANIMATION_STORAGE_KEY,
   TurnFlowStep,
-  UnknownRecord,
-  DEFAULT_STORAGE_BASE
+  UnknownRecord
 } from './gamePlay.shared';
 import { useGamePlayBoardCardSelectors } from './useGamePlayBoardCardSelectors';
 
@@ -129,6 +129,7 @@ export function useGamePlayController() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [guidedTutorialActive, setGuidedTutorialActive] = useState(false);
+  const [storageBaseUrl, setStorageBaseUrl] = useState('');
   const [draggingCoreId, setDraggingCoreId] = useState('');
   const [dragOverTile, setDragOverTile] = useState('');
   const [boardViewMode, setBoardViewMode] = useState<BoardViewMode>('smart');
@@ -512,6 +513,25 @@ export function useGamePlayController() {
     animationStorageKey: TURN_ANIMATION_STORAGE_KEY
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPublicConfig() {
+      try {
+        const config = await getPublicSystemConfig();
+        const nextBase = typeof config?.storageBaseUrl === 'string' ? config.storageBaseUrl.trim() : '';
+        if (!cancelled && nextBase) {
+          setStorageBaseUrl(nextBase.replace(/\/+$/, ''));
+        }
+      } catch {
+        // Keep images unresolved when public config is unavailable.
+      }
+    }
+    void loadPublicConfig();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function resolveImageUrl(imageKey?: string | null): string {
     if (!imageKey) {
       return '';
@@ -519,7 +539,15 @@ export function useGamePlayController() {
     if (imageKey.startsWith('http://') || imageKey.startsWith('https://')) {
       return imageKey;
     }
-    return `${DEFAULT_STORAGE_BASE}/${imageKey}`;
+    let normalizedKey = imageKey;
+    if ((normalizedKey.startsWith('endings/') || normalizedKey.startsWith('events/')) && /\.jpe?g$/i.test(normalizedKey)) {
+      normalizedKey = normalizedKey.replace(/\.jpe?g$/i, '.webp');
+    }
+    const base = storageBaseUrl.trim().replace(/\/+$/, '');
+    if (!base) {
+      return '';
+    }
+    return `${base}/${normalizedKey.replace(/^\/+/, '')}`;
   }
 
   function formatDelta(value: number): string {

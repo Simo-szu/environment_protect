@@ -136,7 +136,7 @@ export interface TurnFlowStep {
 export type GuidedAction = 'select_core' | 'select_tile' | 'place_core' | 'end_turn' | 'policy' | 'trade';
 export type BoardViewMode = 'smart' | 'adjacency' | 'placeable';
 
-export const DEFAULT_STORAGE_BASE = process.env.NEXT_PUBLIC_MINIO_PUBLIC_BASE_URL || 'http://127.0.0.1:9000/youthloop';
+export const DEFAULT_STORAGE_BASE = '';
 export const TURN_ANIMATION_STORAGE_KEY = 'game:turn-transition-animation-enabled';
 export const PLAY_ONBOARDING_STORAGE_KEY = 'game:play-onboarding:v1';
 

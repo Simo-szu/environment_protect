@@ -602,7 +602,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
         <div className="flex-1 flex items-center justify-center min-w-0">
           <div className="flex -space-x-20 hover:-space-x-8 transition-all duration-700 ease-in-out py-4">
-            {handCoreCards.map((card) => {
+            {handCoreCards.map((card, index) => {
               const canPlace = coreAffordabilityMap.get(card.cardId)?.canPlace;
               const isSelected = selectedCoreId === card.cardId;
               const cardFrameStyles = !pendingDiscardActive && isSelected
@@ -611,7 +611,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
               return (
                 <button
-                  key={card.cardId}
+                  key={`${card.cardId}-${index}`}
                   draggable={!pendingDiscardActive && canPlaceCoreCard(card.cardId)}
                   onDragStart={() => {
                     setDraggingCoreId(card.cardId);
@@ -639,24 +639,41 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             <div className="w-[1px] h-24 bg-slate-200/50 dark:bg-slate-700 self-center mx-8 z-10" />
 
             <div className="flex -space-x-12 hover:-space-x-4 transition-all duration-700 py-4">
-              {handPolicyCards.map((card) => {
+              {handPolicyCards.map((card, index) => {
                 const isSelected = selectedPolicyId === card.cardId;
                 const cardFrameStyles = !pendingDiscardActive && isSelected ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
 
                 return (
                   <button
-                    key={card.cardId}
+                    key={`${card.cardId}-${index}`}
                     onClick={() => {
                       if (pendingDiscardActive) { discardCard('policy', card.cardId); return; }
                       setSelectedPolicyId(current => current === card.cardId ? '' : card.cardId);
                     }}
                     className={`flex-shrink-0 h-[220px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-5 flex flex-col justify-between shadow-lg hover:z-[100] hover:-translate-y-6 ${cardFrameStyles}`}
                   >
-                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600">
-                      {card.domain}
+                    {card.imageKey ? (
+                      <img
+                        src={resolveImageUrl(card.imageKey)}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        alt={card.chineseName}
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-slate-950/10 dark:from-slate-950/90 dark:via-slate-900/40 dark:to-slate-950/20" />
+                    <div className="relative z-10 flex h-full flex-col justify-between">
+                      <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                        {card.domain}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
+                          {locale === 'zh' ? card.chineseName : card.englishName}
+                        </div>
+                        <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">Policy</div>
+                      </div>
                     </div>
-                    <div className="flex-1" />
-                    <div className="text-[11px] font-black text-slate-400 dark:text-slate-300 pt-4 border-t border-slate-50 dark:border-slate-700 uppercase tracking-tighter">Policy</div>
                   </button>
                 );
               })}

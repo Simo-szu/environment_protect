@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { adminApi } from '@/lib/api';
+import { getPublicSystemConfig } from '@/lib/api/system';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import type { AdminGameCardItem } from '@/lib/api/admin';
 import {
@@ -19,11 +20,10 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-const STORAGE_BASE_URL = process.env.NEXT_PUBLIC_STORAGE_BASE_URL ?? '';
-
-function buildImageUrl(imageKey: string | undefined): string | null {
-    if (!imageKey || !STORAGE_BASE_URL) return null;
-    return `${STORAGE_BASE_URL.replace(/\/$/, '')}/${imageKey}`;
+function buildImageUrl(imageKey: string | undefined, storageBaseUrl: string): string | null {
+    const base = storageBaseUrl.trim().replace(/\/+$/, '');
+    if (!imageKey || !base) return null;
+    return `${base}/${imageKey.replace(/^\/+/, '')}`;
 }
 
 type GameCardFormState = {
@@ -76,8 +76,28 @@ export function AdminGameCardsTab() {
     const { t } = useSafeTranslation('admin');
     const [loading, setLoading] = useState(false);
     const [gameCards, setGameCards] = useState<AdminGameCardItem[]>([]);
+    const [storageBaseUrl, setStorageBaseUrl] = useState('');
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        const loadPublicConfig = async () => {
+            try {
+                const config = await getPublicSystemConfig();
+                const nextBase = typeof config?.storageBaseUrl === 'string' ? config.storageBaseUrl.trim() : '';
+                if (!cancelled && nextBase) {
+                    setStorageBaseUrl(nextBase);
+                }
+            } catch {
+                // Leave storage base empty when public config is unavailable.
+            }
+        };
+        void loadPublicConfig();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCardId, setEditingCardId] = useState<string | null>(null);
     const [formState, setFormState] = useState<GameCardFormState>(defaultGameCardForm);
@@ -314,9 +334,9 @@ export function AdminGameCardsTab() {
 
                         <div className="relative mt-6 mb-4">
                             <div className="w-24 h-24 rounded-2xl bg-slate-50 border flex items-center justify-center relative overflow-hidden">
-                                {buildImageUrl(card.imageKey) ? (
+                                {buildImageUrl(card.imageKey, storageBaseUrl) ? (
                                     <Image
-                                        src={buildImageUrl(card.imageKey)!}
+                                        src={buildImageUrl(card.imageKey, storageBaseUrl)!}
                                         alt={card.chineseName}
                                         fill
                                         className="object-cover"

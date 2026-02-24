@@ -229,9 +229,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>10.4.1</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5432/youthloop?currentSchema=social,shared</url>
-                    <user>social_migrator</user>
-                    <password>postgres</password>
+                    <url>${env.FLYWAY_URL}</url>
+                    <user>${env.FLYWAY_USER}</user>
+                    <password>${env.FLYWAY_PASSWORD}</password>
                     <schemas>
                         <schema>shared</schema>
                         <schema>social</schema>

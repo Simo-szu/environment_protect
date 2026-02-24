@@ -295,21 +295,21 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       )}
 
       {ending && (
-        <div className="fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-2xl bg-white rounded-xl border overflow-hidden">
-            {ending.imageKey && (
-              <img src={resolveImageUrl(ending.imageKey)} alt={ending.endingName} className="w-full h-72 object-cover" />
-            )}
-            <div className="p-5 space-y-2">
-              <div className="text-xl font-semibold">{ending.endingName}</div>
-              <div className="text-sm text-slate-600">{ending.reason}</div>
-              <div className="text-xs text-slate-500">Reached at turn: {ending.turn}</div>
-              <div className="text-xs text-slate-500">
-                Auto open archive in {endingCountdown}s
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl text-slate-900 dark:text-slate-100">
+            <div className="p-5 md:p-6 space-y-4">
+              <div className="space-y-1">
+                <div className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100">{ending.endingName}</div>
+                <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">{ending.reason}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Reached at turn: {ending.turn}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Auto open archive in {endingCountdown}s
+                </div>
               </div>
-              <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3">
-                <div className="font-semibold text-sm mb-2">Replay Summary</div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-700">
+
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-4">
+                <div className="font-semibold text-sm mb-3 text-slate-900 dark:text-slate-100">Replay Summary</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200">
                   <div>Placed Core Cards: {placedCore.length}</div>
                   <div>Policies Used: {policyHistory.length}</div>
                   <div>Unique Policies Used: {uniquePoliciesUsed}</div>
@@ -327,10 +327,38 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   <div>Resolve Rate: {Number(eventStats.resolveRate ?? 0).toFixed(1)}%</div>
                 </div>
               </div>
-              <div className="pt-2 flex gap-2">
+
+              {ending.imageKey && (
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                    Final Board Snapshot
+                  </div>
+                  <img
+                    src={resolveImageUrl(ending.imageKey)}
+                    alt={ending.endingName}
+                    className="w-full max-h-[320px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                    onError={(event) => {
+                      const target = event.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
+                      if (fallback instanceof HTMLElement) {
+                        fallback.style.display = 'flex';
+                      }
+                    }}
+                  />
+                  <div
+                    data-ending-image-fallback
+                    className="hidden w-full min-h-[140px] items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-sm text-slate-500 dark:text-slate-400 bg-white/70 dark:bg-slate-900/40"
+                  >
+                    Ending image not found in storage
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-1 flex flex-wrap gap-2">
                 <button
                   onClick={handleOpenArchive}
-                  className="px-3 py-1.5 rounded border border-slate-300 text-sm"
+                  className="px-3 py-1.5 rounded border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Skip
                 </button>
@@ -338,7 +366,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   onClick={() => {
                     void handleRestartSession();
                   }}
-                  className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm"
+                  className="px-3 py-1.5 rounded bg-slate-900 dark:bg-emerald-600 text-white text-sm hover:bg-slate-800 dark:hover:bg-emerald-500"
                 >
                   Restart
                 </button>
@@ -346,7 +374,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   onClick={() => {
                     void handleExitSession();
                   }}
-                  className="px-3 py-1.5 rounded border border-slate-300 text-sm"
+                  className="px-3 py-1.5 rounded border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   Back to Game Home
                 </button>

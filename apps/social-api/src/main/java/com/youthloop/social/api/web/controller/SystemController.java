@@ -21,12 +21,35 @@ public class SystemController {
     @Value("${google.client-id}")
     private String googleClientId;
 
+    @Value("${minio.public-base-url}")
+    private String minioPublicBaseUrl;
+
     @Operation(summary = "获取公开配置", description = "获取前端需要的公开配置")
     @GetMapping("/config")
     @ApiResponseContract(ApiEndpointKind.DETAIL)
     public ApiSpecResponse<Map<String, Object>> getConfig() {
         Map<String, Object> config = new HashMap<>();
         config.put("googleClientId", googleClientId);
+        String storageBaseUrl = resolveStorageBaseUrl();
+        if (!storageBaseUrl.isBlank()) {
+            config.put("storageBaseUrl", storageBaseUrl);
+        }
         return ApiSpecResponse.ok(config);
+    }
+
+    private String resolveStorageBaseUrl() {
+        String value = trimTrailingSlash(minioPublicBaseUrl);
+        if (value.isBlank()) {
+            throw new IllegalStateException("minio.public-base-url must not be blank");
+        }
+        return value;
+    }
+
+    private String trimTrailingSlash(String value) {
+        String text = value == null ? "" : value.trim();
+        while (text.endsWith("/")) {
+            text = text.substring(0, text.length() - 1);
+        }
+        return text;
     }
 }

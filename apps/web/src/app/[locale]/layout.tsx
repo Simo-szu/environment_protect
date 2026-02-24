@@ -44,11 +44,9 @@ export default async function LocaleLayout({
         messages = {};
     }
 
-    const fallbackGoogleClientId =
-        '717732984928-dvcgf1jrukvjnchu33htvog8lnpb2lm5.apps.googleusercontent.com';
-    let googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || fallbackGoogleClientId;
+    let googleClientId = '';
 
-    const configData = await getPublicSystemConfigServer('http://localhost:8080');
+    const configData = await getPublicSystemConfigServer(process.env.SOCIAL_API_ORIGIN);
     if (configData?.googleClientId) {
         googleClientId = configData.googleClientId;
     }
@@ -75,4 +73,3 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
     );
 }
-

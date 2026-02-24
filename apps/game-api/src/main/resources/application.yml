@@ -33,7 +33,7 @@ minio:
   access-key: ${MINIO_ACCESS_KEY}
   secret-key: ${MINIO_SECRET_KEY}
   bucket-name: ${MINIO_BUCKET_NAME}
-  public-base-url: ${MINIO_PUBLIC_BASE_URL:}
+  public-base-url: ${MINIO_PUBLIC_BASE_URL}
 
 management:
   endpoints:
@@ -43,8 +43,6 @@ management:
   endpoint:
     health:
       show-details: when-authorized
-  server:
-    port: ${MANAGEMENT_SERVER_PORT:${server.port}}
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml

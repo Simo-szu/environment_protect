@@ -2,6 +2,7 @@ import { apiGet } from '../api-client';
 
 export interface PublicSystemConfig {
   googleClientId?: string;
+  storageBaseUrl?: string;
 }
 
 export async function getPublicSystemConfig(): Promise<PublicSystemConfig> {
@@ -9,10 +10,14 @@ export async function getPublicSystemConfig(): Promise<PublicSystemConfig> {
 }
 
 export async function getPublicSystemConfigServer(
-  baseUrl: string = 'http://localhost:8080'
+  baseUrl?: string
 ): Promise<PublicSystemConfig | null> {
+  const targetBaseUrl = (baseUrl ?? '').trim().replace(/\/+$/, '');
+  if (!targetBaseUrl) {
+    return null;
+  }
   try {
-    const response = await fetch(`${baseUrl}/api/v1/system/config`, {
+    const response = await fetch(`${targetBaseUrl}/api/v1/system/config`, {
       next: { revalidate: 3600 },
       signal: AbortSignal.timeout(2000),
     });
@@ -24,4 +29,3 @@ export async function getPublicSystemConfigServer(
     return null;
   }
 }
-

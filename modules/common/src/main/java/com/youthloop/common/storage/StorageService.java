@@ -26,10 +26,7 @@ public class StorageService {
     @Value("${minio.bucket-name}")
     private String bucketName;
     
-    @Value("${minio.endpoint}")
-    private String endpoint;
-
-    @Value("${minio.public-base-url:}")
+    @Value("${minio.public-base-url}")
     private String publicBaseUrl;
     
     /**
@@ -80,10 +77,11 @@ public class StorageService {
     }
 
     private String buildPublicFileUrl(String objectName) {
-        if (isNotBlank(publicBaseUrl)) {
-            return joinUrl(publicBaseUrl, objectName);
+        String baseUrl = trimTrailingSlash(publicBaseUrl);
+        if (baseUrl.isEmpty()) {
+            throw new IllegalStateException("minio.public-base-url must not be blank");
         }
-        return joinUrl(joinUrl(endpoint, bucketName), objectName);
+        return joinUrl(baseUrl, objectName);
     }
 
     private String joinUrl(String base, String path) {
@@ -108,10 +106,6 @@ public class StorageService {
         return trimmed;
     }
 
-    private boolean isNotBlank(String value) {
-        return value != null && !value.trim().isEmpty();
-    }
-    
     /**
      * 预签名结果
      */
