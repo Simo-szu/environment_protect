@@ -23,6 +23,8 @@ export interface GameCardUpgradeRequirement {
   costTech?: number;
   costPopulation?: number;
   costGreen?: number;
+  ruleJson?: Record<string, unknown>;
+  costJson?: Record<string, unknown>;
   configSnapshot?: Record<string, unknown>;
 }
 
@@ -65,6 +67,22 @@ export interface GameCardMeta {
   policyContinuousPopulationPct?: number;
   policyContinuousIndustryPct?: number;
   policyContinuousIndustryCarbonReductionPct?: number;
+  policyImmediateEffect?: Record<string, unknown>;
+  policyContinuousEffect?: Record<string, unknown>;
+  policyImmediateExt?: Record<string, unknown>;
+  policyContinuousExt?: Record<string, unknown>;
+  coreImmediateIndustryDelta?: number;
+  coreImmediateTechDelta?: number;
+  coreImmediatePopulationDelta?: number;
+  coreImmediateGreenDelta?: number;
+  coreImmediateCarbonDelta?: number;
+  coreImmediateSatisfactionDelta?: number;
+  coreImmediateQuotaDelta?: number;
+  coreImmediateComboPct?: number;
+  coreImmediateIndustryCarbonDelta?: number;
+  coreImmediateIndustryCarbonReductionPct?: number;
+  coreImmediateEffect?: Record<string, unknown>;
+  coreImmediateExt?: Record<string, unknown>;
   coreDomainProgressBonus?: number;
   coreContinuousQuotaDelta?: number;
   coreContinuousLowCarbonDelta?: number;
@@ -78,21 +96,41 @@ export interface GameCardMeta {
   coreContinuousCarbonDeltaReductionPct?: number;
   coreContinuousTradePricePct?: number;
   coreContinuousComboPct?: number;
+  coreContinuousSciencePct?: number;
+  coreContinuousSharedMobilityPct?: number;
+  coreContinuousCrossDomainCarbonDelta?: number;
+  coreContinuousCrossDomainComboPct?: number;
+  coreContinuousIndustryCarbonOffset?: number;
+  coreContinuousEffect?: Record<string, unknown>;
+  coreContinuousExt?: Record<string, unknown>;
   coreConditionMinTurn?: number;
   coreConditionMinIndustryResource?: number;
   coreConditionMinTechResource?: number;
+  coreConditionMinCarbon?: number;
   coreConditionMaxCarbon?: number;
   coreConditionMinIndustryCards?: number;
+  coreConditionMinEcologyCards?: number;
+  coreConditionMinScienceCards?: number;
+  coreConditionMinSocietyCards?: number;
   coreConditionMinIndustryProgressPct?: number;
   coreConditionMinGreen?: number;
+  coreConditionMinPopulation?: number;
+  coreConditionMinSatisfaction?: number;
   coreConditionMinSocietyProgressPct?: number;
   coreConditionMinTaggedCards?: number;
   coreConditionRequiredTag?: string;
+  coreConditionEffect?: Record<string, unknown>;
+  coreConditionExt?: Record<string, unknown>;
   coreSpecialEcologyCardCostReductionPct?: number;
   coreSpecialScienceCardCostReductionPct?: number;
   coreSpecialFloodResistancePct?: number;
   coreSpecialNewEnergyIndustryPct?: number;
   coreSpecialEcologyCarbonSinkPerTenGreen?: number;
+  coreSpecialEcologyCarbonSinkBaseGreen?: number;
+  coreSpecialEcologyCarbonSinkPct?: number;
+  coreSpecialUpgradeCostReductionPct?: number;
+  coreSpecialEffect?: Record<string, unknown>;
+  coreSpecialExt?: Record<string, unknown>;
   upgradeDeltaIndustry?: number;
   upgradeDeltaTech?: number;
   upgradeDeltaPopulation?: number;
@@ -119,6 +157,7 @@ export interface GameCardMeta {
   upgradeDeltaTradUpgradePct?: number;
   upgradeDeltaUpgradeCostPct?: number;
   upgradeEffect?: Record<string, unknown>;
+  upgradeExt?: Record<string, unknown>;
   upgradeRequirement?: GameCardUpgradeRequirement;
 }
 

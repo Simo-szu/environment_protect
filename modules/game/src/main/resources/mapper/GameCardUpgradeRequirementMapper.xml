@@ -14,6 +14,8 @@
         <result column="cost_tech" property="costTech" jdbcType="INTEGER"/>
         <result column="cost_population" property="costPopulation" jdbcType="INTEGER"/>
         <result column="cost_green" property="costGreen" jdbcType="INTEGER"/>
+        <result column="rule_json" property="ruleJson" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="cost_json" property="costJson" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="config_snapshot" property="configSnapshot" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     </resultMap>
@@ -21,21 +23,23 @@
     <select id="selectAllEnabled" resultMap="BaseResultMap">
         SELECT card_id, from_star, to_star,
                req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
-               cost_industry, cost_tech, cost_population, cost_green,
+               cost_industry, cost_tech, cost_population, cost_green, rule_json, cost_json,
                config_snapshot, is_enabled
         FROM game.game_card_upgrade_requirement
         WHERE is_enabled = TRUE
-        ORDER BY card_id ASC
+        ORDER BY card_id ASC, from_star ASC, to_star ASC
     </select>
 
     <select id="selectEnabledByCardId" resultMap="BaseResultMap">
         SELECT card_id, from_star, to_star,
                req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
-               cost_industry, cost_tech, cost_population, cost_green,
+               cost_industry, cost_tech, cost_population, cost_green, rule_json, cost_json,
                config_snapshot, is_enabled
         FROM game.game_card_upgrade_requirement
         WHERE card_id = #{cardId, jdbcType=VARCHAR}
           AND is_enabled = TRUE
+        ORDER BY to_star DESC, from_star DESC
+        LIMIT 1
     </select>
 
     <insert id="upsert">
@@ -43,7 +47,7 @@
             card_id, from_star, to_star,
             req_domain_1, req_domain_1_min_pct, req_domain_2, req_domain_2_min_pct,
             cost_industry, cost_tech, cost_population, cost_green,
-            config_snapshot, is_enabled
+            rule_json, cost_json, config_snapshot, is_enabled
         ) VALUES (
             #{cardId, jdbcType=VARCHAR},
             #{fromStar, jdbcType=INTEGER},
@@ -56,10 +60,12 @@
             #{costTech, jdbcType=INTEGER},
             #{costPopulation, jdbcType=INTEGER},
             #{costGreen, jdbcType=INTEGER},
+            #{ruleJson, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{costJson, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{configSnapshot, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{isEnabled, jdbcType=BOOLEAN}
         )
-        ON CONFLICT (card_id) DO UPDATE SET
+        ON CONFLICT (card_id, from_star, to_star) DO UPDATE SET
             from_star = EXCLUDED.from_star,
             to_star = EXCLUDED.to_star,
             req_domain_1 = EXCLUDED.req_domain_1,
@@ -70,6 +76,8 @@
             cost_tech = EXCLUDED.cost_tech,
             cost_population = EXCLUDED.cost_population,
             cost_green = EXCLUDED.cost_green,
+            rule_json = EXCLUDED.rule_json,
+            cost_json = EXCLUDED.cost_json,
             config_snapshot = EXCLUDED.config_snapshot,
             is_enabled = EXCLUDED.is_enabled,
             updated_at = now()

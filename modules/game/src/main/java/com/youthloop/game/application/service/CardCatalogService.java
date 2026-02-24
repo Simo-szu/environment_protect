@@ -42,7 +42,11 @@ public class CardCatalogService {
             List<GameCardEntity> dbCards = gameCardMapper.selectAllEnabled();
             Map<String, GameCardUpgradeRequirementEntity> requirementMap = gameCardUpgradeRequirementMapper.selectAllEnabled()
                 .stream()
-                .collect(Collectors.toMap(GameCardUpgradeRequirementEntity::getCardId, value -> value, (a, b) -> a));
+                .collect(Collectors.toMap(
+                    GameCardUpgradeRequirementEntity::getCardId,
+                    value -> value,
+                    (a, b) -> compareUpgradePriority(a, b) >= 0 ? a : b
+                ));
             List<GameCardMetaDTO> loaded = new ArrayList<>(dbCards.stream()
                 .map(card -> toDTO(card, requirementMap.get(card.getCardId())))
                 .toList());
@@ -83,6 +87,17 @@ public class CardCatalogService {
 
     public List<String> listCoreCardsByPhase(String phaseBucket) {
         return gameCardMapper.selectCoreCardIdsByPhase(phaseBucket);
+    }
+
+    private int compareUpgradePriority(GameCardUpgradeRequirementEntity left, GameCardUpgradeRequirementEntity right) {
+        int leftTo = left.getToStar() == null ? 0 : left.getToStar();
+        int rightTo = right.getToStar() == null ? 0 : right.getToStar();
+        if (leftTo != rightTo) {
+            return Integer.compare(leftTo, rightTo);
+        }
+        int leftFrom = left.getFromStar() == null ? 0 : left.getFromStar();
+        int rightFrom = right.getFromStar() == null ? 0 : right.getFromStar();
+        return Integer.compare(leftFrom, rightFrom);
     }
 
     private GameCardMetaDTO toDTO(GameCardEntity entity, GameCardUpgradeRequirementEntity requirement) {
@@ -126,6 +141,22 @@ public class CardCatalogService {
             .policyContinuousPopulationPct(entity.getPolicyContinuousPopulationPct())
             .policyContinuousIndustryPct(entity.getPolicyContinuousIndustryPct())
             .policyContinuousIndustryCarbonReductionPct(entity.getPolicyContinuousIndustryCarbonReductionPct())
+            .policyImmediateEffect(entity.getPolicyImmediateEffect())
+            .policyContinuousEffect(entity.getPolicyContinuousEffect())
+            .policyImmediateExt(entity.getPolicyImmediateExt())
+            .policyContinuousExt(entity.getPolicyContinuousExt())
+            .coreImmediateIndustryDelta(entity.getCoreImmediateIndustryDelta())
+            .coreImmediateTechDelta(entity.getCoreImmediateTechDelta())
+            .coreImmediatePopulationDelta(entity.getCoreImmediatePopulationDelta())
+            .coreImmediateGreenDelta(entity.getCoreImmediateGreenDelta())
+            .coreImmediateCarbonDelta(entity.getCoreImmediateCarbonDelta())
+            .coreImmediateSatisfactionDelta(entity.getCoreImmediateSatisfactionDelta())
+            .coreImmediateQuotaDelta(entity.getCoreImmediateQuotaDelta())
+            .coreImmediateComboPct(entity.getCoreImmediateComboPct())
+            .coreImmediateIndustryCarbonDelta(entity.getCoreImmediateIndustryCarbonDelta())
+            .coreImmediateIndustryCarbonReductionPct(entity.getCoreImmediateIndustryCarbonReductionPct())
+            .coreImmediateEffect(entity.getCoreImmediateEffect())
+            .coreImmediateExt(entity.getCoreImmediateExt())
             .coreDomainProgressBonus(entity.getCoreDomainProgressBonus())
             .coreContinuousIndustryDelta(entity.getCoreContinuousIndustryDelta())
             .coreContinuousTechDelta(entity.getCoreContinuousTechDelta())
@@ -145,21 +176,41 @@ public class CardCatalogService {
             .coreContinuousCarbonDeltaReductionPct(entity.getCoreContinuousCarbonDeltaReductionPct())
             .coreContinuousTradePricePct(entity.getCoreContinuousTradePricePct())
             .coreContinuousComboPct(entity.getCoreContinuousComboPct())
+            .coreContinuousSciencePct(entity.getCoreContinuousSciencePct())
+            .coreContinuousSharedMobilityPct(entity.getCoreContinuousSharedMobilityPct())
+            .coreContinuousCrossDomainCarbonDelta(entity.getCoreContinuousCrossDomainCarbonDelta())
+            .coreContinuousCrossDomainComboPct(entity.getCoreContinuousCrossDomainComboPct())
+            .coreContinuousIndustryCarbonOffset(entity.getCoreContinuousIndustryCarbonOffset())
+            .coreContinuousEffect(entity.getCoreContinuousEffect())
+            .coreContinuousExt(entity.getCoreContinuousExt())
             .coreConditionMinTurn(entity.getCoreConditionMinTurn())
             .coreConditionMinIndustryResource(entity.getCoreConditionMinIndustryResource())
             .coreConditionMinTechResource(entity.getCoreConditionMinTechResource())
+            .coreConditionMinCarbon(entity.getCoreConditionMinCarbon())
             .coreConditionMaxCarbon(entity.getCoreConditionMaxCarbon())
             .coreConditionMinIndustryCards(entity.getCoreConditionMinIndustryCards())
+            .coreConditionMinEcologyCards(entity.getCoreConditionMinEcologyCards())
+            .coreConditionMinScienceCards(entity.getCoreConditionMinScienceCards())
+            .coreConditionMinSocietyCards(entity.getCoreConditionMinSocietyCards())
             .coreConditionMinIndustryProgressPct(entity.getCoreConditionMinIndustryProgressPct())
             .coreConditionMinGreen(entity.getCoreConditionMinGreen())
+            .coreConditionMinPopulation(entity.getCoreConditionMinPopulation())
+            .coreConditionMinSatisfaction(entity.getCoreConditionMinSatisfaction())
             .coreConditionMinSocietyProgressPct(entity.getCoreConditionMinSocietyProgressPct())
             .coreConditionMinTaggedCards(entity.getCoreConditionMinTaggedCards())
             .coreConditionRequiredTag(entity.getCoreConditionRequiredTag())
+            .coreConditionEffect(entity.getCoreConditionEffect())
+            .coreConditionExt(entity.getCoreConditionExt())
             .coreSpecialEcologyCardCostReductionPct(entity.getCoreSpecialEcologyCardCostReductionPct())
             .coreSpecialScienceCardCostReductionPct(entity.getCoreSpecialScienceCardCostReductionPct())
             .coreSpecialFloodResistancePct(entity.getCoreSpecialFloodResistancePct())
             .coreSpecialNewEnergyIndustryPct(entity.getCoreSpecialNewEnergyIndustryPct())
             .coreSpecialEcologyCarbonSinkPerTenGreen(entity.getCoreSpecialEcologyCarbonSinkPerTenGreen())
+            .coreSpecialEcologyCarbonSinkBaseGreen(entity.getCoreSpecialEcologyCarbonSinkBaseGreen())
+            .coreSpecialEcologyCarbonSinkPct(entity.getCoreSpecialEcologyCarbonSinkPct())
+            .coreSpecialUpgradeCostReductionPct(entity.getCoreSpecialUpgradeCostReductionPct())
+            .coreSpecialEffect(entity.getCoreSpecialEffect())
+            .coreSpecialExt(entity.getCoreSpecialExt())
             .upgradeDeltaIndustry(entity.getUpgradeDeltaIndustry())
             .upgradeDeltaTech(entity.getUpgradeDeltaTech())
             .upgradeDeltaPopulation(entity.getUpgradeDeltaPopulation())
@@ -186,6 +237,7 @@ public class CardCatalogService {
             .upgradeDeltaTradUpgradePct(entity.getUpgradeDeltaTradUpgradePct())
             .upgradeDeltaUpgradeCostPct(entity.getUpgradeDeltaUpgradeCostPct())
             .upgradeEffect(entity.getUpgradeEffect())
+            .upgradeExt(entity.getUpgradeExt())
             .upgradeRequirement(
                 requirement == null ? null : GameCardMetaDTO.UpgradeRequirement.builder()
                     .fromStar(requirement.getFromStar())
@@ -198,6 +250,8 @@ public class CardCatalogService {
                     .costTech(requirement.getCostTech())
                     .costPopulation(requirement.getCostPopulation())
                     .costGreen(requirement.getCostGreen())
+                    .ruleJson(requirement.getRuleJson())
+                    .costJson(requirement.getCostJson())
                     .configSnapshot(requirement.getConfigSnapshot())
                     .build()
             )

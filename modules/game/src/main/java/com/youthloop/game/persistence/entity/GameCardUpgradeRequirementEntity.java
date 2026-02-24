@@ -19,6 +19,8 @@ public class GameCardUpgradeRequirementEntity {
     private Integer costTech;
     private Integer costPopulation;
     private Integer costGreen;
+    private JsonNode ruleJson;
+    private JsonNode costJson;
     private JsonNode configSnapshot;
     private Boolean isEnabled;
 }

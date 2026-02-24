@@ -1,7 +1,7 @@
 -- ============================================================================
--- YouthLoop Game Schema Migration V006
+-- YouthLoop Game Schema Migration V004
 -- Schema: game
--- Purpose: Add event and combo rule config tables
+-- Purpose: Rebuilt history - initialize rule/config tables (event/combo/tag/policy/runtime/balance/ending)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS game.game_event_rule_config (

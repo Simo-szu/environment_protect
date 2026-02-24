@@ -38,6 +38,22 @@
         <result column="policy_continuous_population_pct" property="policyContinuousPopulationPct" jdbcType="INTEGER"/>
         <result column="policy_continuous_industry_pct" property="policyContinuousIndustryPct" jdbcType="INTEGER"/>
         <result column="policy_continuous_industry_carbon_reduction_pct" property="policyContinuousIndustryCarbonReductionPct" jdbcType="INTEGER"/>
+        <result column="policy_immediate_effect" property="policyImmediateEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="policy_continuous_effect" property="policyContinuousEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="policy_immediate_ext" property="policyImmediateExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="policy_continuous_ext" property="policyContinuousExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="core_immediate_industry_delta" property="coreImmediateIndustryDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_tech_delta" property="coreImmediateTechDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_population_delta" property="coreImmediatePopulationDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_green_delta" property="coreImmediateGreenDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_carbon_delta" property="coreImmediateCarbonDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_satisfaction_delta" property="coreImmediateSatisfactionDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_quota_delta" property="coreImmediateQuotaDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_combo_pct" property="coreImmediateComboPct" jdbcType="INTEGER"/>
+        <result column="core_immediate_industry_carbon_delta" property="coreImmediateIndustryCarbonDelta" jdbcType="INTEGER"/>
+        <result column="core_immediate_industry_carbon_reduction_pct" property="coreImmediateIndustryCarbonReductionPct" jdbcType="INTEGER"/>
+        <result column="core_immediate_effect" property="coreImmediateEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="core_immediate_ext" property="coreImmediateExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="core_domain_progress_bonus" property="coreDomainProgressBonus" jdbcType="INTEGER"/>
         <result column="core_continuous_industry_delta" property="coreContinuousIndustryDelta" jdbcType="INTEGER"/>
         <result column="core_continuous_tech_delta" property="coreContinuousTechDelta" jdbcType="INTEGER"/>
@@ -57,21 +73,41 @@
         <result column="core_continuous_carbon_delta_reduction_pct" property="coreContinuousCarbonDeltaReductionPct" jdbcType="INTEGER"/>
         <result column="core_continuous_trade_price_pct" property="coreContinuousTradePricePct" jdbcType="INTEGER"/>
         <result column="core_continuous_combo_pct" property="coreContinuousComboPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_science_pct" property="coreContinuousSciencePct" jdbcType="INTEGER"/>
+        <result column="core_continuous_shared_mobility_pct" property="coreContinuousSharedMobilityPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_cross_domain_carbon_delta" property="coreContinuousCrossDomainCarbonDelta" jdbcType="INTEGER"/>
+        <result column="core_continuous_cross_domain_combo_pct" property="coreContinuousCrossDomainComboPct" jdbcType="INTEGER"/>
+        <result column="core_continuous_industry_carbon_offset" property="coreContinuousIndustryCarbonOffset" jdbcType="INTEGER"/>
+        <result column="core_continuous_effect" property="coreContinuousEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="core_continuous_ext" property="coreContinuousExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="core_condition_min_turn" property="coreConditionMinTurn" jdbcType="INTEGER"/>
         <result column="core_condition_min_industry_resource" property="coreConditionMinIndustryResource" jdbcType="INTEGER"/>
         <result column="core_condition_min_tech_resource" property="coreConditionMinTechResource" jdbcType="INTEGER"/>
+        <result column="core_condition_min_carbon" property="coreConditionMinCarbon" jdbcType="INTEGER"/>
         <result column="core_condition_max_carbon" property="coreConditionMaxCarbon" jdbcType="INTEGER"/>
         <result column="core_condition_min_industry_cards" property="coreConditionMinIndustryCards" jdbcType="INTEGER"/>
+        <result column="core_condition_min_ecology_cards" property="coreConditionMinEcologyCards" jdbcType="INTEGER"/>
+        <result column="core_condition_min_science_cards" property="coreConditionMinScienceCards" jdbcType="INTEGER"/>
+        <result column="core_condition_min_society_cards" property="coreConditionMinSocietyCards" jdbcType="INTEGER"/>
         <result column="core_condition_min_industry_progress_pct" property="coreConditionMinIndustryProgressPct" jdbcType="INTEGER"/>
         <result column="core_condition_min_green" property="coreConditionMinGreen" jdbcType="INTEGER"/>
+        <result column="core_condition_min_population" property="coreConditionMinPopulation" jdbcType="INTEGER"/>
+        <result column="core_condition_min_satisfaction" property="coreConditionMinSatisfaction" jdbcType="INTEGER"/>
         <result column="core_condition_min_society_progress_pct" property="coreConditionMinSocietyProgressPct" jdbcType="INTEGER"/>
         <result column="core_condition_min_tagged_cards" property="coreConditionMinTaggedCards" jdbcType="INTEGER"/>
         <result column="core_condition_required_tag" property="coreConditionRequiredTag" jdbcType="VARCHAR"/>
+        <result column="core_condition_effect" property="coreConditionEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="core_condition_ext" property="coreConditionExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="core_special_ecology_card_cost_reduction_pct" property="coreSpecialEcologyCardCostReductionPct" jdbcType="INTEGER"/>
         <result column="core_special_science_card_cost_reduction_pct" property="coreSpecialScienceCardCostReductionPct" jdbcType="INTEGER"/>
         <result column="core_special_flood_resistance_pct" property="coreSpecialFloodResistancePct" jdbcType="INTEGER"/>
         <result column="core_special_new_energy_industry_pct" property="coreSpecialNewEnergyIndustryPct" jdbcType="INTEGER"/>
         <result column="core_special_ecology_carbon_sink_per_ten_green" property="coreSpecialEcologyCarbonSinkPerTenGreen" jdbcType="INTEGER"/>
+        <result column="core_special_ecology_carbon_sink_base_green" property="coreSpecialEcologyCarbonSinkBaseGreen" jdbcType="INTEGER"/>
+        <result column="core_special_ecology_carbon_sink_pct" property="coreSpecialEcologyCarbonSinkPct" jdbcType="INTEGER"/>
+        <result column="core_special_upgrade_cost_reduction_pct" property="coreSpecialUpgradeCostReductionPct" jdbcType="INTEGER"/>
+        <result column="core_special_effect" property="coreSpecialEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="core_special_ext" property="coreSpecialExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="upgrade_delta_industry" property="upgradeDeltaIndustry" jdbcType="INTEGER"/>
         <result column="upgrade_delta_tech" property="upgradeDeltaTech" jdbcType="INTEGER"/>
         <result column="upgrade_delta_population" property="upgradeDeltaPopulation" jdbcType="INTEGER"/>
@@ -98,6 +134,7 @@
         <result column="upgrade_delta_trad_upgrade_pct" property="upgradeDeltaTradUpgradePct" jdbcType="INTEGER"/>
         <result column="upgrade_delta_upgrade_cost_pct" property="upgradeDeltaUpgradeCostPct" jdbcType="INTEGER"/>
         <result column="upgrade_effect" property="upgradeEffect" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
+        <result column="upgrade_ext" property="upgradeExt" jdbcType="OTHER" typeHandler="com.youthloop.common.mybatis.JsonNodeTypeHandler"/>
         <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
     </resultMap>
 
@@ -150,6 +187,11 @@
             policy_continuous_low_carbon_delta, policy_continuous_green_pct, policy_continuous_tech_pct,
             policy_continuous_population_pct, policy_continuous_industry_pct,
             policy_continuous_industry_carbon_reduction_pct,
+            policy_immediate_ext, policy_continuous_ext,
+            core_immediate_industry_delta, core_immediate_tech_delta, core_immediate_population_delta,
+            core_immediate_green_delta, core_immediate_carbon_delta, core_immediate_satisfaction_delta,
+            core_immediate_quota_delta, core_immediate_combo_pct, core_immediate_industry_carbon_delta,
+            core_immediate_industry_carbon_reduction_pct, core_immediate_ext,
             core_domain_progress_bonus,
             core_continuous_industry_delta, core_continuous_tech_delta, core_continuous_population_delta,
             core_continuous_green_delta, core_continuous_carbon_delta, core_continuous_satisfaction_delta,
@@ -158,13 +200,19 @@
             core_continuous_global_pct, core_continuous_low_carbon_pct,
             core_continuous_industry_carbon_reduction_pct, core_continuous_carbon_delta_reduction_pct,
             core_continuous_trade_price_pct, core_continuous_combo_pct,
+            core_continuous_science_pct, core_continuous_shared_mobility_pct,
+            core_continuous_cross_domain_carbon_delta, core_continuous_cross_domain_combo_pct,
+            core_continuous_industry_carbon_offset, core_continuous_ext,
             core_condition_min_turn, core_condition_min_industry_resource, core_condition_min_tech_resource,
-            core_condition_max_carbon, core_condition_min_industry_cards, core_condition_min_industry_progress_pct,
-            core_condition_min_green, core_condition_min_society_progress_pct,
-            core_condition_min_tagged_cards, core_condition_required_tag,
+            core_condition_min_carbon, core_condition_max_carbon, core_condition_min_industry_cards,
+            core_condition_min_ecology_cards, core_condition_min_science_cards, core_condition_min_society_cards,
+            core_condition_min_industry_progress_pct, core_condition_min_green, core_condition_min_population,
+            core_condition_min_satisfaction, core_condition_min_society_progress_pct,
+            core_condition_min_tagged_cards, core_condition_required_tag, core_condition_ext,
             core_special_ecology_card_cost_reduction_pct, core_special_science_card_cost_reduction_pct,
             core_special_flood_resistance_pct, core_special_new_energy_industry_pct,
-            core_special_ecology_carbon_sink_per_ten_green,
+            core_special_ecology_carbon_sink_per_ten_green, core_special_ecology_carbon_sink_base_green,
+            core_special_ecology_carbon_sink_pct, core_special_upgrade_cost_reduction_pct, core_special_ext,
             upgrade_delta_industry, upgrade_delta_tech, upgrade_delta_population, upgrade_delta_green,
             upgrade_delta_carbon, upgrade_delta_satisfaction, upgrade_delta_quota, upgrade_delta_low_carbon,
             upgrade_delta_sector_progress_pct, upgrade_delta_industry_pct, upgrade_delta_green_pct,
@@ -172,7 +220,7 @@
             upgrade_delta_carbon_delta_reduction_pct, upgrade_delta_trade_price_pct, upgrade_delta_combo_pct,
             upgrade_delta_shared_mobility_pct, upgrade_delta_ecology_card_cost_pct, upgrade_delta_science_card_cost_pct,
             upgrade_delta_flood_resistance_pct, upgrade_delta_new_energy_pct, upgrade_delta_ecology_sink,
-            upgrade_delta_trad_upgrade_pct, upgrade_delta_upgrade_cost_pct,
+            upgrade_delta_trad_upgrade_pct, upgrade_delta_upgrade_cost_pct, upgrade_ext,
             is_enabled
         )
         VALUES (
@@ -211,6 +259,19 @@
             #{policyContinuousPopulationPct, jdbcType=INTEGER},
             #{policyContinuousIndustryPct, jdbcType=INTEGER},
             #{policyContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            #{policyImmediateExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{policyContinuousExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            #{coreImmediateIndustryDelta, jdbcType=INTEGER},
+            #{coreImmediateTechDelta, jdbcType=INTEGER},
+            #{coreImmediatePopulationDelta, jdbcType=INTEGER},
+            #{coreImmediateGreenDelta, jdbcType=INTEGER},
+            #{coreImmediateCarbonDelta, jdbcType=INTEGER},
+            #{coreImmediateSatisfactionDelta, jdbcType=INTEGER},
+            #{coreImmediateQuotaDelta, jdbcType=INTEGER},
+            #{coreImmediateComboPct, jdbcType=INTEGER},
+            #{coreImmediateIndustryCarbonDelta, jdbcType=INTEGER},
+            #{coreImmediateIndustryCarbonReductionPct, jdbcType=INTEGER},
+            #{coreImmediateExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{coreDomainProgressBonus, jdbcType=INTEGER},
             #{coreContinuousIndustryDelta, jdbcType=INTEGER},
             #{coreContinuousTechDelta, jdbcType=INTEGER},
@@ -230,21 +291,38 @@
             #{coreContinuousCarbonDeltaReductionPct, jdbcType=INTEGER},
             #{coreContinuousTradePricePct, jdbcType=INTEGER},
             #{coreContinuousComboPct, jdbcType=INTEGER},
+            #{coreContinuousSciencePct, jdbcType=INTEGER},
+            #{coreContinuousSharedMobilityPct, jdbcType=INTEGER},
+            #{coreContinuousCrossDomainCarbonDelta, jdbcType=INTEGER},
+            #{coreContinuousCrossDomainComboPct, jdbcType=INTEGER},
+            #{coreContinuousIndustryCarbonOffset, jdbcType=INTEGER},
+            #{coreContinuousExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{coreConditionMinTurn, jdbcType=INTEGER},
             #{coreConditionMinIndustryResource, jdbcType=INTEGER},
             #{coreConditionMinTechResource, jdbcType=INTEGER},
+            #{coreConditionMinCarbon, jdbcType=INTEGER},
             #{coreConditionMaxCarbon, jdbcType=INTEGER},
             #{coreConditionMinIndustryCards, jdbcType=INTEGER},
+            #{coreConditionMinEcologyCards, jdbcType=INTEGER},
+            #{coreConditionMinScienceCards, jdbcType=INTEGER},
+            #{coreConditionMinSocietyCards, jdbcType=INTEGER},
             #{coreConditionMinIndustryProgressPct, jdbcType=INTEGER},
             #{coreConditionMinGreen, jdbcType=INTEGER},
+            #{coreConditionMinPopulation, jdbcType=INTEGER},
+            #{coreConditionMinSatisfaction, jdbcType=INTEGER},
             #{coreConditionMinSocietyProgressPct, jdbcType=INTEGER},
             #{coreConditionMinTaggedCards, jdbcType=INTEGER},
             #{coreConditionRequiredTag, jdbcType=VARCHAR},
+            #{coreConditionExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{coreSpecialEcologyCardCostReductionPct, jdbcType=INTEGER},
             #{coreSpecialScienceCardCostReductionPct, jdbcType=INTEGER},
             #{coreSpecialFloodResistancePct, jdbcType=INTEGER},
             #{coreSpecialNewEnergyIndustryPct, jdbcType=INTEGER},
             #{coreSpecialEcologyCarbonSinkPerTenGreen, jdbcType=INTEGER},
+            #{coreSpecialEcologyCarbonSinkBaseGreen, jdbcType=INTEGER},
+            #{coreSpecialEcologyCarbonSinkPct, jdbcType=INTEGER},
+            #{coreSpecialUpgradeCostReductionPct, jdbcType=INTEGER},
+            #{coreSpecialExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{upgradeDeltaIndustry, jdbcType=INTEGER},
             #{upgradeDeltaTech, jdbcType=INTEGER},
             #{upgradeDeltaPopulation, jdbcType=INTEGER},
@@ -270,6 +348,7 @@
             #{upgradeDeltaEcologySink, jdbcType=INTEGER},
             #{upgradeDeltaTradUpgradePct, jdbcType=INTEGER},
             #{upgradeDeltaUpgradeCostPct, jdbcType=INTEGER},
+            #{upgradeExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             #{isEnabled, jdbcType=BOOLEAN}
         )
     </insert>
@@ -310,6 +389,19 @@
             policy_continuous_population_pct = #{policyContinuousPopulationPct, jdbcType=INTEGER},
             policy_continuous_industry_pct = #{policyContinuousIndustryPct, jdbcType=INTEGER},
             policy_continuous_industry_carbon_reduction_pct = #{policyContinuousIndustryCarbonReductionPct, jdbcType=INTEGER},
+            policy_immediate_ext = #{policyImmediateExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            policy_continuous_ext = #{policyContinuousExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
+            core_immediate_industry_delta = #{coreImmediateIndustryDelta, jdbcType=INTEGER},
+            core_immediate_tech_delta = #{coreImmediateTechDelta, jdbcType=INTEGER},
+            core_immediate_population_delta = #{coreImmediatePopulationDelta, jdbcType=INTEGER},
+            core_immediate_green_delta = #{coreImmediateGreenDelta, jdbcType=INTEGER},
+            core_immediate_carbon_delta = #{coreImmediateCarbonDelta, jdbcType=INTEGER},
+            core_immediate_satisfaction_delta = #{coreImmediateSatisfactionDelta, jdbcType=INTEGER},
+            core_immediate_quota_delta = #{coreImmediateQuotaDelta, jdbcType=INTEGER},
+            core_immediate_combo_pct = #{coreImmediateComboPct, jdbcType=INTEGER},
+            core_immediate_industry_carbon_delta = #{coreImmediateIndustryCarbonDelta, jdbcType=INTEGER},
+            core_immediate_industry_carbon_reduction_pct = #{coreImmediateIndustryCarbonReductionPct, jdbcType=INTEGER},
+            core_immediate_ext = #{coreImmediateExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             core_domain_progress_bonus = #{coreDomainProgressBonus, jdbcType=INTEGER},
             core_continuous_industry_delta = #{coreContinuousIndustryDelta, jdbcType=INTEGER},
             core_continuous_tech_delta = #{coreContinuousTechDelta, jdbcType=INTEGER},
@@ -329,21 +421,38 @@
             core_continuous_carbon_delta_reduction_pct = #{coreContinuousCarbonDeltaReductionPct, jdbcType=INTEGER},
             core_continuous_trade_price_pct = #{coreContinuousTradePricePct, jdbcType=INTEGER},
             core_continuous_combo_pct = #{coreContinuousComboPct, jdbcType=INTEGER},
+            core_continuous_science_pct = #{coreContinuousSciencePct, jdbcType=INTEGER},
+            core_continuous_shared_mobility_pct = #{coreContinuousSharedMobilityPct, jdbcType=INTEGER},
+            core_continuous_cross_domain_carbon_delta = #{coreContinuousCrossDomainCarbonDelta, jdbcType=INTEGER},
+            core_continuous_cross_domain_combo_pct = #{coreContinuousCrossDomainComboPct, jdbcType=INTEGER},
+            core_continuous_industry_carbon_offset = #{coreContinuousIndustryCarbonOffset, jdbcType=INTEGER},
+            core_continuous_ext = #{coreContinuousExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             core_condition_min_turn = #{coreConditionMinTurn, jdbcType=INTEGER},
             core_condition_min_industry_resource = #{coreConditionMinIndustryResource, jdbcType=INTEGER},
             core_condition_min_tech_resource = #{coreConditionMinTechResource, jdbcType=INTEGER},
+            core_condition_min_carbon = #{coreConditionMinCarbon, jdbcType=INTEGER},
             core_condition_max_carbon = #{coreConditionMaxCarbon, jdbcType=INTEGER},
             core_condition_min_industry_cards = #{coreConditionMinIndustryCards, jdbcType=INTEGER},
+            core_condition_min_ecology_cards = #{coreConditionMinEcologyCards, jdbcType=INTEGER},
+            core_condition_min_science_cards = #{coreConditionMinScienceCards, jdbcType=INTEGER},
+            core_condition_min_society_cards = #{coreConditionMinSocietyCards, jdbcType=INTEGER},
             core_condition_min_industry_progress_pct = #{coreConditionMinIndustryProgressPct, jdbcType=INTEGER},
             core_condition_min_green = #{coreConditionMinGreen, jdbcType=INTEGER},
+            core_condition_min_population = #{coreConditionMinPopulation, jdbcType=INTEGER},
+            core_condition_min_satisfaction = #{coreConditionMinSatisfaction, jdbcType=INTEGER},
             core_condition_min_society_progress_pct = #{coreConditionMinSocietyProgressPct, jdbcType=INTEGER},
             core_condition_min_tagged_cards = #{coreConditionMinTaggedCards, jdbcType=INTEGER},
             core_condition_required_tag = #{coreConditionRequiredTag, jdbcType=VARCHAR},
+            core_condition_ext = #{coreConditionExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             core_special_ecology_card_cost_reduction_pct = #{coreSpecialEcologyCardCostReductionPct, jdbcType=INTEGER},
             core_special_science_card_cost_reduction_pct = #{coreSpecialScienceCardCostReductionPct, jdbcType=INTEGER},
             core_special_flood_resistance_pct = #{coreSpecialFloodResistancePct, jdbcType=INTEGER},
             core_special_new_energy_industry_pct = #{coreSpecialNewEnergyIndustryPct, jdbcType=INTEGER},
             core_special_ecology_carbon_sink_per_ten_green = #{coreSpecialEcologyCarbonSinkPerTenGreen, jdbcType=INTEGER},
+            core_special_ecology_carbon_sink_base_green = #{coreSpecialEcologyCarbonSinkBaseGreen, jdbcType=INTEGER},
+            core_special_ecology_carbon_sink_pct = #{coreSpecialEcologyCarbonSinkPct, jdbcType=INTEGER},
+            core_special_upgrade_cost_reduction_pct = #{coreSpecialUpgradeCostReductionPct, jdbcType=INTEGER},
+            core_special_ext = #{coreSpecialExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             upgrade_delta_industry = #{upgradeDeltaIndustry, jdbcType=INTEGER},
             upgrade_delta_tech = #{upgradeDeltaTech, jdbcType=INTEGER},
             upgrade_delta_population = #{upgradeDeltaPopulation, jdbcType=INTEGER},
@@ -369,6 +478,7 @@
             upgrade_delta_ecology_sink = #{upgradeDeltaEcologySink, jdbcType=INTEGER},
             upgrade_delta_trad_upgrade_pct = #{upgradeDeltaTradUpgradePct, jdbcType=INTEGER},
             upgrade_delta_upgrade_cost_pct = #{upgradeDeltaUpgradeCostPct, jdbcType=INTEGER},
+            upgrade_ext = #{upgradeExt, jdbcType=OTHER, typeHandler=com.youthloop.common.mybatis.JsonNodeTypeHandler},
             is_enabled = #{isEnabled, jdbcType=BOOLEAN},
             updated_at = now()
         WHERE card_id = #{cardId, jdbcType=VARCHAR}

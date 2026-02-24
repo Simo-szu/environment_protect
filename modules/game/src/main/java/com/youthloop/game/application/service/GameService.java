@@ -458,6 +458,7 @@ public class GameService {
         state.withArray("placedCore").add(cardId);
         state.put("corePlacedThisTurn", true);
         state.with("boardOccupied").put(boardKey(row, col), cardId);
+        applyCoreImmediateEffectNow(state, cardId);
 
         int placedCount = state.withArray("placedCore").size();
         metrics.put("lowCarbonScore", Math.max(0, metrics.path("lowCarbonScore").asInt() + 1));
@@ -1079,6 +1080,33 @@ public class GameService {
             card.getPolicyContinuousIndustryPct() == null ? 0 : card.getPolicyContinuousIndustryPct(),
             card.getPolicyContinuousIndustryCarbonReductionPct() == null ? 0 : card.getPolicyContinuousIndustryCarbonReductionPct()
         );
+    }
+
+    private void applyCoreImmediateEffectNow(ObjectNode state, String cardId) {
+        GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+        DomainCounts counts = countPlacedDomains(state);
+        ObjectNode resources = state.with("resources");
+        ObjectNode metrics = state.with("metrics");
+        if (!isCoreEffectConditionMatched(cardId, card, state, counts, resources, metrics)) {
+            return;
+        }
+        CoreImmediateEffect effect = resolveCoreImmediateEffect(cardId, card);
+        resources.put("industry", resources.path("industry").asInt() + effect.industryDelta());
+        resources.put("tech", resources.path("tech").asInt() + effect.techDelta());
+        resources.put("population", resources.path("population").asInt() + effect.populationDelta());
+        metrics.put("green", metrics.path("green").asInt() + effect.greenDelta());
+
+        int carbon = Math.max(0, metrics.path("carbon").asInt() + effect.carbonDelta() + effect.industryCarbonDelta());
+        if (effect.industryCarbonReductionPct() > 0) {
+            carbon = Math.max(0, applyPercentage(carbon, -effect.industryCarbonReductionPct()));
+        }
+        metrics.put("carbon", carbon);
+        metrics.put(
+            "satisfaction",
+            clamp(metrics.path("satisfaction").asInt() + effect.satisfactionDelta(), 0, balanceRule().satisfactionMax())
+        );
+        ObjectNode trade = state.with("carbonTrade");
+        trade.put("quota", clamp(trade.path("quota").asInt(0) + effect.quotaDelta(), 0, maxCarbonQuota()));
     }
 
     private void applyActiveNegativeEventEffects(ObjectNode state, ObjectNode settlementBonus) {
@@ -2136,6 +2164,11 @@ public class GameService {
             addPercentBonus(settlementBonus, "carbonDeltaReductionPct", effect.carbonDeltaReductionPct());
             addPercentBonus(settlementBonus, "tradePricePct", effect.tradePricePct());
             addPercentBonus(settlementBonus, "comboPct", effect.comboPct());
+            addPercentBonus(settlementBonus, "techPct", effect.sciencePct());
+            addPercentBonus(settlementBonus, "comboPct", effect.sharedMobilityPct());
+            addBonus(settlementBonus, "carbon", effect.crossDomainCarbonDelta());
+            addPercentBonus(settlementBonus, "comboPct", effect.crossDomainComboPct());
+            addBonus(settlementBonus, "carbon", effect.industryCarbonOffset());
         }
     }
 
@@ -2152,6 +2185,9 @@ public class GameService {
             addPercentBonus(settlementBonus, "newEnergyIndustryPct", effect.newEnergyIndustryPct());
             if (effect.ecologyCarbonSinkPerTenGreen() > 0) {
                 int dynamicCarbonReduction = (metrics.path("green").asInt(0) / 10) * effect.ecologyCarbonSinkPerTenGreen();
+                if (effect.ecologyCarbonSinkPct() > 0) {
+                    dynamicCarbonReduction = applyPercentage(dynamicCarbonReduction, effect.ecologyCarbonSinkPct());
+                }
                 addBonus(settlementBonus, "carbon", -dynamicCarbonReduction);
             }
         }
@@ -2230,16 +2266,34 @@ public class GameService {
         if (resources.path("tech").asInt() < condition.minTechResource()) {
             return false;
         }
+        if (metrics.path("carbon").asInt() < condition.minCarbon()) {
+            return false;
+        }
         if (metrics.path("carbon").asInt() > condition.maxCarbon()) {
             return false;
         }
         if (counts.industry < condition.minIndustryCards()) {
             return false;
         }
+        if (counts.ecology < condition.minEcologyCards()) {
+            return false;
+        }
+        if (counts.science < condition.minScienceCards()) {
+            return false;
+        }
+        if (counts.society < condition.minSocietyCards()) {
+            return false;
+        }
         if (state.with("domainProgress").path("industry").asInt(0) < condition.minIndustryProgressPct()) {
             return false;
         }
         if (metrics.path("green").asInt() < condition.minGreen()) {
+            return false;
+        }
+        if (resources.path("population").asInt() < condition.minPopulation()) {
+            return false;
+        }
+        if (metrics.path("satisfaction").asInt() < condition.minSatisfaction()) {
             return false;
         }
         if (state.with("domainProgress").path("society").asInt(0) < condition.minSocietyProgressPct()) {
@@ -2306,7 +2360,27 @@ public class GameService {
             defaultInt(card.getCoreContinuousIndustryCarbonReductionPct()),
             defaultInt(card.getCoreContinuousCarbonDeltaReductionPct()),
             defaultInt(card.getCoreContinuousTradePricePct()),
-            defaultInt(card.getCoreContinuousComboPct())
+            defaultInt(card.getCoreContinuousComboPct()),
+            defaultInt(card.getCoreContinuousSciencePct()),
+            defaultInt(card.getCoreContinuousSharedMobilityPct()),
+            defaultInt(card.getCoreContinuousCrossDomainCarbonDelta()),
+            defaultInt(card.getCoreContinuousCrossDomainComboPct()),
+            defaultInt(card.getCoreContinuousIndustryCarbonOffset())
+        );
+    }
+
+    private CoreImmediateEffect resolveCoreImmediateEffect(String cardId, GameCardMetaDTO card) {
+        return new CoreImmediateEffect(
+            defaultInt(card.getCoreImmediateIndustryDelta()),
+            defaultInt(card.getCoreImmediateTechDelta()),
+            defaultInt(card.getCoreImmediatePopulationDelta()),
+            defaultInt(card.getCoreImmediateGreenDelta()),
+            defaultInt(card.getCoreImmediateCarbonDelta()),
+            defaultInt(card.getCoreImmediateSatisfactionDelta()),
+            defaultInt(card.getCoreImmediateQuotaDelta()),
+            defaultInt(card.getCoreImmediateComboPct()),
+            defaultInt(card.getCoreImmediateIndustryCarbonDelta()),
+            defaultInt(card.getCoreImmediateIndustryCarbonReductionPct())
         );
     }
 
@@ -2315,10 +2389,16 @@ public class GameService {
             defaultInt(card.getCoreConditionMinTurn()),
             defaultInt(card.getCoreConditionMinIndustryResource()),
             defaultInt(card.getCoreConditionMinTechResource()),
+            defaultInt(card.getCoreConditionMinCarbon()),
             card.getCoreConditionMaxCarbon() == null ? Integer.MAX_VALUE : card.getCoreConditionMaxCarbon(),
             defaultInt(card.getCoreConditionMinIndustryCards()),
+            defaultInt(card.getCoreConditionMinEcologyCards()),
+            defaultInt(card.getCoreConditionMinScienceCards()),
+            defaultInt(card.getCoreConditionMinSocietyCards()),
             defaultInt(card.getCoreConditionMinIndustryProgressPct()),
             defaultInt(card.getCoreConditionMinGreen()),
+            defaultInt(card.getCoreConditionMinPopulation()),
+            defaultInt(card.getCoreConditionMinSatisfaction()),
             defaultInt(card.getCoreConditionMinSocietyProgressPct()),
             defaultInt(card.getCoreConditionMinTaggedCards()),
             card.getCoreConditionRequiredTag() == null ? "" : card.getCoreConditionRequiredTag()
@@ -2331,7 +2411,10 @@ public class GameService {
             defaultInt(card.getCoreSpecialScienceCardCostReductionPct()),
             defaultInt(card.getCoreSpecialFloodResistancePct()),
             defaultInt(card.getCoreSpecialNewEnergyIndustryPct()),
-            defaultInt(card.getCoreSpecialEcologyCarbonSinkPerTenGreen())
+            defaultInt(card.getCoreSpecialEcologyCarbonSinkPerTenGreen()),
+            defaultInt(card.getCoreSpecialEcologyCarbonSinkBaseGreen()),
+            defaultInt(card.getCoreSpecialEcologyCarbonSinkPct()),
+            defaultInt(card.getCoreSpecialUpgradeCostReductionPct())
         );
     }
 
@@ -2423,7 +2506,26 @@ public class GameService {
         int industryCarbonReductionPct,
         int carbonDeltaReductionPct,
         int tradePricePct,
-        int comboPct
+        int comboPct,
+        int sciencePct,
+        int sharedMobilityPct,
+        int crossDomainCarbonDelta,
+        int crossDomainComboPct,
+        int industryCarbonOffset
+    ) {
+    }
+
+    private record CoreImmediateEffect(
+        int industryDelta,
+        int techDelta,
+        int populationDelta,
+        int greenDelta,
+        int carbonDelta,
+        int satisfactionDelta,
+        int quotaDelta,
+        int comboPct,
+        int industryCarbonDelta,
+        int industryCarbonReductionPct
     ) {
     }
 
@@ -2431,10 +2533,16 @@ public class GameService {
         int minTurn,
         int minIndustryResource,
         int minTechResource,
+        int minCarbon,
         int maxCarbon,
         int minIndustryCards,
+        int minEcologyCards,
+        int minScienceCards,
+        int minSocietyCards,
         int minIndustryProgressPct,
         int minGreen,
+        int minPopulation,
+        int minSatisfaction,
         int minSocietyProgressPct,
         int minTaggedCards,
         String requiredTag
@@ -2446,7 +2554,10 @@ public class GameService {
         int scienceCardCostReductionPct,
         int floodResistancePct,
         int newEnergyIndustryPct,
-        int ecologyCarbonSinkPerTenGreen
+        int ecologyCarbonSinkPerTenGreen,
+        int ecologyCarbonSinkBaseGreen,
+        int ecologyCarbonSinkPct,
+        int upgradeCostReductionPct
     ) {
     }
 

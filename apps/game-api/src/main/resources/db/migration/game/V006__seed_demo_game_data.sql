@@ -1,7 +1,7 @@
 -- ============================================================================
--- YouthLoop Game Schema Migration V002
+-- YouthLoop Game Schema Migration V006
 -- Schema: game
--- Purpose: Seed lightweight demo records for local development
+-- Purpose: Rebuilt history - seed lightweight demo records for local development
 -- ============================================================================
 
 INSERT INTO game.game_session (

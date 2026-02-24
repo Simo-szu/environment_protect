@@ -1,7 +1,7 @@
 -- ============================================================================
 -- YouthLoop Game Schema Migration V001
 -- Schema: game
--- Purpose: Initialize game session and action tables
+-- Purpose: Rebuilt history - initialize runtime session and action tables
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS game.game_session (

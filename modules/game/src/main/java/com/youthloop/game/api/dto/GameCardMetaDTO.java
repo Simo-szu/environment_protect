@@ -46,6 +46,22 @@ public class GameCardMetaDTO {
     private Integer policyContinuousPopulationPct;
     private Integer policyContinuousIndustryPct;
     private Integer policyContinuousIndustryCarbonReductionPct;
+    private JsonNode policyImmediateEffect;
+    private JsonNode policyContinuousEffect;
+    private JsonNode policyImmediateExt;
+    private JsonNode policyContinuousExt;
+    private Integer coreImmediateIndustryDelta;
+    private Integer coreImmediateTechDelta;
+    private Integer coreImmediatePopulationDelta;
+    private Integer coreImmediateGreenDelta;
+    private Integer coreImmediateCarbonDelta;
+    private Integer coreImmediateSatisfactionDelta;
+    private Integer coreImmediateQuotaDelta;
+    private Integer coreImmediateComboPct;
+    private Integer coreImmediateIndustryCarbonDelta;
+    private Integer coreImmediateIndustryCarbonReductionPct;
+    private JsonNode coreImmediateEffect;
+    private JsonNode coreImmediateExt;
     private Integer coreDomainProgressBonus;
     private Integer coreContinuousIndustryDelta;
     private Integer coreContinuousTechDelta;
@@ -65,21 +81,41 @@ public class GameCardMetaDTO {
     private Integer coreContinuousCarbonDeltaReductionPct;
     private Integer coreContinuousTradePricePct;
     private Integer coreContinuousComboPct;
+    private Integer coreContinuousSciencePct;
+    private Integer coreContinuousSharedMobilityPct;
+    private Integer coreContinuousCrossDomainCarbonDelta;
+    private Integer coreContinuousCrossDomainComboPct;
+    private Integer coreContinuousIndustryCarbonOffset;
+    private JsonNode coreContinuousEffect;
+    private JsonNode coreContinuousExt;
     private Integer coreConditionMinTurn;
     private Integer coreConditionMinIndustryResource;
     private Integer coreConditionMinTechResource;
+    private Integer coreConditionMinCarbon;
     private Integer coreConditionMaxCarbon;
     private Integer coreConditionMinIndustryCards;
+    private Integer coreConditionMinEcologyCards;
+    private Integer coreConditionMinScienceCards;
+    private Integer coreConditionMinSocietyCards;
     private Integer coreConditionMinIndustryProgressPct;
     private Integer coreConditionMinGreen;
+    private Integer coreConditionMinPopulation;
+    private Integer coreConditionMinSatisfaction;
     private Integer coreConditionMinSocietyProgressPct;
     private Integer coreConditionMinTaggedCards;
     private String coreConditionRequiredTag;
+    private JsonNode coreConditionEffect;
+    private JsonNode coreConditionExt;
     private Integer coreSpecialEcologyCardCostReductionPct;
     private Integer coreSpecialScienceCardCostReductionPct;
     private Integer coreSpecialFloodResistancePct;
     private Integer coreSpecialNewEnergyIndustryPct;
     private Integer coreSpecialEcologyCarbonSinkPerTenGreen;
+    private Integer coreSpecialEcologyCarbonSinkBaseGreen;
+    private Integer coreSpecialEcologyCarbonSinkPct;
+    private Integer coreSpecialUpgradeCostReductionPct;
+    private JsonNode coreSpecialEffect;
+    private JsonNode coreSpecialExt;
     private Integer upgradeDeltaIndustry;
     private Integer upgradeDeltaTech;
     private Integer upgradeDeltaPopulation;
@@ -106,6 +142,7 @@ public class GameCardMetaDTO {
     private Integer upgradeDeltaTradUpgradePct;
     private Integer upgradeDeltaUpgradeCostPct;
     private JsonNode upgradeEffect;
+    private JsonNode upgradeExt;
     private UpgradeRequirement upgradeRequirement;
 
     @Data
@@ -134,6 +171,8 @@ public class GameCardMetaDTO {
         private Integer costTech;
         private Integer costPopulation;
         private Integer costGreen;
+        private JsonNode ruleJson;
+        private JsonNode costJson;
         private JsonNode configSnapshot;
     }
 }

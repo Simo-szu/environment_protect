@@ -89,24 +89,26 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     const costTech = Number(selectedCoreCard.unlockCost.tech ?? 0);
     const costPopulation = Number(selectedCoreCard.unlockCost.population ?? 0);
     const costGreen = Number(selectedCoreCard.unlockCost.green ?? 0);
-    const deltaIndustry = Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0);
-    const deltaTech = Number(selectedCoreCard.coreContinuousTechDelta ?? 0);
-    const deltaPopulation = Number(selectedCoreCard.coreContinuousPopulationDelta ?? 0);
-    const deltaGreen = Number(selectedCoreCard.coreContinuousGreenDelta ?? 0);
-    const deltaCarbon = Number(selectedCoreCard.coreContinuousCarbonDelta ?? 0);
-    const deltaSatisfaction = Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0);
+    // Placement preview should reflect immediate placement resolution:
+    // core card placement consumes resources/green only.
+    const deltaIndustry = -costIndustry;
+    const deltaTech = -costTech;
+    const deltaPopulation = -costPopulation;
+    const deltaGreen = -costGreen;
+    const deltaCarbon = 0;
+    const deltaSatisfaction = 0;
     return {
-      industry: currentIndustry - costIndustry + deltaIndustry,
-      tech: currentTech - costTech + deltaTech,
-      population: currentPopulation - costPopulation + deltaPopulation,
-      green: currentGreen - costGreen + deltaGreen,
+      industry: currentIndustry + deltaIndustry,
+      tech: currentTech + deltaTech,
+      population: currentPopulation + deltaPopulation,
+      green: currentGreen + deltaGreen,
       carbon: currentCarbon + deltaCarbon,
       satisfaction: currentSatisfaction + deltaSatisfaction,
       delta: {
-        industry: deltaIndustry - costIndustry,
-        tech: deltaTech - costTech,
-        population: deltaPopulation - costPopulation,
-        green: deltaGreen - costGreen,
+        industry: deltaIndustry,
+        tech: deltaTech,
+        population: deltaPopulation,
+        green: deltaGreen,
         carbon: deltaCarbon,
         satisfaction: deltaSatisfaction
       }
