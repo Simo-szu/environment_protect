@@ -38,6 +38,7 @@ const gameApiOrigin = requireEnv('GAME_API_ORIGIN');
 const storagePublicBaseUrl = requireEnv('STORAGE_PUBLIC_BASE_URL');
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [parseRemotePattern(storagePublicBaseUrl)],
   },

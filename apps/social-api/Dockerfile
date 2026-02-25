@@ -8,7 +8,8 @@ COPY pom.xml ./
 COPY apps ./apps
 COPY modules ./modules
 
-RUN mvn -B -pl apps/social-api -am -DskipTests package
+RUN mvn -B -pl apps/social-api -am -DskipTests install
+RUN mvn -B -f apps/social-api/pom.xml -DskipTests package spring-boot:repackage
 RUN set -eux; \
     JAR_PATH="$(find apps/social-api/target -maxdepth 1 -type f -name '*.jar' ! -name '*.original' | head -n 1)"; \
     test -n "$JAR_PATH"; \
