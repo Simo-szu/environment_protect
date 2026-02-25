@@ -35,11 +35,11 @@ function parseRemotePattern(baseUrl: string): RemotePattern {
 
 const socialApiOrigin = requireEnv('SOCIAL_API_ORIGIN');
 const gameApiOrigin = requireEnv('GAME_API_ORIGIN');
-const minioPublicBaseUrl = requireEnv('MINIO_PUBLIC_BASE_URL');
+const storagePublicBaseUrl = requireEnv('STORAGE_PUBLIC_BASE_URL');
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [parseRemotePattern(minioPublicBaseUrl)],
+    remotePatterns: [parseRemotePattern(storagePublicBaseUrl)],
   },
   async rewrites() {
     return [

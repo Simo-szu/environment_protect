@@ -2,16 +2,17 @@ package com.youthloop.common.storage;
 
 import com.youthloop.common.api.ErrorCode;
 import com.youthloop.common.exception.BizException;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MinioClient;
-import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Object storage service (S3-compatible: MinIO/OSS).
@@ -20,54 +21,41 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class StorageService {
-    
-    private final MinioClient minioClient;
-    
-    @Value("${minio.bucket-name}")
+
+    private static final Duration PRESIGN_TTL = Duration.ofMinutes(15);
+    private static final int PRESIGN_TTL_SECONDS = 900;
+
+    private final S3Presigner s3Presigner;
+
+    @Value("${storage.bucket-name}")
     private String bucketName;
-    
-    @Value("${minio.public-base-url}")
+
+    @Value("${storage.public-base-url}")
     private String publicBaseUrl;
-    
+
     /**
-     * 生成上传预签名 URL
-     * 
-     * @param fileType 文件类型（avatar/poster/doc）
-     * @param fileName 原始文件名
-     * @param contentType MIME 类型
-     * @return 预签名 URL 和最终访问 URL
+     * Generate a presigned upload URL for direct browser upload.
      */
     public PresignResult generateUploadPresignUrl(String fileType, String fileName, String contentType) {
         try {
-            // 生成唯一文件名：fileType/uuid-originalName
             String extension = getFileExtension(fileName);
             String objectName = String.format("%s/%s%s", fileType, UUID.randomUUID(), extension);
-            
-            // 生成预签名 PUT URL（15 分钟有效）
-            String uploadUrl = minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                    .method(Method.PUT)
-                    .bucket(bucketName)
-                    .object(objectName)
-                    .expiry(15, TimeUnit.MINUTES)
-                    .build()
-            );
-            
-            // Public file URL: prefer CDN/public base URL when configured.
+
+            String uploadUrl = generatePresignedPutUrl(objectName, contentType);
             String fileUrl = buildPublicFileUrl(objectName);
-            
-            log.info("生成预签名 URL: objectName={}, uploadUrl={}", objectName, uploadUrl);
-            
-            return new PresignResult(uploadUrl, fileUrl, 900); // 15分钟 = 900秒
-            
+
+            log.info("Generated presigned upload URL: objectName={}, uploadUrl={}", objectName, uploadUrl);
+
+            return new PresignResult(uploadUrl, fileUrl, PRESIGN_TTL_SECONDS);
+
         } catch (Exception e) {
-            log.error("生成预签名 URL 失败: fileType={}, fileName={}", fileType, fileName, e);
-            throw new BizException(ErrorCode.SYSTEM_ERROR, "生成上传 URL 失败");
+            log.error("Failed to generate presigned upload URL: fileType={}, fileName={}", fileType, fileName, e);
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "Failed to generate upload URL");
         }
     }
-    
+
     /**
-     * 获取文件扩展名
+     * Get file extension including the dot.
      */
     private String getFileExtension(String fileName) {
         if (fileName == null || !fileName.contains(".")) {
@@ -76,10 +64,28 @@ public class StorageService {
         return fileName.substring(fileName.lastIndexOf("."));
     }
 
+    private String generatePresignedPutUrl(String objectName, String contentType) {
+        PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(objectName);
+        if (contentType != null && !contentType.isBlank()) {
+            putObjectRequestBuilder.contentType(contentType.trim());
+        }
+
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
+            PutObjectPresignRequest.builder()
+                .signatureDuration(PRESIGN_TTL)
+                .putObjectRequest(putObjectRequestBuilder.build())
+                .build()
+        );
+
+        return presignedRequest.url().toString();
+    }
+
     private String buildPublicFileUrl(String objectName) {
         String baseUrl = trimTrailingSlash(publicBaseUrl);
         if (baseUrl.isEmpty()) {
-            throw new IllegalStateException("minio.public-base-url must not be blank");
+            throw new IllegalStateException("storage.public-base-url must not be blank");
         }
         return joinUrl(baseUrl, objectName);
     }
@@ -107,7 +113,7 @@ public class StorageService {
     }
 
     /**
-     * 预签名结果
+     * Presigned upload result.
      */
     public record PresignResult(String uploadUrl, String fileUrl, int expiresIn) {}
 }

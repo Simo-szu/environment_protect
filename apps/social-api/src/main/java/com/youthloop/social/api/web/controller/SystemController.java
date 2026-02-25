@@ -21,8 +21,8 @@ public class SystemController {
     @Value("${google.client-id}")
     private String googleClientId;
 
-    @Value("${minio.public-base-url}")
-    private String minioPublicBaseUrl;
+    @Value("${storage.public-base-url}")
+    private String storagePublicBaseUrl;
 
     @Operation(summary = "获取公开配置", description = "获取前端需要的公开配置")
     @GetMapping("/config")
@@ -38,9 +38,9 @@ public class SystemController {
     }
 
     private String resolveStorageBaseUrl() {
-        String value = trimTrailingSlash(minioPublicBaseUrl);
+        String value = trimTrailingSlash(storagePublicBaseUrl);
         if (value.isBlank()) {
-            throw new IllegalStateException("minio.public-base-url must not be blank");
+            throw new IllegalStateException("storage.public-base-url must not be blank");
         }
         return value;
     }
