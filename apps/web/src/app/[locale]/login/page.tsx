@@ -352,7 +352,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="w-full flex justify-center" ref={googleBtnContainerRef}>
-                            {mounted && googleBtnWidth > 0 && (
+                            {mounted && googleBtnWidth > 0 && config.googleClientId && (
                                 <GoogleLogin
                                     key={`${resolvedTheme}-${googleBtnWidth}`}
                                     onSuccess={handleGoogleSuccess}

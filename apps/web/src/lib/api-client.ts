@@ -68,6 +68,20 @@ export async function apiFetch<T = any>(
     ...options.headers,
   };
 
+  // Pre-emptively refresh if logged in and token is expiring soon
+  if (authStore.isAuthenticated() && authStore.isTokenExpiringSoon()) {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    try {
+      await refreshPromise;
+    } catch {
+      authStore.clear();
+    }
+  }
+
   const accessToken = authStore.getAccessToken();
   if (accessToken) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
@@ -78,7 +92,8 @@ export async function apiFetch<T = any>(
     headers,
   });
 
-  if (response.status === 401 || authStore.isTokenExpiringSoon()) {
+  if (response.status === 401 && authStore.isAuthenticated()) {
+    // Logged-in user got 401: try to refresh once
     if (!refreshPromise) {
       refreshPromise = refreshAccessToken().finally(() => {
         refreshPromise = null;

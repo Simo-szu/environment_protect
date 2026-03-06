@@ -343,7 +343,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-300 shadow-sm'
                     : selected
                       ? 'bg-emerald-500 border-emerald-600 text-white shadow-md scale-105 z-10'
-                    : dragOver && placeableTile
+                      : dragOver && placeableTile
                         ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 scale-110 z-10'
                         : boardViewMode === 'placeable' && !placeableTile
                           ? 'bg-transparent border-transparent opacity-10'
@@ -351,9 +351,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                             ? adjacencyScore > 0
                               ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300'
                               : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                          : recommended
-                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-600 dark:text-emerald-300'
-                            : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-200'
+                            : recommended
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-600 dark:text-emerald-300'
+                              : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-200'
                     }`;
 
                   return (
@@ -428,74 +428,74 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     }}
                   >
                     <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-3 py-2 shadow-lg">
-                    <div className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-                      {activeTileInfo.occupiedCardId ? (activeTileInfo.occupiedName || activeTileInfo.occupiedCardId) : t('play.board.selection.title', 'Current Placement Target')}
-                    </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{activeTileInfo.key}</div>
-                    {activeTileInfo.occupiedCard && (
-                      <div className="mt-1 space-y-1">
-                        <div className="text-[10px] text-slate-600 dark:text-slate-300">
-                          {String(activeTileInfo.occupiedCard.domain).toUpperCase()} | {String(activeTileInfo.occupiedCard.phaseBucket).toUpperCase()} | ★{activeTileInfo.occupiedCard.star}
-                        </div>
-                        {activeTileInfo.occupiedEffects.length > 0 ? (
-                          <div className="text-[10px] text-slate-700 dark:text-slate-200">
-                            Buff/Debuff: {activeTileInfo.occupiedEffects.join('  ')}
+                      <div className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                        {activeTileInfo.occupiedCardId ? (activeTileInfo.occupiedName || activeTileInfo.occupiedCardId) : t('play.board.selection.title', 'Current Placement Target')}
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{activeTileInfo.key}</div>
+                      {activeTileInfo.occupiedCard && (
+                        <div className="mt-1 space-y-1">
+                          <div className="text-[10px] text-slate-600 dark:text-slate-300">
+                            {String(activeTileInfo.occupiedCard.domain).toUpperCase()} | {String(activeTileInfo.occupiedCard.phaseBucket).toUpperCase()} | ★{activeTileInfo.occupiedCard.star}
                           </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400">Buff/Debuff: none in base continuous fields</div>
-                        )}
-                        {activeTileInfo.occupiedRelationToSelectedCore && (
-                          <div className="text-[10px] text-slate-700 dark:text-slate-200">
-                            {selectedCoreName ? `${selectedCoreName}` : 'Selected core'} relation:
-                            {' '}
-                            <span className={activeTileInfo.occupiedRelationToSelectedCore.sameDomain ? 'text-emerald-700 font-black' : 'text-slate-400'}>same domain</span>
-                            {' / '}
-                            <span className={activeTileInfo.occupiedRelationToSelectedCore.samePhase ? 'text-emerald-700 font-black' : 'text-slate-400'}>same phase</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {!activeTileInfo.occupiedCardId && (
-                      <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 space-y-1">
-                        <div>
-                          {t('play.preview.synergyAdjacency', 'Adjacency')}: {activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}
-                          {' | '}
-                          {t('play.preview.synergyDomain', 'Same Domain')}: {activeTileInfo.tileBreakdown?.sameDomainBonus ?? 0}
-                          {' | '}
-                          {t('play.preview.synergyPhase', 'Same Phase')}: {activeTileInfo.tileBreakdown?.samePhaseBonus ?? 0}
-                          {' | '}
-                          {t('play.preview.synergyDiversity', 'Diversity')}: {activeTileInfo.tileBreakdown?.diversityBonus ?? 0}
+                          {activeTileInfo.occupiedEffects.length > 0 ? (
+                            <div className="text-[10px] text-slate-700 dark:text-slate-200">
+                              Buff/Debuff: {activeTileInfo.occupiedEffects.join('  ')}
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-slate-400">Buff/Debuff: none in base continuous fields</div>
+                          )}
+                          {activeTileInfo.occupiedRelationToSelectedCore && (
+                            <div className="text-[10px] text-slate-700 dark:text-slate-200">
+                              {selectedCoreName ? `${selectedCoreName}` : 'Selected core'} relation:
+                              {' '}
+                              <span className={activeTileInfo.occupiedRelationToSelectedCore.sameDomain ? 'text-emerald-700 font-black' : 'text-slate-400'}>same domain</span>
+                              {' / '}
+                              <span className={activeTileInfo.occupiedRelationToSelectedCore.samePhase ? 'text-emerald-700 font-black' : 'text-slate-400'}>same phase</span>
+                            </div>
+                          )}
                         </div>
-                        <div className="font-black text-slate-700 dark:text-slate-200">
-                          {t('play.board.synergyScore', 'Synergy')}: {activeTileInfo.synergyScore}
-                        </div>
-                        {activeTileInfo.tileBreakdown?.neighbors?.length ? (
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Neighbors: {activeTileInfo.tileBreakdown.neighbors.map((neighbor) => {
-                              const marks = [
-                                neighbor.sameDomain ? 'D+' : '',
-                                neighbor.samePhase ? 'P+' : ''
-                              ].filter(Boolean).join('/');
-                              return `${neighbor.cardName}${marks ? `(${marks})` : ''}`;
-                            }).join(', ')}
+                      )}
+                      {!activeTileInfo.occupiedCardId && (
+                        <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 space-y-1">
+                          <div>
+                            {t('play.preview.synergyAdjacency', 'Adjacency')}: {activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}
+                            {' | '}
+                            {t('play.preview.synergyDomain', 'Same Domain')}: {activeTileInfo.tileBreakdown?.sameDomainBonus ?? 0}
+                            {' | '}
+                            {t('play.preview.synergyPhase', 'Same Phase')}: {activeTileInfo.tileBreakdown?.samePhaseBonus ?? 0}
+                            {' | '}
+                            {t('play.preview.synergyDiversity', 'Diversity')}: {activeTileInfo.tileBreakdown?.diversityBonus ?? 0}
                           </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400">Neighbors: none</div>
-                        )}
-                      </div>
-                    )}
-                    {!activeTileInfo.occupiedCardId && activeTileInfo.recommended && (
-                      <div className="text-[10px] text-emerald-700 font-black uppercase tracking-wider mt-1">
-                        {t('play.board.recommended', 'Recommended tile')}
-                      </div>
-                    )}
-                    {!activeTileInfo.occupiedCardId && (
-                      <div className="text-[10px] mt-1 font-black uppercase tracking-wider">
-                        <span className={activeTileInfo.placeable ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}>
-                          {activeTileInfo.placeable ? t('play.afford.canPlace', '可放置') : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。')}
-                        </span>
-                      </div>
-                    )}
+                          <div className="font-black text-slate-700 dark:text-slate-200">
+                            {t('play.board.synergyScore', 'Synergy')}: {activeTileInfo.synergyScore}
+                          </div>
+                          {activeTileInfo.tileBreakdown?.neighbors?.length ? (
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                              Neighbors: {activeTileInfo.tileBreakdown.neighbors.map((neighbor) => {
+                                const marks = [
+                                  neighbor.sameDomain ? 'D+' : '',
+                                  neighbor.samePhase ? 'P+' : ''
+                                ].filter(Boolean).join('/');
+                                return `${neighbor.cardName}${marks ? `(${marks})` : ''}`;
+                              }).join(', ')}
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-slate-400">Neighbors: none</div>
+                          )}
+                        </div>
+                      )}
+                      {!activeTileInfo.occupiedCardId && activeTileInfo.recommended && (
+                        <div className="text-[10px] text-emerald-700 font-black uppercase tracking-wider mt-1">
+                          {t('play.board.recommended', 'Recommended tile')}
+                        </div>
+                      )}
+                      {!activeTileInfo.occupiedCardId && (
+                        <div className="text-[10px] mt-1 font-black uppercase tracking-wider">
+                          <span className={activeTileInfo.placeable ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}>
+                            {activeTileInfo.placeable ? t('play.afford.canPlace', '可放置') : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。')}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {activeTileSummary && (
@@ -660,7 +660,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       </div>
 
       {/* --- BOTTOM ZONE: Cards In Hand (焦点区域) --- */}
-      <div className="flex-[6] sm:flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-3 sm:p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+      <div className="flex-[6] sm:flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-3 sm:p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-visible">
 
         {/* 指示条：非侵入式提示 */}
         <div className="mb-2 sm:mb-3 px-2 sm:px-4 shrink-0">
@@ -691,13 +691,15 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           )}
         </div>
 
-        <div className="flex-1 flex items-start sm:items-center justify-start xl:justify-center min-w-0 overflow-x-auto overflow-y-visible pb-2 [scrollbar-width:none] [-ms-overflow-style:none]">
-          <div className="flex snap-x snap-mandatory -space-x-8 sm:-space-x-14 xl:-space-x-20 xl:hover:-space-x-8 transition-all duration-700 ease-in-out py-2 sm:py-4 pl-2 pr-10 sm:pr-16 xl:px-0">
+        <div className="flex-1 flex items-start sm:items-center xl:items-end justify-start xl:justify-center min-w-0 overflow-x-auto xl:overflow-visible overflow-y-visible pb-2 [scrollbar-width:none] [-ms-overflow-style:none]">
+          <div className="flex items-end snap-x snap-mandatory -space-x-8 sm:-space-x-14 xl:-space-x-20 xl:hover:-space-x-8 transition-all duration-700 ease-in-out py-2 sm:py-4 pl-2 pr-10 sm:pr-16 xl:px-0 xl:pb-12">
             {handCoreCards.map((card, index) => {
               const canPlace = coreAffordabilityMap.get(card.cardId)?.canPlace;
               const isSelected = selectedCoreId === card.cardId;
-              const cardFrameStyles = !pendingDiscardActive && isSelected
-                ? 'border-emerald-500 ring-4 ring-emerald-500/10 -translate-y-6 sm:-translate-y-8 xl:-translate-y-12 scale-105 z-50'
+              const cardFrameStyles = !pendingDiscardActive
+                ? (isSelected
+                  ? 'border-emerald-500 ring-4 ring-emerald-500/10 -translate-y-6 sm:-translate-y-8 xl:-translate-y-12 scale-105 z-50'
+                  : 'border-white hover:border-emerald-300 hover:-translate-y-6 sm:hover:-translate-y-8 xl:hover:-translate-y-12 hover:scale-105')
                 : 'border-white';
 
               return (
@@ -716,7 +718,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     }
                     setSelectedCoreId(current => current === card.cardId ? '' : card.cardId);
                   }}
-                  className={`snap-center flex-shrink-0 h-[236px] sm:h-[260px] xl:h-[300px] aspect-[9/16] rounded-[1.5rem] border-2 transition-all duration-500 relative overflow-hidden group shadow-xl xl:hover:z-[100] ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
+                  className={`snap-center flex-shrink-0 h-[236px] sm:h-[260px] xl:h-[320px] aspect-[9/16] rounded-[1.5rem] border-2 transition-all duration-500 relative overflow-hidden group shadow-xl xl:hover:z-[100] ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
                 >
                   <img src={resolveImageUrl(card.imageKey)} className="absolute inset-0 w-full h-full object-cover" alt={card.chineseName} />
 
@@ -732,7 +734,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             <div className="flex -space-x-8 sm:-space-x-10 xl:-space-x-12 xl:hover:-space-x-4 transition-all duration-700 py-4">
               {handPolicyCards.map((card, index) => {
                 const isSelected = selectedPolicyId === card.cardId;
-                const cardFrameStyles = !pendingDiscardActive && isSelected ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
+                const cardFrameStyles = !pendingDiscardActive
+                  ? (isSelected
+                    ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300 hover:-translate-y-8')
+                  : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
 
                 return (
                   <button
@@ -741,7 +747,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       if (pendingDiscardActive) { discardCard('policy', card.cardId); return; }
                       setSelectedPolicyId(current => current === card.cardId ? '' : card.cardId);
                     }}
-                  className={`snap-center flex-shrink-0 h-[220px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-5 flex flex-col justify-between shadow-lg hover:z-[100] hover:-translate-y-6 ${cardFrameStyles}`}
+                    className={`snap-center flex-shrink-0 h-[220px] xl:h-[300px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-4 xl:p-5 flex flex-col justify-between shadow-lg hover:z-[100] ${cardFrameStyles}`}
                   >
                     {card.imageKey ? (
                       <img

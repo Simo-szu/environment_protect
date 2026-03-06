@@ -38,13 +38,13 @@ export default function GamePlayPage() {
       const roundsUntilTradeOpen = controller.strictGuideMode
         ? Math.max(0, 4 - controller.turn)
         : (() => {
-            const interval = Number(controller.tradeWindowInterval || 0);
-            if (!Number.isFinite(interval) || interval <= 0) {
-              return 0;
-            }
-            const remainder = controller.turn % interval;
-            return remainder === 0 ? interval : interval - remainder;
-          })();
+          const interval = Number(controller.tradeWindowInterval || 0);
+          if (!Number.isFinite(interval) || interval <= 0) {
+            return 0;
+          }
+          const remainder = controller.turn % interval;
+          return remainder === 0 ? interval : interval - remainder;
+        })();
       const lockedLabel = controller.locale === 'zh'
         ? roundsUntilTradeOpen > 0
           ? `碳交易 ${roundsUntilTradeOpen} 回合后开放`
@@ -120,21 +120,21 @@ export default function GamePlayPage() {
         })),
         onboarding: controller.showOnboarding
           ? {
-              step: controller.onboardingStep,
-              title: controller.onboardingSteps[controller.onboardingStep]?.title || null,
-            }
+            step: controller.onboardingStep,
+            title: controller.onboardingSteps[controller.onboardingStep]?.title || null,
+          }
           : null,
         guidedTask: controller.currentGuidedTask
           ? {
-              id: controller.currentGuidedTask.id,
-              title: controller.currentGuidedTask.title,
-            }
+            id: controller.currentGuidedTask.id,
+            title: controller.currentGuidedTask.title,
+          }
           : null,
         ending: controller.ending
           ? {
-              id: controller.ending.endingId,
-              name: controller.ending.endingName,
-            }
+            id: controller.ending.endingId,
+            name: controller.ending.endingName,
+          }
           : null,
         error: controller.error,
         lastMessage: controller.lastMessage,
@@ -155,7 +155,7 @@ export default function GamePlayPage() {
   }
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#f4f7f4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen xl:h-screen w-full overflow-x-hidden xl:overflow-hidden overflow-y-auto bg-[#f4f7f4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <PlayHeader
         t={controller.t}
         turn={controller.turn}
@@ -199,7 +199,7 @@ export default function GamePlayPage() {
       )}
 
       <main className="flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:flex-row gap-3 sm:gap-4 xl:gap-5">
-        <aside className="w-full xl:w-72 shrink-0 xl:h-full">
+        <aside className="w-full xl:w-72 shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <PlayStatsPanel
             t={controller.t}
             resources={controller.resources}

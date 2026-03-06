@@ -414,7 +414,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="w-full flex justify-center -mt-2" ref={googleBtnContainerRef}>
-                            {mounted && googleBtnWidth > 0 && (
+                            {mounted && googleBtnWidth > 0 && config.googleClientId && (
                                 <GoogleLogin
                                     key={`${resolvedTheme}-${googleBtnWidth}`}
                                     onSuccess={handleGoogleSuccess}

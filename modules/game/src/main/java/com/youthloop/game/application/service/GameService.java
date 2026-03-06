@@ -584,9 +584,13 @@ public class GameService {
 
         ObjectNode settlementBonus = objectMapper.createObjectNode();
         putAllBonusFields(settlementBonus, 0);
+
+        AdjacencyStats adjacency = calculateAdjacencyStats(state);
+        applyAdjacencySynergy(settlementBonus, adjacency);
+
         applyCoreContinuousEffects(state, counts, settlementBonus);
         applyCoreSpecialEffects(state, counts, settlementBonus);
-        int comboTriggered = applyTurnCombos(state, counts, settlementBonus);
+        int comboTriggered = applyTurnCombos(state, counts, settlementBonus, adjacency);
         applyActivePolicyEffects(state, settlementBonus);
         applyActiveNegativeEventEffects(state, settlementBonus);
         state.set("cardEffectSnapshot", settlementBonus.deepCopy());
@@ -657,7 +661,8 @@ public class GameService {
         applyCarbonQuotaSettlement(state);
         updateCarbonOverLimitStreak(state);
 
-        int lowCarbonScoreRaw = Math.max(0, calculateLowCarbonScore(state, counts.late) + settlementBonus.path("lowCarbon").asInt(0));
+        int phaseMatchBonus = calculatePhaseMatchBonus(state);
+        int lowCarbonScoreRaw = Math.max(0, calculateLowCarbonScore(state, counts.late) + settlementBonus.path("lowCarbon").asInt(0) + phaseMatchBonus);
         int lowCarbonScore = Math.max(
             0,
             applyPercentage(lowCarbonScoreRaw, settlementBonus.path("lowCarbonPct").asInt(0) + globalPct)
@@ -938,14 +943,13 @@ public class GameService {
         state.withArray("eventHistory").add(record);
     }
 
-    private int applyTurnCombos(ObjectNode state, DomainCounts counts, ObjectNode settlementBonus) {
+    private int applyTurnCombos(ObjectNode state, DomainCounts counts, ObjectNode settlementBonus, AdjacencyStats adjacency) {
         int triggered = 0;
         ArrayNode combos = objectMapper.createArrayNode();
         String lastPolicyUsed = state.path("lastPolicyUsed").asText("");
         int lowCarbonIndustryCount = countPlacedTaggedCardsByTagAndDomain(state, "industry", TAG_LOW_CARBON_CORE);
         int shenzhenEcologyCount = countPlacedTaggedCardsByTagAndDomain(state, "ecology", TAG_SHENZHEN);
         int linkCardCount = countPlacedByTag(state, TAG_LINK);
-        AdjacencyStats adjacency = calculateAdjacencyStats(state);
 
         for (GameRuleConfigService.ComboRuleConfig rule : gameRuleConfigService.listComboRules()) {
             if (triggered >= maxComboPerTurn()) {
@@ -2740,6 +2744,47 @@ public class GameService {
             this.row = row;
             this.col = col;
         }
+    }
+
+    private void applyAdjacencySynergy(ObjectNode settlementBonus, AdjacencyStats adjacency) {
+        // Industry + Ecology: Nature-based Carbon Reduction
+        if (adjacency.industryEcologyAdjacentPairs > 0) {
+            addBonus(settlementBonus, "carbon", -2 * adjacency.industryEcologyAdjacentPairs);
+        }
+        // Industry + Science: Smart Manufacturing Bonus
+        if (adjacency.scienceIndustryAdjacentPairs > 0) {
+            addBonus(settlementBonus, "tech", 2 * adjacency.scienceIndustryAdjacentPairs);
+            addBonus(settlementBonus, "carbon", -1 * adjacency.scienceIndustryAdjacentPairs);
+        }
+        // Society + Ecology: Clean Living Awareness
+        if (adjacency.societyEcologyAdjacentPairs > 0) {
+            addBonus(settlementBonus, "satisfaction", 2 * adjacency.societyEcologyAdjacentPairs);
+        }
+        // Same Domain Bonus: Shared Resources
+        if (adjacency.scienceScienceAdjacentPairs > 0) {
+            addBonus(settlementBonus, "tech", 1 * adjacency.scienceScienceAdjacentPairs);
+        }
+        if (adjacency.industryLowCarbonAdjacentPairs > 0) {
+            addBonus(settlementBonus, "industry", 2 * adjacency.industryLowCarbonAdjacentPairs);
+        }
+    }
+
+    private int calculatePhaseMatchBonus(ObjectNode state) {
+        String currentPhase = state.path("phase").asText("early");
+        int bonus = 0;
+        ArrayNode placed = state.withArray("placedCore");
+        for (JsonNode node : placed) {
+            String cardId = node.asText();
+            try {
+                GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+                if (card != null && currentPhase.equalsIgnoreCase(card.getPhaseBucket())) {
+                    bonus++;
+                }
+            } catch (Exception e) {
+                // Ignore unknown cards
+            }
+        }
+        return bonus;
     }
 
     private static class AdjacencyStats {

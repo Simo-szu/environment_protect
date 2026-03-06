@@ -24,7 +24,11 @@ declare -A CONTEXT_MAP=(
   [social-api]="$SCRIPT_DIR/apps/social-api"
   [game-api]="$SCRIPT_DIR/apps/game-api"
   [social-worker]="$SCRIPT_DIR/apps/social-worker"
-  [web]="$SCRIPT_DIR/apps/web"
+  [web]="$SCRIPT_DIR"
+)
+
+declare -A DOCKERFILE_MAP=(
+  [web]="$SCRIPT_DIR/apps/web/Dockerfile"
 )
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,7 +42,20 @@ build_and_push() {
   local tar_file="/tmp/${svc}.tar"
 
   log "Building $svc → $image"
-  docker build -t "$image" "$ctx"
+  local -a build_cmd=(docker build)
+  if [[ -n "${DOCKERFILE_MAP[$svc]:-}" ]]; then
+    build_cmd+=(-f "${DOCKERFILE_MAP[$svc]}")
+  fi
+  if [[ "$svc" == "web" ]]; then
+    build_cmd+=(
+      --build-arg "SOCIAL_API_ORIGIN=http://social-api:8080"
+      --build-arg "GAME_API_ORIGIN=http://game-api:8082"
+      --build-arg "STORAGE_PUBLIC_BASE_URL=https://youthloop.oss-cn-shenzhen.aliyuncs.com"
+      --build-arg "NODE_OPTIONS=--max-old-space-size=768"
+    )
+  fi
+  build_cmd+=(-t "$image" "$ctx")
+  "${build_cmd[@]}"
 
   log "Saving image to $tar_file"
   docker save "$image" -o "$tar_file"
