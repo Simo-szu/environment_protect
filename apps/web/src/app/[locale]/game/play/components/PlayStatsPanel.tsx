@@ -141,12 +141,55 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
     return total;
   }, [placedCore, catalog]);
 
+  const mobilePreviewCollapsed = !selectedCoreCard && !selectedTile && activeNegativeEvents.length === 0;
+  const mobileSummaryRows = useMemo(
+    () => [
+      { key: 'industry' as const, label: 'I', value: currentValues.industry },
+      { key: 'tech' as const, label: 'T', value: currentValues.tech },
+      { key: 'population' as const, label: 'P', value: currentValues.population },
+      { key: 'green' as const, label: 'G', value: currentValues.green },
+      { key: 'carbon' as const, label: 'C', value: currentValues.carbon },
+      { key: 'satisfaction' as const, label: 'S', value: currentValues.satisfaction }
+    ],
+    [currentValues]
+  );
+
   return (
-    <section className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] border border-slate-200 dark:border-slate-700 p-4 flex flex-col gap-4 overflow-hidden shadow-sm">
+    <section className="h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] border border-slate-200 dark:border-slate-700 p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 overflow-hidden shadow-sm">
       <div className="space-y-2">
         <PanelHeader title={t('play.preview.selectedProjection', 'Action Preview')} toneClass="bg-violet-500" />
-        <div className="space-y-2">
-          <div className="text-[11px] text-slate-600 dark:text-slate-300">
+        <div className="space-y-1.5 sm:space-y-2">
+          {mobilePreviewCollapsed && (
+            <div className="sm:hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/80 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+                    {t('play.preview.selectedProjection', 'Action Preview')}
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                    {t('play.preview.selectTileFirst', 'Select a core card and a tile to view preview.')}
+                  </div>
+                </div>
+                <div className="rounded-full bg-white/90 dark:bg-slate-900/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                  Idle
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {mobileSummaryRows.map((row) => (
+                  <div
+                    key={row.key}
+                    className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/90 dark:bg-slate-900/70 px-2 py-2 text-center"
+                  >
+                    <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">{row.label}</div>
+                    <div className="mt-1 text-[12px] font-black text-slate-800 dark:text-slate-100">{row.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className={mobilePreviewCollapsed ? 'hidden sm:block' : ''}>
+          <div className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-300">
             {t('play.common.selectedCard', 'Selected Card')}: <span className="font-bold text-slate-800 dark:text-slate-100">{selectedCoreCard?.chineseName || '-'}</span>
           </div>
           <div className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -162,7 +205,17 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
             formatDelta={formatDelta}
           />
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-[10px] text-slate-600 dark:text-slate-300">
-            {t('play.preview.synergyAdjacency', 'Adjacency')}: {selectedTileAdjacency} · {t('play.preview.synergyTitle', 'Synergy')}: {selectedTileSynergyBreakdown?.totalScore ?? 0}
+            <div className="hidden sm:block">
+              {t('play.preview.synergyAdjacency', 'Adjacency')}: {selectedTileAdjacency} · {t('play.preview.synergyTitle', 'Synergy')}: {selectedTileSynergyBreakdown?.totalScore ?? 0}
+            </div>
+            <div className="flex items-center gap-2 sm:hidden">
+              <span className="rounded-full bg-slate-200/80 dark:bg-slate-700 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                Adj {selectedTileAdjacency}
+              </span>
+              <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                Syn {selectedTileSynergyBreakdown?.totalScore ?? 0}
+              </span>
+            </div>
           </div>
           {!selectedCoreCard && (
             <div className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -172,10 +225,11 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
           {selectedCoreCard && !selectedCorePreviewReady && (
             <div className="text-[10px] text-amber-700">{t('play.stats.previewNotReady', 'Choose a placeable tile to finalize preview.')}</div>
           )}
+          </div>
         </div>
       </div>
 
-      <div className="pt-2 border-t border-slate-100 dark:border-slate-700 space-y-2 min-h-0">
+      <div className={`pt-2 border-t border-slate-100 dark:border-slate-700 space-y-2 min-h-0 ${mobilePreviewCollapsed ? 'hidden sm:block' : ''}`}>
         <PanelHeader title={t('play.events.title', 'Risk & Events')} toneClass="bg-rose-500" />
         {activeNegativeEvents.length === 0 && (
           <div className="text-[11px] text-emerald-700">{t('play.events.noneActive', 'No active negative events')}</div>
@@ -190,7 +244,7 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
                 className={`w-full text-left p-2 rounded-xl border transition-colors ${effectiveSelectedEventType === String(event.eventType) ? 'bg-rose-100 border-rose-300' : 'bg-rose-50 border-rose-100 hover:bg-rose-100/70'}`}
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-rose-900 truncate">{resolveEventLabel(String(event.eventType))}</span>
+                  <span className="truncate pr-2 text-[10px] font-black text-rose-900">{resolveEventLabel(String(event.eventType))}</span>
                   <span className="text-[9px] font-black px-1.5 py-0.5 bg-rose-200/60 rounded-lg text-rose-700">{event.remainingTurns}T</span>
                 </div>
               </button>
@@ -256,7 +310,7 @@ function CompactPreviewTable({
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2">
-      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-2 mb-1 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      <div className="hidden sm:grid grid-cols-[1.4fr_1fr_1fr] gap-2 mb-1 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
         <div>{t('play.metrics.title', 'Metric')}</div>
         <div className="text-right">{t('play.stats.immediateImpact', 'Immediate')}</div>
         <div className="text-right">{t('play.stats.settlementImpact', 'Settlement')}</div>
@@ -269,28 +323,35 @@ function CompactPreviewTable({
           const immediateProjected = base + immediateDiff;
           const settlementProjected = base + settlementDiff;
           return (
-            <div key={row.key} className="grid grid-cols-[1.4fr_1fr_1fr] gap-2 items-center text-[10px]">
-              <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{row.label}</span>
-              <span className="text-right text-slate-700 dark:text-slate-200">
-                <span>{base}</span>{' '}
-                <span className={immediateDiff === 0 ? 'text-slate-400' : immediateDiff > 0 ? 'text-emerald-700' : 'text-rose-700'}>
-                  {immediateDiff === 0 ? '0' : formatDelta(immediateDiff)}
-                </span>{' '}
-                <span className="text-slate-400">{'->'}</span>{' '}
-                <span className={immediateDiff > 0 ? 'text-emerald-700 font-bold' : immediateDiff < 0 ? 'text-rose-700 font-bold' : 'text-slate-700 dark:text-slate-200'}>
-                  {immediateProjected}
+            <div key={row.key} className="grid gap-2 text-[10px] sm:grid-cols-[1.4fr_1fr_1fr] sm:items-center">
+              <div className="flex items-center justify-between gap-2 sm:block">
+                <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{row.label}</span>
+                <span className="rounded-full bg-white/90 dark:bg-slate-900/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 sm:hidden">
+                  Now {base}
                 </span>
-              </span>
-              <span className="text-right text-slate-700 dark:text-slate-200">
-                <span>{base}</span>{' '}
-                <span className={settlementDiff === 0 ? 'text-slate-400' : settlementDiff > 0 ? 'text-emerald-700' : 'text-rose-700'}>
-                  {settlementDiff === 0 ? '0' : formatDelta(settlementDiff)}
-                </span>{' '}
-                <span className="text-slate-400">{'->'}</span>{' '}
-                <span className={settlementDiff > 0 ? 'text-emerald-700 font-bold' : settlementDiff < 0 ? 'text-rose-700 font-bold' : 'text-slate-700 dark:text-slate-200'}>
-                  {settlementProjected}
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:contents">
+                <span className="rounded-lg bg-white/80 dark:bg-slate-900/60 px-2 py-1.5 text-slate-700 dark:text-slate-200 sm:bg-transparent sm:px-0 sm:py-0 sm:text-right">
+                  <span className="mb-0.5 block text-[9px] font-black uppercase tracking-wide text-slate-400 sm:hidden">{t('play.stats.immediateImpact', 'Immediate')}</span>
+                  <span className={immediateDiff === 0 ? 'text-slate-400' : immediateDiff > 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                    {immediateDiff === 0 ? '0' : formatDelta(immediateDiff)}
+                  </span>
+                  <span className="mx-1 text-slate-400">→</span>
+                  <span className={immediateDiff > 0 ? 'text-emerald-700 font-bold' : immediateDiff < 0 ? 'text-rose-700 font-bold' : 'text-slate-700 dark:text-slate-200'}>
+                    {immediateProjected}
+                  </span>
                 </span>
-              </span>
+                <span className="rounded-lg bg-white/80 dark:bg-slate-900/60 px-2 py-1.5 text-slate-700 dark:text-slate-200 sm:bg-transparent sm:px-0 sm:py-0 sm:text-right">
+                  <span className="mb-0.5 block text-[9px] font-black uppercase tracking-wide text-slate-400 sm:hidden">{t('play.stats.settlementImpact', 'Settlement')}</span>
+                  <span className={settlementDiff === 0 ? 'text-slate-400' : settlementDiff > 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                    {settlementDiff === 0 ? '0' : formatDelta(settlementDiff)}
+                  </span>
+                  <span className="mx-1 text-slate-400">→</span>
+                  <span className={settlementDiff > 0 ? 'text-emerald-700 font-bold' : settlementDiff < 0 ? 'text-rose-700 font-bold' : 'text-slate-700 dark:text-slate-200'}>
+                    {settlementProjected}
+                  </span>
+                </span>
+              </div>
             </div>
           );
         })}

@@ -1377,7 +1377,7 @@ public class GameService {
         ObjectNode metrics = state.with("metrics");
         ObjectNode resources = state.with("resources");
         int turn = state.path("turn").asInt();
-        boolean boundaryReached = turn >= maxTurn();
+        boolean boundaryReached = turn >= maxTurn() || countRemainingCoreCards(state) <= 0;
         GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         if (!boundaryReached) {
             return;

@@ -1,20 +1,23 @@
 version: '3.8'
 
 services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
     container_name: youthloop-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: youthloop
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-youthloop}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../db/init:/docker-entrypoint-initdb.d
+      - ./db-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,8 +27,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: youthloop-redis
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -39,12 +43,13 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: youthloop-rabbitmq
+    restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -55,23 +60,106 @@ services:
     networks:
       - youthloop
 
-  minio:
-    image: minio/minio:latest
-    container_name: youthloop-minio
+  # ── Backend Services ─────────────────────────────────────────────────────────
+
+  social-api:
+    image: youthloop/social-api:latest
+    container_name: youthloop-social-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      DATABASE_URL: ${DATABASE_URL}
+      FLYWAY_URL: ${FLYWAY_URL}
+      FLYWAY_USER: ${FLYWAY_USER}
+      FLYWAY_PASSWORD: ${FLYWAY_PASSWORD}
+      REDIS_URL: ${REDIS_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL}
+      STORAGE_S3_PATH_STYLE_ACCESS_ENABLED: ${STORAGE_S3_PATH_STYLE_ACCESS_ENABLED}
+      JWT_SECRET: ${JWT_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx384m}
     ports:
-      - "9000:9000"   # API
-      - "9001:9001"   # Console
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "127.0.0.1:8080:8080"
+    networks:
+      - youthloop
+
+  game-api:
+    image: youthloop/game-api:latest
+    container_name: youthloop-game-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      GAME_DATABASE_URL: ${GAME_DATABASE_URL}
+      GAME_FLYWAY_URL: ${GAME_FLYWAY_URL}
+      GAME_FLYWAY_USER: ${GAME_FLYWAY_USER}
+      GAME_FLYWAY_PASSWORD: ${GAME_FLYWAY_PASSWORD}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL}
+      STORAGE_S3_PATH_STYLE_ACCESS_ENABLED: ${STORAGE_S3_PATH_STYLE_ACCESS_ENABLED}
+      JWT_SECRET: ${JWT_SECRET}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx256m}
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks:
+      - youthloop
+
+  social-worker:
+    image: youthloop/social-worker:latest
+    container_name: youthloop-social-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL}
+      STORAGE_S3_PATH_STYLE_ACCESS_ENABLED: ${STORAGE_S3_PATH_STYLE_ACCESS_ENABLED}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms64m -Xmx192m}
+    networks:
+      - youthloop
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+
+  web:
+    image: youthloop/web:latest
+    container_name: youthloop-web
+    restart: unless-stopped
+    depends_on:
+      - social-api
+      - game-api
+    ports:
+      - "127.0.0.1:8000:8000"
     networks:
       - youthloop
 
@@ -79,7 +167,6 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  minio_data:
 
 networks:
   youthloop:

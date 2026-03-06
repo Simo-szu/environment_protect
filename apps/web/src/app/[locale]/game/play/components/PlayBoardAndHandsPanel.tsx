@@ -66,6 +66,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'selectedPolicyRiskLevel'
   | 'selectedPolicyImmediateDelta'
   | 'selectedPolicyHasImmediateDelta'
+  | 'endTurn'
+  | 'endTurnDisabled'
   | 'tradeType'
   | 'setTradeType'
   | 'tradeAmount'
@@ -132,6 +134,12 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     selectedTileAdjacency,
     boardViewMode,
     boardPlacementMode,
+    selectedPolicyCard,
+    selectedPolicyRiskLevel,
+    selectedPolicyImmediateDelta,
+    selectedPolicyHasImmediateDelta,
+    endTurn,
+    endTurnDisabled,
     tradeType,
     setTradeType,
     tradeAmount,
@@ -227,6 +235,26 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     selectedCorePhase
   ]);
 
+  const activeTileSummary = useMemo(() => {
+    if (!activeTileInfo) {
+      return null;
+    }
+    if (activeTileInfo.occupiedCardId) {
+      return {
+        title: activeTileInfo.occupiedName || activeTileInfo.occupiedCardId,
+        subtitle: `${String(activeTileInfo.occupiedCard?.domain || '').toUpperCase()} · ${String(activeTileInfo.occupiedCard?.phaseBucket || '').toUpperCase()}`,
+        detail: activeTileInfo.occupiedEffects.length > 0
+          ? activeTileInfo.occupiedEffects.join('  ')
+          : t('play.common.none', 'None')
+      };
+    }
+    return {
+      title: t('play.board.selection.title', 'Current Placement Target'),
+      subtitle: `${t('play.common.tile', 'Tile')} ${activeTileInfo.key}${activeTileInfo.recommended ? ` · ${t('play.board.recommended', 'Recommended tile')}` : ''}`,
+      detail: `${t('play.board.synergyScore', 'Synergy')} ${activeTileInfo.synergyScore} · ${t('play.preview.synergyAdjacency', 'Adjacency')} ${activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}`
+    };
+  }, [activeTileInfo, t]);
+
   const roundsUntilTradeOpen = useMemo(() => {
     if (tradeWindowOpened) {
       return 0;
@@ -247,17 +275,32 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     const action = String(latestTradeRecord?.action ?? '').toLowerCase();
     return recordTurn === turn && (action === 'buy' || action === 'sell');
   }, [latestTradeRecord, turn]);
+  const tradeLockedLabel = locale === 'zh'
+    ? roundsUntilTradeOpen > 0
+      ? `碳交易区锁定 · 还需 ${roundsUntilTradeOpen} 回合`
+      : '碳交易区锁定'
+    : roundsUntilTradeOpen > 0
+      ? `Carbon market locked · available in ${roundsUntilTradeOpen} turns`
+      : 'Carbon market locked';
+  const tradeLockedCompactLabel = locale === 'zh'
+    ? roundsUntilTradeOpen > 0
+      ? `${roundsUntilTradeOpen} 回合后开放`
+      : '本回合不可交易'
+    : roundsUntilTradeOpen > 0
+      ? `Opens in ${roundsUntilTradeOpen} turns`
+      : 'Unavailable this turn';
+  const tradePanelFlexClass = tradeWindowOpened || tradedThisTurn ? 'flex-1' : 'sm:flex-1';
 
   return (
-    <section className="h-full flex flex-col relative bg-transparent overflow-visible gap-4 p-0 transition-all duration-500">
+    <section className="h-full min-h-[860px] sm:min-h-[960px] xl:min-h-0 flex flex-col relative bg-transparent overflow-visible gap-3 sm:gap-4 p-0 transition-all duration-500">
 
       {/* 移除强遮罩，改为通知条 + 牌面反馈 */}
 
       {/* --- TOP ZONE (50% Height): Board & Trade Segmented --- */}
-      <div className={`flex-[5] flex gap-4 min-h-0 transition-all duration-500 ${pendingDiscardActive ? 'grayscale opacity-60 pointer-events-none' : ''}`}>
+      <div className={`flex-[4] sm:flex-[5] flex flex-col xl:flex-row gap-3 sm:gap-4 min-h-0 transition-all duration-500 ${pendingDiscardActive ? 'grayscale opacity-60 pointer-events-none' : ''}`}>
 
         {/* Left 50%: Board (Grid) */}
-        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-4 relative z-[60] shadow-sm overflow-visible flex flex-col">
+        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-3 sm:p-4 relative z-[60] shadow-sm overflow-visible flex flex-col">
           <div className="mb-2 flex items-center justify-between z-10 px-2 min-h-[24px]">
             <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
               {t('play.board.title', 'PLANNING GRID')}
@@ -375,15 +418,16 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 })}
               </div>
               {activeTileInfo && (
-                <div
-                  className="absolute z-[200] pointer-events-none"
-                  style={{
-                    left: `${((activeTileInfo.col + 0.5) / boardSize) * 100}%`,
-                    top: `${((activeTileInfo.row + (activeTileInfo.row <= 1 ? 1.0 : 0.0)) / boardSize) * 100}%`,
-                    transform: activeTileInfo.row <= 1 ? 'translate(-50%, 8%)' : 'translate(-50%, -102%)'
-                  }}
-                >
-                  <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-3 py-2 shadow-lg">
+                <>
+                  <div
+                    className="absolute z-[200] hidden pointer-events-none sm:block"
+                    style={{
+                      left: `${((activeTileInfo.col + 0.5) / boardSize) * 100}%`,
+                      top: `${((activeTileInfo.row + (activeTileInfo.row <= 1 ? 1.0 : 0.0)) / boardSize) * 100}%`,
+                      transform: activeTileInfo.row <= 1 ? 'translate(-50%, 8%)' : 'translate(-50%, -102%)'
+                    }}
+                  >
+                    <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-3 py-2 shadow-lg">
                     <div className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
                       {activeTileInfo.occupiedCardId ? (activeTileInfo.occupiedName || activeTileInfo.occupiedCardId) : t('play.board.selection.title', 'Current Placement Target')}
                     </div>
@@ -452,15 +496,40 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                         </span>
                       </div>
                     )}
+                    </div>
                   </div>
-                </div>
+                  {activeTileSummary && (
+                    <div className="absolute inset-x-2 bottom-2 z-[205] pointer-events-none sm:hidden">
+                      <div className="rounded-2xl border border-slate-200/90 dark:border-slate-700/90 bg-white/94 dark:bg-slate-900/94 px-3 py-2 shadow-[0_14px_30px_rgba(15,23,42,0.18)] backdrop-blur">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-slate-100">
+                              {activeTileSummary.title}
+                            </div>
+                            <div className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-slate-400">
+                              {activeTileSummary.subtitle}
+                            </div>
+                          </div>
+                          {!activeTileInfo.occupiedCardId && (
+                            <span className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] ${activeTileInfo.placeable ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                              {activeTileInfo.placeable ? t('play.afford.canPlace', 'Can Place') : t('play.common.none', 'None')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 text-[10px] leading-4 text-slate-600 dark:text-slate-300">
+                          {activeTileSummary.detail}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
         {/* Right 50%: Carbon Trade */}
-        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-8 relative shadow-sm overflow-hidden flex flex-col justify-between">
+        <div className={`${tradePanelFlexClass} bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-4 sm:p-8 relative shadow-sm overflow-hidden flex flex-col justify-between`}>
           <div className="flex items-center justify-between">
             <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
               {t('play.trade.title', 'CARBON MARKET')}
@@ -557,17 +626,31 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 </>
               ) : (
                 <>
-                  <div className="text-[11px] font-black tracking-wide text-slate-500 dark:text-slate-300">
-                    {locale === 'zh'
-                      ? roundsUntilTradeOpen > 0
-                        ? `\u78b3\u4ea4\u6613\u533a\u9501\u5b9a \u00b7 \u8fd8\u9700 ${roundsUntilTradeOpen} \u56de\u5408`
-                        : '\u78b3\u4ea4\u6613\u533a\u9501\u5b9a'
-                      : roundsUntilTradeOpen > 0
-                        ? `Carbon market locked ? available in ${roundsUntilTradeOpen} turns`
-                        : 'Carbon market locked'}
+                  <div className="hidden sm:block text-center">
+                    <div className="text-[11px] font-black tracking-wide text-slate-500 dark:text-slate-300">
+                      {tradeLockedLabel}
+                    </div>
+                    <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+                      {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                    {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                  <div className="sm:hidden w-full rounded-[1.4rem] border border-amber-200/80 bg-amber-50/85 dark:border-amber-500/20 dark:bg-amber-500/10 px-3 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+                          {t('play.trade.title', 'Carbon Market')}
+                        </div>
+                        <div className="mt-1 text-[12px] font-bold text-slate-800 dark:text-slate-100">
+                          {tradeLockedCompactLabel}
+                        </div>
+                      </div>
+                      <div className="shrink-0 rounded-full bg-white/80 dark:bg-slate-900/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+                        {roundsUntilTradeOpen > 0 ? `T-${roundsUntilTradeOpen}` : 'LOCK'}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+                      {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                    </div>
                   </div>
                 </>
               )}
@@ -577,13 +660,16 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       </div>
 
       {/* --- BOTTOM ZONE: Cards In Hand (焦点区域) --- */}
-      <div className="flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
+      <div className="flex-[6] sm:flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-3 sm:p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
 
         {/* 指示条：非侵入式提示 */}
-        <div className="mb-2 flex items-center justify-between px-4">
+        <div className="mb-2 sm:mb-3 px-2 sm:px-4 shrink-0">
           {pendingDiscardActive ? (
-            <div className="flex items-center gap-3 animate-in slide-in-from-left-4 duration-500">
-              <span className="text-rose-600 font-extrabold text-[11px] uppercase tracking-[0.2em]">
+            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-rose-700 shadow-sm animate-in slide-in-from-left-4 duration-500">
+              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-[11px] font-black">
+                !
+              </span>
+              <span className="text-[11px] font-semibold leading-5">
                 {t('play.discard.title', 'Discard Mode Active')} - {t('play.discard.instruction', 'Select cards to liquefy')}
                 {pendingDiscardRequiredTotal > 0
                   ? ` ${t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
@@ -594,19 +680,24 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               </span>
             </div>
           ) : (
-            <h2 className="font-black text-[10px] uppercase tracking-[0.3em] text-emerald-900/30 dark:text-emerald-200/40">
-              {t('play.coreHand.title', 'CARDS IN HANDS')}
-            </h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-black text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.3em] text-emerald-900/30 dark:text-emerald-200/40">
+                {t('play.coreHand.title', 'CARDS IN HANDS')}
+              </h2>
+              <div className="sm:hidden rounded-full bg-white/90 dark:bg-slate-900/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                {handCoreCards.length} Core
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="flex-1 flex items-center justify-center min-w-0">
-          <div className="flex -space-x-20 hover:-space-x-8 transition-all duration-700 ease-in-out py-4">
+        <div className="flex-1 flex items-start sm:items-center justify-start xl:justify-center min-w-0 overflow-x-auto overflow-y-visible pb-2 [scrollbar-width:none] [-ms-overflow-style:none]">
+          <div className="flex snap-x snap-mandatory -space-x-8 sm:-space-x-14 xl:-space-x-20 xl:hover:-space-x-8 transition-all duration-700 ease-in-out py-2 sm:py-4 pl-2 pr-10 sm:pr-16 xl:px-0">
             {handCoreCards.map((card, index) => {
               const canPlace = coreAffordabilityMap.get(card.cardId)?.canPlace;
               const isSelected = selectedCoreId === card.cardId;
               const cardFrameStyles = !pendingDiscardActive && isSelected
-                ? 'border-emerald-500 ring-4 ring-emerald-500/10 -translate-y-12 scale-105 z-50'
+                ? 'border-emerald-500 ring-4 ring-emerald-500/10 -translate-y-6 sm:-translate-y-8 xl:-translate-y-12 scale-105 z-50'
                 : 'border-white';
 
               return (
@@ -625,7 +716,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     }
                     setSelectedCoreId(current => current === card.cardId ? '' : card.cardId);
                   }}
-                  className={`flex-shrink-0 h-[300px] aspect-[9/16] rounded-[1.5rem] border-2 transition-all duration-500 relative overflow-hidden group shadow-xl hover:z-[100] ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
+                  className={`snap-center flex-shrink-0 h-[236px] sm:h-[260px] xl:h-[300px] aspect-[9/16] rounded-[1.5rem] border-2 transition-all duration-500 relative overflow-hidden group shadow-xl xl:hover:z-[100] ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
                 >
                   <img src={resolveImageUrl(card.imageKey)} className="absolute inset-0 w-full h-full object-cover" alt={card.chineseName} />
 
@@ -636,9 +727,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               );
             })}
 
-            <div className="w-[1px] h-24 bg-slate-200/50 dark:bg-slate-700 self-center mx-8 z-10" />
+            <div className="w-[1px] h-20 sm:h-24 bg-slate-200/50 dark:bg-slate-700 self-center mx-4 sm:mx-8 z-10" />
 
-            <div className="flex -space-x-12 hover:-space-x-4 transition-all duration-700 py-4">
+            <div className="flex -space-x-8 sm:-space-x-10 xl:-space-x-12 xl:hover:-space-x-4 transition-all duration-700 py-4">
               {handPolicyCards.map((card, index) => {
                 const isSelected = selectedPolicyId === card.cardId;
                 const cardFrameStyles = !pendingDiscardActive && isSelected ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
@@ -650,7 +741,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       if (pendingDiscardActive) { discardCard('policy', card.cardId); return; }
                       setSelectedPolicyId(current => current === card.cardId ? '' : card.cardId);
                     }}
-                    className={`flex-shrink-0 h-[220px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-5 flex flex-col justify-between shadow-lg hover:z-[100] hover:-translate-y-6 ${cardFrameStyles}`}
+                  className={`snap-center flex-shrink-0 h-[220px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-5 flex flex-col justify-between shadow-lg hover:z-[100] hover:-translate-y-6 ${cardFrameStyles}`}
                   >
                     {card.imageKey ? (
                       <img
@@ -683,7 +774,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
         {/* 只有在非弃牌阶段显示部署按钮 */}
         {!pendingDiscardActive && (
-          <div className="absolute right-12 bottom-12 z-[100]">
+          <div className="absolute right-4 bottom-4 sm:right-8 sm:bottom-8 xl:right-12 xl:bottom-12 z-[100]">
             {selectedCoreId && selectedTile && (
               <button
                 onClick={() => {
@@ -691,7 +782,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   void placeCoreCard(selectedCoreId, row, col);
                 }}
                 disabled={actionLoading || corePlacedThisTurn}
-                className="group flex items-center gap-6 px-12 py-5 rounded-[3rem] bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs uppercase tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(4,120,87,0.3)] hover:-translate-y-2 active:translate-y-0"
+                className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(4,120,87,0.3)] hover:-translate-y-2 active:translate-y-0"
               >
                 <span>DEPLOY</span>
               </button>
@@ -700,11 +791,72 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               <button
                 onClick={() => runAction(3, { cardId: selectedPolicyId })}
                 disabled={actionLoading || !!ending || policyUsedThisTurn}
-                className="group flex items-center gap-6 px-12 py-5 rounded-[3rem] bg-indigo-900 hover:bg-black text-white font-black text-xs uppercase tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(49,46,129,0.3)] hover:-translate-y-2"
+                className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-indigo-900 hover:bg-black text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(49,46,129,0.3)] hover:-translate-y-2"
               >
                 <span>EXECUTE</span>
               </button>
             )}
+          </div>
+        )}
+
+        {!pendingDiscardActive && (
+          <div className="sm:hidden fixed inset-x-3 bottom-3 z-[140] rounded-[1.5rem] border border-slate-200/80 bg-white/92 backdrop-blur px-3 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  {selectedPolicyId
+                    ? t('play.actions.usePolicy', 'Use Policy')
+                    : selectedCoreId
+                      ? t('play.actions.placeCore', 'Place Core')
+                      : t('play.flow.selectCore', 'Select Core')}
+                </div>
+                <div className="mt-1 text-[12px] font-bold text-slate-800 truncate">
+                  {selectedPolicyCard
+                    ? (locale === 'zh' ? selectedPolicyCard.chineseName : selectedPolicyCard.englishName)
+                    : selectedCoreCard
+                      ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
+                      : t('play.common.selectedCard', 'Selected Card')}
+                </div>
+                <div className="mt-1 text-[11px] text-slate-500 truncate">
+                  {selectedTile
+                    ? `${t('play.common.tile', 'Tile')}: ${selectedTile}`
+                    : selectedPolicyId
+                      ? t('play.common.none', 'None')
+                      : t('play.common.tileNotSelected', 'Tile not selected')}
+                </div>
+              </div>
+              {selectedCoreId && selectedTile ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const [row, col] = selectedTile.split(',').map((value) => Number(value));
+                    void placeCoreCard(selectedCoreId, row, col);
+                  }}
+                  disabled={actionLoading || corePlacedThisTurn}
+                  className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
+                >
+                  DEPLOY
+                </button>
+              ) : selectedPolicyId ? (
+                <button
+                  type="button"
+                  onClick={() => runAction(3, { cardId: selectedPolicyId })}
+                  disabled={actionLoading || !!ending || policyUsedThisTurn}
+                  className="shrink-0 rounded-2xl bg-indigo-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
+                >
+                  EXECUTE
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={endTurn}
+                  disabled={endTurnDisabled}
+                  className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
+                >
+                  {t('play.actions.endTurn', 'End Turn')}
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -1190,6 +1190,7 @@ class GameServicePhase3Test {
         state.with("metrics").put("carbon", 40);
         state.with("metrics").put("satisfaction", 80);
         state.with("resources").put("population", 20);
+        state.with("remainingPools").withArray("early").add("card001");
 
         GameSessionEntity session = activeSession(state);
         when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
@@ -1416,6 +1417,7 @@ class GameServicePhase3Test {
         state.with("carbonTrade").put("quotaExhaustedCount", 4);
         state.with("carbonTrade").put("profit", -10.0D);
         state.with("metrics").put("lowCarbonScore", 180);
+        state.with("remainingPools").withArray("early").add("card001");
 
         GameSessionEntity session = activeSession(state);
         when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
@@ -1630,6 +1632,36 @@ class GameServicePhase3Test {
         assertEquals(0, next.withArray("handCore").size());
         assertEquals(0, next.withArray("handPolicy").size());
         assertEquals(30, next.path("turn").asInt());
+    }
+
+    @Test
+    void endTurnShouldEndSessionWhenCoreDeckAndHandAreExhausted() {
+        ObjectNode state = baseState();
+        state.put("turn", 12);
+        state.put("eventCooldown", 2);
+        state.with("metrics").put("lowCarbonScore", 30);
+        state.withArray("placedCore").add("card001");
+        state.with("boardOccupied").put("0,0", "card001");
+        state.with("remainingPools").set("early", objectMapper.createArrayNode());
+        state.with("remainingPools").set("mid", objectMapper.createArrayNode());
+        state.with("remainingPools").set("late", objectMapper.createArrayNode());
+        when(cardCatalogService.getRequiredCard("card001")).thenReturn(coreCard("card001", "industry"));
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
+        assertTrue(next.path("sessionEnded").asBoolean());
+        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals(12, next.path("turn").asInt());
+        assertEquals(0, next.withArray("handCore").size());
     }
 
     @Test
