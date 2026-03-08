@@ -6,7 +6,12 @@
       "Read(//c/Users/11948/.claude/**)",
       "Skill(augment-mcp-max)",
       "Skill(augment-mcp-max:*)",
-      "Read(//c/Users/**)"
+      "Read(//c/Users/**)",
+      "WebSearch",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(pandoc:*)",
+      "Bash(pip install:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\11948\\.claude"

@@ -130,6 +130,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     runAction,
     policyUsedThisTurn,
     strictGuideMode,
+    placeActionBlockedReason,
+    policyActionBlockedReason,
     selectedTileSynergyBreakdown,
     selectedTileAdjacency,
     boardViewMode,
@@ -290,6 +292,18 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       ? `Opens in ${roundsUntilTradeOpen} turns`
       : 'Unavailable this turn';
   const tradePanelFlexClass = tradeWindowOpened || tradedThisTurn ? 'flex-1' : 'sm:flex-1';
+  const mobileActionHint = useMemo(() => {
+    if (selectedPolicyId) {
+      return policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy');
+    }
+    if (selectedCoreId) {
+      if (!selectedTile) {
+        return t('play.actions.blocked.selectTile', '请先选择棋盘空位。');
+      }
+      return placeActionBlockedReason || t('play.actions.placeCore', 'Place Core');
+    }
+    return tradeActionBlockedReason || t('play.actions.endTurn', 'End Turn');
+  }, [selectedPolicyId, policyActionBlockedReason, selectedCoreId, selectedTile, placeActionBlockedReason, tradeActionBlockedReason, t]);
 
   return (
     <section className="h-full min-h-[860px] sm:min-h-[960px] xl:min-h-0 flex flex-col relative bg-transparent overflow-visible gap-3 sm:gap-4 p-0 transition-all duration-500">
@@ -787,7 +801,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   const [row, col] = selectedTile.split(',').map(v => Number(v));
                   void placeCoreCard(selectedCoreId, row, col);
                 }}
-                disabled={actionLoading || corePlacedThisTurn}
+                disabled={actionLoading || !!placeActionBlockedReason}
+                title={placeActionBlockedReason || t('play.actions.placeCore', 'Place Core')}
                 className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(4,120,87,0.3)] hover:-translate-y-2 active:translate-y-0"
               >
                 <span>DEPLOY</span>
@@ -796,7 +811,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             {selectedPolicyId && (
               <button
                 onClick={() => runAction(3, { cardId: selectedPolicyId })}
-                disabled={actionLoading || !!ending || policyUsedThisTurn}
+                disabled={actionLoading || !!policyActionBlockedReason}
+                title={policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy')}
                 className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-indigo-900 hover:bg-black text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(49,46,129,0.3)] hover:-translate-y-2"
               >
                 <span>EXECUTE</span>
@@ -830,6 +846,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       ? t('play.common.none', 'None')
                       : t('play.common.tileNotSelected', 'Tile not selected')}
                 </div>
+                <div className="mt-1 text-[10px] text-slate-500 truncate">
+                  {mobileActionHint}
+                </div>
               </div>
               {selectedCoreId && selectedTile ? (
                 <button
@@ -838,7 +857,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     const [row, col] = selectedTile.split(',').map((value) => Number(value));
                     void placeCoreCard(selectedCoreId, row, col);
                   }}
-                  disabled={actionLoading || corePlacedThisTurn}
+                  disabled={actionLoading || !!placeActionBlockedReason}
+                  title={placeActionBlockedReason || t('play.actions.placeCore', 'Place Core')}
                   className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
                 >
                   DEPLOY
@@ -847,7 +867,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 <button
                   type="button"
                   onClick={() => runAction(3, { cardId: selectedPolicyId })}
-                  disabled={actionLoading || !!ending || policyUsedThisTurn}
+                  disabled={actionLoading || !!policyActionBlockedReason}
+                  title={policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy')}
                   className="shrink-0 rounded-2xl bg-indigo-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
                 >
                   EXECUTE

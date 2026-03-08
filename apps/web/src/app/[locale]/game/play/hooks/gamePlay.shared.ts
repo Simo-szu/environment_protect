@@ -206,11 +206,44 @@ export function asRecord(value: unknown): UnknownRecord | null {
 
 export function getErrorMessage(error: unknown): string | null {
   if (error instanceof Error) {
-    return error.message;
+    return normalizeErrorMessage(error.message);
   }
   const record = asRecord(error);
   const message = record?.message;
-  return typeof message === 'string' ? message : null;
+  if (typeof message === 'string') {
+    return normalizeErrorMessage(message);
+  }
+  return null;
+}
+
+export function isConnectionIssueMessage(message: string | null | undefined): boolean {
+  if (!message) {
+    return false;
+  }
+  const lower = message.toLowerCase();
+  return lower.includes('connection to game service failed')
+    || lower.includes('err_connection_refused')
+    || lower.includes('failed to fetch')
+    || lower.includes('networkerror')
+    || lower.includes('fetch failed')
+    || lower.includes('network request failed')
+    || lower.includes('econnrefused')
+    || lower.includes('service unavailable')
+    || /^http_5\d\d$/.test(lower);
+}
+
+function normalizeErrorMessage(message: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) {
+    return 'Request failed. Please try again.';
+  }
+
+  const lower = trimmed.toLowerCase();
+  if (isConnectionIssueMessage(lower)) {
+    return 'Connection to game service failed. Please retry in a moment.';
+  }
+
+  return trimmed;
 }
 
 export function readDelta(entry: UnknownRecord | undefined, section: string, field: string): number {

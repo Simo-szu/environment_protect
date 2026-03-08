@@ -11,6 +11,11 @@
     "start": "pnpm -C apps/web start",
     "lint": "pnpm -C apps/web lint",
     "type-check": "pnpm -C apps/web type-check",
+    "game:full-run": "node scripts/game/full-run.mjs",
+    "game:check-full-run": "node scripts/game/check-full-run.mjs",
+    "game:strategy-suite": "node scripts/game/strategy-suite.mjs",
+    "game:check-console-gate": "node scripts/game/check-suite-console-gate.mjs",
+    "game:ci": "pnpm game:strategy-suite && pnpm game:check-console-gate",
     "export:openapi": "node scripts/export-openapi-from-running.mjs",
     "export:openapi:running": "node scripts/export-openapi-from-running.mjs",
     "export:openapi:running:ps1": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-openapi-from-running.ps1"

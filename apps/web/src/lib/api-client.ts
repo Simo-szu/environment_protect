@@ -5,6 +5,9 @@
 import { BaseResponse, ApiError, UnifiedRequest } from './api-types';
 import { authStore } from './auth-store';
 
+const RETRYABLE_STATUSES = new Set([502, 503, 504]);
+const RETRY_DELAYS_MS = [250, 600, 1200];
+
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -62,6 +65,7 @@ export async function apiFetch<T = any>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const method = String(options.method || 'GET').toUpperCase();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept-Language': getCurrentLocale(),
@@ -87,10 +91,33 @@ export async function apiFetch<T = any>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  let response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const fetchWithRetry = async (): Promise<Response> => {
+    const maxAttempts = method === 'GET' || method === 'HEAD' ? 3 : 1;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+        });
+        if (attempt < maxAttempts - 1 && RETRYABLE_STATUSES.has(response.status)) {
+          await wait(RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)]);
+          continue;
+        }
+        return response;
+      } catch (error) {
+        if (attempt < maxAttempts - 1 && isNetworkFailure(error)) {
+          await wait(RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)]);
+          continue;
+        }
+        throw new ApiError('Connection to game service failed. Please retry in a moment.');
+      }
+    }
+
+    throw new ApiError('Connection to game service failed. Please retry in a moment.');
+  };
+
+  let response = await fetchWithRetry();
 
   if (response.status === 401 && authStore.isAuthenticated()) {
     // Logged-in user got 401: try to refresh once
@@ -108,10 +135,7 @@ export async function apiFetch<T = any>(
         (headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
       }
 
-      response = await fetch(url, {
-        ...options,
-        headers,
-      });
+      response = await fetchWithRetry();
     } catch (error) {
       authStore.clear();
       if (typeof window !== 'undefined') {
@@ -122,9 +146,17 @@ export async function apiFetch<T = any>(
     }
   }
 
-  const result: BaseResponse<T> = await response.json();
+  let result: BaseResponse<T> | null = null;
+  try {
+    result = await response.json() as BaseResponse<T>;
+  } catch {
+    if (!response.ok) {
+      throw new ApiError(`HTTP_${response.status}`);
+    }
+    throw new ApiError('Invalid server response');
+  }
 
-  if (!result.success) {
+  if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
       authStore.clear();
       if (typeof window !== 'undefined') {
@@ -132,10 +164,40 @@ export async function apiFetch<T = any>(
         window.location.href = `/${locale}/login`;
       }
     }
-    throw new ApiError(result.message || 'Request failed', result.traceId, result.errors);
+    throw new ApiError(result?.message || `HTTP_${response.status}`, result?.traceId, result?.errors);
+  }
+
+  if (!result || !result.success) {
+    if (response.status === 401 || response.status === 403) {
+      authStore.clear();
+      if (typeof window !== 'undefined') {
+        const locale = getCurrentLocale();
+        window.location.href = `/${locale}/login`;
+      }
+    }
+    throw new ApiError(result?.message || 'Request failed', result?.traceId, result?.errors);
   }
 
   return result.data;
+}
+
+function isNetworkFailure(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const message = error.message.toLowerCase();
+  return message.includes('failed to fetch')
+    || message.includes('networkerror')
+    || message.includes('fetch failed')
+    || message.includes('network request failed')
+    || message.includes('econnrefused')
+    || message.includes('err_connection_refused');
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export function wrapRequest<T>(

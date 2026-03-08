@@ -21,13 +21,16 @@ declare -A IMAGE_MAP=(
 )
 
 declare -A CONTEXT_MAP=(
-  [social-api]="$SCRIPT_DIR/apps/social-api"
-  [game-api]="$SCRIPT_DIR/apps/game-api"
-  [social-worker]="$SCRIPT_DIR/apps/social-worker"
+  [social-api]="$SCRIPT_DIR"
+  [game-api]="$SCRIPT_DIR"
+  [social-worker]="$SCRIPT_DIR"
   [web]="$SCRIPT_DIR"
 )
 
 declare -A DOCKERFILE_MAP=(
+  [social-api]="$SCRIPT_DIR/apps/social-api/Dockerfile"
+  [game-api]="$SCRIPT_DIR/apps/game-api/Dockerfile"
+  [social-worker]="$SCRIPT_DIR/apps/social-worker/Dockerfile"
   [web]="$SCRIPT_DIR/apps/web/Dockerfile"
 )
 

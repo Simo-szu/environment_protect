@@ -63,8 +63,19 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
     () => activeNegativeEvents.find((event) => String(event.eventType) === effectiveSelectedEventType) || null,
     [activeNegativeEvents, effectiveSelectedEventType]
   );
-  const recommendedPolicies = effectiveSelectedEventType ? resolvePolicyIdsByEvent(effectiveSelectedEventType) : [];
+  const recommendedPolicies = useMemo(
+    () => (effectiveSelectedEventType ? resolvePolicyIdsByEvent(effectiveSelectedEventType) : []),
+    [effectiveSelectedEventType, resolvePolicyIdsByEvent]
+  );
   const hasRecommendedPolicyInHand = recommendedPolicies.some((policyId) => handPolicySet.has(policyId));
+  const recommendedPolicyRows = useMemo(
+    () => recommendedPolicies.map((policyId) => ({
+      policyId,
+      policyName: catalog.get(policyId)?.chineseName || policyId,
+      inHand: handPolicySet.has(policyId)
+    })),
+    [recommendedPolicies, catalog, handPolicySet]
+  );
 
   const currentValues = useMemo<ValueMap>(() => {
     return {
@@ -254,8 +265,29 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
                 <div className="text-[10px] leading-relaxed text-slate-600 dark:text-slate-300">
                   {resolvePolicyHintByEvent(String(selectedEvent.eventType))}
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                  {t('play.events.suggestedPolicies', 'Suggested policies')}: {recommendedPolicies.length > 0 ? recommendedPolicies.join(', ') : t('play.common.none', 'None')}
+                <div className="space-y-1">
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {t('play.events.suggestedPolicies', 'Suggested policies')}
+                  </div>
+                  {recommendedPolicyRows.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {recommendedPolicyRows.map((row) => (
+                        <span
+                          key={row.policyId}
+                          className={`rounded-full border px-2 py-1 text-[9px] font-black tracking-wide ${row.inHand ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-100 text-slate-500'}`}
+                        >
+                          {row.policyName}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-slate-400">{t('play.common.none', 'None')}</div>
+                  )}
+                  {!hasRecommendedPolicyInHand && (
+                    <div className="text-[10px] text-amber-700">
+                      {t('play.events.noPolicyInHand', '当前手牌没有可化解该事件的政策卡。')}
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"

@@ -162,6 +162,8 @@ services:
     depends_on:
       - social-api
       - game-api
+    environment:
+      SOCIAL_API_ORIGIN: http://social-api:8080
     ports:
       - "127.0.0.1:8000:8000"
     networks:

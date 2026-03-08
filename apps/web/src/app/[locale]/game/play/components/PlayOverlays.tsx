@@ -9,6 +9,7 @@ type PlayOverlaysProps = Pick<
   | 'currentGuidedTask'
   | 'guidedOverlayMessage'
   | 'error'
+  | 'connectionState'
   | 'lastMessage'
   | 'transitionNotice'
   | 'showOnboarding'
@@ -33,6 +34,7 @@ type PlayOverlaysProps = Pick<
   | 'tradeProfit'
   | 'eventStats'
   | 'handleOpenArchive'
+  | 'refreshSession'
   | 'handleRestartSession'
   | 'handleExitSession'
   | 'setGuidedTutorialActive'
@@ -48,6 +50,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     currentGuidedTask,
     guidedOverlayMessage,
     error,
+    connectionState,
     lastMessage,
     transitionNotice,
     showOnboarding,
@@ -72,6 +75,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     tradeProfit,
     eventStats,
     handleOpenArchive,
+    refreshSession,
     handleRestartSession,
     handleExitSession,
     setGuidedTutorialActive,
@@ -107,8 +111,50 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
         .join(' + ')
     : '';
 
+  const normalizedError = (error || '').toLowerCase();
+  const isConnectionIssue =
+    normalizedError.includes('connection to game service failed')
+    || normalizedError.includes('err_connection_refused')
+    || normalizedError.includes('failed to fetch')
+    || normalizedError.includes('networkerror')
+    || normalizedError.includes('service unavailable')
+    || normalizedError.includes('http_5');
+
   return (
     <>
+      {connectionState !== 'online' && (
+        <div className="fixed inset-x-0 top-2 z-[115] px-2 sm:top-4 sm:px-4">
+          <div
+            className={`mx-auto flex w-full max-w-3xl items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur sm:px-4 sm:py-2.5 ${
+              connectionState === 'offline'
+                ? 'border-rose-200 bg-rose-50/95 text-rose-700'
+                : connectionState === 'retrying'
+                  ? 'border-amber-200 bg-amber-50/95 text-amber-700'
+                  : 'border-emerald-200 bg-emerald-50/95 text-emerald-700'
+            }`}
+          >
+            <span>
+              {connectionState === 'offline'
+                ? t('play.errors.connectionHint', '网络连接异常，已暂停当前操作。请重试连接。')
+                : connectionState === 'retrying'
+                  ? t('play.errors.reconnecting', '正在重连游戏服务...')
+                  : t('play.errors.connectionRecovered', '连接已恢复，状态已同步。')}
+            </span>
+            {connectionState === 'offline' && (
+              <button
+                type="button"
+                onClick={() => {
+                  void refreshSession();
+                }}
+                className="shrink-0 rounded-xl border border-rose-300 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-rose-700 transition-colors hover:bg-rose-100"
+              >
+                {t('play.errors.retryConnection', 'Retry Connection')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {guidedGateEnabled && currentGuidedTask && (
         <div className="fixed top-16 sm:top-24 left-1/2 z-[120] w-[min(94vw,500px)] -translate-x-1/2 animate-in slide-in-from-top-4 duration-500">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-amber-500/30 bg-slate-900/90 p-3 shadow-[0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-xl sm:rounded-2xl sm:p-5">
@@ -163,17 +209,51 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h3 className="mb-3 text-xl font-black uppercase tracking-[0.2em] text-rose-950">System Alert</h3>
-            <p className="mb-10 text-sm font-medium leading-relaxed text-slate-500">{error}</p>
-            <button
-              onClick={() => {
-                setError(null);
-                setLastMessage('');
-              }}
-              className="w-full rounded-2xl bg-rose-600 py-5 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-900/20 transition-all hover:-translate-y-1 hover:bg-rose-700 active:translate-y-0"
-            >
-              Acknowledge
-            </button>
+            <h3 className="mb-3 text-xl font-black uppercase tracking-[0.2em] text-rose-950">
+              {isConnectionIssue ? t('play.errors.connectionTitle', 'Connection Lost') : 'System Alert'}
+            </h3>
+            <p className="mb-6 text-sm font-medium leading-relaxed text-slate-500">{error}</p>
+            {isConnectionIssue ? (
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setError(null);
+                    void refreshSession();
+                  }}
+                  className="w-full rounded-2xl bg-rose-600 py-4 text-xs font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-rose-900/20 transition-all hover:-translate-y-1 hover:bg-rose-700 active:translate-y-0"
+                >
+                  {t('play.errors.retryConnection', 'Retry Connection')}
+                </button>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    window.location.reload();
+                  }}
+                  className="w-full rounded-2xl border border-slate-300 bg-white py-3 text-xs font-black uppercase tracking-[0.16em] text-slate-700 transition-all hover:-translate-y-0.5 hover:bg-slate-50 active:translate-y-0"
+                >
+                  {t('play.errors.reloadPage', 'Reload Page')}
+                </button>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    void handleExitSession();
+                  }}
+                  className="w-full rounded-2xl border border-slate-300 bg-white py-3 text-xs font-black uppercase tracking-[0.16em] text-slate-700 transition-all hover:-translate-y-0.5 hover:bg-slate-50 active:translate-y-0"
+                >
+                  {t('play.errors.backToHome', 'Back to Game Home')}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setError(null);
+                  setLastMessage('');
+                }}
+                className="w-full rounded-2xl bg-rose-600 py-5 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-900/20 transition-all hover:-translate-y-1 hover:bg-rose-700 active:translate-y-0"
+              >
+                Acknowledge
+              </button>
+            )}
           </div>
         </div>
       )}

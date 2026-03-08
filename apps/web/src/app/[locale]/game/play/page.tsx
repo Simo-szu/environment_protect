@@ -175,6 +175,7 @@ export default function GamePlayPage() {
         onToggleTransitionAnimation={controller.toggleTransitionAnimation}
         onEndTurn={controller.endTurn}
         endTurnDisabled={controller.endTurnDisabled}
+        endTurnBlockedReason={controller.endTurnBlockedReason}
         guidedTutorialActive={controller.guidedTutorialActive}
         currentGuidedTaskId={controller.currentGuidedTask?.id}
         boardViewMode={controller.boardViewMode}
@@ -313,6 +314,7 @@ export default function GamePlayPage() {
         currentGuidedTask={controller.currentGuidedTask}
         guidedOverlayMessage={controller.guidedOverlayMessage}
         error={controller.error}
+        connectionState={controller.connectionState}
         lastMessage={controller.lastMessage}
         transitionNotice={controller.transitionNotice}
         showOnboarding={controller.showOnboarding}
@@ -340,6 +342,7 @@ export default function GamePlayPage() {
         tradeProfit={controller.tradeProfit}
         eventStats={controller.eventStats}
         handleOpenArchive={controller.handleOpenArchive}
+        refreshSession={controller.refreshSession}
         handleRestartSession={controller.handleRestartSession}
         handleExitSession={controller.handleExitSession}
         setGuidedTutorialActive={controller.setGuidedTutorialActive}

@@ -1,0 +1,26 @@
+{
+  "default": {
+    "minTurn": 15,
+    "requireEnding": true,
+    "maxConsoleErrors": 0,
+    "minPoliciesUsed": 1,
+    "minResolvedEvents": 1,
+    "requireResolvedWhenTriggered": true,
+    "minTradeActions": 1,
+    "minTradeProfit": -50
+  },
+  "balanced": {},
+  "growth-first": {
+    "minPoliciesUsed": 0,
+    "minTradeProfit": -100
+  },
+  "ecology-first": {
+    "requireEnding": false,
+    "minResolvedEvents": 0,
+    "minTradeProfit": -30
+  },
+  "policy-first": {
+    "minTradeActions": 0,
+    "maxSteps": 420
+  }
+}

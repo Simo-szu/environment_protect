@@ -89,6 +89,7 @@ public class ContentCommandService {
         stats.setFavCount(0);
         stats.setDownCount(0);
         stats.setCommentCount(0);
+        stats.setViewCount(0L);
         stats.setHotScore(0L);
         stats.setUpdatedAt(now);
         

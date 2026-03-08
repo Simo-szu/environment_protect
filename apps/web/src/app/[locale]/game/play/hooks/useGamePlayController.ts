@@ -21,6 +21,7 @@ import {
   EndingView,
   EventRecord,
   getErrorMessage,
+  isConnectionIssueMessage,
   GuidedAction,
   GuidedTask,
   MetricState,
@@ -137,6 +138,8 @@ export function useGamePlayController() {
   const previousSettlementLengthRef = useRef(0);
   const transitionTimerRef = useRef<number | null>(null);
   const endingTimerRef = useRef<number | null>(null);
+  const recoveredTimerRef = useRef<number | null>(null);
+  const [connectionState, setConnectionState] = useState<'online' | 'retrying' | 'offline' | 'recovered'>('online');
 
   const resources = (pondState?.resources || {}) as ResourceState;
   const metrics = (pondState?.metrics || {}) as MetricState;
@@ -514,6 +517,15 @@ export function useGamePlayController() {
   });
 
   useEffect(() => {
+    return () => {
+      if (recoveredTimerRef.current !== null) {
+        window.clearTimeout(recoveredTimerRef.current);
+        recoveredTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     async function loadPublicConfig() {
       try {
@@ -554,7 +566,31 @@ export function useGamePlayController() {
     return `${value > 0 ? '+' : ''}${value}`;
   }
 
+  function markConnectionRecovered() {
+    setConnectionState('recovered');
+    if (recoveredTimerRef.current !== null) {
+      window.clearTimeout(recoveredTimerRef.current);
+    }
+    recoveredTimerRef.current = window.setTimeout(() => {
+      setConnectionState('online');
+      recoveredTimerRef.current = null;
+    }, 2400);
+  }
+
+  function handleRequestError(error: unknown, fallbackMessage: string): string {
+    const message = getErrorMessage(error) || fallbackMessage;
+    if (isConnectionIssueMessage(message)) {
+      setConnectionState('offline');
+      setLastMessage(t('play.errors.connectionHint', '网络连接异常，已暂停当前操作。请重试连接。'));
+    }
+    return message;
+  }
+
   function applyActionResult(response: GameActionResponse) {
+    if (connectionState === 'offline' || connectionState === 'retrying') {
+      markConnectionRecovered();
+      setLastMessage(t('play.errors.connectionRecovered', '连接已恢复，状态已同步。'));
+    }
     const nextState = (response.newPondState || {}) as PondState;
     setPondState(nextState);
     if (sessionId) {
@@ -626,7 +662,7 @@ export function useGamePlayController() {
       const response = await performAction({ sessionId, actionType, actionData });
       applyActionResult(response);
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || 'Action failed');
+      setError(handleRequestError(e, 'Action failed'));
     } finally {
       setActionLoading(false);
     }
@@ -647,7 +683,7 @@ export function useGamePlayController() {
       });
       applyActionResult(response);
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || 'Carbon trade failed');
+      setError(handleRequestError(e, 'Carbon trade failed'));
     } finally {
       setActionLoading(false);
     }
@@ -668,7 +704,7 @@ export function useGamePlayController() {
       const response = await removeCoreCard({ sessionId, row, col });
       applyActionResult(response);
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || t('play.errors.removeFailed', '移除核心卡失败'));
+      setError(handleRequestError(e, t('play.errors.removeFailed', '移除核心卡失败')));
     } finally {
       setActionLoading(false);
     }
@@ -688,7 +724,7 @@ export function useGamePlayController() {
       });
       applyActionResult(response);
     } catch (e: unknown) {
-      const message = getErrorMessage(e) || t('play.errors.discardFailed', '弃牌失败');
+      const message = handleRequestError(e, t('play.errors.discardFailed', '弃牌失败'));
       if (typeof message === 'string' && message.includes('No pending discard')) {
         await refreshSession();
         setError(t('play.errors.noPendingDiscard', '当前没有待弃牌任务，界面已同步最新状态。'));
@@ -716,12 +752,16 @@ export function useGamePlayController() {
     if (!sessionId) {
       return;
     }
+    setConnectionState('retrying');
+    setLastMessage(t('play.errors.reconnecting', '正在重连游戏服务...'));
     try {
       const current = await getSessionById(sessionId);
       setSessionId(current.id);
       setPondState((current.pondState || {}) as PondState);
+      markConnectionRecovered();
+      setLastMessage(t('play.errors.connectionRecovered', '连接已恢复，状态已同步。'));
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || t('play.errors.refreshFailed', '刷新失败'));
+      setError(handleRequestError(e, t('play.errors.refreshFailed', '刷新失败')));
     }
   }
 
@@ -754,7 +794,7 @@ export function useGamePlayController() {
       }
       router.push(`/${locale}/game`);
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || t('play.errors.endSessionFailed', '结束对局失败'));
+      setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));
     } finally {
       setSessionControlLoading(false);
     }
@@ -775,7 +815,7 @@ export function useGamePlayController() {
       }
       window.location.reload();
     } catch (e: unknown) {
-      setError(getErrorMessage(e) || t('play.errors.endSessionFailed', '结束对局失败'));
+      setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));
       setSessionControlLoading(false);
     }
   }
@@ -814,6 +854,22 @@ export function useGamePlayController() {
     void runAction(2);
   }
 
+  const endTurnBlockedReason = useMemo(() => {
+    if (actionLoading || sessionControlLoading) {
+      return t('play.actions.blocked.processing', 'Action is processing.');
+    }
+    if (ending) {
+      return t('play.actions.blocked.sessionEnded', '当前对局已结束。');
+    }
+    if (pendingDiscardBlocking) {
+      return t('play.actions.blocked.discardFirst', '请先完成弃牌。');
+    }
+    if (guidedGateEnabled && currentGuidedTask?.id && currentGuidedTask.id !== 'end_turn') {
+      return t('play.actions.blocked.followGuide', '请先完成当前引导步骤。');
+    }
+    return '';
+  }, [actionLoading, sessionControlLoading, ending, pendingDiscardBlocking, guidedGateEnabled, currentGuidedTask, t]);
+
   const endTurnDisabled = actionLoading || sessionControlLoading || !!ending || pendingDiscardBlocking || !guidedActionAllowed('end_turn');
   const tradeActionDisabled = actionLoading || !tradeWindowOpened || !!ending || pendingDiscardBlocking || strictGuideMode || !guidedActionAllowed('trade');
 
@@ -823,6 +879,7 @@ export function useGamePlayController() {
     actionLoading,
     sessionControlLoading,
     error,
+    connectionState,
     lastMessage,
     turn,
     maxTurn,
@@ -839,6 +896,7 @@ export function useGamePlayController() {
     toggleTransitionAnimation,
     endTurn,
     endTurnDisabled,
+    endTurnBlockedReason,
     guidedTutorialActive,
     currentGuidedTask,
     tradeType,

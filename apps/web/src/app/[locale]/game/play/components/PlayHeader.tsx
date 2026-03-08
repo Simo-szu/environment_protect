@@ -24,6 +24,7 @@ interface PlayHeaderProps {
   onToggleTransitionAnimation: (checked: boolean) => void;
   onEndTurn: () => void;
   endTurnDisabled: boolean;
+  endTurnBlockedReason: string;
   guidedTutorialActive: boolean;
   currentGuidedTaskId?: GuidedTask['id'];
   boardViewMode: GamePlayController['boardViewMode'];
@@ -47,6 +48,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
     onToggleTransitionAnimation,
     onEndTurn,
     endTurnDisabled,
+    endTurnBlockedReason,
     boardViewMode,
     setBoardViewMode
   } = props;
@@ -218,6 +220,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
         <button
           onClick={onEndTurn}
           disabled={endTurnDisabled}
+          title={endTurnDisabled && endTurnBlockedReason ? endTurnBlockedReason : t('play.actions.endTurn', 'End Turn')}
           className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-700 text-white text-xs font-black shadow-lg shadow-emerald-500/10 transition-all hover:bg-emerald-600 active:scale-95 disabled:opacity-30"
         >
           <span>{t('play.actions.endTurn', 'End Turn')}</span>

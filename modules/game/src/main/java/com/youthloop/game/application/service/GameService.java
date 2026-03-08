@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1192,9 +1193,64 @@ public class GameService {
         }
 
         ArrayNode handPolicy = state.withArray("handPolicy");
-        String selected = unlocked.get(ThreadLocalRandom.current().nextInt(unlocked.size())).asText();
+        String selected = pickPolicyCardForDraw(state, unlocked);
         handPolicy.add(selected);
         enforcePolicyHandLimit(state);
+    }
+
+    private String pickPolicyCardForDraw(ObjectNode state, ArrayNode unlocked) {
+        Set<String> activeEventTypes = activeNegativeEventTypeSet(state);
+        if (!activeEventTypes.isEmpty()) {
+            List<String> resolvers = new ArrayList<>();
+            for (JsonNode node : unlocked) {
+                String policyId = node.asText("");
+                if (policyId.isBlank()) {
+                    continue;
+                }
+                List<String> resolvableTypes = resolvableEventTypes(policyId);
+                for (String eventType : resolvableTypes) {
+                    if (activeEventTypes.contains(eventType)) {
+                        resolvers.add(policyId);
+                        break;
+                    }
+                }
+            }
+            if (!resolvers.isEmpty()) {
+                return resolvers.get(ThreadLocalRandom.current().nextInt(resolvers.size()));
+            }
+        }
+
+        int minUsage = Integer.MAX_VALUE;
+        List<String> leastUsed = new ArrayList<>();
+        for (JsonNode node : unlocked) {
+            String policyId = node.asText("");
+            if (policyId.isBlank()) {
+                continue;
+            }
+            int usage = countPolicyUsage(state, policyId);
+            if (usage < minUsage) {
+                minUsage = usage;
+                leastUsed.clear();
+                leastUsed.add(policyId);
+            } else if (usage == minUsage) {
+                leastUsed.add(policyId);
+            }
+        }
+        if (!leastUsed.isEmpty()) {
+            return leastUsed.get(ThreadLocalRandom.current().nextInt(leastUsed.size()));
+        }
+        return unlocked.get(ThreadLocalRandom.current().nextInt(unlocked.size())).asText();
+    }
+
+    private Set<String> activeNegativeEventTypeSet(ObjectNode state) {
+        Set<String> types = new HashSet<>();
+        for (JsonNode node : state.withArray("activeNegativeEvents")) {
+            String eventType = node.path("eventType").asText("");
+            if (!eventType.isBlank()) {
+                types.add(eventType);
+            }
+        }
+        return types;
     }
 
     private void applyCarbonQuotaSettlement(ObjectNode state) {
@@ -1794,13 +1850,15 @@ public class GameService {
         int remainingInPools = countRemainingCardsInPools(pools, phase);
         int drawLimit = Math.min(count, remainingInPools);
         Map<String, Double> domainFactors = resolveCoreDomainDrawFactors(state);
+        ObjectNode resources = state.with("resources");
+        ObjectNode metrics = state.with("metrics");
 
         if (drawLimit <= 0) {
             return;
         }
 
         for (int i = 0; i < drawLimit; i++) {
-            String cardId = drawOneCoreCardFromPools(pools, phase, domainFactors);
+            String cardId = drawOneCoreCardFromPools(pools, phase, domainFactors, resources, metrics);
             if (cardId == null) {
                 break;
             }
@@ -1810,20 +1868,26 @@ public class GameService {
         enforceCoreHandLimit(state);
     }
 
-    private String drawOneCoreCardFromPools(ObjectNode pools, String phase, Map<String, Double> domainFactors) {
+    private String drawOneCoreCardFromPools(
+        ObjectNode pools,
+        String phase,
+        Map<String, Double> domainFactors,
+        ObjectNode resources,
+        ObjectNode metrics
+    ) {
         ArrayNode primaryPool = pools.withArray(phase);
         if (!primaryPool.isEmpty()) {
-            return removeWeightedCard(primaryPool, domainFactors);
+            return removeWeightedCard(primaryPool, domainFactors, resources, metrics);
         }
 
         if ("early".equals(phase)) {
             ArrayNode midPool = pools.withArray("mid");
             if (!midPool.isEmpty()) {
-                return removeWeightedCard(midPool, domainFactors);
+                return removeWeightedCard(midPool, domainFactors, resources, metrics);
             }
             ArrayNode latePool = pools.withArray("late");
             if (!latePool.isEmpty()) {
-                return removeWeightedCard(latePool, domainFactors);
+                return removeWeightedCard(latePool, domainFactors, resources, metrics);
             }
             return null;
         }
@@ -1831,7 +1895,7 @@ public class GameService {
         if ("mid".equals(phase)) {
             ArrayNode latePool = pools.withArray("late");
             if (!latePool.isEmpty()) {
-                return removeWeightedCard(latePool, domainFactors);
+                return removeWeightedCard(latePool, domainFactors, resources, metrics);
             }
             return null;
         }
@@ -1839,14 +1903,14 @@ public class GameService {
         return null;
     }
 
-    private String removeWeightedCard(ArrayNode pool, Map<String, Double> domainFactors) {
-        int index = pickWeightedIndex(pool, domainFactors);
+    private String removeWeightedCard(ArrayNode pool, Map<String, Double> domainFactors, ObjectNode resources, ObjectNode metrics) {
+        int index = pickWeightedIndex(pool, domainFactors, resources, metrics);
         String cardId = pool.get(index).asText();
         pool.remove(index);
         return cardId;
     }
 
-    private int pickWeightedIndex(ArrayNode pool, Map<String, Double> domainFactors) {
+    private int pickWeightedIndex(ArrayNode pool, Map<String, Double> domainFactors, ObjectNode resources, ObjectNode metrics) {
         if (pool.size() == 1) {
             return 0;
         }
@@ -1857,7 +1921,8 @@ public class GameService {
             String cardId = pool.get(i).asText();
             String domain = cardCatalogService.getRequiredCard(cardId).getDomain();
             double factor = domainFactors.getOrDefault(domain, 1.0D);
-            double weight = Math.max(0.01D, factor);
+            double affordabilityFactor = isCoreAffordableForDraw(cardId, resources, metrics) ? 2.8D : 0.35D;
+            double weight = Math.max(0.01D, factor * affordabilityFactor);
             weights[i] = weight;
             totalWeight += weight;
         }
@@ -1871,6 +1936,25 @@ public class GameService {
             }
         }
         return weights.length - 1;
+    }
+
+    private boolean isCoreAffordableForDraw(String cardId, ObjectNode resources, ObjectNode metrics) {
+        GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+        GameCardMetaDTO.UnlockCost unlockCost = card.getUnlockCost();
+        int industry = resources.path("industry").asInt();
+        int tech = resources.path("tech").asInt();
+        int population = resources.path("population").asInt();
+        int green = metrics.path("green").asInt();
+
+        int needIndustry = unlockCost == null || unlockCost.getIndustry() == null ? 0 : unlockCost.getIndustry();
+        int needTech = unlockCost == null || unlockCost.getTech() == null ? 0 : unlockCost.getTech();
+        int needPopulation = unlockCost == null || unlockCost.getPopulation() == null ? 0 : unlockCost.getPopulation();
+        int needGreen = unlockCost == null || unlockCost.getGreen() == null ? 0 : unlockCost.getGreen();
+
+        return industry >= needIndustry
+            && tech >= needTech
+            && population >= needPopulation
+            && green >= needGreen;
     }
 
     private Map<String, Double> resolveCoreDomainDrawFactors(ObjectNode state) {
