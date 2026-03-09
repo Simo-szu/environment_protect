@@ -582,7 +582,24 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   type="number"
                   min={1}
                   value={tradeAmount}
-                  onChange={(event) => setTradeAmount(Math.max(1, Number(event.target.value || 1)))}
+                  onChange={(event) => {
+                    const rawValue = event.target.value;
+                    if (rawValue === '') {
+                      setTradeAmount('');
+                      return;
+                    }
+                    const nextValue = Number(rawValue);
+                    if (!Number.isFinite(nextValue)) {
+                      return;
+                    }
+                    setTradeAmount(nextValue);
+                  }}
+                  onBlur={() => {
+                    if (tradeAmount === '') {
+                      return;
+                    }
+                    setTradeAmount(Math.max(1, Math.floor(tradeAmount)));
+                  }}
                   className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 px-2 py-1 text-sm"
                 />
                 <button

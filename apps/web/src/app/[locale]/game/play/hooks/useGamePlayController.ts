@@ -123,7 +123,7 @@ export function useGamePlayController() {
   const [selectedOccupiedTile, setSelectedOccupiedTile] = useState<string>('');
   const [ending, setEnding] = useState<EndingView | null>(null);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [tradeAmount, setTradeAmount] = useState(1);
+  const [tradeAmount, setTradeAmount] = useState<number | ''>(1);
   const [endingCountdown, setEndingCountdown] = useState(0);
   const [transitionAnimationEnabled, setTransitionAnimationEnabled] = useState(true);
   const [transitionNotice, setTransitionNotice] = useState<TransitionNotice | null>(null);
@@ -675,7 +675,9 @@ export function useGamePlayController() {
     setActionLoading(true);
     setError(null);
     try {
-      const amount = Math.max(1, Math.floor(tradeAmount || 1));
+      const parsedTradeAmount = typeof tradeAmount === 'number' ? tradeAmount : Number(tradeAmount);
+      const amount = Number.isFinite(parsedTradeAmount) ? Math.max(1, Math.floor(parsedTradeAmount)) : 1;
+      setTradeAmount(amount);
       const response = await tradeCarbon({
         sessionId,
         tradeType,
