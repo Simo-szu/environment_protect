@@ -56,14 +56,14 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     const isAdmin = userRole === 3; // ADMIN(3)
 
     return (
-        <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-b border-white/20 dark:border-slate-700/20 px-8 py-4 rounded-b-[2rem] shadow-2xl shadow-black/5 transition-all duration-500 ring-1 ring-black/5">
+        <nav className="mt-4 rounded-[1.75rem] border border-white/70 bg-white/78 px-5 py-4 shadow-[0_24px_70px_-40px_rgba(22,101,52,0.28)] backdrop-blur-2xl ring-1 ring-[#30499B]/5 transition-all duration-500 dark:border-white/10 dark:bg-slate-900/78 dark:shadow-none dark:ring-white/10 sm:px-7">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Logo */}
                 <Link href={`/${locale}`} className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20 transform rotate-3 group-hover:rotate-6 transition-transform">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#56B949] to-[#30499B] text-lg font-serif font-bold text-white shadow-lg shadow-[#56B949]/20 transition-transform group-hover:rotate-6">
                         YL
                     </div>
-                    <span className="text-[#30499B] dark:text-white font-bold text-lg sm:text-xl tracking-tight">
+                    <span className="text-lg font-bold tracking-tight text-[#30499B] dark:text-white sm:text-xl">
                         YouthLoop
                     </span>
                 </Link>
@@ -125,16 +125,16 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                     key={item.href}
                                     href={item.href}
                                     className={`
-                                        relative flex items-center justify-center md:justify-start px-6 py-4 md:px-0 md:py-2 rounded-2xl md:rounded-none text-base md:text-sm font-bold transition-all duration-300 group
+                                        relative flex items-center justify-center md:justify-start px-6 py-4 md:px-0 md:py-2 rounded-2xl md:rounded-none text-base md:text-sm font-semibold transition-all duration-300 group
                                         ${isActive
-                                            ? 'bg-[#56B949]/10 md:bg-transparent text-[#56B949] md:text-slate-900 md:dark:text-white shadow-sm md:shadow-none'
-                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 md:hover:bg-transparent'}
+                                            ? 'bg-[#56B949]/10 md:bg-transparent text-[#30499B] md:text-[#30499B] dark:text-white shadow-sm md:shadow-none'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-[#30499B] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 md:hover:bg-transparent'}
                                     `}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     <span>{item.label}</span>
                                     <span className={`
-                                        hidden md:block absolute bottom-0 left-0 h-[2.5px] bg-[#56B949] rounded-full transition-all duration-300
+                                        hidden md:block absolute bottom-0 left-0 h-[2.5px] bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full transition-all duration-300
                                         ${isActive ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'}
                                     `}></span>
                                 </Link>
@@ -169,7 +169,7 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                 {/* 桌面端右侧操作 */}
                 <div className="hidden md:flex items-center gap-4">
                     {showSearch && (
-                        <div className="hidden lg:flex items-center rounded-full px-4 py-1.5 border border-slate-200/40 dark:border-slate-700/40 focus-within:border-[#56B949]/50 focus-within:ring-2 focus-within:ring-[#56B949]/10 transition-all w-48 xl:w-64">
+                        <div className="hidden lg:flex items-center rounded-full border border-white/80 bg-white/70 px-4 py-2 focus-within:border-[#56B949]/40 focus-within:ring-2 focus-within:ring-[#56B949]/10 transition-all w-48 xl:w-64 dark:border-white/10 dark:bg-white/5">
                             <input
                                 type="text"
                                 placeholder={t('searchPlaceholder', '搜索...')}
@@ -272,13 +272,13 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                         <div className="flex items-center gap-4">
                             <Link
                                 href={`/${locale}/login`}
-                                className="text-sm font-semibold text-[#30499B] hover:text-[#56B949] transition-colors"
+                                className="text-sm font-semibold text-[#30499B] transition-colors hover:text-[#56B949]"
                             >
                                 {t('login', '登录')}
                             </Link>
                             <Link
                                 href={`/${locale}/register`}
-                                className="text-sm px-4 py-1.5 rounded-full bg-[#30499B] text-white font-medium shadow-md shadow-[#30499B]/20 hover:bg-[#253a7a] hover:scale-105 transition-all"
+                                className="rounded-full bg-[#30499B] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[#30499B]/20 transition-all hover:-translate-y-0.5 hover:bg-[#253a7a]"
                             >
                                 {t('register', '注册')}
                             </Link>

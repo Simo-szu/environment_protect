@@ -27,7 +27,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
   const isAuthPage = pathname.includes('/login') || pathname.includes('/register');
 
   return (
-    <div className="bg-[#FAFAF9] dark:bg-slate-900 min-h-screen relative overflow-x-hidden text-slate-600 dark:text-slate-300 transition-colors duration-300">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF9] text-slate-600 transition-colors duration-300 dark:bg-slate-900 dark:text-slate-300 relative">
       {/* 全局背景氛围 (液体黄绿色光斑) */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="liquid-blob absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-[#56B949]/15 dark:bg-[#56B949]/10 rounded-full blur-[120px] animate-[liquid-drift_20s_infinite_ease-in-out_alternate]"></div>
@@ -51,7 +51,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
       </div>
 
       {/* Glass Container */}
-      <div className="w-full min-h-screen bg-white/40 dark:bg-slate-900/40 relative backdrop-blur-[2px] z-10 scroll-smooth transition-colors duration-300">
+      <div className="relative z-10 min-h-screen w-full bg-white/38 backdrop-blur-[2px] scroll-smooth transition-colors duration-300 dark:bg-slate-900/42">
         {showHeader && (
           <div className="fixed top-0 left-0 right-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,7 +61,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
         )}
 
         {/* 主内容区 */}
-        <main className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${showHeader ? 'pt-28' : 'pt-8'} pb-20`}>
+        <main className={`relative mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8 ${showHeader ? 'pt-28' : 'pt-8'}`}>
           <PageTransition>
             {children}
           </PageTransition>

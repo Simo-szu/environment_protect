@@ -108,41 +108,37 @@ export default function SciencePage() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,247,255,0.84))] px-4 py-12 text-center shadow-[0_30px_100px_-60px_rgba(48,73,155,0.38)] ring-1 ring-[#30499B]/10 backdrop-blur-xl dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.84),rgba(15,23,42,0.68))] dark:ring-white/10 sm:py-14"
+                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white dark:from-slate-900 via-[#30499B]/5 dark:via-[#30499B]/10 to-white dark:to-slate-900"
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#DCEBFF] blur-3xl dark:bg-[#30499B]/15" />
-                    <div className="absolute right-[-8%] top-8 h-56 w-56 rounded-full bg-[#EAF5DD] blur-3xl dark:bg-[#56B949]/12" />
-                </div>
-                <div className="relative mb-5 inline-flex items-center gap-2 rounded-full border border-[#30499B]/20 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#30499B] shadow-[0_10px_30px_-18px_rgba(48,73,155,0.4)] backdrop-blur-md dark:border-[#56B949]/20 dark:bg-white/10 dark:text-[#56B949]">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#30499B]/10 text-[#30499B] dark:text-[#56B949] text-xs font-semibold mb-4 border border-[#30499B]/20 dark:border-[#56B949]/20">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30499B] dark:bg-[#56B949] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#30499B] dark:bg-[#56B949]"></span>
                     </span>
                     {t('hero.badge', '环保科普知识库')}
                 </div>
-                <h1 className="relative mx-auto max-w-2xl text-[3.05rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] dark:text-[#56B949] sm:text-[3.7rem] md:text-[4.85rem]">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight">
                     {t('hero.title', '科普资料')}
                 </h1>
-                <div className="relative mx-auto mt-8 flex max-w-xl items-center justify-center px-4 text-base font-normal leading-relaxed text-[#30499B]/78 dark:text-slate-300 sm:text-lg">
-                    <div className="yl-chip">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4">
+                    <div className="flex items-center gap-2">
                         <Leaf className="w-5 h-5 text-[#30499B] dark:text-[#56B949]" />
                         <span>{t('hero.subtitle', '用科学指导，让环保更有效')}</span>
                     </div>
                 </div>
             </motion.section>
 
-            <div className="yl-page-surface px-4 py-12 space-y-16 sm:px-6 md:px-12">
+            <div className="bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-12 py-12 space-y-16 border-t border-slate-100 dark:border-slate-800">
                 {/* 环保小贴士 Section */}
                 <section>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                                <div className="h-8 w-1.5 rounded-full bg-[#56B949]"></div>
-                                <div>
-                                <h2 className="yl-section-title text-[#30499B] dark:text-[#56B949]">{t('tips.title', '环保小贴士')}</h2>
-                                <p className="mt-1 text-xs text-slate-400">{t('tips.subtitle', 'ECO TIPS FOR DAILY LIFE')}</p>
-                                </div>
+                            <div className="w-1.5 h-8 bg-[#56B949] rounded-full"></div>
+                            <div>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('tips.title', '环保小贴士')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('tips.subtitle', 'ECO TIPS FOR DAILY LIFE')}</p>
                             </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -159,7 +155,7 @@ export default function SciencePage() {
                                 <div
                                     key={tip.id}
                                     onClick={() => viewArticle(tip.id)}
-                                    className="yl-panel-soft yl-hover-card group cursor-pointer p-6 hover:border-[#30499B]/25 hover:bg-[#30499B]/[0.04] dark:hover:bg-[#30499B]/10"
+                                    className="group bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 hover:border-[#30499B]/30 hover:bg-[#30499B]/5 dark:hover:bg-[#30499B]/10 transition-all duration-300 cursor-pointer"
                                 >
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm ring-1 ring-black/5" style={{ color: config.color }}>
@@ -188,10 +184,10 @@ export default function SciencePage() {
                     {/* Section Header */}
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-1.5 rounded-full bg-[#30499B]"></div>
+                            <div className="w-1.5 h-8 bg-[#30499B] rounded-full"></div>
                             <div>
-                                <h2 className="yl-section-title text-[#30499B] dark:text-[#56B949]">{t('news.title', '深入科普')}</h2>
-                                <p className="mt-1 text-xs text-slate-400">{t('news.subtitle', 'Sustainable Insights')}</p>
+                                <h2 className="text-xl md:text-2xl font-semibold text-[#30499B] dark:text-[#56B949] tracking-tight">{t('news.title', '深入科普')}</h2>
+                                <p className="text-xs text-slate-400 mt-1">{t('news.subtitle', 'Sustainable Insights')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">

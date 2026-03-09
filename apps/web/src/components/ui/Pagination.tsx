@@ -49,12 +49,12 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     if (totalPages <= 1) return null;
 
     return (
-        <div className="flex items-center justify-center gap-2 mt-8">
+        <div className="mt-10 flex items-center justify-center gap-2">
             {/* 上一页 */}
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
+                className="yl-panel-soft flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-[#56B949] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:text-slate-600 dark:text-slate-300 dark:disabled:hover:text-slate-300"
             >
                 <ChevronLeft className="w-4 h-4" />
                 {t('previousPage', '上一页')}
@@ -68,9 +68,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                     ) : (
                         <button
                             onClick={() => onPageChange(page as number)}
-                            className={`w-10 h-10 text-sm font-medium rounded-lg transition-colors ${currentPage === page
-                                ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white shadow-lg'
-                                : 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949]'
+                            className={`h-10 w-10 text-sm font-medium rounded-full transition-all duration-300 ${currentPage === page
+                                ? 'bg-gradient-to-r from-[#56B949] to-[#4aa840] text-white shadow-lg shadow-[#56B949]/20'
+                                : 'yl-panel-soft text-slate-600 hover:text-[#56B949] dark:text-slate-300'
                                 }`}
                         >
                             {page}
@@ -83,7 +83,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#56B949] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-300 transition-colors"
+                className="yl-panel-soft flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-[#56B949] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:text-slate-600 dark:text-slate-300 dark:disabled:hover:text-slate-300"
             >
                 {t('nextPage', '下一页')}
                 <ChevronRight className="w-4 h-4" />

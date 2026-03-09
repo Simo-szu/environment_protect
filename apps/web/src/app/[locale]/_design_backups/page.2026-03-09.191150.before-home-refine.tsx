@@ -174,24 +174,20 @@ export default function HomePage() {
             {/* Hero Section */}
             <AnimatedSection
                 useInView={false}
-                className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,251,246,0.84))] px-4 py-12 text-center shadow-[0_30px_100px_-60px_rgba(67,121,74,0.45)] ring-1 ring-[#56B949]/10 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.84),rgba(15,23,42,0.68))] dark:ring-white/10 sm:py-14"
+                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white dark:from-slate-900 via-[#56B949]/5 dark:via-[#56B949]/10 to-white dark:to-slate-900 transition-colors duration-300"
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#EAF5DD] blur-3xl dark:bg-[#56B949]/15" />
-                    <div className="absolute right-[-8%] top-8 h-56 w-56 rounded-full bg-[#E5EEFF] blur-3xl dark:bg-[#30499B]/12" />
-                </div>
-                <div className="relative mb-4 inline-flex items-center gap-2 rounded-full border border-[#F0A32F]/20 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#D18A1D] shadow-[0_10px_30px_-18px_rgba(240,163,47,0.58)] backdrop-blur-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0A32F]/10 text-[#F0A32F] text-xs font-semibold mb-4 border border-[#F0A32F]/20">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
                     </span>
                     {t('slogan', '全民环保行动季')}
                 </div>
-                <h1 className="relative mb-6 text-[3.1rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] drop-shadow-sm transition-colors duration-300 dark:text-[#56B949] sm:text-[3.85rem] md:text-[5.25rem]">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight font-serif transition-colors duration-300">
                     {t('title', 'YOUTHLOOP')}
                 </h1>
-                <div className="relative mx-auto flex max-w-xl items-center justify-center px-4 text-base font-normal leading-relaxed text-[#30499B]/78 transition-colors duration-300 dark:text-slate-300 sm:text-lg">
-                    <div className="yl-chip">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4 transition-colors duration-300">
+                    <div className="flex items-center gap-2">
                         <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
                         <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
                     </div>

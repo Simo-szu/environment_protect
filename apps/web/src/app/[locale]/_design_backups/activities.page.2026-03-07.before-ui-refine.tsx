@@ -132,32 +132,23 @@ function ActivitiesPageContent() {
                 initial="hidden"
                 animate="visible"
                 variants={pageEnter}
-                className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,251,246,0.84))] px-4 py-12 text-center shadow-[0_30px_100px_-60px_rgba(67,121,74,0.45)] ring-1 ring-[#56B949]/10 backdrop-blur-xl dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.84),rgba(15,23,42,0.68))] dark:ring-white/10 sm:py-14"
+                className="text-center py-12 sm:py-14 px-4 bg-gradient-to-b from-white via-[#30499B]/5 to-white dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900"
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#EAF5DD] blur-3xl dark:bg-[#56B949]/15" />
-                    <div className="absolute right-[-8%] top-8 h-56 w-56 rounded-full bg-[#DCF5E6] blur-3xl dark:bg-[#34D399]/12" />
-                </div>
-                <div className="relative mb-4 inline-flex items-center gap-2 rounded-full border border-[#56B949]/20 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2F8F43] shadow-[0_10px_30px_-18px_rgba(86,185,73,0.42)] backdrop-blur-md dark:border-[#56B949]/20 dark:bg-white/10 dark:text-[#56B949]">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#30499B]/10 text-[#30499B] text-xs font-semibold mb-4 border border-[#30499B]/20">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#56B949] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#56B949]"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30499B] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#30499B]"></span>
                     </span>
                     {t('subtitle', '参与绿色行动')}
                 </div>
-                <h1 className="relative mx-auto mb-6 max-w-3xl text-[3rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#173325] drop-shadow-sm dark:text-[#E9FBE9] sm:text-[3.7rem] md:text-[4.85rem]">
+                <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-[#30499B] dark:text-[#56B949] mb-6 drop-shadow-sm leading-tight">
                     {t('title', '环保活动')}
                 </h1>
-                <div className="relative mx-auto flex max-w-2xl flex-col items-center justify-center gap-3 px-4 text-base font-normal leading-relaxed text-[#5F7387] dark:text-slate-300 sm:text-lg">
-                    <div className="yl-chip">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-base sm:text-lg text-[#30499B]/80 dark:text-slate-300 font-normal max-w-lg mx-auto leading-relaxed px-4">
+                    <div className="flex items-center gap-2">
                         <CalendarHeart className="w-5 h-5 text-[#30499B]" />
                         <span>{t('description', '参与各种环保活动，为可持续未来贡献力量')}</span>
                     </div>
-                </div>
-                <div className="relative mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
-                    <span className="yl-chip">Eco community</span>
-                    <span className="yl-chip">Youth actions</span>
-                    <span className="yl-chip">Local impact</span>
                 </div>
             </motion.section>
 
@@ -167,7 +158,7 @@ function ActivitiesPageContent() {
                 whileInView="visible"
                 viewport={{ once: true, margin: '-50px' }}
                 variants={staggerContainer}
-                className="mx-auto max-w-6xl px-4 py-6 pb-12 sm:px-6"
+                className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-12"
             >
                 <div className="flex justify-center">
                     <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl">

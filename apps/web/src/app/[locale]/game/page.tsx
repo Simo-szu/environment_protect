@@ -34,14 +34,14 @@ export default function GamePage() {
                     initial="hidden"
                     animate="visible"
                     variants={pageEnter}
-                    className="w-full bg-[#F0F8FF] dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row min-h-[640px] mb-16"
+                    className="yl-panel flex min-h-[640px] w-full flex-col overflow-hidden rounded-[2rem] mb-16 lg:flex-row"
                 >
                     {/* 左侧内容面板 */}
-                    <div className="w-full lg:w-1/2 p-8 md:p-14 flex flex-col justify-center relative bg-[#F0F8FF] dark:bg-slate-900">
+                    <div className="relative flex w-full flex-col justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(240,248,255,0.88))] p-8 md:p-14 dark:bg-slate-900 lg:w-1/2">
                         {/* 头部图标和日期 */}
                         <div className="flex items-center gap-4 mb-10">
-                            <div className="w-10 h-10 rounded-full border border-[#00C087]/30 bg-white dark:bg-slate-800 flex items-center justify-center">
-                                <Zap className="w-5 h-5 text-[#00C087] fill-current" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#56B949]/30 bg-white dark:bg-slate-800">
+                                <Zap className="w-5 h-5 fill-current text-[#56B949]" />
                             </div>
                             <span className="text-xs font-mono text-slate-400 tracking-wider">
                                 {new Date().toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
@@ -50,10 +50,10 @@ export default function GamePage() {
 
                         {/* 主标题 */}
                         <div className="space-y-2 mb-8">
-                            <h1 className="text-5xl md:text-6xl font-bold text-[#1E293B] dark:text-white tracking-tight font-sans">
+                            <h1 className="text-5xl font-bold tracking-tight text-[#1E293B] dark:text-white md:text-6xl">
                                 {t('cover.city', '深圳')}
                             </h1>
-                            <h1 className="text-5xl md:text-6xl font-bold text-[#00C087] tracking-tight font-sans">
+                            <h1 className="text-5xl font-bold tracking-tight text-[#56B949] md:text-6xl">
                                 {t('cover.title', '低碳规划师')}
                             </h1>
                         </div>
@@ -67,7 +67,7 @@ export default function GamePage() {
                         <div className="flex flex-col gap-4 max-w-xs w-full">
                             <button
                                 onClick={() => router.push(`/${locale}/game/play`)}
-                                className="group w-full bg-[#0F172A] hover:bg-[#1E293B] text-white py-4 px-6 rounded-xl flex items-center justify-between transition-all duration-300 shadow-xl shadow-slate-900/10"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#30499B] px-6 py-4 text-white shadow-xl shadow-[#30499B]/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#253a7a]"
                             >
                                 <span className="font-semibold text-sm tracking-wide">
                                     {t('cover.startPlanning', '开始规划')}
@@ -76,7 +76,7 @@ export default function GamePage() {
                             </button>
                             <button
                                 onClick={() => router.push(`/${locale}/game/tutorial`)}
-                                className="group w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[#0F172A] dark:text-white py-4 px-6 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between transition-all duration-300"
+                                className="group flex w-full items-center justify-between rounded-2xl border border-white/80 bg-white/85 px-6 py-4 text-[#0F172A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                             >
                                 <span className="font-bold text-sm tracking-wide">
                                     {t('cover.tutorial', '新手教程')}
@@ -103,17 +103,17 @@ export default function GamePage() {
                         />
 
                         {/* 绿色叠加渐变 */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#00C087]/60 via-[#00C087]/20 to-transparent mix-blend-overlay"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#56B949]/60 via-[#56B949]/18 to-transparent mix-blend-overlay"></div>
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0f172a]/30"></div>
 
                         {/* 玻璃态统计卡片 */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 backdrop-blur-md bg-white/10 rounded-2xl p-6 text-white border border-white/20 shadow-2xl">
+                        <div className="absolute left-1/2 top-1/2 w-72 -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-white/20 bg-white/10 p-6 text-white shadow-2xl backdrop-blur-md">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
                                     <p className="text-[10px] text-white/70 mb-0.5">当前目标</p>
                                     <p className="text-[10px] text-white/50 scale-90 origin-left">碳排放总量目标</p>
                                 </div>
-                                <div className="w-2 h-2 rounded-full bg-[#00C087] shadow-[0_0_10px_#00C087]"></div>
+                                <div className="h-2 w-2 rounded-full bg-[#56B949] shadow-[0_0_10px_#56B949]"></div>
                             </div>
 
                             <div className="mb-6">
@@ -123,18 +123,18 @@ export default function GamePage() {
                                 </div>
                                 {/* 进度条 */}
                                 <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-[#00C087] w-[65%] rounded-full shadow-[0_0_10px_rgba(0,192,135,0.5)]"></div>
+                                    <div className="h-full w-[65%] rounded-full bg-[#56B949] shadow-[0_0_10px_rgba(86,185,73,0.5)]"></div>
                                 </div>
                             </div>
 
                             {/* 次要统计网格 */}
                             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                                 <div>
-                                    <div className="text-[20px] font-bold font-sans text-[#00C087]">17.6M</div>
+                                    <div className="text-[20px] font-bold text-[#56B949]">17.6M</div>
                                     <div className="text-[9px] text-white/50 uppercase tracking-wider">市民总数</div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-[20px] font-bold font-sans text-[#00C087]">45.2%</div>
+                                    <div className="text-[20px] font-bold text-[#56B949]">45.2%</div>
                                     <div className="text-[9px] text-white/50 uppercase tracking-wider">绿建覆盖</div>
                                 </div>
                             </div>

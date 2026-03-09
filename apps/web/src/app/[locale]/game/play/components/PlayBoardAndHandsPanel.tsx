@@ -1,33 +1,26 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { DragEvent, useMemo, useState } from 'react';
 import type { GameCardMeta } from '@/lib/api/game';
 import type { GamePlayController } from '../hooks/useGamePlayController';
 
 type PlayBoardAndHandsPanelProps = Pick<
   GamePlayController,
   | 't'
-  | 'boardViewMode'
-  | 'setBoardViewMode'
   | 'selectedCoreId'
   | 'selectedCoreCard'
   | 'selectedTile'
   | 'recommendedTile'
   | 'placeableTileKeySet'
-  | 'selectedTileAdjacency'
-  | 'selectedTileSynergyBreakdown'
-  | 'boardPlacementMode'
   | 'guidedTutorialActive'
   | 'currentGuidedTask'
   | 'boardSize'
   | 'boardOccupied'
   | 'selectedOccupiedTile'
   | 'tileAdjacencyScoreMap'
-  | 'tileSynergyBreakdownMap'
   | 'adjacencyRequired'
   | 'ending'
   | 'pendingDiscardBlocking'
-  | 'guidedActionAllowed'
   | 'setSelectedOccupiedTile'
   | 'setSelectedTile'
   | 'dragOverTile'
@@ -35,7 +28,6 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'draggingCoreId'
   | 'setDraggingCoreId'
   | 'setSelectedCoreId'
-  | 'setError'
   | 'handCoreCards'
   | 'pendingDiscardActive'
   | 'pendingDiscardRequiredTotal'
@@ -44,28 +36,15 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'coreAffordabilityMap'
   | 'discardCard'
   | 'resolveImageUrl'
-  | 'formatDelta'
-  | 'setCorePeekOpen'
   | 'actionLoading'
-  | 'corePlacedThisTurn'
-  | 'selectedCoreAffordability'
   | 'placeCoreCard'
-  | 'runRemoveCoreAction'
-  | 'guidedGateEnabled'
-  | 'guidedTutorialCompleted'
-  | 'placeActionBlockedReason'
-  | 'removeActionBlockedReason'
   | 'handPolicyCards'
   | 'setSelectedPolicyId'
   | 'selectedPolicyId'
   | 'runAction'
-  | 'policyUsedThisTurn'
   | 'strictGuideMode'
+  | 'placeActionBlockedReason'
   | 'policyActionBlockedReason'
-  | 'selectedPolicyCard'
-  | 'selectedPolicyRiskLevel'
-  | 'selectedPolicyImmediateDelta'
-  | 'selectedPolicyHasImmediateDelta'
   | 'endTurn'
   | 'endTurnDisabled'
   | 'tradeType'
@@ -86,6 +65,44 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'locale'
 >;
 
+type ZoneDefinition = {
+  id: 'industry' | 'ecology' | 'science' | 'society';
+  title: string;
+  rows: number[];
+  cols: number[];
+};
+
+function collectCoreContinuousEffects(card: GameCardMeta | null): string[] {
+  if (!card) {
+    return [];
+  }
+  const effects: string[] = [];
+  const rows: Array<{ k: string; v: number | undefined }> = [
+    { k: 'I', v: card.coreContinuousIndustryDelta },
+    { k: 'T', v: card.coreContinuousTechDelta },
+    { k: 'P', v: card.coreContinuousPopulationDelta },
+    { k: 'G', v: card.coreContinuousGreenDelta },
+    { k: 'C', v: card.coreContinuousCarbonDelta },
+    { k: 'S', v: card.coreContinuousSatisfactionDelta }
+  ];
+  rows.forEach((item) => {
+    const value = Number(item.v || 0);
+    if (value !== 0) {
+      effects.push(`${item.k}${value > 0 ? '+' : ''}${value}`);
+    }
+  });
+  return effects;
+}
+
+function TradeCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+      <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</div>
+      <div className="text-[14px] font-black text-slate-700 dark:text-slate-100">{value}</div>
+    </div>
+  );
+}
+
 export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProps) {
   const {
     t,
@@ -100,11 +117,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     boardOccupied,
     selectedOccupiedTile,
     tileAdjacencyScoreMap,
-    tileSynergyBreakdownMap,
     adjacencyRequired,
     ending,
     pendingDiscardBlocking,
-    guidedActionAllowed,
     setSelectedOccupiedTile,
     setSelectedTile,
     dragOverTile,
@@ -121,25 +136,14 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     discardCard,
     resolveImageUrl,
     actionLoading,
-    corePlacedThisTurn,
-    selectedCoreAffordability,
     placeCoreCard,
     handPolicyCards,
     setSelectedPolicyId,
     selectedPolicyId,
     runAction,
-    policyUsedThisTurn,
     strictGuideMode,
     placeActionBlockedReason,
     policyActionBlockedReason,
-    selectedTileSynergyBreakdown,
-    selectedTileAdjacency,
-    boardViewMode,
-    boardPlacementMode,
-    selectedPolicyCard,
-    selectedPolicyRiskLevel,
-    selectedPolicyImmediateDelta,
-    selectedPolicyHasImmediateDelta,
     endTurn,
     endTurnDisabled,
     tradeType,
@@ -159,103 +163,28 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     catalog,
     locale
   } = props;
-  const [showTradeSummary, setShowTradeSummary] = useState(false);
 
-  const [hoveredTileKey, setHoveredTileKey] = useState('');
-  const activeInfoKey = hoveredTileKey || selectedOccupiedTile || selectedTile;
-  const selectedCoreName = selectedCoreCard
-    ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
-    : '';
-  const selectedCoreDomain = selectedCoreCard?.domain || '';
-  const selectedCorePhase = selectedCoreCard?.phaseBucket || '';
+  const [tradeModalOpen, setTradeModalOpen] = useState(false);
 
-  function collectCoreContinuousEffects(card: GameCardMeta | null): string[] {
-    if (!card) {
-      return [];
-    }
-    const effects: string[] = [];
-    const rows: Array<{ k: string; v: number | undefined }> = [
-      { k: 'I', v: card.coreContinuousIndustryDelta },
-      { k: 'T', v: card.coreContinuousTechDelta },
-      { k: 'P', v: card.coreContinuousPopulationDelta },
-      { k: 'G', v: card.coreContinuousGreenDelta },
-      { k: 'C', v: card.coreContinuousCarbonDelta },
-      { k: 'S', v: card.coreContinuousSatisfactionDelta }
+  const zoneDefinitions = useMemo<ZoneDefinition[]>(() => {
+    const half = Math.max(1, Math.floor(boardSize / 2));
+    const topRows = Array.from({ length: half }, (_, index) => index);
+    const bottomRows = Array.from({ length: boardSize - half }, (_, index) => index + half);
+    const leftCols = Array.from({ length: half }, (_, index) => index);
+    const rightCols = Array.from({ length: boardSize - half }, (_, index) => index + half);
+    return [
+      { id: 'industry', title: t('play.domains.industry', 'Industrial'), rows: topRows, cols: leftCols },
+      { id: 'ecology', title: t('play.domains.ecology', 'Ecological System'), rows: topRows, cols: rightCols },
+      { id: 'science', title: t('play.domains.science', 'Science'), rows: bottomRows, cols: leftCols },
+      { id: 'society', title: locale === 'zh' ? '人与社会' : 'Society', rows: bottomRows, cols: rightCols }
     ];
-    rows.forEach((item) => {
-      const value = Number(item.v || 0);
-      if (value !== 0) {
-        effects.push(`${item.k}${value > 0 ? '+' : ''}${value}`);
-      }
-    });
-    return effects;
-  }
-  const activeTileInfo = useMemo(() => {
-    if (!activeInfoKey) {
-      return null;
-    }
-    const [row, col] = activeInfoKey.split(',').map((value) => Number(value));
-    if (!Number.isInteger(row) || !Number.isInteger(col)) {
-      return null;
-    }
-    const occupiedCardId = boardOccupied[activeInfoKey];
-    const occupiedCard = occupiedCardId ? catalog.get(occupiedCardId) : null;
-    const tileBreakdown = tileSynergyBreakdownMap.get(activeInfoKey) || null;
-    const occupiedEffects = collectCoreContinuousEffects(occupiedCard || null);
-    const occupiedRelationToSelectedCore = occupiedCard && selectedCoreCard ? {
-      sameDomain: occupiedCard.domain === selectedCoreDomain,
-      samePhase: occupiedCard.phaseBucket === selectedCorePhase
-    } : null;
-    return {
-      key: activeInfoKey,
-      row,
-      col,
-      occupiedCardId,
-      occupiedCard,
-      occupiedName: occupiedCard
-        ? (locale === 'zh' ? occupiedCard.chineseName : occupiedCard.englishName)
-        : '',
-      placeable: placeableTileKeySet.has(activeInfoKey),
-      adjacencyScore: tileAdjacencyScoreMap.get(activeInfoKey) || 0,
-      synergyScore: tileSynergyBreakdownMap.get(activeInfoKey)?.totalScore || 0,
-      recommended: activeInfoKey === recommendedTile,
-      tileBreakdown,
-      occupiedEffects,
-      occupiedRelationToSelectedCore
-    };
-  }, [
-    activeInfoKey,
-    boardOccupied,
-    catalog,
-    locale,
-    placeableTileKeySet,
-    tileAdjacencyScoreMap,
-    tileSynergyBreakdownMap,
-    recommendedTile,
-    selectedCoreCard,
-    selectedCoreDomain,
-    selectedCorePhase
-  ]);
+  }, [boardSize, locale, t]);
 
-  const activeTileSummary = useMemo(() => {
-    if (!activeTileInfo) {
-      return null;
-    }
-    if (activeTileInfo.occupiedCardId) {
-      return {
-        title: activeTileInfo.occupiedName || activeTileInfo.occupiedCardId,
-        subtitle: `${String(activeTileInfo.occupiedCard?.domain || '').toUpperCase()} · ${String(activeTileInfo.occupiedCard?.phaseBucket || '').toUpperCase()}`,
-        detail: activeTileInfo.occupiedEffects.length > 0
-          ? activeTileInfo.occupiedEffects.join('  ')
-          : t('play.common.none', 'None')
-      };
-    }
-    return {
-      title: t('play.board.selection.title', 'Current Placement Target'),
-      subtitle: `${t('play.common.tile', 'Tile')} ${activeTileInfo.key}${activeTileInfo.recommended ? ` · ${t('play.board.recommended', 'Recommended tile')}` : ''}`,
-      detail: `${t('play.board.synergyScore', 'Synergy')} ${activeTileInfo.synergyScore} · ${t('play.preview.synergyAdjacency', 'Adjacency')} ${activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}`
-    };
-  }, [activeTileInfo, t]);
+  const tradedThisTurn = useMemo(() => {
+    const recordTurn = Number(latestTradeRecord?.turn ?? 0);
+    const action = String(latestTradeRecord?.action ?? '').toLowerCase();
+    return recordTurn === turn && (action === 'buy' || action === 'sell');
+  }, [latestTradeRecord, turn]);
 
   const roundsUntilTradeOpen = useMemo(() => {
     if (tradeWindowOpened) {
@@ -272,648 +201,463 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     return remainder === 0 ? interval : interval - remainder;
   }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
 
-  const tradedThisTurn = useMemo(() => {
-    const recordTurn = Number(latestTradeRecord?.turn ?? 0);
-    const action = String(latestTradeRecord?.action ?? '').toLowerCase();
-    return recordTurn === turn && (action === 'buy' || action === 'sell');
-  }, [latestTradeRecord, turn]);
-  const tradeLockedLabel = locale === 'zh'
-    ? roundsUntilTradeOpen > 0
-      ? `碳交易区锁定 · 还需 ${roundsUntilTradeOpen} 回合`
-      : '碳交易区锁定'
-    : roundsUntilTradeOpen > 0
-      ? `Carbon market locked · available in ${roundsUntilTradeOpen} turns`
-      : 'Carbon market locked';
-  const tradeLockedCompactLabel = locale === 'zh'
-    ? roundsUntilTradeOpen > 0
-      ? `${roundsUntilTradeOpen} 回合后开放`
-      : '本回合不可交易'
-    : roundsUntilTradeOpen > 0
-      ? `Opens in ${roundsUntilTradeOpen} turns`
-      : 'Unavailable this turn';
-  const tradePanelFlexClass = tradeWindowOpened || tradedThisTurn ? 'flex-1' : 'sm:flex-1';
-  const mobileActionHint = useMemo(() => {
-    if (selectedPolicyId) {
-      return policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy');
+  function handleCardDragStart(event: DragEvent<HTMLButtonElement>, cardId: string) {
+    setDraggingCoreId(cardId);
+    setSelectedCoreId(cardId);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', cardId);
+      event.dataTransfer.setDragImage(event.currentTarget, event.currentTarget.clientWidth / 2, event.currentTarget.clientHeight / 2);
     }
-    if (selectedCoreId) {
-      if (!selectedTile) {
-        return t('play.actions.blocked.selectTile', '请先选择棋盘空位。');
-      }
-      return placeActionBlockedReason || t('play.actions.placeCore', 'Place Core');
+  }
+
+  function renderPlacedCard(cardId: string, emphasized: boolean) {
+    const card = catalog.get(cardId);
+    if (!card) {
+      return (
+        <div className="flex h-full items-center justify-center px-2 text-center text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+          {cardId}
+        </div>
+      );
     }
-    return tradeActionBlockedReason || t('play.actions.endTurn', 'End Turn');
-  }, [selectedPolicyId, policyActionBlockedReason, selectedCoreId, selectedTile, placeActionBlockedReason, tradeActionBlockedReason, t]);
+    const effectSummary = collectCoreContinuousEffects(card).slice(0, 3).join('  ');
+    return (
+      <>
+        <img
+          src={resolveImageUrl(card.imageKey)}
+          className="absolute inset-0 h-full w-full object-cover"
+          alt={locale === 'zh' ? card.chineseName : card.englishName}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/88 via-slate-900/30 to-slate-950/10" />
+        <div className="relative z-10 flex h-full flex-col justify-between p-2">
+          <div className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
+            {locale === 'zh' ? card.domain : card.domain}
+          </div>
+          <div className="space-y-1">
+            <div className={`line-clamp-2 text-[11px] font-black leading-tight text-white ${emphasized ? 'text-emerald-100' : ''}`}>
+              {locale === 'zh' ? card.chineseName : card.englishName}
+            </div>
+            <div className="line-clamp-2 text-[9px] font-semibold leading-4 text-white/80">
+              {effectSummary || t('play.common.none', 'None')}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
-    <section className="h-full min-h-[860px] sm:min-h-[960px] xl:min-h-0 flex flex-col relative bg-transparent overflow-visible gap-3 sm:gap-4 p-0 transition-all duration-500">
-
-      {/* 移除强遮罩，改为通知条 + 牌面反馈 */}
-
-      {/* --- TOP ZONE (50% Height): Board & Trade Segmented --- */}
-      <div className={`flex-[4] sm:flex-[5] flex flex-col xl:flex-row gap-3 sm:gap-4 min-h-0 transition-all duration-500 ${pendingDiscardActive ? 'grayscale opacity-60 pointer-events-none' : ''}`}>
-
-        {/* Left 50%: Board (Grid) */}
-        <div className="flex-1 bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-3 sm:p-4 relative z-[60] shadow-sm overflow-visible flex flex-col">
-          <div className="mb-2 flex items-center justify-between z-10 px-2 min-h-[24px]">
-            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
-              {t('play.board.title', 'PLANNING GRID')}
+    <section className="h-full min-h-[860px] xl:min-h-0 flex flex-col gap-4">
+      <div className="grid flex-1 min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-h-0 rounded-[2rem] border border-slate-200/60 bg-white/40 p-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur sm:p-5">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
+              {t('play.board.title', 'Planning Grid')}
             </h2>
-            <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-400">
-              {t('play.board.viewMode.smart', boardViewMode)}
+            <div className="rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
+              {adjacencyRequired ? 'ADJ' : 'FREE'}
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 relative flex items-center justify-center">
-            <div className="h-full aspect-square max-h-full max-w-full relative z-[70]">
+          <div className="grid h-full gap-3 md:grid-cols-2">
+            {zoneDefinitions.map((zone) => (
               <div
-                className={`grid gap-1 w-full h-full rounded-[1.5rem] p-1.5 shrink-0 bg-slate-100/40 dark:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700 ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile'
-                  ? 'ring-4 ring-emerald-400/30'
-                  : ''
-                  }`}
-                style={{ gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))` }}
+                key={zone.id}
+                className={`rounded-[1.8rem] border border-slate-200 bg-white/60 p-3 shadow-sm backdrop-blur-md ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile' ? 'ring-4 ring-emerald-400/20' : ''}`}
               >
-                {Array.from({ length: boardSize * boardSize }).map((_, idx) => {
-                  const row = Math.floor(idx / boardSize);
-                  const col = idx % boardSize;
-                  const key = `${row},${col}`;
-                  const occupied = boardOccupied[key];
-                  const selected = selectedTile === key;
-                  const selectedOccupied = selectedOccupiedTile === key;
-                  const recommended = key === recommendedTile;
-                  const placeableTile = placeableTileKeySet.has(key);
-                  const dragOver = key === dragOverTile;
-                  const adjacencyScore = tileAdjacencyScoreMap.get(key) || 0;
-                  const synergyScore = tileSynergyBreakdownMap.get(key)?.totalScore || 0;
-
-                  const cardData = occupied ? catalog.get(occupied) : null;
-                  const displayName = cardData
-                    ? (locale === 'zh' ? cardData.chineseName : cardData.englishName)
-                    : (occupied || '');
-
-                  const styleClasses = `group w-full h-full rounded-xl border transition-all duration-300 relative overflow-hidden flex items-center justify-center ${occupied
-                    ? selectedOccupied
-                      ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 text-emerald-800 dark:text-emerald-200'
-                      : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-300 shadow-sm'
-                    : selected
-                      ? 'bg-emerald-500 border-emerald-600 text-white shadow-md scale-105 z-10'
-                      : dragOver && placeableTile
-                        ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 scale-110 z-10'
-                        : boardViewMode === 'placeable' && !placeableTile
-                          ? 'bg-transparent border-transparent opacity-10'
-                          : boardViewMode === 'adjacency' && !occupied
-                            ? adjacencyScore > 0
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300'
-                              : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                            : recommended
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-600 dark:text-emerald-300'
-                              : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-emerald-200'
-                    }`;
-
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={pendingDiscardActive || actionLoading}
-                      onMouseEnter={() => setHoveredTileKey(key)}
-                      onMouseLeave={() => setHoveredTileKey((current) => (current === key ? '' : current))}
-                      onClick={() => {
-                        if (pendingDiscardActive || actionLoading) {
-                          return;
-                        }
-                        if (occupied) {
-                          setSelectedTile('');
-                          setSelectedOccupiedTile(current => current === key ? '' : key);
-                          return;
-                        }
-                        setSelectedOccupiedTile('');
-                        setSelectedTile(key);
-                      }}
-                      onDragOver={(event) => {
-                        if (pendingDiscardActive || actionLoading || !draggingCoreId || occupied) {
-                          return;
-                        }
-                        event.preventDefault();
-                        if (dragOverTile !== key) {
-                          setDragOverTile(key);
-                        }
-                      }}
-                      onDragLeave={() => {
-                        if (dragOverTile === key) {
-                          setDragOverTile('');
-                        }
-                      }}
-                      onDrop={(event) => {
-                        event.preventDefault();
-                        setDragOverTile('');
-                        if (pendingDiscardActive || actionLoading || !draggingCoreId || occupied) {
-                          return;
-                        }
-                        setSelectedCoreId(draggingCoreId);
-                        setSelectedOccupiedTile('');
-                        setSelectedTile(key);
-                        setDraggingCoreId('');
-                      }}
-                      className={`${styleClasses} ${pendingDiscardActive || actionLoading ? 'cursor-not-allowed' : occupied ? 'cursor-pointer' : 'cursor-cell'} group/tile`}
-                    >
-                      {occupied ? (
-                        <div className="flex flex-col items-center px-1 overflow-hidden w-full h-full justify-center">
-                          <span className="text-[11px] leading-[1] text-center font-black uppercase tracking-tight text-slate-800 dark:text-slate-200 break-words line-clamp-2 px-0.5">
-                            {displayName}
-                          </span>
-                        </div>
-                      ) : selected ? (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      ) : boardViewMode === 'adjacency' && !occupied && adjacencyScore > 0 ? (
-                        <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">{adjacencyScore}</span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-              {activeTileInfo && (
-                <>
-                  <div
-                    className="absolute z-[200] hidden pointer-events-none sm:block"
-                    style={{
-                      left: `${((activeTileInfo.col + 0.5) / boardSize) * 100}%`,
-                      top: `${((activeTileInfo.row + (activeTileInfo.row <= 1 ? 1.0 : 0.0)) / boardSize) * 100}%`,
-                      transform: activeTileInfo.row <= 1 ? 'translate(-50%, 8%)' : 'translate(-50%, -102%)'
-                    }}
-                  >
-                    <div className="min-w-[180px] max-w-[240px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-3 py-2 shadow-lg">
-                      <div className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-                        {activeTileInfo.occupiedCardId ? (activeTileInfo.occupiedName || activeTileInfo.occupiedCardId) : t('play.board.selection.title', 'Current Placement Target')}
-                      </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{activeTileInfo.key}</div>
-                      {activeTileInfo.occupiedCard && (
-                        <div className="mt-1 space-y-1">
-                          <div className="text-[10px] text-slate-600 dark:text-slate-300">
-                            {String(activeTileInfo.occupiedCard.domain).toUpperCase()} | {String(activeTileInfo.occupiedCard.phaseBucket).toUpperCase()} | ★{activeTileInfo.occupiedCard.star}
-                          </div>
-                          {activeTileInfo.occupiedEffects.length > 0 ? (
-                            <div className="text-[10px] text-slate-700 dark:text-slate-200">
-                              Buff/Debuff: {activeTileInfo.occupiedEffects.join('  ')}
-                            </div>
-                          ) : (
-                            <div className="text-[10px] text-slate-400">Buff/Debuff: none in base continuous fields</div>
-                          )}
-                          {activeTileInfo.occupiedRelationToSelectedCore && (
-                            <div className="text-[10px] text-slate-700 dark:text-slate-200">
-                              {selectedCoreName ? `${selectedCoreName}` : 'Selected core'} relation:
-                              {' '}
-                              <span className={activeTileInfo.occupiedRelationToSelectedCore.sameDomain ? 'text-emerald-700 font-black' : 'text-slate-400'}>same domain</span>
-                              {' / '}
-                              <span className={activeTileInfo.occupiedRelationToSelectedCore.samePhase ? 'text-emerald-700 font-black' : 'text-slate-400'}>same phase</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {!activeTileInfo.occupiedCardId && (
-                        <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 space-y-1">
-                          <div>
-                            {t('play.preview.synergyAdjacency', 'Adjacency')}: {activeTileInfo.tileBreakdown?.adjacencyBonus ?? activeTileInfo.adjacencyScore}
-                            {' | '}
-                            {t('play.preview.synergyDomain', 'Same Domain')}: {activeTileInfo.tileBreakdown?.sameDomainBonus ?? 0}
-                            {' | '}
-                            {t('play.preview.synergyPhase', 'Same Phase')}: {activeTileInfo.tileBreakdown?.samePhaseBonus ?? 0}
-                            {' | '}
-                            {t('play.preview.synergyDiversity', 'Diversity')}: {activeTileInfo.tileBreakdown?.diversityBonus ?? 0}
-                          </div>
-                          <div className="font-black text-slate-700 dark:text-slate-200">
-                            {t('play.board.synergyScore', 'Synergy')}: {activeTileInfo.synergyScore}
-                          </div>
-                          {activeTileInfo.tileBreakdown?.neighbors?.length ? (
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                              Neighbors: {activeTileInfo.tileBreakdown.neighbors.map((neighbor) => {
-                                const marks = [
-                                  neighbor.sameDomain ? 'D+' : '',
-                                  neighbor.samePhase ? 'P+' : ''
-                                ].filter(Boolean).join('/');
-                                return `${neighbor.cardName}${marks ? `(${marks})` : ''}`;
-                              }).join(', ')}
-                            </div>
-                          ) : (
-                            <div className="text-[10px] text-slate-400">Neighbors: none</div>
-                          )}
-                        </div>
-                      )}
-                      {!activeTileInfo.occupiedCardId && activeTileInfo.recommended && (
-                        <div className="text-[10px] text-emerald-700 font-black uppercase tracking-wider mt-1">
-                          {t('play.board.recommended', 'Recommended tile')}
-                        </div>
-                      )}
-                      {!activeTileInfo.occupiedCardId && (
-                        <div className="text-[10px] mt-1 font-black uppercase tracking-wider">
-                          <span className={activeTileInfo.placeable ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}>
-                            {activeTileInfo.placeable ? t('play.afford.canPlace', '可放置') : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-800/40">
+                    {zone.title}
                   </div>
-                  {activeTileSummary && (
-                    <div className="absolute inset-x-2 bottom-2 z-[205] pointer-events-none sm:hidden">
-                      <div className="rounded-2xl border border-slate-200/90 dark:border-slate-700/90 bg-white/94 dark:bg-slate-900/94 px-3 py-2 shadow-[0_14px_30px_rgba(15,23,42,0.18)] backdrop-blur">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="truncate text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-slate-100">
-                              {activeTileSummary.title}
+                  <div className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+                    {zone.rows.length * zone.cols.length} slots
+                  </div>
+                </div>
+
+                <div
+                  className="grid gap-2"
+                  style={{ gridTemplateColumns: `repeat(${zone.cols.length}, minmax(0, 1fr))` }}
+                >
+                  {zone.rows.flatMap((row) =>
+                    zone.cols.map((col) => {
+                      const key = `${row},${col}`;
+                      const occupiedCardId = boardOccupied[key];
+                      const occupied = Boolean(occupiedCardId);
+                      const selected = selectedTile === key;
+                      const selectedOccupied = selectedOccupiedTile === key;
+                      const placeableTile = placeableTileKeySet.has(key);
+                      const recommended = key === recommendedTile;
+                      const dragOver = key === dragOverTile;
+                      const adjacencyScore = tileAdjacencyScoreMap.get(key) || 0;
+
+                      const styleClasses = `group relative aspect-[9/13] overflow-hidden rounded-[1.2rem] border transition-all duration-300 ${
+                        occupied
+                          ? selectedOccupied
+                            ? 'border-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 ring-2 ring-emerald-400/30'
+                            : 'border-slate-200 bg-white dark:bg-slate-800 hover:border-emerald-300 shadow-sm'
+                          : selected
+                            ? 'border-emerald-600 bg-emerald-500 text-white shadow-md scale-[1.02]'
+                            : dragOver && placeableTile
+                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 scale-[1.02]'
+                              : recommended
+                                ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
+                                : placeableTile
+                                  ? 'border-slate-200 bg-slate-50 dark:bg-slate-800 hover:border-emerald-200'
+                                  : 'border-slate-200/70 bg-slate-50/70 dark:bg-slate-800/70'
+                      }`;
+
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          disabled={pendingDiscardActive || actionLoading}
+                          onClick={() => {
+                            if (pendingDiscardActive || actionLoading) {
+                              return;
+                            }
+                            if (occupied) {
+                              setSelectedTile('');
+                              setSelectedOccupiedTile((current) => current === key ? '' : key);
+                              return;
+                            }
+                            setSelectedOccupiedTile('');
+                            setSelectedTile(key);
+                          }}
+                          onDragOver={(event) => {
+                            if (pendingDiscardActive || actionLoading || !draggingCoreId || occupied) {
+                              return;
+                            }
+                            event.preventDefault();
+                            if (dragOverTile !== key) {
+                              setDragOverTile(key);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverTile === key) {
+                              setDragOverTile('');
+                            }
+                          }}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            setDragOverTile('');
+                            if (pendingDiscardActive || actionLoading || !draggingCoreId || occupied) {
+                              return;
+                            }
+                            setSelectedCoreId(draggingCoreId);
+                            setSelectedOccupiedTile('');
+                            setSelectedTile(key);
+                            setDraggingCoreId('');
+                          }}
+                          className={`${styleClasses} ${pendingDiscardActive || actionLoading ? 'cursor-not-allowed' : occupied ? 'cursor-pointer' : 'cursor-cell'}`}
+                        >
+                          {occupied && occupiedCardId ? (
+                            renderPlacedCard(occupiedCardId, selectedOccupied)
+                          ) : (
+                            <div className="flex h-full flex-col items-center justify-center gap-2">
+                              {selected ? (
+                                <div className="h-3 w-3 rounded-full bg-white" />
+                              ) : (
+                                <div className={`rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${
+                                  placeableTile ? 'bg-white/90 text-emerald-700' : 'bg-white/80 text-slate-400'
+                                }`}>
+                                  {placeableTile ? t('play.afford.canPlace', 'Can Place') : t('play.common.none', 'None')}
+                                </div>
+                              )}
+                              {(placeableTile || adjacencyScore > 0) && (
+                                <div className="text-[10px] font-black text-slate-500">
+                                  +{adjacencyScore}
+                                </div>
+                              )}
                             </div>
-                            <div className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-slate-400">
-                              {activeTileSummary.subtitle}
-                            </div>
-                          </div>
-                          {!activeTileInfo.occupiedCardId && (
-                            <span className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] ${activeTileInfo.placeable ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-                              {activeTileInfo.placeable ? t('play.afford.canPlace', 'Can Place') : t('play.common.none', 'None')}
-                            </span>
                           )}
-                        </div>
-                        <div className="mt-1 text-[10px] leading-4 text-slate-600 dark:text-slate-300">
-                          {activeTileSummary.detail}
-                        </div>
-                      </div>
-                    </div>
+                        </button>
+                      );
+                    })
                   )}
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right 50%: Carbon Trade */}
-        <div className={`${tradePanelFlexClass} bg-white/60 dark:bg-slate-900/70 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-slate-700 p-4 sm:p-8 relative shadow-sm overflow-hidden flex flex-col justify-between`}>
-          <div className="flex items-center justify-between">
-            <h2 className="font-black text-[9px] uppercase tracking-[0.2em] text-emerald-800/40 dark:text-emerald-200/50">
-              {t('play.trade.title', 'CARBON MARKET')}
+        <aside className="min-h-0 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white/60 p-4 shadow-sm backdrop-blur-md">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
+              {t('play.coreHand.title', 'Cards In Hand')}
             </h2>
+            <div className="rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
+              {handCoreCards.length + handPolicyCards.length}
+            </div>
           </div>
-          {tradeWindowOpened ? (
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <TradeCell label={t('play.trade.quota', 'Quota')} value={String(tradeQuota)} />
-                <TradeCell label={t('play.trade.currentPrice', 'Current Price')} value={tradeLastPrice.toFixed(1)} />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setTradeType('buy')}
-                  className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'buy'
-                    ? 'bg-emerald-600 text-white border-emerald-500'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                    }`}
-                >
-                  {t('play.trade.buy', 'Buy Quota')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTradeType('sell')}
-                  className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'sell'
-                    ? 'bg-emerald-600 text-white border-emerald-500'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                    }`}
-                >
-                  {t('play.trade.sell', 'Sell Quota')}
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={tradeAmount}
-                  onChange={(event) => {
-                    const rawValue = event.target.value;
-                    if (rawValue === '') {
-                      setTradeAmount('');
-                      return;
-                    }
-                    const nextValue = Number(rawValue);
-                    if (!Number.isFinite(nextValue)) {
-                      return;
-                    }
-                    setTradeAmount(nextValue);
-                  }}
-                  onBlur={() => {
-                    if (tradeAmount === '') {
-                      return;
-                    }
-                    setTradeAmount(Math.max(1, Math.floor(tradeAmount)));
-                  }}
-                  className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 px-2 py-1 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => { void runTradeAction(); }}
-                  disabled={tradeActionDisabled}
-                  className="flex-1 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest py-2 disabled:opacity-40"
-                >
-                  {t('play.trade.execute', 'Execute Trade')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-center items-center gap-3">
-              {tradedThisTurn ? (
-                <>
-                  <div className="text-[12px] font-black tracking-wide text-emerald-600 dark:text-emerald-300">
-                    {locale === 'zh' ? '\u672c\u56de\u5408\u5df2\u4ea4\u6613' : 'Trade completed this turn'}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowTradeSummary((current) => !current)}
-                    className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1 text-[10px] font-black tracking-wide text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 transition-colors"
-                  >
-                    {showTradeSummary
-                      ? (locale === 'zh' ? '\u6536\u8d77\u4ea4\u6613\u53d8\u5316' : 'Hide trade changes')
-                      : (locale === 'zh' ? '\u67e5\u770b\u672c\u56de\u5408\u4ea4\u6613\u53d8\u5316' : 'View trade changes')}
-                  </button>
-                  {showTradeSummary && (
-                    <div className="w-full max-w-[340px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/70 px-4 py-3 space-y-1.5 text-[11px] text-slate-700 dark:text-slate-200">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u4ea4\u6613\u65b9\u5411' : 'Action'}</span>
-                        <span className="font-black">
-                          {String(latestTradeRecord?.action || '').toLowerCase() === 'buy'
-                            ? (locale === 'zh' ? '\u4e70\u5165\u914d\u989d' : 'Buy quota')
-                            : (locale === 'zh' ? '\u5356\u51fa\u914d\u989d' : 'Sell quota')}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u6570\u91cf' : 'Amount'}</span>
-                        <span className="font-black">{Number(latestTradeRecord?.amount || 0)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u4ef7\u683c' : 'Price'}</span>
-                        <span className="font-black">{tradeLastPrice.toFixed(1)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 dark:text-slate-400">{locale === 'zh' ? '\u7d2f\u8ba1\u6536\u76ca' : 'Total profit'}</span>
-                        <span className={`font-black ${tradeProfit >= 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'}`}>
-                          {tradeProfit >= 0 ? '+' : ''}{tradeProfit.toFixed(1)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="hidden sm:block text-center">
-                    <div className="text-[11px] font-black tracking-wide text-slate-500 dark:text-slate-300">
-                      {tradeLockedLabel}
-                    </div>
-                    <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
-                      {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
-                    </div>
-                  </div>
-                  <div className="sm:hidden w-full rounded-[1.4rem] border border-amber-200/80 bg-amber-50/85 dark:border-amber-500/20 dark:bg-amber-500/10 px-3 py-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
-                          {t('play.trade.title', 'Carbon Market')}
-                        </div>
-                        <div className="mt-1 text-[12px] font-bold text-slate-800 dark:text-slate-100">
-                          {tradeLockedCompactLabel}
-                        </div>
-                      </div>
-                      <div className="shrink-0 rounded-full bg-white/80 dark:bg-slate-900/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
-                        {roundsUntilTradeOpen > 0 ? `T-${roundsUntilTradeOpen}` : 'LOCK'}
-                      </div>
-                    </div>
-                    <div className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
-                      {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
-                    </div>
-                  </div>
-                </>
-              )}
+
+          {pendingDiscardActive && (
+            <div className="mb-3 rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-[11px] font-semibold leading-5 text-rose-700 shadow-sm">
+              {t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
+                count: pendingDiscardRequiredTotal,
+                limit: pendingDiscardTargetHandSize
+              })}
             </div>
           )}
-        </div>
-      </div>
 
-      {/* --- BOTTOM ZONE: Cards In Hand (焦点区域) --- */}
-      <div className="flex-[6] sm:flex-[5] bg-white/40 dark:bg-slate-900/65 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-700 p-3 sm:p-5 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-visible">
-
-        {/* 指示条：非侵入式提示 */}
-        <div className="mb-2 sm:mb-3 px-2 sm:px-4 shrink-0">
-          {pendingDiscardActive ? (
-            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-rose-700 shadow-sm animate-in slide-in-from-left-4 duration-500">
-              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-100 text-[11px] font-black">
-                !
-              </span>
-              <span className="text-[11px] font-semibold leading-5">
-                {t('play.discard.title', 'Discard Mode Active')} - {t('play.discard.instruction', 'Select cards to liquefy')}
-                {pendingDiscardRequiredTotal > 0
-                  ? ` ${t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
-                    count: pendingDiscardRequiredTotal,
-                    limit: pendingDiscardTargetHandSize
-                  })}`
-                  : ''}
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="font-black text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.3em] text-emerald-900/30 dark:text-emerald-200/40">
-                {t('play.coreHand.title', 'CARDS IN HANDS')}
-              </h2>
-              <div className="sm:hidden rounded-full bg-white/90 dark:bg-slate-900/80 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                {handCoreCards.length} Core
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 flex items-start sm:items-center xl:items-end justify-start xl:justify-center min-w-0 overflow-x-auto xl:overflow-visible overflow-y-visible pb-2 [scrollbar-width:none] [-ms-overflow-style:none]">
-          <div className="flex items-end snap-x snap-mandatory -space-x-8 sm:-space-x-14 xl:-space-x-20 xl:hover:-space-x-8 transition-all duration-700 ease-in-out py-2 sm:py-4 pl-2 pr-10 sm:pr-16 xl:px-0 xl:pb-12">
+          <div className="grid max-h-[calc(100vh-20rem)] gap-3 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {handCoreCards.map((card, index) => {
               const canPlace = coreAffordabilityMap.get(card.cardId)?.canPlace;
               const isSelected = selectedCoreId === card.cardId;
               const cardFrameStyles = !pendingDiscardActive
                 ? (isSelected
-                  ? 'border-emerald-500 ring-4 ring-emerald-500/10 -translate-y-6 sm:-translate-y-8 xl:-translate-y-12 scale-105 z-50'
-                  : 'border-white hover:border-emerald-300 hover:-translate-y-6 sm:hover:-translate-y-8 xl:hover:-translate-y-12 hover:scale-105')
+                  ? 'border-emerald-500 ring-4 ring-emerald-500/10 scale-[1.02] z-50'
+                  : 'border-white hover:border-emerald-300 hover:scale-[1.01]')
                 : 'border-white';
-
               return (
                 <button
                   key={`${card.cardId}-${index}`}
                   draggable={!pendingDiscardActive && canPlaceCoreCard(card.cardId)}
-                  onDragStart={() => {
-                    setDraggingCoreId(card.cardId);
-                    setSelectedCoreId(card.cardId);
-                  }}
+                  onDragStart={(event) => handleCardDragStart(event, card.cardId)}
                   onDragEnd={() => setDraggingCoreId('')}
                   onClick={() => {
                     if (pendingDiscardActive) {
                       discardCard('core', card.cardId);
                       return;
                     }
-                    setSelectedCoreId(current => current === card.cardId ? '' : card.cardId);
+                    setSelectedCoreId((current) => current === card.cardId ? '' : card.cardId);
                   }}
-                  className={`snap-center flex-shrink-0 h-[236px] sm:h-[260px] xl:h-[320px] aspect-[9/16] rounded-[1.5rem] border-2 transition-all duration-500 relative overflow-hidden group shadow-xl xl:hover:z-[100] ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
+                  className={`relative h-[220px] w-full overflow-hidden rounded-[1.4rem] border-2 transition-all duration-500 shadow-xl ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
                 >
-                  <img src={resolveImageUrl(card.imageKey)} className="absolute inset-0 w-full h-full object-cover" alt={card.chineseName} />
-
+                  <img src={resolveImageUrl(card.imageKey)} className="absolute inset-0 h-full w-full object-cover" alt={card.chineseName} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-slate-950/10" />
                   <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
-                    <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max mx-auto">{card.domain}</div>
+                    <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max">
+                      {card.domain}
+                    </div>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left">
+                    <div className="text-[12px] font-black leading-tight text-white line-clamp-2">
+                      {locale === 'zh' ? card.chineseName : card.englishName}
+                    </div>
+                    <div className="mt-2 line-clamp-2 text-[10px] font-semibold leading-4 text-white/80">
+                      {collectCoreContinuousEffects(card).slice(0, 3).join('  ') || t('play.common.none', 'None')}
+                    </div>
                   </div>
                 </button>
               );
             })}
 
-            <div className="w-[1px] h-20 sm:h-24 bg-slate-200/50 dark:bg-slate-700 self-center mx-4 sm:mx-8 z-10" />
+            {handPolicyCards.map((card, index) => {
+              const isSelected = selectedPolicyId === card.cardId;
+              const cardFrameStyles = !pendingDiscardActive
+                ? (isSelected
+                  ? 'border-emerald-500 scale-[1.02] z-50 bg-emerald-50 dark:bg-emerald-900/20'
+                  : 'border-slate-100 bg-white hover:border-emerald-300 hover:scale-[1.01]')
+                : 'border-slate-100 bg-white';
 
-            <div className="flex -space-x-8 sm:-space-x-10 xl:-space-x-12 xl:hover:-space-x-4 transition-all duration-700 py-4">
-              {handPolicyCards.map((card, index) => {
-                const isSelected = selectedPolicyId === card.cardId;
-                const cardFrameStyles = !pendingDiscardActive
-                  ? (isSelected
-                    ? 'border-emerald-500 -translate-y-8 z-50 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300 hover:-translate-y-8')
-                  : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800';
-
-                return (
-                  <button
-                    key={`${card.cardId}-${index}`}
-                    onClick={() => {
-                      if (pendingDiscardActive) { discardCard('policy', card.cardId); return; }
-                      setSelectedPolicyId(current => current === card.cardId ? '' : card.cardId);
-                    }}
-                    className={`snap-center flex-shrink-0 h-[220px] xl:h-[300px] aspect-[9/16] mt-auto rounded-[1.2rem] border-2 transition-all duration-500 p-4 xl:p-5 flex flex-col justify-between shadow-lg hover:z-[100] ${cardFrameStyles}`}
-                  >
-                    {card.imageKey ? (
-                      <img
-                        src={resolveImageUrl(card.imageKey)}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        alt={card.chineseName}
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : null}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-slate-950/10 dark:from-slate-950/90 dark:via-slate-900/40 dark:to-slate-950/20" />
-                    <div className="relative z-10 flex h-full flex-col justify-between">
-                      <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
-                        {card.domain}
+              return (
+                <button
+                  key={`${card.cardId}-${index}`}
+                  onClick={() => {
+                    if (pendingDiscardActive) {
+                      discardCard('policy', card.cardId);
+                      return;
+                    }
+                    setSelectedPolicyId((current) => current === card.cardId ? '' : card.cardId);
+                  }}
+                  className={`relative h-[200px] w-full overflow-hidden rounded-[1.2rem] border-2 transition-all duration-500 shadow-lg ${cardFrameStyles}`}
+                >
+                  {card.imageKey ? (
+                    <img
+                      src={resolveImageUrl(card.imageKey)}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      alt={card.chineseName}
+                      onError={(event) => {
+                        event.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-slate-950/10" />
+                  <div className="relative z-10 flex h-full flex-col justify-between p-4 text-left">
+                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                      {card.domain}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
+                        {locale === 'zh' ? card.chineseName : card.englishName}
                       </div>
-                      <div className="space-y-1">
-                        <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
-                          {locale === 'zh' ? card.chineseName : card.englishName}
-                        </div>
-                        <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">Policy</div>
+                      <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">
+                        Policy
                       </div>
                     </div>
-                  </button>
-                );
-              })}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      </div>
+
+      <div className="rounded-[1.8rem] border border-slate-200/80 bg-white/92 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)] backdrop-blur">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              {selectedPolicyId
+                ? t('play.actions.usePolicy', 'Use Policy')
+                : selectedCoreId
+                  ? t('play.actions.placeCore', 'Place Core')
+                  : t('play.flow.endTurn', 'End Turn')}
+            </div>
+            <div className="mt-1 text-[12px] font-bold text-slate-800 truncate">
+              {selectedCoreCard
+                ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
+                : t('play.common.selectedCard', 'Selected Card')}
             </div>
           </div>
-        </div>
 
-        {/* 只有在非弃牌阶段显示部署按钮 */}
-        {!pendingDiscardActive && (
-          <div className="absolute right-4 bottom-4 sm:right-8 sm:bottom-8 xl:right-12 xl:bottom-12 z-[100]">
-            {selectedCoreId && selectedTile && (
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <button
+              type="button"
+              onClick={() => setTradeModalOpen(true)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            >
+              {locale === 'zh' ? '碳交易区' : 'Carbon Trading'}
+            </button>
+
+            {selectedCoreId && selectedTile ? (
               <button
+                type="button"
                 onClick={() => {
-                  const [row, col] = selectedTile.split(',').map(v => Number(v));
+                  const [row, col] = selectedTile.split(',').map((value) => Number(value));
                   void placeCoreCard(selectedCoreId, row, col);
                 }}
                 disabled={actionLoading || !!placeActionBlockedReason}
                 title={placeActionBlockedReason || t('play.actions.placeCore', 'Place Core')}
-                className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(4,120,87,0.3)] hover:-translate-y-2 active:translate-y-0"
+                className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                <span>DEPLOY</span>
+                DEPLOY
               </button>
-            )}
-            {selectedPolicyId && (
+            ) : selectedPolicyId ? (
               <button
+                type="button"
                 onClick={() => runAction(3, { cardId: selectedPolicyId })}
                 disabled={actionLoading || !!policyActionBlockedReason}
                 title={policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy')}
-                className="group flex items-center gap-4 sm:gap-6 px-6 sm:px-9 xl:px-12 py-3.5 sm:py-4 xl:py-5 rounded-[3rem] bg-indigo-900 hover:bg-black text-white font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(49,46,129,0.3)] hover:-translate-y-2"
+                className="rounded-2xl bg-indigo-900 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                <span>EXECUTE</span>
+                EXECUTE
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={endTurn}
+                disabled={endTurnDisabled}
+                className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
+              >
+                {t('play.actions.endTurn', 'End Turn')}
               </button>
             )}
           </div>
-        )}
-
-        {!pendingDiscardActive && (
-          <div className="sm:hidden fixed inset-x-3 bottom-3 z-[140] rounded-[1.5rem] border border-slate-200/80 bg-white/92 backdrop-blur px-3 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  {selectedPolicyId
-                    ? t('play.actions.usePolicy', 'Use Policy')
-                    : selectedCoreId
-                      ? t('play.actions.placeCore', 'Place Core')
-                      : t('play.flow.selectCore', 'Select Core')}
-                </div>
-                <div className="mt-1 text-[12px] font-bold text-slate-800 truncate">
-                  {selectedPolicyCard
-                    ? (locale === 'zh' ? selectedPolicyCard.chineseName : selectedPolicyCard.englishName)
-                    : selectedCoreCard
-                      ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
-                      : t('play.common.selectedCard', 'Selected Card')}
-                </div>
-                <div className="mt-1 text-[11px] text-slate-500 truncate">
-                  {selectedTile
-                    ? `${t('play.common.tile', 'Tile')}: ${selectedTile}`
-                    : selectedPolicyId
-                      ? t('play.common.none', 'None')
-                      : t('play.common.tileNotSelected', 'Tile not selected')}
-                </div>
-                <div className="mt-1 text-[10px] text-slate-500 truncate">
-                  {mobileActionHint}
-                </div>
-              </div>
-              {selectedCoreId && selectedTile ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const [row, col] = selectedTile.split(',').map((value) => Number(value));
-                    void placeCoreCard(selectedCoreId, row, col);
-                  }}
-                  disabled={actionLoading || !!placeActionBlockedReason}
-                  title={placeActionBlockedReason || t('play.actions.placeCore', 'Place Core')}
-                  className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
-                >
-                  DEPLOY
-                </button>
-              ) : selectedPolicyId ? (
-                <button
-                  type="button"
-                  onClick={() => runAction(3, { cardId: selectedPolicyId })}
-                  disabled={actionLoading || !!policyActionBlockedReason}
-                  title={policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy')}
-                  className="shrink-0 rounded-2xl bg-indigo-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
-                >
-                  EXECUTE
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={endTurn}
-                  disabled={endTurnDisabled}
-                  className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
-                >
-                  {t('play.actions.endTurn', 'End Turn')}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
-    </section>
-  );
-}
+      {tradeModalOpen && (
+        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[2rem] border border-slate-200 bg-white/95 p-5 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/40 dark:text-emerald-200/40">
+                {t('play.trade.title', 'Carbon Market')}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setTradeModalOpen(false)}
+                className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+              >
+                {t('play.actions.back', 'Back')}
+              </button>
+            </div>
 
-function TradeCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
-      <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</div>
-      <div className="text-[14px] font-black text-slate-700 dark:text-slate-100">{value}</div>
-    </div>
+            {tradeWindowOpened ? (
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <TradeCell label={t('play.trade.quota', 'Quota')} value={String(tradeQuota)} />
+                  <TradeCell label={t('play.trade.currentPrice', 'Current Price')} value={tradeLastPrice.toFixed(1)} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTradeType('buy')}
+                    className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'buy'
+                      ? 'bg-emerald-600 text-white border-emerald-500'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                      }`}
+                  >
+                    {t('play.trade.buy', 'Buy Quota')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTradeType('sell')}
+                    className={`rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-wider border ${tradeType === 'sell'
+                      ? 'bg-emerald-600 text-white border-emerald-500'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                      }`}
+                  >
+                    {t('play.trade.sell', 'Sell Quota')}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={tradeAmount}
+                    onChange={(event) => {
+                      const rawValue = event.target.value;
+                      if (rawValue === '') {
+                        setTradeAmount('');
+                        return;
+                      }
+                      const nextValue = Number(rawValue);
+                      if (!Number.isFinite(nextValue)) {
+                        return;
+                      }
+                      setTradeAmount(nextValue);
+                    }}
+                    onBlur={() => {
+                      if (tradeAmount === '') {
+                        return;
+                      }
+                      setTradeAmount(Math.max(1, Math.floor(tradeAmount)));
+                    }}
+                    className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 px-2 py-1 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { void runTradeAction(); }}
+                    disabled={tradeActionDisabled}
+                    className="flex-1 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest py-2 disabled:opacity-40"
+                  >
+                    {t('play.trade.execute', 'Execute Trade')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[1.4rem] border border-amber-200/80 bg-amber-50/85 px-4 py-4">
+                <div className="text-[12px] font-bold text-slate-800">
+                  {locale === 'zh'
+                    ? roundsUntilTradeOpen > 0
+                      ? `碳交易 ${roundsUntilTradeOpen} 回合后开放`
+                      : '本回合不可交易'
+                    : roundsUntilTradeOpen > 0
+                      ? `Carbon market opens in ${roundsUntilTradeOpen} turns`
+                      : 'Carbon market unavailable this turn'}
+                </div>
+                <div className="mt-2 text-[11px] leading-5 text-slate-500">
+                  {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              {t('play.trade.profit', 'Profit')}: {tradeProfit.toFixed(1)}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
