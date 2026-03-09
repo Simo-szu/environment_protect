@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import PlayHeader from './components/PlayHeader';
 import PlayStatsPanel from './components/PlayStatsPanel';
 import PlayBoardAndHandsPanel from './components/PlayBoardAndHandsPanel';
@@ -9,8 +9,9 @@ import { useGamePlayController } from './hooks/useGamePlayController';
 
 export default function GamePlayPage() {
   const controller = useGamePlayController();
+  const settlementActive = Boolean(controller.transitionNotice && !controller.showOnboarding && !controller.ending);
 
-  const mobileDigestItems = useMemo(() => {
+  const mobileDigestItems = (() => {
     const items: Array<{ key: string; label: string; tone: string }> = [];
     if (controller.transitionNotice) {
       items.push({
@@ -68,17 +69,7 @@ export default function GamePlayPage() {
     }
 
     return items.slice(0, 3);
-  }, [
-    controller.activeNegativeEvents,
-    controller.currentGuidedTask,
-    controller.lastMessage,
-    controller.strictGuideMode,
-    controller.t,
-    controller.tradeWindowInterval,
-    controller.tradeWindowOpened,
-    controller.transitionNotice,
-    controller.turn
-  ]);
+  })();
 
   useEffect(() => {
     const nextWindow = window as Window & {
@@ -88,7 +79,13 @@ export default function GamePlayPage() {
 
     nextWindow.render_game_to_text = () =>
       JSON.stringify({
-        mode: controller.ending ? 'ending' : controller.showOnboarding ? 'onboarding' : 'play',
+        mode: controller.ending
+          ? 'ending'
+          : controller.transitionNotice
+            ? 'settlement'
+            : controller.showOnboarding
+              ? 'onboarding'
+              : 'play',
         coordinateSystem: 'board[row,col], origin top-left, row increases downward, col increases rightward',
         turn: controller.turn,
         maxTurn: controller.maxTurn,
@@ -118,6 +115,15 @@ export default function GamePlayPage() {
           eventType: String(event.eventType || ''),
           remainingTurns: Number(event.remainingTurns || 0),
         })),
+        settlementOverlay: controller.transitionNotice
+          ? {
+            visible: true,
+            turn: controller.transitionNotice.turn,
+            title: controller.transitionNotice.title,
+          }
+          : {
+            visible: false,
+          },
         onboarding: controller.showOnboarding
           ? {
             step: controller.onboardingStep,
@@ -156,33 +162,35 @@ export default function GamePlayPage() {
 
   return (
     <div className="min-h-screen xl:h-screen w-full overflow-x-hidden xl:overflow-hidden overflow-y-auto bg-[#f4f7f4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans">
-      <PlayHeader
-        t={controller.t}
-        turn={controller.turn}
-        maxTurn={controller.maxTurn}
-        phase={controller.phase}
-        domainProgress={controller.domainProgress}
-        turnFlowSteps={controller.turnFlowSteps}
-        strictGuideMode={controller.strictGuideMode}
-        handleBack={controller.handleBack}
-        handleOpenArchive={controller.handleOpenArchive}
-        refreshSession={controller.refreshSession}
-        handleRestartSession={controller.handleRestartSession}
-        handleExitSession={controller.handleExitSession}
-        sessionControlLoading={controller.sessionControlLoading}
-        onOpenGuide={controller.openGuide}
-        transitionAnimationEnabled={controller.transitionAnimationEnabled}
-        onToggleTransitionAnimation={controller.toggleTransitionAnimation}
-        onEndTurn={controller.endTurn}
-        endTurnDisabled={controller.endTurnDisabled}
-        endTurnBlockedReason={controller.endTurnBlockedReason}
-        guidedTutorialActive={controller.guidedTutorialActive}
-        currentGuidedTaskId={controller.currentGuidedTask?.id}
-        boardViewMode={controller.boardViewMode}
-        setBoardViewMode={controller.setBoardViewMode}
-      />
+      <div className={settlementActive ? 'hidden' : ''} aria-hidden={settlementActive}>
+        <PlayHeader
+          t={controller.t}
+          turn={controller.turn}
+          maxTurn={controller.maxTurn}
+          phase={controller.phase}
+          domainProgress={controller.domainProgress}
+          turnFlowSteps={controller.turnFlowSteps}
+          strictGuideMode={controller.strictGuideMode}
+          handleBack={controller.handleBack}
+          handleOpenArchive={controller.handleOpenArchive}
+          refreshSession={controller.refreshSession}
+          handleRestartSession={controller.handleRestartSession}
+          handleExitSession={controller.handleExitSession}
+          sessionControlLoading={controller.sessionControlLoading}
+          onOpenGuide={controller.openGuide}
+          transitionAnimationEnabled={controller.transitionAnimationEnabled}
+          onToggleTransitionAnimation={controller.toggleTransitionAnimation}
+          onEndTurn={controller.endTurn}
+          endTurnDisabled={controller.endTurnDisabled}
+          endTurnBlockedReason={controller.endTurnBlockedReason}
+          guidedTutorialActive={controller.guidedTutorialActive}
+          currentGuidedTaskId={controller.currentGuidedTask?.id}
+          boardViewMode={controller.boardViewMode}
+          setBoardViewMode={controller.setBoardViewMode}
+        />
+      </div>
 
-      {mobileDigestItems.length > 0 && (
+      {!settlementActive && mobileDigestItems.length > 0 && (
         <div className="sm:hidden px-2 pt-2">
           <div className="rounded-[1.5rem] border border-slate-200/80 bg-white/88 px-3 py-2 shadow-sm backdrop-blur">
             <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
@@ -199,7 +207,10 @@ export default function GamePlayPage() {
         </div>
       )}
 
-      <main className="flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:flex-row gap-3 sm:gap-4 xl:gap-5">
+      <main
+        className={`flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:flex-row gap-3 sm:gap-4 xl:gap-5 ${settlementActive ? 'hidden' : ''}`}
+        aria-hidden={settlementActive}
+      >
         <aside className="w-full xl:w-72 shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <PlayStatsPanel
             t={controller.t}
@@ -317,6 +328,7 @@ export default function GamePlayPage() {
         connectionState={controller.connectionState}
         lastMessage={controller.lastMessage}
         transitionNotice={controller.transitionNotice}
+        activeNegativeEvents={controller.activeNegativeEvents}
         showOnboarding={controller.showOnboarding}
         ending={controller.ending}
         onboardingStep={controller.onboardingStep}
@@ -341,6 +353,7 @@ export default function GamePlayPage() {
         tradeQuota={controller.tradeQuota}
         tradeProfit={controller.tradeProfit}
         eventStats={controller.eventStats}
+        locale={controller.locale}
         handleOpenArchive={controller.handleOpenArchive}
         refreshSession={controller.refreshSession}
         handleRestartSession={controller.handleRestartSession}

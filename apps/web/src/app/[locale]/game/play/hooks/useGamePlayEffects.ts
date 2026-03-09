@@ -1,7 +1,7 @@
 'use client';
 
 import { Dispatch, MutableRefObject, SetStateAction, useEffect } from 'react';
-import { GameCardMeta, listCards, startSession } from '@/lib/api/game';
+import { GameCardMeta, getSessionById, listCards, startSession } from '@/lib/api/game';
 
 interface TransitionNoticeBase {
   kind: string;
@@ -12,6 +12,12 @@ interface TransitionNoticeBase {
 
 interface EndingState {
   endingId: string;
+}
+
+interface SessionStateLike {
+  id: string;
+  status?: number;
+  pondState?: Record<string, unknown>;
 }
 
 interface UseGamePlayEffectsParams {
@@ -38,7 +44,6 @@ interface UseGamePlayEffectsParams {
   settlementHistory: Array<Record<string, unknown>>;
   transitionAnimationEnabled: boolean;
   activeNegativeEvents: Array<Record<string, unknown>>;
-  turnTransitionAnimationSeconds: number;
   turn: number;
   guidedTutorialActive: boolean;
   guidedTutorialCompleted: boolean;
@@ -77,7 +82,6 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
     settlementHistory,
     transitionAnimationEnabled,
     activeNegativeEvents,
-    turnTransitionAnimationSeconds,
     turn,
     guidedTutorialActive,
     guidedTutorialCompleted,
@@ -94,7 +98,24 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
       setLoading(true);
       setError(null);
       try {
-        const [cardsRes, sessionRes] = await Promise.all([listCards(true), startSession()]);
+        const cardsResPromise = listCards(true);
+        const savedSessionId = window.sessionStorage.getItem('game:lastSessionId') || '';
+        let sessionRes: SessionStateLike;
+        if (savedSessionId) {
+          try {
+            sessionRes = await getSessionById(savedSessionId);
+            if (Number(sessionRes?.status ?? 0) !== 1) {
+              window.sessionStorage.removeItem('game:lastSessionId');
+              sessionRes = await startSession();
+            }
+          } catch {
+            window.sessionStorage.removeItem('game:lastSessionId');
+            sessionRes = await startSession();
+          }
+        } else {
+          sessionRes = await startSession();
+        }
+        const cardsRes = await cardsResPromise;
         if (cancelled) {
           return;
         }
@@ -192,21 +213,13 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
       toneClass: notice.toneClass,
       turn: turnValue
     });
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
-    }
-    const noticeDurationMs = Math.min(6000, Math.max(1200, turnTransitionAnimationSeconds * 1000));
-    transitionTimerRef.current = window.setTimeout(() => {
-      setTransitionNotice(null);
-      transitionTimerRef.current = null;
-    }, noticeDurationMs);
     return () => {
       if (transitionTimerRef.current !== null) {
         window.clearTimeout(transitionTimerRef.current);
         transitionTimerRef.current = null;
       }
     };
-  }, [settlementHistory, activeNegativeEvents, transitionAnimationEnabled, turnTransitionAnimationSeconds, ending, turn]);
+  }, [settlementHistory, activeNegativeEvents, transitionAnimationEnabled, ending, turn]);
 
   useEffect(() => {
     if (transitionAnimationEnabled && !ending) {

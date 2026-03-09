@@ -1,6 +1,8 @@
 'use client';
 
 import type { GamePlayController } from '../hooks/useGamePlayController';
+import type { SettlementRecord } from '../hooks/gamePlay.shared';
+import RoundSettlementOverlay from './RoundSettlementOverlay';
 
 type PlayOverlaysProps = Pick<
   GamePlayController,
@@ -12,6 +14,7 @@ type PlayOverlaysProps = Pick<
   | 'connectionState'
   | 'lastMessage'
   | 'transitionNotice'
+  | 'activeNegativeEvents'
   | 'showOnboarding'
   | 'ending'
   | 'onboardingStep'
@@ -33,6 +36,7 @@ type PlayOverlaysProps = Pick<
   | 'tradeQuota'
   | 'tradeProfit'
   | 'eventStats'
+  | 'locale'
   | 'handleOpenArchive'
   | 'refreshSession'
   | 'handleRestartSession'
@@ -53,6 +57,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     connectionState,
     lastMessage,
     transitionNotice,
+    activeNegativeEvents,
     showOnboarding,
     ending,
     onboardingStep,
@@ -74,6 +79,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     tradeQuota,
     tradeProfit,
     eventStats,
+    locale,
     handleOpenArchive,
     refreshSession,
     handleRestartSession,
@@ -83,6 +89,10 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     setLastMessage,
     setTransitionNotice
   } = props;
+
+  const latestSettlement = settlementHistory.length > 0
+    ? settlementHistory[settlementHistory.length - 1] as SettlementRecord
+    : null;
 
   const upgradeDeltaItems = selectedCoreCard
     ? [
@@ -258,45 +268,17 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
         </div>
       )}
 
-      {transitionNotice && (
-        <div className="fixed inset-0 z-40 pointer-events-none">
-          <div className="absolute inset-x-0 top-20 hidden justify-center px-4 sm:flex">
-            <div
-              key={transitionNotice.token}
-              className={`pointer-events-auto relative rounded-xl border px-5 py-3 pr-10 shadow-lg ${transitionNotice.toneClass}`}
-            >
-              <button
-                type="button"
-                onClick={() => setTransitionNotice(null)}
-                className="absolute top-2 right-2 text-xs opacity-60 transition-opacity hover:opacity-100"
-                aria-label="Close notice"
-              >
-                ×
-              </button>
-              <div className="text-sm font-semibold">{transitionNotice.title}</div>
-              <div className="text-xs opacity-80">{transitionNotice.subtitle}</div>
-              <div className="mt-1 text-[11px] opacity-70">Turn {transitionNotice.turn} settled</div>
-            </div>
-          </div>
-          <div className="absolute inset-x-3 bottom-24 sm:hidden">
-            <div
-              key={`${transitionNotice.token}-mobile`}
-              className={`pointer-events-auto relative rounded-[1.35rem] border px-4 py-3 pr-10 shadow-[0_16px_36px_rgba(15,23,42,0.18)] backdrop-blur ${transitionNotice.toneClass}`}
-            >
-              <button
-                type="button"
-                onClick={() => setTransitionNotice(null)}
-                className="absolute top-2 right-2 h-6 w-6 rounded-full text-xs opacity-60 transition-opacity hover:opacity-100"
-                aria-label="Close notice"
-              >
-                ×
-              </button>
-              <div className="text-[10px] font-black uppercase tracking-[0.22em] opacity-70">Turn {transitionNotice.turn}</div>
-              <div className="mt-1 text-[13px] font-semibold leading-5">{transitionNotice.title}</div>
-              <div className="mt-0.5 text-[11px] leading-4 opacity-80">{transitionNotice.subtitle}</div>
-            </div>
-          </div>
-        </div>
+      {transitionNotice && latestSettlement && !showOnboarding && !ending && (
+        <RoundSettlementOverlay
+          locale={locale}
+          t={t}
+          transitionNotice={transitionNotice}
+          latestSettlement={latestSettlement}
+          activeNegativeEvents={activeNegativeEvents}
+          resources={resources}
+          metrics={metrics}
+          onClose={() => setTransitionNotice(null)}
+        />
       )}
 
       {showOnboarding && !ending && (

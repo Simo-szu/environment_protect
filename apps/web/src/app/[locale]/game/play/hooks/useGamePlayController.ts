@@ -141,6 +141,12 @@ export function useGamePlayController() {
   const recoveredTimerRef = useRef<number | null>(null);
   const [connectionState, setConnectionState] = useState<'online' | 'retrying' | 'offline' | 'recovered'>('online');
 
+  function clearSavedSessionId() {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('game:lastSessionId');
+    }
+  }
+
   const resources = (pondState?.resources || {}) as ResourceState;
   const metrics = (pondState?.metrics || {}) as MetricState;
   const handCore = Array.isArray(pondState?.handCore) ? (pondState?.handCore as string[]) : [];
@@ -502,7 +508,6 @@ export function useGamePlayController() {
     settlementHistory,
     transitionAnimationEnabled,
     activeNegativeEvents,
-    turnTransitionAnimationSeconds,
     turn,
     guidedTutorialActive,
     guidedTutorialCompleted,
@@ -777,6 +782,7 @@ export function useGamePlayController() {
     } catch {
       // no-op
     } finally {
+      clearSavedSessionId();
       router.push(`/${locale}/game`);
     }
   }
@@ -794,6 +800,7 @@ export function useGamePlayController() {
       if (sessionId) {
         await endSession(sessionId);
       }
+      clearSavedSessionId();
       router.push(`/${locale}/game`);
     } catch (e: unknown) {
       setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));
@@ -815,6 +822,7 @@ export function useGamePlayController() {
       if (sessionId) {
         await endSession(sessionId);
       }
+      clearSavedSessionId();
       window.location.reload();
     } catch (e: unknown) {
       setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));
