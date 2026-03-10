@@ -307,7 +307,7 @@ function PointsPageContent() {
                     </span>
                     {t('badge', '积分奖励系统')}
                 </div>
-                <h1 className="relative mx-auto mb-6 max-w-3xl text-[3rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#1D3B2A] drop-shadow-sm dark:text-[#E9FBE9] sm:text-[3.7rem] md:text-[4.85rem]">
+                <h1 className="relative mx-auto mb-6 max-w-3xl text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#1D3B2A] drop-shadow-sm dark:text-[#E9FBE9] sm:text-[3.3rem] md:text-[4.2rem]">
                     {t('title', '积分')}<span className="text-[#F0A32F]">{t('paradise', '乐园')}</span>
                 </h1>
                 <div className="relative mx-auto flex max-w-3xl flex-wrap items-stretch justify-center gap-2 px-4 text-base font-normal text-[#456252] dark:text-slate-300 sm:flex-nowrap sm:text-lg">

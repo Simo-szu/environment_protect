@@ -187,7 +187,7 @@ export default function HomePage() {
                     </span>
                     {t('slogan', '全民环保行动季')}
                 </div>
-                <h1 className="relative mb-6 text-[3.1rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] drop-shadow-sm transition-colors duration-300 dark:text-[#56B949] sm:text-[3.85rem] md:text-[5.25rem]">
+                <h1 className="relative mb-6 text-[2.8rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] drop-shadow-sm transition-colors duration-300 dark:text-[#56B949] sm:text-[3.4rem] md:text-[4.6rem]">
                     {t('title', 'YOUTHLOOP')}
                 </h1>
                 <div className="relative mx-auto flex max-w-xl items-center justify-center px-4 text-base font-normal leading-relaxed text-[#30499B]/78 transition-colors duration-300 dark:text-slate-300 sm:text-lg">

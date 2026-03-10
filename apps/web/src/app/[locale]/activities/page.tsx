@@ -145,7 +145,7 @@ function ActivitiesPageContent() {
                     </span>
                     {t('subtitle', '参与绿色行动')}
                 </div>
-                <h1 className="relative mx-auto mb-6 max-w-3xl text-[3rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#173325] drop-shadow-sm dark:text-[#E9FBE9] sm:text-[3.7rem] md:text-[4.85rem]">
+                <h1 className="relative mx-auto mb-6 max-w-3xl text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#173325] drop-shadow-sm dark:text-[#E9FBE9] sm:text-[3.3rem] md:text-[4.2rem]">
                     {t('title', '环保活动')}
                 </h1>
                 <div className="relative mx-auto flex max-w-2xl flex-col items-center justify-center gap-3 px-4 text-base font-normal leading-relaxed text-[#5F7387] dark:text-slate-300 sm:text-lg">

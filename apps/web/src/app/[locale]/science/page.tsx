@@ -121,7 +121,7 @@ export default function SciencePage() {
                     </span>
                     {t('hero.badge', '环保科普知识库')}
                 </div>
-                <h1 className="relative mx-auto max-w-2xl text-[3.05rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] dark:text-[#56B949] sm:text-[3.7rem] md:text-[4.85rem]">
+                <h1 className="relative mx-auto max-w-2xl text-[2.8rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] dark:text-[#56B949] sm:text-[3.35rem] md:text-[4.25rem]">
                     {t('hero.title', '科普资料')}
                 </h1>
                 <div className="relative mx-auto mt-8 flex max-w-xl items-center justify-center px-4 text-base font-normal leading-relaxed text-[#30499B]/78 dark:text-slate-300 sm:text-lg">
