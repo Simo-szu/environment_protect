@@ -350,8 +350,8 @@ export function useGamePlayController() {
     () => guidedTasks.map((task) => ({
       ...task,
       done:
-        (task.id === 'select_core' && !!selectedCoreId)
-        || (task.id === 'select_tile' && !!selectedTile)
+        (task.id === 'select_core' && (!!selectedCoreId || corePlacedThisTurn || placedCore.length > 0 || turn > 1))
+        || (task.id === 'select_tile' && (!!selectedTile || corePlacedThisTurn || placedCore.length > 0))
         || (task.id === 'place_core' && (corePlacedThisTurn || placedCore.length > 0))
         || (task.id === 'end_turn' && (turn > 1 || settlementHistory.length > 0))
     })),

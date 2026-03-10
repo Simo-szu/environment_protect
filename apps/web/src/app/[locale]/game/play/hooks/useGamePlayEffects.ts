@@ -99,7 +99,12 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
       setError(null);
       try {
         const cardsResPromise = listCards(true);
-        const savedSessionId = window.sessionStorage.getItem('game:lastSessionId') || '';
+        const query = new URLSearchParams(window.location.search);
+        const forceTutorial = query.get('tutorial') === '1';
+        const savedSessionId = forceTutorial ? '' : (window.sessionStorage.getItem('game:lastSessionId') || '');
+        if (forceTutorial) {
+          window.sessionStorage.removeItem('game:lastSessionId');
+        }
         let sessionRes: SessionStateLike;
         if (savedSessionId) {
           try {
@@ -126,7 +131,7 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
         window.sessionStorage.setItem('game:lastSessionId', sessionRes.id);
         setPondState((sessionRes.pondState || {}) as Record<string, unknown>);
         const guideSeen = window.localStorage.getItem(onboardingStorageKey);
-        if (!guideSeen) {
+        if (forceTutorial || !guideSeen) {
           setShowOnboarding(true);
           setOnboardingStep(0);
           setGuidedTutorialActive(true);

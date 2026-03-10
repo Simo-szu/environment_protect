@@ -2,6 +2,7 @@
 
 import type { GamePlayController } from '../hooks/useGamePlayController';
 import type { SettlementRecord } from '../hooks/gamePlay.shared';
+import InteractiveOnboardingOverlay from './InteractiveOnboardingOverlay';
 import RoundSettlementOverlay from './RoundSettlementOverlay';
 
 type PlayOverlaysProps = Pick<
@@ -16,9 +17,12 @@ type PlayOverlaysProps = Pick<
   | 'transitionNotice'
   | 'activeNegativeEvents'
   | 'showOnboarding'
+  | 'selectedCoreId'
+  | 'selectedTile'
+  | 'corePlacedThisTurn'
+  | 'turn'
   | 'ending'
   | 'onboardingStep'
-  | 'onboardingSteps'
   | 'closeOnboarding'
   | 'setOnboardingStep'
   | 'corePeekOpen'
@@ -59,9 +63,12 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     transitionNotice,
     activeNegativeEvents,
     showOnboarding,
+    selectedCoreId,
+    selectedTile,
+    corePlacedThisTurn,
+    turn,
     ending,
     onboardingStep,
-    onboardingSteps,
     closeOnboarding,
     setOnboardingStep,
     corePeekOpen,
@@ -165,7 +172,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
         </div>
       )}
 
-      {guidedGateEnabled && currentGuidedTask && (
+      {guidedGateEnabled && currentGuidedTask && !showOnboarding && (
         <div className="fixed top-16 sm:top-24 left-1/2 z-[120] w-[min(94vw,500px)] -translate-x-1/2 animate-in slide-in-from-top-4 duration-500">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-amber-500/30 bg-slate-900/90 p-3 shadow-[0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-xl sm:rounded-2xl sm:p-5">
             <div className="absolute -top-1 -right-1">
@@ -282,57 +289,17 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       )}
 
       {showOnboarding && !ending && (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="text-xs text-slate-500">
-                {t('play.onboarding.progress', 'Quick Start')} {onboardingStep + 1}/{onboardingSteps.length}
-              </div>
-              <div className="text-lg font-semibold text-slate-800 sm:text-xl">{onboardingSteps[onboardingStep].title}</div>
-              <div className="text-sm leading-6 text-slate-600">{onboardingSteps[onboardingStep].body}</div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 sm:pt-4">
-              <button
-                onClick={() => closeOnboarding(true, false)}
-                className="rounded border border-slate-300 px-3 py-1.5 text-sm"
-              >
-                {t('play.onboarding.skip', 'Skip')}
-              </button>
-              <div className="ml-auto flex items-center gap-2">
-                <button
-                  onClick={() => setOnboardingStep((prev: number) => Math.max(0, prev - 1))}
-                  disabled={onboardingStep <= 0}
-                  className="rounded border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-40"
-                >
-                  {t('play.onboarding.prev', 'Previous')}
-                </button>
-                {onboardingStep < onboardingSteps.length - 1 ? (
-                  <button
-                    onClick={() => setOnboardingStep((prev: number) => Math.min(onboardingSteps.length - 1, prev + 1))}
-                    className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white"
-                  >
-                    {t('play.onboarding.next', 'Next')}
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => closeOnboarding(true, false)}
-                      className="rounded border border-slate-300 px-3 py-1.5 text-sm"
-                    >
-                      {t('play.onboarding.closeOnly', 'Close')}
-                    </button>
-                    <button
-                      onClick={() => closeOnboarding(true, true)}
-                      className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white"
-                    >
-                      {t('play.onboarding.startGuided', 'Start Guided')}
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <InteractiveOnboardingOverlay
+          t={t}
+          locale={locale}
+          onboardingStep={onboardingStep}
+          setOnboardingStep={setOnboardingStep}
+          closeOnboarding={closeOnboarding}
+          selectedCoreId={selectedCoreId}
+          selectedTile={selectedTile}
+          corePlacedThisTurn={corePlacedThisTurn}
+          turn={turn}
+        />
       )}
 
       {corePeekOpen && selectedCoreCard && (

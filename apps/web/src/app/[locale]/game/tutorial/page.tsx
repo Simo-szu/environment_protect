@@ -189,7 +189,7 @@ export default function GameTutorialPage() {
                                 {t('tutorial.ready', '准备好开始你的低碳规划之旅了吗？')}
                             </p>
                             <a
-                                href={`/${locale}/game/play`}
+                                href={`/${locale}/game/play?tutorial=1`}
                                 className="inline-flex items-center gap-2 px-6 py-3 bg-[#00C087] hover:bg-[#00a870] text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
                             >
                                 <RotateCcw className="w-4 h-4" />

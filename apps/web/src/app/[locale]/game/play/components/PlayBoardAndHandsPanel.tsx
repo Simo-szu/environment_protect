@@ -269,7 +269,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   return (
     <section className="h-full min-h-[720px] xl:min-h-0 flex flex-col gap-4">
       <div className="grid flex-1 min-h-0 gap-4 lg:grid-cols-2">
-        <div className="min-h-0 rounded-[2rem] border border-slate-200/60 bg-white/40 p-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur sm:p-4">
+        <div
+          data-tutorial-id="planning-panel"
+          className="min-h-0 rounded-[2rem] border border-slate-200/60 bg-white/40 p-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur sm:p-4"
+        >
           <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
               {t('play.board.title', 'Planning Grid')}
@@ -330,6 +333,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                         <button
                           key={key}
                           type="button"
+                          data-tutorial-role="planning-slot"
+                          data-tutorial-placeable={placeableTile ? '1' : '0'}
                           disabled={pendingDiscardActive || actionLoading}
                           onClick={() => {
                             if (pendingDiscardActive || actionLoading) {
@@ -400,7 +405,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           </div>
         </div>
 
-        <aside className="min-h-0 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white/60 p-4 shadow-sm backdrop-blur-md">
+        <aside
+          data-tutorial-id="hand-panel"
+          className="min-h-0 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white/60 p-4 shadow-sm backdrop-blur-md"
+        >
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
               {t('play.coreHand.title', 'Cards In Hand')}
@@ -456,6 +464,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                         <button
                           key={key}
                           type="button"
+                          data-tutorial-role={isCore ? 'core-card' : 'policy-card'}
                           draggable={isCore && !pendingDiscardActive && canPlaceCoreCard(card.cardId)}
                           onDragStart={(event) => {
                             if (isCore) {
@@ -538,7 +547,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         </aside>
       </div>
 
-      <div className="rounded-[1.8rem] border border-slate-200/80 bg-white/92 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)] backdrop-blur">
+      <div
+        data-tutorial-id="action-bar"
+        className="rounded-[1.8rem] border border-slate-200/80 bg-white/92 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)] backdrop-blur"
+      >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -558,6 +570,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <button
               type="button"
+              data-tutorial-id="trade-button"
               onClick={() => setTradeModalOpen(true)}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
             >
@@ -567,6 +580,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             {selectedCoreId && selectedTile ? (
               <button
                 type="button"
+                data-tutorial-id="deploy-button"
                 onClick={() => {
                   const [row, col] = selectedTile.split(',').map((value) => Number(value));
                   void placeCoreCard(selectedCoreId, row, col);
@@ -590,6 +604,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             ) : (
               <button
                 type="button"
+                data-tutorial-id="end-turn-button"
                 onClick={endTurn}
                 disabled={endTurnDisabled}
                 className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"

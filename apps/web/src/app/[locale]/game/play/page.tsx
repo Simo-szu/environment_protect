@@ -211,7 +211,10 @@ export default function GamePlayPage() {
         className={`flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:grid xl:grid-cols-[minmax(240px,1fr)_minmax(0,4fr)] gap-3 sm:gap-4 xl:gap-5 ${settlementActive ? 'hidden' : ''}`}
         aria-hidden={settlementActive}
       >
-        <aside className="w-full xl:w-auto shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <aside
+          data-tutorial-id="resources-panel"
+          className="w-full xl:w-auto shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
           <PlayStatsPanel
             t={controller.t}
             resources={controller.resources}
@@ -294,9 +297,12 @@ export default function GamePlayPage() {
         transitionNotice={controller.transitionNotice}
         activeNegativeEvents={controller.activeNegativeEvents}
         showOnboarding={controller.showOnboarding}
+        selectedCoreId={controller.selectedCoreId}
+        selectedTile={controller.selectedTile}
+        corePlacedThisTurn={controller.corePlacedThisTurn}
+        turn={controller.turn}
         ending={controller.ending}
         onboardingStep={controller.onboardingStep}
-        onboardingSteps={controller.onboardingSteps}
         closeOnboarding={controller.closeOnboarding}
         setOnboardingStep={controller.setOnboardingStep}
         setError={controller.setError}

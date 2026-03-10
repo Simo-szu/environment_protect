@@ -75,7 +75,7 @@ export default function GamePage() {
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
                             <button
-                                onClick={() => router.push(`/${locale}/game/tutorial`)}
+                                onClick={() => router.push(`/${locale}/game/play?tutorial=1`)}
                                 className="group flex w-full items-center justify-between rounded-2xl border border-white/80 bg-white/85 px-6 py-4 text-[#0F172A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                             >
                                 <span className="font-bold text-sm tracking-wide">
