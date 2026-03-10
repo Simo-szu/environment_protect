@@ -131,21 +131,30 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
       {
         id: 'feature.trade',
         title: txt('特色玩法 1：碳交易', 'Feature 1: Carbon Trading'),
-        body: txt('碳交易区可买卖配额：富余可卖、短缺可买，用市场机制管理碳排放。', 'Trade quotas to manage surplus and deficit emissions.'),
+        body: txt(
+          '【科普小知识】现实中，碳交易是全球通用的低碳手段：每个城市有碳排放配额，富余可卖、不足需买，用市场力量倒逼环保。 【游戏玩法】卖出：配额富余时交易赚盈利，盈利越高低碳总分越高；买入：配额不足时避免超标惩罚，保住低碳总分。',
+          'Carbon trading is a global low-carbon mechanism: cities trade surplus/deficit emission quotas. In-game, selling surplus improves profit and low-carbon score; buying helps avoid emission penalties and protects your score.'
+        ),
         placement: 'top',
         targetSelectors: ['[data-tutorial-id="trade-button"]']
       },
       {
         id: 'feature.policy',
         title: txt('特色玩法 2：政策卡', 'Feature 2: Policy Cards'),
-        body: txt('政策卡点击即可生效，可用于化解负向事件或快速调整指标。', 'Policy cards are instant-use and help resolve risks quickly.'),
+        body: txt(
+          '【科普小知识】深圳作为低碳先锋，出台了红树林保护、低碳产业补贴、市民低碳激励等领先政策。 【游戏玩法】政策卡可直接点击生效（无需放置），用于化解负向事件、提升低碳总分，是平衡发展的“救命符”。',
+          'Shenzhen has leading low-carbon policies (ecology protection, industrial subsidy, citizen incentives). In-game, policy cards are instant-use (no placement), useful for resolving negative events and boosting low-carbon score.'
+        ),
         placement: 'left',
         targetSelectors: ['[data-tutorial-role="policy-card"]', '[data-tutorial-id="hand-panel"]']
       },
       {
         id: 'feature.combo',
         title: txt('特色玩法 3：组合技', 'Feature 3: Combo Synergy'),
-        body: txt('相邻布局与板块协同能触发组合收益，平衡发展通常更容易提高低碳总分。', 'Adjacent placement and cross-domain synergy can yield combo benefits.'),
+        body: txt(
+          '【科普小知识】真正的低碳城市，不是单靠一个板块，而是工业、生态、科技、民生协同发展。 【游戏玩法】带「low-carbon/shenzhen」标签的卡牌相邻布局可触发组合技，大幅提升低碳总分，体现“平衡发展更环保”的核心逻辑。',
+          'A real low-carbon city depends on coordinated industry, ecology, science and society. In-game, adjacent cards with low-carbon/shenzhen tags can trigger combo synergy and significantly increase low-carbon score.'
+        ),
         placement: 'right',
         targetSelectors: ['[data-tutorial-id="planning-panel"]']
       },
