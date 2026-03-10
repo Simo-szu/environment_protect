@@ -208,57 +208,35 @@ export default function GamePlayPage() {
       )}
 
       <main
-        className={`flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:flex-row gap-3 sm:gap-4 xl:gap-5 ${settlementActive ? 'hidden' : ''}`}
+        className={`flex-1 min-h-0 overflow-visible p-2 pb-28 sm:pb-4 sm:p-4 flex flex-col xl:grid xl:grid-cols-[minmax(240px,1fr)_minmax(0,4fr)] gap-3 sm:gap-4 xl:gap-5 ${settlementActive ? 'hidden' : ''}`}
         aria-hidden={settlementActive}
       >
-        <aside className="w-full xl:w-72 shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <aside className="w-full xl:w-auto shrink-0 xl:h-full xl:overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <PlayStatsPanel
             t={controller.t}
             resources={controller.resources}
             metrics={controller.metrics}
             lowCarbonScore={controller.lowCarbonScore}
-            selectedCorePreviewReady={controller.selectedCorePreviewReady}
-            formatDelta={controller.formatDelta}
-            selectedCoreCard={controller.selectedCoreCard}
-            selectedTileAdjacency={controller.selectedTileAdjacency}
-            selectedTile={controller.selectedTile}
-            recommendedTile={controller.recommendedTile}
-            selectedTileSynergyBreakdown={controller.selectedTileSynergyBreakdown}
-            placedCore={controller.placedCore}
-            catalog={controller.catalog}
-            activeNegativeEvents={controller.activeNegativeEvents}
-            resolveEventLabel={controller.resolveEventLabel}
-            resolvePolicyHintByEvent={controller.resolvePolicyHintByEvent}
-            resolvePolicyIdsByEvent={controller.resolvePolicyIdsByEvent}
-            handPolicySet={controller.handPolicySet}
-            selectPolicyForEvent={controller.selectPolicyForEvent}
           />
         </aside>
 
-        <section className="flex-1 min-w-0 xl:h-full flex flex-col overflow-visible relative">
+        <section className="min-w-0 xl:h-full flex flex-col overflow-visible relative">
           <PlayBoardAndHandsPanel
             t={controller.t}
-            boardViewMode={controller.boardViewMode}
-            setBoardViewMode={controller.setBoardViewMode}
             selectedCoreId={controller.selectedCoreId}
             selectedCoreCard={controller.selectedCoreCard}
             selectedTile={controller.selectedTile}
             recommendedTile={controller.recommendedTile}
             placeableTileKeySet={controller.placeableTileKeySet}
-            selectedTileAdjacency={controller.selectedTileAdjacency}
-            selectedTileSynergyBreakdown={controller.selectedTileSynergyBreakdown}
-            boardPlacementMode={controller.boardPlacementMode}
             guidedTutorialActive={controller.guidedTutorialActive}
             currentGuidedTask={controller.currentGuidedTask}
             boardSize={controller.boardSize}
             boardOccupied={controller.boardOccupied}
             selectedOccupiedTile={controller.selectedOccupiedTile}
             tileAdjacencyScoreMap={controller.tileAdjacencyScoreMap}
-            tileSynergyBreakdownMap={controller.tileSynergyBreakdownMap}
             adjacencyRequired={controller.adjacencyRequired}
             ending={controller.ending}
             pendingDiscardBlocking={controller.pendingDiscardBlocking}
-            guidedActionAllowed={controller.guidedActionAllowed}
             setSelectedOccupiedTile={controller.setSelectedOccupiedTile}
             setSelectedTile={controller.setSelectedTile}
             dragOverTile={controller.dragOverTile}
@@ -266,7 +244,6 @@ export default function GamePlayPage() {
             draggingCoreId={controller.draggingCoreId}
             setDraggingCoreId={controller.setDraggingCoreId}
             setSelectedCoreId={controller.setSelectedCoreId}
-            setError={controller.setError}
             handCoreCards={controller.handCoreCards}
             pendingDiscardActive={controller.pendingDiscardActive}
             pendingDiscardRequiredTotal={controller.pendingDiscardRequiredTotal}
@@ -275,28 +252,15 @@ export default function GamePlayPage() {
             coreAffordabilityMap={controller.coreAffordabilityMap}
             discardCard={controller.discardCard}
             resolveImageUrl={controller.resolveImageUrl}
-            formatDelta={controller.formatDelta}
-            setCorePeekOpen={controller.setCorePeekOpen}
             actionLoading={controller.actionLoading}
-            corePlacedThisTurn={controller.corePlacedThisTurn}
-            selectedCoreAffordability={controller.selectedCoreAffordability}
             placeCoreCard={controller.placeCoreCard}
-            runRemoveCoreAction={controller.runRemoveCoreAction}
-            guidedGateEnabled={controller.guidedGateEnabled}
-            guidedTutorialCompleted={controller.guidedTutorialCompleted}
             placeActionBlockedReason={controller.placeActionBlockedReason}
-            removeActionBlockedReason={controller.removeActionBlockedReason}
             handPolicyCards={controller.handPolicyCards}
             setSelectedPolicyId={controller.setSelectedPolicyId}
             selectedPolicyId={controller.selectedPolicyId}
             runAction={controller.runAction}
-            policyUsedThisTurn={controller.policyUsedThisTurn}
             strictGuideMode={controller.strictGuideMode}
             policyActionBlockedReason={controller.policyActionBlockedReason}
-            selectedPolicyCard={controller.selectedPolicyCard}
-            selectedPolicyRiskLevel={controller.selectedPolicyRiskLevel}
-            selectedPolicyImmediateDelta={controller.selectedPolicyImmediateDelta}
-            selectedPolicyHasImmediateDelta={controller.selectedPolicyHasImmediateDelta}
             endTurn={controller.endTurn}
             endTurnDisabled={controller.endTurnDisabled}
             tradeType={controller.tradeType}

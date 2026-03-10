@@ -72,6 +72,10 @@ type ZoneDefinition = {
   cols: number[];
 };
 
+type HandStackItem =
+  | { key: string; type: 'core'; card: GameCardMeta; index: number }
+  | { key: string; type: 'policy'; card: GameCardMeta; index: number };
+
 function collectCoreContinuousEffects(card: GameCardMeta | null): string[] {
   if (!card) {
     return [];
@@ -165,6 +169,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   } = props;
 
   const [tradeModalOpen, setTradeModalOpen] = useState(false);
+  const [hoveredHandCardKey, setHoveredHandCardKey] = useState('');
 
   const zoneDefinitions = useMemo<ZoneDefinition[]>(() => {
     const half = Math.max(1, Math.floor(boardSize / 2));
@@ -180,12 +185,6 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     ];
   }, [boardSize, locale, t]);
 
-  const tradedThisTurn = useMemo(() => {
-    const recordTurn = Number(latestTradeRecord?.turn ?? 0);
-    const action = String(latestTradeRecord?.action ?? '').toLowerCase();
-    return recordTurn === turn && (action === 'buy' || action === 'sell');
-  }, [latestTradeRecord, turn]);
-
   const roundsUntilTradeOpen = useMemo(() => {
     if (tradeWindowOpened) {
       return 0;
@@ -200,6 +199,27 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     const remainder = turn % interval;
     return remainder === 0 ? interval : interval - remainder;
   }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
+
+  const handStackItems = useMemo<HandStackItem[]>(() => {
+    const coreItems = handCoreCards.map((card, index) => ({
+      key: `core-${card.cardId}-${index}`,
+      type: 'core' as const,
+      card,
+      index
+    }));
+    const policyItems = handPolicyCards.map((card, index) => ({
+      key: `policy-${card.cardId}-${index}`,
+      type: 'policy' as const,
+      card,
+      index
+    }));
+    return [...coreItems, ...policyItems];
+  }, [handCoreCards, handPolicyCards]);
+
+  const handRows = useMemo(() => {
+    const midpoint = Math.ceil(handStackItems.length / 2);
+    return [handStackItems.slice(0, midpoint), handStackItems.slice(midpoint)] as const;
+  }, [handStackItems]);
 
   function handleCardDragStart(event: DragEvent<HTMLButtonElement>, cardId: string) {
     setDraggingCoreId(cardId);
@@ -247,9 +267,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   }
 
   return (
-    <section className="h-full min-h-[860px] xl:min-h-0 flex flex-col gap-4">
-      <div className="grid flex-1 min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-h-0 rounded-[2rem] border border-slate-200/60 bg-white/40 p-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur sm:p-5">
+    <section className="h-full min-h-[720px] xl:min-h-0 flex flex-col gap-4">
+      <div className="grid flex-1 min-h-0 gap-4 lg:grid-cols-2">
+        <div className="min-h-0 rounded-[2rem] border border-slate-200/60 bg-white/40 p-3 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur sm:p-4">
           <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
               {t('play.board.title', 'Planning Grid')}
@@ -259,13 +279,13 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             </div>
           </div>
 
-          <div className="grid h-full gap-3 md:grid-cols-2">
+          <div className="grid h-full gap-2.5 md:grid-cols-2">
             {zoneDefinitions.map((zone) => (
               <div
                 key={zone.id}
-                className={`rounded-[1.8rem] border border-slate-200 bg-white/60 p-3 shadow-sm backdrop-blur-md ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile' ? 'ring-4 ring-emerald-400/20' : ''}`}
+                className={`rounded-[1.8rem] border border-slate-200 bg-white/60 p-2.5 shadow-sm backdrop-blur-md ${guidedTutorialActive && currentGuidedTask?.id === 'select_tile' ? 'ring-4 ring-emerald-400/20' : ''}`}
               >
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-2.5 flex items-center justify-between">
                   <div className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-800/40">
                     {zone.title}
                   </div>
@@ -275,7 +295,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 </div>
 
                 <div
-                  className="grid gap-2"
+                  className="grid gap-1.5"
                   style={{ gridTemplateColumns: `repeat(${zone.cols.length}, minmax(0, 1fr))` }}
                 >
                   {zone.rows.flatMap((row) =>
@@ -290,7 +310,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       const dragOver = key === dragOverTile;
                       const adjacencyScore = tileAdjacencyScoreMap.get(key) || 0;
 
-                      const styleClasses = `group relative aspect-[9/13] overflow-hidden rounded-[1.2rem] border transition-all duration-300 ${
+                      const styleClasses = `group relative aspect-[16/9] overflow-hidden rounded-[1rem] border transition-all duration-300 ${
                         occupied
                           ? selectedOccupied
                             ? 'border-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 ring-2 ring-emerald-400/30'
@@ -399,96 +419,121 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             </div>
           )}
 
-          <div className="grid max-h-[calc(100vh-20rem)] gap-3 overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {handCoreCards.map((card, index) => {
-              const canPlace = coreAffordabilityMap.get(card.cardId)?.canPlace;
-              const isSelected = selectedCoreId === card.cardId;
-              const cardFrameStyles = !pendingDiscardActive
-                ? (isSelected
-                  ? 'border-emerald-500 ring-4 ring-emerald-500/10 scale-[1.02] z-50'
-                  : 'border-white hover:border-emerald-300 hover:scale-[1.01]')
-                : 'border-white';
-              return (
-                <button
-                  key={`${card.cardId}-${index}`}
-                  draggable={!pendingDiscardActive && canPlaceCoreCard(card.cardId)}
-                  onDragStart={(event) => handleCardDragStart(event, card.cardId)}
-                  onDragEnd={() => setDraggingCoreId('')}
-                  onClick={() => {
-                    if (pendingDiscardActive) {
-                      discardCard('core', card.cardId);
-                      return;
-                    }
-                    setSelectedCoreId((current) => current === card.cardId ? '' : card.cardId);
-                  }}
-                  className={`relative h-[220px] w-full overflow-hidden rounded-[1.4rem] border-2 transition-all duration-500 shadow-xl ${cardFrameStyles} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
-                >
-                  <img src={resolveImageUrl(card.imageKey)} className="absolute inset-0 h-full w-full object-cover" alt={card.chineseName} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-slate-950/10" />
-                  <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
-                    <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max">
-                      {card.domain}
-                    </div>
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left">
-                    <div className="text-[12px] font-black leading-tight text-white line-clamp-2">
-                      {locale === 'zh' ? card.chineseName : card.englishName}
-                    </div>
-                    <div className="mt-2 line-clamp-2 text-[10px] font-semibold leading-4 text-white/80">
-                      {collectCoreContinuousEffects(card).slice(0, 3).join('  ') || t('play.common.none', 'None')}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="max-h-[calc(100vh-20rem)] overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-col gap-6 pt-1 pb-2">
+              {handRows.map((rowItems, rowIndex) => {
+                if (rowItems.length === 0) {
+                  return null;
+                }
+                const cardWidthPercent = 42;
+                const maxTravelPercent = 92 - cardWidthPercent;
+                const overlapStepPercent = rowItems.length > 1
+                  ? Math.max(10, Math.min(24, maxTravelPercent / (rowItems.length - 1)))
+                  : 0;
 
-            {handPolicyCards.map((card, index) => {
-              const isSelected = selectedPolicyId === card.cardId;
-              const cardFrameStyles = !pendingDiscardActive
-                ? (isSelected
-                  ? 'border-emerald-500 scale-[1.02] z-50 bg-emerald-50 dark:bg-emerald-900/20'
-                  : 'border-slate-100 bg-white hover:border-emerald-300 hover:scale-[1.01]')
-                : 'border-slate-100 bg-white';
+                return (
+                  <div key={`row-${rowIndex}`} className="relative h-[240px] overflow-visible">
+                    {rowItems.map((item, itemIndex) => {
+                      const { card, key, type } = item;
+                      const isHovered = hoveredHandCardKey === key;
+                      const isCore = type === 'core';
+                      const canPlace = isCore ? coreAffordabilityMap.get(card.cardId)?.canPlace : true;
+                      const isSelected = isCore ? selectedCoreId === card.cardId : selectedPolicyId === card.cardId;
 
-              return (
-                <button
-                  key={`${card.cardId}-${index}`}
-                  onClick={() => {
-                    if (pendingDiscardActive) {
-                      discardCard('policy', card.cardId);
-                      return;
-                    }
-                    setSelectedPolicyId((current) => current === card.cardId ? '' : card.cardId);
-                  }}
-                  className={`relative h-[200px] w-full overflow-hidden rounded-[1.2rem] border-2 transition-all duration-500 shadow-lg ${cardFrameStyles}`}
-                >
-                  {card.imageKey ? (
-                    <img
-                      src={resolveImageUrl(card.imageKey)}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      alt={card.chineseName}
-                      onError={(event) => {
-                        event.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-slate-950/10" />
-                  <div className="relative z-10 flex h-full flex-col justify-between p-4 text-left">
-                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
-                      {card.domain}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
-                        {locale === 'zh' ? card.chineseName : card.englishName}
-                      </div>
-                      <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">
-                        Policy
-                      </div>
-                    </div>
+                      const baseCardFrameStyles = isCore
+                        ? (!pendingDiscardActive
+                          ? (isSelected
+                            ? 'border-emerald-500 ring-4 ring-emerald-500/10'
+                            : 'border-white')
+                          : 'border-white')
+                        : (!pendingDiscardActive
+                          ? (isSelected
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                            : 'border-slate-100 bg-white')
+                          : 'border-slate-100 bg-white');
+
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          draggable={isCore && !pendingDiscardActive && canPlaceCoreCard(card.cardId)}
+                          onDragStart={(event) => {
+                            if (isCore) {
+                              handleCardDragStart(event, card.cardId);
+                            }
+                          }}
+                          onDragEnd={() => setDraggingCoreId('')}
+                          onMouseEnter={() => setHoveredHandCardKey(key)}
+                          onMouseLeave={() => setHoveredHandCardKey((current) => (current === key ? '' : current))}
+                          onFocus={() => setHoveredHandCardKey(key)}
+                          onBlur={() => setHoveredHandCardKey((current) => (current === key ? '' : current))}
+                          onClick={() => {
+                            if (pendingDiscardActive) {
+                              discardCard(type, card.cardId);
+                              return;
+                            }
+                            if (isCore) {
+                              setSelectedCoreId((current) => current === card.cardId ? '' : card.cardId);
+                              return;
+                            }
+                            setSelectedPolicyId((current) => current === card.cardId ? '' : card.cardId);
+                          }}
+                          style={{
+                            left: `${4 + itemIndex * overlapStepPercent}%`,
+                            zIndex: isHovered ? 220 : isSelected ? 130 : 20 + itemIndex
+                          }}
+                          className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
+                        >
+                          {card.imageKey ? (
+                            <img
+                              src={resolveImageUrl(card.imageKey)}
+                              className="absolute inset-0 h-full w-full object-cover"
+                              alt={locale === 'zh' ? card.chineseName : card.englishName}
+                              onError={(event) => {
+                                event.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`absolute inset-0 ${isCore ? 'bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-slate-950/10' : 'bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-slate-950/10'}`} />
+
+                          {isCore ? (
+                            <>
+                              <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
+                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max">
+                                  {card.domain}
+                                </div>
+                              </div>
+                              <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left">
+                                <div className="text-[12px] font-black leading-tight text-white line-clamp-2">
+                                  {locale === 'zh' ? card.chineseName : card.englishName}
+                                </div>
+                                <div className="mt-2 line-clamp-2 text-[10px] font-semibold leading-4 text-white/80">
+                                  {collectCoreContinuousEffects(card).slice(0, 3).join('  ') || t('play.common.none', 'None')}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="relative z-10 flex h-full flex-col justify-between p-4 text-left">
+                              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                                {card.domain}
+                              </div>
+                              <div className="space-y-1">
+                                <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
+                                  {locale === 'zh' ? card.chineseName : card.englishName}
+                                </div>
+                                <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">
+                                  Policy
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
-                </button>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </aside>
       </div>
