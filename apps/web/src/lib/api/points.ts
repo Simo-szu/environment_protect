@@ -35,6 +35,7 @@ export interface SigninRecord {
   signinDate: string;
   points: number;
   consecutiveDays: number;
+  isSigned?: boolean;
 }
 
 // 每日任务
@@ -101,8 +102,11 @@ export async function signin(): Promise<SigninRecord> {
  * 获取今日签到状态
  */
 export async function getTodaySignin(): Promise<SigninRecord | null> {
-  // 调用后端 GET /api/v1/points/signins/today
-  return apiGet<SigninRecord | null>('/api/v1/points/signins/today');
+  // 后端未签到时返回 { isSigned: false }，前端统一归一化为 null
+  const record = await apiGet<SigninRecord | null>('/api/v1/points/signins/today');
+  if (!record) return null;
+  if (record.isSigned === false) return null;
+  return record;
 }
 
 /**

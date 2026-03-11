@@ -207,6 +207,7 @@ const game = {
                 buyAmountTooHigh: '买入数量过高：本回合最多可买入 {max}。',
                 sellAmountTooHigh: '卖出数量过高：本回合最多可卖出 {max}。',
                 tradeAmountOutOfRange: '交易数量超出系统支持范围，请降低交易配额后重试。',
+                windowClosed: '交易窗口已关闭，状态已同步。请在下个交易回合重试。',
             },
             help: {
                 title: '碳交易规则说明',

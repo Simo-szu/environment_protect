@@ -19,11 +19,13 @@ const footer = {
     helpSupport: '帮助与支持',
     help: '帮助中心',
     feedback: '意见反馈',
-    address: '北京市朝阳区环保大厦',
+    email: 'contact@youthloop.org',
+    phone: '400-123-4567',
+    address: '深圳市南山区深圳大学',
     copyrightFull: '© 2026 YouthLoop. 保留所有权利',
     slogan: '让绿色循环，用行动改变未来',
-    icp: 'ICP备案号：京ICP备2024000001号',
-    police: '京公网安备 11010502000001号',
+    icp: 'ICP备案号：粤ICP备2024000001号',
+    police: '粤公网安备 44030502000001号',
 } as const;
 
 export default footer;

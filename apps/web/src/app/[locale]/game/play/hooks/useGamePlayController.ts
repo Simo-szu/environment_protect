@@ -843,11 +843,16 @@ export function useGamePlayController() {
       applyActionResult(response);
     } catch (e: unknown) {
       const rawMessage = (getErrorMessage(e) || '').toLowerCase();
-      // In case of rapid double click or stale UI state, force-sync session to avoid repeated trade errors.
-      if (rawMessage.includes('carbon trade window is not open')) {
+      // Enhanced error handling for trade window synchronization issues
+      if (rawMessage.includes('carbon trade window is not open') || 
+          rawMessage.includes('window_not_open') ||
+          rawMessage.includes('trade window')) {
+        // Force refresh session state to sync trade window status
         await refreshSession();
+        setError(t('play.trade.errors.windowClosed', '交易窗口已关闭，状态已同步。请在下个交易回合重试。'));
+      } else {
+        setError(handleRequestError(e, 'Carbon trade failed'));
       }
-      setError(handleRequestError(e, 'Carbon trade failed'));
     } finally {
       tradeRequestInFlightRef.current = false;
       setActionLoading(false);

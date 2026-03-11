@@ -13,6 +13,9 @@ const points = {
         getRewards: '换奖励',
     },
     points: '积分',
+    common: {
+        loading: '加载中...',
+    },
     progress: {
         current: '当前进度',
         nextLevel: '距离下一级还需',
@@ -40,6 +43,14 @@ const points = {
         claim: '领取',
         goComplete: '去完成',
         noTasks: '暂无任务',
+    },
+    taskNames: {
+        readContent: '阅读文章',
+        postComment: '发表评论',
+        joinActivity: '参与活动',
+        likeContent: '点赞 3 篇文章',
+        shareContent: '分享文章',
+        completeQuiz: '完成每日问答',
     },
     calendar: {
         signIn: '签到',
@@ -83,6 +94,10 @@ const points = {
             admin: '管理员调整',
             other: '其他',
         },
+    },
+    pagination: {
+        previous: '上一页',
+        next: '下一页',
     },
     exchange: {
         title: '兑换商城',

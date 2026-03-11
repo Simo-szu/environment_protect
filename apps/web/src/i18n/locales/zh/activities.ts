@@ -118,6 +118,11 @@ const activities = {
         form: {
             title: '活动标题',
             titlePlaceholder: '请输入活动标题',
+            topic: '活动主题',
+            topicPlaceholder: '可选，输入本次活动主题',
+            signupPolicy: '报名策略',
+            signupPolicyAuto: '自动通过',
+            signupPolicyReview: '需审核通过',
             type: '活动类型',
             types: {
                 tree: '植树造林',
@@ -164,9 +169,12 @@ const activities = {
     comments: {
         title: '评论',
         placeholder: '写下你的评论...',
+        submit: '提交',
+        submitting: '提交中...',
         post: '发表',
         posting: '发表中...',
         empty: '暂无评论',
+        loginRequired: '登录后可发表评论',
         loginToComment: '登录后评论',
         postSuccess: '评论成功',
         postFailed: '评论失败，请重试',

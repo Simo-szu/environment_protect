@@ -20,11 +20,13 @@ const footer = {
     helpSupport: 'Help & Support',
     help: 'Help Center',
     feedback: 'Feedback',
-    address: 'Environmental Building, Chaoyang District, Beijing',
+    email: 'contact@youthloop.org',
+    phone: '400-123-4567',
+    address: 'Shenzhen University, Nanshan District, Shenzhen',
     copyrightFull: '© 2026 YouthLoop. All rights reserved',
     slogan: 'Let Green Cycle, Change the Future with Action',
-    icp: 'ICP Registration: Beijing ICP 2024000001',
-    police: 'Beijing Public Security 11010502000001',
+    icp: 'ICP Registration: Yue ICP 2024000001',
+    police: 'Guangdong Public Security 44030502000001',
 };
 
 export default footer;

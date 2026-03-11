@@ -119,6 +119,11 @@ const activities = {
         form: {
             title: 'Activity Title',
             titlePlaceholder: 'Enter activity title',
+            topic: 'Topic',
+            topicPlaceholder: 'Optional topic for this activity',
+            signupPolicy: 'Signup Policy',
+            signupPolicyAuto: 'Auto approve',
+            signupPolicyReview: 'Approval required',
             type: 'Activity Type',
             types: {
                 tree: 'Tree Planting',
@@ -165,9 +170,12 @@ const activities = {
     comments: {
         title: 'Comments',
         placeholder: 'Write your comment...',
+        submit: 'Submit',
+        submitting: 'Submitting...',
         post: 'Post',
         posting: 'Posting...',
         empty: 'No comments yet',
+        loginRequired: 'Log in to post a comment',
         loginToComment: 'Login to comment',
         postSuccess: 'Comment posted successfully',
         postFailed: 'Failed to post comment, please try again',

@@ -14,6 +14,9 @@ const points = {
         getRewards: ' to get rewards',
     },
     points: 'Points',
+    common: {
+        loading: 'Loading...',
+    },
     progress: {
         current: 'Current Progress',
         nextLevel: 'Need',
@@ -41,6 +44,14 @@ const points = {
         claim: 'Claim',
         goComplete: 'Go Complete',
         noTasks: 'No tasks available',
+    },
+    taskNames: {
+        readContent: 'Read an article',
+        postComment: 'Post a comment',
+        joinActivity: 'Join an activity',
+        likeContent: 'Like 3 articles',
+        shareContent: 'Share an article',
+        completeQuiz: 'Complete daily quiz',
     },
     calendar: {
         signIn: 'Sign In',
@@ -84,6 +95,10 @@ const points = {
             admin: 'Admin Adjustment',
             other: 'Other',
         },
+    },
+    pagination: {
+        previous: 'Previous',
+        next: 'Next',
     },
     exchange: {
         title: 'Exchange Store',

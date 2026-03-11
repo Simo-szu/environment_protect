@@ -1450,8 +1450,10 @@ public class GameService {
 
         double profitAfter = roundToOneDecimal(sellTotal - buyTotal);
         trade.put("profit", profitAfter);
-        trade.put("windowOpened", false);
-        trade.put("windowExpiresAt", 0L);
+        // Keep trade window open for potential additional trades in same turn
+        // Only close window during turn settlement or manual close
+        // trade.put("windowOpened", false);
+        // trade.put("windowExpiresAt", 0L);
 
         ObjectNode history = objectMapper.createObjectNode();
         history.put("turn", trade.path("lastWindowTurn").asInt(state.path("turn").asInt()));

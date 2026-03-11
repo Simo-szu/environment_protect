@@ -195,15 +195,15 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <Mail className="w-4 h-4 text-[#56B949]" />
-                            <span>contact@youthloop.org</span>
+                            <span>{t('email', 'contact@youthloop.org')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <Phone className="w-4 h-4 text-[#30499B] dark:text-blue-400" />
-                            <span>400-123-4567</span>
+                            <span>{t('phone', '400-123-4567')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <MapPin className="w-4 h-4 text-[#F0A32F]" />
-                            <span>{t('address', '北京市朝阳区环保大厦')}</span>
+                            <span>{t('address', '深圳市南山区深圳大学')}</span>
                         </div>
                     </div>
                 </div>
@@ -216,9 +216,9 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                         <span>{t('slogan', '让绿色循环，用行动改变未来')}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <span>{t('icp', 'ICP备案号：京ICP备2024000001号')}</span>
+                        <span>{t('icp', 'ICP备案号：粤ICP备2024000001号')}</span>
                         <span className="hidden md:inline">|</span>
-                        <span>{t('police', '京公网安备 11010502000001号')}</span>
+                        <span>{t('police', '粤公网安备 44030502000001号')}</span>
                     </div>
                 </div>
             </div>

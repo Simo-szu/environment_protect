@@ -25,6 +25,15 @@ import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/l
 import { pointsApi, userApi } from '@/lib/api';
 import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/api/points';
 
+const taskCodeToI18nKey: Record<string, string> = {
+    read_content: 'taskNames.readContent',
+    post_comment: 'taskNames.postComment',
+    join_activity: 'taskNames.joinActivity',
+    like_content: 'taskNames.likeContent',
+    share_content: 'taskNames.shareContent',
+    complete_quiz: 'taskNames.completeQuiz',
+};
+
 function PointsPageContent() {
     const { user, isLoggedIn } = useAuth();
     const { t, locale } = useSafeTranslation('points');
@@ -80,6 +89,16 @@ function PointsPageContent() {
         2: { answered: false, correct: false },
         3: { answered: false, correct: false }
     });
+
+    const getTaskDisplayName = (task: DailyTask) => {
+        const normalizedCode = task.code?.toLowerCase();
+        const i18nKey = normalizedCode ? taskCodeToI18nKey[normalizedCode] : undefined;
+        if (i18nKey) return t(i18nKey, task.name);
+
+        if (task.name === 'readArticle') return t('mockTasks.readArticle', '阅读环保文章');
+        if (task.name === 'shareKnowledge') return t('mockTasks.shareKnowledge', '分享环保知识');
+        return task.name;
+    };
 
     // 签到日历状态 - 动态计算本周日期
     const now = new Date();
@@ -657,7 +676,7 @@ function PointsPageContent() {
                                             <div>
                                                 <div className={`text-sm font-semibold ${task.status === 3 ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-[#30499B] dark:text-slate-200'
                                                     }`}>
-                                                    {task.name === 'readArticle' ? t('mockTasks.readArticle', '阅读环保文章') : task.name === 'shareKnowledge' ? t('mockTasks.shareKnowledge', '分享环保知识') : task.name}
+                                                    {getTaskDisplayName(task)}
                                                 </div>
                                                 <div className={`text-xs font-medium ${task.status === 3 ? 'text-slate-400' : 'text-[#F0A32F]'
                                                     }`}>

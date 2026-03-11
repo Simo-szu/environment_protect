@@ -208,6 +208,7 @@ const game = {
                 buyAmountTooHigh: 'Buy amount is too high: maximum buyable this turn is {max}.',
                 sellAmountTooHigh: 'Sell amount is too high: maximum sellable this turn is {max}.',
                 tradeAmountOutOfRange: 'Trade amount exceeds supported system range. Please lower the amount and retry.',
+                windowClosed: 'Trade window has been closed, state synchronized. Please retry in next trade turn.',
             },
             help: {
                 title: 'Carbon Trade Rules',
