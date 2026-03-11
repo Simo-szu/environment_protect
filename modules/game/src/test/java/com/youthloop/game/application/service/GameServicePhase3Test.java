@@ -317,7 +317,7 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals(44, next.with("resources").path("industry").asInt());
+        assertEquals(52, next.with("resources").path("industry").asInt());
         assertTrue(indexOf(next.withArray("comboTriggeredThisTurn"), "intra_industry_scale") >= 0);
     }
 
@@ -359,7 +359,7 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertEquals(34, next.with("resources").path("population").asInt());
-        assertEquals(77, next.with("metrics").path("satisfaction").asInt());
+        assertEquals(83, next.with("metrics").path("satisfaction").asInt());
         assertTrue(indexOf(next.withArray("comboTriggeredThisTurn"), "intra_society_mobilize") >= 0);
     }
 
@@ -391,8 +391,8 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals(29, next.with("resources").path("tech").asInt());
-        assertEquals(17L, response.getTotalScore());
+        assertEquals(34, next.with("resources").path("tech").asInt());
+        assertEquals(22L, response.getTotalScore());
         assertTrue(!next.with("metrics").has("lowCarbonScore"));
         assertTrue(indexOf(next.withArray("comboTriggeredThisTurn"), "intra_science_boost") >= 0);
     }
@@ -860,9 +860,9 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals(66, next.with("resources").path("industry").asInt());
-        assertEquals(46, next.with("resources").path("tech").asInt());
-        assertEquals(48, next.with("metrics").path("carbon").asInt());
+        assertEquals(70, next.with("resources").path("industry").asInt());
+        assertEquals(54, next.with("resources").path("tech").asInt());
+        assertEquals(45, next.with("metrics").path("carbon").asInt());
         assertTrue(indexOf(next.withArray("comboTriggeredThisTurn"), "cross_science_industry") >= 0);
     }
 
@@ -1073,6 +1073,80 @@ class GameServicePhase3Test {
         assertEquals(0, next.withArray("discardPolicy").size());
         assertTrue(next.with("pendingDiscard").path("active").asBoolean());
         assertEquals(1, next.with("pendingDiscard").path("policyRequired").asInt());
+    }
+
+    @Test
+    void endTurnShouldNotDrawDuplicatePolicyWhenAllUnlockedAlreadyInHand() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.withArray("policyUnlocked").add("card061");
+        state.withArray("policyUnlocked").add("card062");
+        state.withArray("handPolicy").add("card061");
+        state.withArray("handPolicy").add("card062");
+        when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(List.of());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(2, next.withArray("handPolicy").size());
+        assertEquals("card061", next.withArray("handPolicy").get(0).asText());
+        assertEquals("card062", next.withArray("handPolicy").get(1).asText());
+    }
+
+    @Test
+    void endTurnShouldDrawOnlyMissingPolicyFromUnlockedPool() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.withArray("policyUnlocked").add("card061");
+        state.withArray("policyUnlocked").add("card062");
+        state.withArray("policyUnlocked").add("card063");
+        state.withArray("handPolicy").add("card061");
+        state.withArray("handPolicy").add("card062");
+        when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(List.of());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(3, next.withArray("handPolicy").size());
+        assertTrue(indexOf(next.withArray("handPolicy"), "card063") >= 0);
+    }
+
+    @Test
+    void endTurnShouldUpdatePolicyDrawStatsWhenPolicyDrawn() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.withArray("policyUnlocked").add("card061");
+        when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(List.of());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(1, next.with("policyDrawStats").with("drawCount").path("card061").asInt());
+        assertEquals("card061", next.with("policyDrawStats").path("lastDrawn").asText());
     }
 
     @Test

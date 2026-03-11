@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 function parseArgs(argv) {
   const args = {
@@ -55,16 +56,25 @@ async function loadPlaywrightChromium() {
     const mod = await import("playwright");
     return mod.chromium;
   } catch {
-    const codexHome = process.env.CODEX_HOME || path.join(process.env.USERPROFILE || "", ".codex");
-    const fallback = path.join(codexHome, "skills", "develop-web-game", "node_modules", "playwright", "index.mjs");
+    const codexHome = process.env.CODEX_HOME
+      || (process.env.HOME ? path.join(process.env.HOME, ".codex") : "")
+      || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, ".codex") : "");
+    const fallbackBase = path.join(codexHome, "skills", "develop-web-game", "node_modules", "playwright");
+    const candidates = [
+      path.join(fallbackBase, "index.mjs"),
+      path.join(fallbackBase, "index.js"),
+    ];
+    const fallback = candidates.find((candidate) => fs.existsSync(candidate));
+    if (!fallback) {
+      throw new Error(`Playwright module not found in fallback path: ${fallbackBase}`);
+    }
     const mod = await import(pathToFileUrl(fallback));
     return mod.chromium;
   }
 }
 
 function pathToFileUrl(filePath) {
-  const normalized = filePath.replace(/\\/g, "/");
-  return `file:///${normalized}`;
+  return pathToFileURL(filePath).href;
 }
 
 function ensureDir(dirPath) {
@@ -124,12 +134,96 @@ async function dismissOverlayIfNeeded(page, state) {
     return false;
   }
 
+  if (state.mode === "settlement") {
+    const continueBtn = page.getByRole("button", { name: /^(Continue|Continue Planning|继续|继续规划)$/i });
+    if ((await continueBtn.count()) > 0) {
+      await continueBtn.first().click();
+      return true;
+    }
+    const clicked = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll("button"));
+      for (const button of buttons) {
+        const label = (button.getAttribute("aria-label") || button.textContent || "").trim();
+        if (/continue|继续/i.test(label) && !button.disabled) {
+          button.click();
+          return true;
+        }
+      }
+      return false;
+    });
+    if (clicked) {
+      return true;
+    }
+  }
+
+  const eventAlertClose = page.locator('[data-tutorial-id="event-alert-close"]').first();
+  if ((await eventAlertClose.count()) > 0 && await eventAlertClose.isVisible() && await eventAlertClose.isEnabled()) {
+    await eventAlertClose.click();
+    return true;
+  }
+
+  const errorRetry = page.locator('[data-tutorial-id="error-retry-connection"]').first();
+  if ((await errorRetry.count()) > 0 && await errorRetry.isVisible() && await errorRetry.isEnabled()) {
+    await errorRetry.click();
+    return true;
+  }
+
+  const errorAck = page.locator('[data-tutorial-id="error-acknowledge"]').first();
+  if ((await errorAck.count()) > 0 && await errorAck.isVisible() && await errorAck.isEnabled()) {
+    await errorAck.click();
+    return true;
+  }
+
+  const tradeHelpClose = page.locator('[data-tutorial-id="trade-help-close"]').first();
+  if ((await tradeHelpClose.count()) > 0 && await tradeHelpClose.isVisible() && await tradeHelpClose.isEnabled()) {
+    await tradeHelpClose.click();
+    return true;
+  }
+
+  const tradeModalClose = await page.evaluate(() => {
+    const button = document.querySelector('[data-tutorial-id="trade-modal-close"]');
+    if (!(button instanceof HTMLButtonElement) || button.disabled) {
+      return false;
+    }
+    button.click();
+    return true;
+  });
+  if (tradeModalClose) {
+    return true;
+  }
+
   if (state.mode === "onboarding") {
     const skip = page.getByRole("button", { name: /^(Skip|跳过)$/ });
     if ((await skip.count()) > 0) {
       await skip.first().click();
       return true;
     }
+  }
+
+  const closed = await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll("button"));
+    for (const button of buttons) {
+      const label = (button.textContent || button.getAttribute("title") || "").trim();
+      if (!label) {
+        continue;
+      }
+      if (/^(Close|关闭|Acknowledge|知道了)$/i.test(label) && !button.disabled) {
+        const isInsideOverlay = Boolean(
+          button.closest('[role="dialog"]')
+          || button.closest('[class*="fixed"]')
+          || button.closest('[class*="modal"]'),
+        );
+        if (!isInsideOverlay) {
+          continue;
+        }
+        button.click();
+        return true;
+      }
+    }
+    return false;
+  });
+  if (closed) {
+    return true;
   }
 
   if (state.error) {
@@ -192,7 +286,7 @@ function scoreCoreByStrategy(card, strategy) {
   return (industry + tech + population + green + satisfaction + lowCarbon) - (carbon * 1.2);
 }
 
-function chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy) {
+function chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy, excludedCardIds = new Set()) {
   const hand = Array.isArray(state?.hand?.core) ? state.hand.core : [];
   if (!hand.length) {
     return -1;
@@ -202,6 +296,9 @@ function chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy) {
   let bestScore = Number.NEGATIVE_INFINITY;
 
   for (let i = 0; i < hand.length; i += 1) {
+    if (excludedCardIds.has(hand[i])) {
+      continue;
+    }
     const cost = cardCostMap.get(hand[i]);
     const cardMeta = cardMetaMap.get(hand[i]);
     if (!cost) {
@@ -231,6 +328,13 @@ function chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy) {
 }
 
 function chooseTileKey(state, excluded = new Set()) {
+  const placeable = Array.isArray(state?.board?.placeableTiles) ? state.board.placeableTiles : [];
+  for (const tile of placeable) {
+    if (tile && !excluded.has(tile)) {
+      return tile;
+    }
+  }
+
   if (state?.board?.recommendedTile) {
     if (!excluded.has(state.board.recommendedTile)) {
       return state.board.recommendedTile;
@@ -254,38 +358,27 @@ async function clickBoardTile(page, tileKey) {
   if (!tileKey) {
     return false;
   }
-  const clicked = await page.evaluate((key) => {
-    const [row, col] = key.split(",").map((v) => Number(v));
-    const candidates = Array.from(document.querySelectorAll("div")).filter((node) => {
-      const style = node.getAttribute("style") || "";
-      return style.includes("grid-template-columns") && style.includes("repeat(");
-    });
-    if (!candidates.length) {
+  const byKey = page.locator(`button[data-board-key="${tileKey}"]`).first();
+  if ((await byKey.count()) > 0 && await byKey.isVisible() && await byKey.isEnabled()) {
+    try {
+      await byKey.click({ timeout: 1500 });
+      return true;
+    } catch {
       return false;
     }
-    let best = candidates[0];
-    let mostButtons = 0;
-    for (const node of candidates) {
-      const count = node.querySelectorAll("button").length;
-      if (count > mostButtons) {
-        mostButtons = count;
-        best = node;
-      }
-    }
-    const buttons = best.querySelectorAll("button");
-    const size = Math.round(Math.sqrt(buttons.length));
-    if (!size || row < 0 || col < 0 || row >= size || col >= size) {
+  }
+
+  const firstPlaceable = page.locator('button[data-tutorial-role="planning-slot"][data-tutorial-placeable="1"]').first();
+  if ((await firstPlaceable.count()) > 0 && await firstPlaceable.isVisible() && await firstPlaceable.isEnabled()) {
+    try {
+      await firstPlaceable.click({ timeout: 1500 });
+      return true;
+    } catch {
       return false;
     }
-    const index = row * size + col;
-    const target = buttons[index];
-    if (!target) {
-      return false;
-    }
-    target.click();
-    return true;
-  }, tileKey);
-  return clicked;
+  }
+
+  return false;
 }
 
 async function clickCoreCardByIndex(page, index) {
@@ -293,7 +386,7 @@ async function clickCoreCardByIndex(page, index) {
     return false;
   }
   return page.evaluate((targetIndex) => {
-    const cards = Array.from(document.querySelectorAll("button[draggable]"));
+    const cards = Array.from(document.querySelectorAll("button[draggable]")).filter((node) => node.offsetParent !== null);
     const target = cards[targetIndex];
     if (!target) {
       return false;
@@ -309,7 +402,7 @@ async function clickPolicyCardByIndex(page, index) {
   }
   return page.evaluate((targetIndex) => {
     const cards = Array.from(document.querySelectorAll("button")).filter((node) => {
-      return /Policy/i.test(node.textContent || "");
+      return node.offsetParent !== null && /Policy/i.test(node.textContent || "");
     });
     const target = cards[targetIndex];
     if (!target) {
@@ -318,6 +411,18 @@ async function clickPolicyCardByIndex(page, index) {
     target.click();
     return true;
   }, index);
+}
+
+async function clickDiscardCard(page, handType) {
+  return page.evaluate((type) => {
+    const selector = type === "policy" ? 'button[data-tutorial-role="policy-card"]' : 'button[data-tutorial-role="core-card"]';
+    const cards = Array.from(document.querySelectorAll(selector)).filter((node) => node instanceof HTMLButtonElement);
+    if (!cards.length) {
+      return false;
+    }
+    (cards[0]).click();
+    return true;
+  }, handType);
 }
 
 async function clickPrimaryAction(page) {
@@ -394,6 +499,30 @@ async function maybeTrade(page, state, strategy) {
     return false;
   }
 
+  const closeTradeHelpOverlay = async () => page.evaluate(() => {
+    const button = document.querySelector('[data-tutorial-id="trade-help-close"]');
+    if (!(button instanceof HTMLButtonElement) || button.disabled) {
+      return false;
+    }
+    button.click();
+    return true;
+  });
+  if (await closeTradeHelpOverlay()) {
+    await wait(80);
+  }
+
+  const run = page.getByRole("button", { name: /^(Execute Trade|执行交易)$/i });
+  if ((await run.count()) === 0 || !(await run.first().isVisible())) {
+    const openTrade = page.locator('[data-tutorial-id="trade-button"]').first();
+    if ((await openTrade.count()) > 0 && await openTrade.isVisible() && await openTrade.isEnabled()) {
+      await openTrade.click();
+      await wait(120);
+    }
+  }
+  if (await closeTradeHelpOverlay()) {
+    await wait(80);
+  }
+
   const selectedType = decideTradeType(strategy, state);
   const amount = decideTradeAmount(strategy, state);
   const tradeTypeName = selectedType === "sell" ? /^(Sell Quota|卖出配额)$/ : /^(Buy Quota|买入配额)$/;
@@ -407,7 +536,6 @@ async function maybeTrade(page, state, strategy) {
     await input.fill(String(amount));
   }
 
-  const run = page.getByRole("button", { name: /^(Execute Trade|执行交易)$/i });
   if ((await run.count()) > 0 && await run.first().isEnabled()) {
     await run.first().click();
     return true;
@@ -417,12 +545,17 @@ async function maybeTrade(page, state, strategy) {
 
 async function fetchCardCatalog(page, locale) {
   return page.evaluate(async (nextLocale) => {
-    const response = await fetch("/api/v1/game/cards?includePolicy=true", {
-      method: "GET",
-      headers: { "Accept-Language": nextLocale || "zh" },
-    });
-    const json = await response.json();
-    return json?.data?.items || [];
+    try {
+      const response = await fetch("/api/v1/game/cards?includePolicy=true", {
+        method: "GET",
+        headers: { "Accept-Language": nextLocale || "zh" },
+      });
+      const text = await response.text();
+      const json = JSON.parse(text);
+      return json?.data?.items || [];
+    } catch {
+      return [];
+    }
   }, locale);
 }
 
@@ -431,12 +564,17 @@ async function fetchSessionStateById(page, sessionId) {
     return null;
   }
   return page.evaluate(async (id) => {
-    const response = await fetch(`/api/v1/game/sessions/${id}`, {
-      method: "GET",
-      headers: { "Accept-Language": "zh" },
-    });
-    const json = await response.json();
-    return json?.data || null;
+    try {
+      const response = await fetch(`/api/v1/game/sessions/${id}`, {
+        method: "GET",
+        headers: { "Accept-Language": "zh" },
+      });
+      const text = await response.text();
+      const json = JSON.parse(text);
+      return json?.data || null;
+    } catch {
+      return null;
+    }
   }, sessionId);
 }
 
@@ -527,6 +665,9 @@ function buildGameplayKpi(finalState, sessionData) {
   const eventResolveRate = Number(eventStats.resolveRate || 0);
   const tradeProfit = Number(finalState?.trade?.profit || pondState?.carbonTrade?.profit || 0);
   const finalTurn = Number(finalState?.turn || pondState?.turn || 0);
+  const lowCarbonScore = Number(pondState?.metrics?.lowCarbonScore || 0);
+  const lowCarbonTarget = Number(pondState?.lowCarbonScoreBreakdown?.target || 0);
+  const lowCarbonGap = Number(pondState?.lowCarbonScoreBreakdown?.gapToTarget || 0);
 
   return {
     finalTurn,
@@ -539,6 +680,9 @@ function buildGameplayKpi(finalState, sessionData) {
     triggeredEvents,
     resolvedEvents,
     eventResolveRate,
+    lowCarbonScore,
+    lowCarbonTarget,
+    lowCarbonGap,
   };
 }
 
@@ -574,6 +718,22 @@ async function main() {
   page.on("pageerror", (err) => {
     consoleErrors.push({ type: "pageerror", text: String(err), at: new Date().toISOString() });
   });
+  page.on("response", async (response) => {
+    const status = response.status();
+    if (status < 500) {
+      return;
+    }
+    const url = response.url();
+    if (!/\/api\//.test(url)) {
+      return;
+    }
+    consoleErrors.push({
+      type: "http.error",
+      status,
+      url,
+      at: new Date().toISOString(),
+    });
+  });
 
   await page.goto(args.url, { waitUntil: "domcontentloaded" });
   await wait(900);
@@ -590,9 +750,15 @@ async function main() {
   let guardNoTurnChange = 0;
   let lastTurn = Number(state?.turn || 0);
   const rejectedTiles = new Map();
+  let rejectedCoreIds = new Set();
 
   while (steps < args.maxSteps) {
     steps += 1;
+    const currentUrl = page.url();
+    if (!currentUrl.includes("/game/play")) {
+      await page.goto(args.url, { waitUntil: "domcontentloaded" });
+      await wait(Math.max(500, args.pauseMs));
+    }
     state = await readState(page);
     if (!state) {
       await wait(args.pauseMs);
@@ -610,6 +776,33 @@ async function main() {
       await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-overlay`, await readState(page), timeline);
       continue;
     }
+    if (state.mode === "settlement") {
+      await wait(args.pauseMs);
+      await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-settlement-wait`, await readState(page), timeline);
+      continue;
+    }
+
+    if (state?.pendingDiscard?.active) {
+      const policyRequired = Math.max(0, Number(state.pendingDiscard.policyRequired || 0));
+      const coreRequired = Math.max(0, Number(state.pendingDiscard.coreRequired || 0));
+      const hasPolicy = Array.isArray(state?.hand?.policy) && state.hand.policy.length > 0;
+      const hasCore = Array.isArray(state?.hand?.core) && state.hand.core.length > 0;
+      let discarded = false;
+      if (policyRequired > 0 && hasPolicy) {
+        discarded = await clickDiscardCard(page, "policy");
+      } else if (coreRequired > 0 && hasCore) {
+        discarded = await clickDiscardCard(page, "core");
+      } else if (hasPolicy) {
+        discarded = await clickDiscardCard(page, "policy");
+      } else if (hasCore) {
+        discarded = await clickDiscardCard(page, "core");
+      }
+      if (discarded) {
+        await wait(args.pauseMs);
+        await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-discard`, await readState(page), timeline);
+        continue;
+      }
+    }
 
     if (!state.selectedCoreId && !state.selectedPolicyId && Array.isArray(state?.hand?.policy) && state.hand.policy.length > 0) {
       const shouldTryPolicy = shouldUsePolicyNow(state, strategy);
@@ -623,8 +816,9 @@ async function main() {
       }
     }
 
-    if (!state.selectedCoreId && Array.isArray(state?.hand?.core) && state.hand.core.length > 0) {
-      const targetIndex = chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy);
+    const corePlacedThisTurn = Boolean(state?.actionFlags?.corePlacedThisTurn);
+    if (!corePlacedThisTurn && !state.selectedCoreId && Array.isArray(state?.hand?.core) && state.hand.core.length > 0) {
+      const targetIndex = chooseAffordableCoreIndex(state, cardCostMap, cardMetaMap, strategy, rejectedCoreIds);
       if (await clickCoreCardByIndex(page, targetIndex)) {
         await wait(args.pauseMs);
         await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-select-core`, await readState(page), timeline);
@@ -632,14 +826,26 @@ async function main() {
       }
     }
 
-    if (state.selectedCoreId && !state.selectedTile) {
+    if (!corePlacedThisTurn && state.selectedCoreId && !state.selectedTile) {
+      const placeableTiles = Array.isArray(state?.board?.placeableTiles) ? state.board.placeableTiles : [];
+      if (!placeableTiles.length) {
+        rejectedCoreIds.add(String(state.selectedCoreId));
+        const selectedIndex = Array.isArray(state?.hand?.core) ? state.hand.core.indexOf(String(state.selectedCoreId)) : -1;
+        if (selectedIndex >= 0 && await clickCoreCardByIndex(page, selectedIndex)) {
+          await wait(args.pauseMs);
+          await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-deselect-core`, await readState(page), timeline);
+          continue;
+        }
+      }
       const excluded = rejectedTiles.get(String(state.selectedCoreId)) || new Set();
       const tileKey = chooseTileKey(state, excluded);
       if (tileKey) {
-        await clickBoardTile(page, tileKey);
-        await wait(args.pauseMs);
-        await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-select-tile`, await readState(page), timeline);
-        continue;
+        const clicked = await clickBoardTile(page, tileKey);
+        if (clicked) {
+          await wait(args.pauseMs);
+          await capture(page, runDir, `step-${String(steps).padStart(3, "0")}-select-tile`, await readState(page), timeline);
+          continue;
+        }
       }
     }
 
@@ -696,6 +902,7 @@ async function main() {
     } else {
       guardNoTurnChange = 0;
       lastTurn = nextTurn;
+      rejectedCoreIds = new Set();
     }
 
     if (guardNoTurnChange >= 18) {

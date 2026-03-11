@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Leaf, BarChart3, Trash2, ArrowRight, Trees, Waves, PlayCircle, Coins, Footprints, Trash, Recycle } from 'lucide-react';
@@ -174,28 +175,42 @@ export default function HomePage() {
             {/* Hero Section */}
             <AnimatedSection
                 useInView={false}
-                className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,251,246,0.84))] px-4 py-12 text-center shadow-[0_30px_100px_-60px_rgba(67,121,74,0.45)] ring-1 ring-[#56B949]/10 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.84),rgba(15,23,42,0.68))] dark:ring-white/10 sm:py-14"
+                className="relative -mx-2 flex min-h-[80vh] items-center justify-center overflow-hidden rounded-[2rem] sm:-mx-4 md:-mx-8 md:rounded-[2.5rem]"
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#EAF5DD] blur-3xl dark:bg-[#56B949]/15" />
-                    <div className="absolute right-[-8%] top-8 h-56 w-56 rounded-full bg-[#E5EEFF] blur-3xl dark:bg-[#30499B]/12" />
-                </div>
-                <div className="relative mb-4 inline-flex items-center gap-2 rounded-full border border-[#F0A32F]/20 bg-white/82 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#D18A1D] shadow-[0_10px_30px_-18px_rgba(240,163,47,0.58)] backdrop-blur-md">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0A32F] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F0A32F]"></span>
-                    </span>
-                    {t('slogan', '全民环保行动季')}
-                </div>
-                <h1 className="relative mb-6 text-[2.8rem] font-semibold leading-[0.98] tracking-[-0.055em] text-[#30499B] drop-shadow-sm transition-colors duration-300 dark:text-[#56B949] sm:text-[3.4rem] md:text-[4.6rem]">
-                    {t('title', 'YOUTHLOOP')}
-                </h1>
-                <div className="relative mx-auto flex max-w-xl items-center justify-center px-4 text-base font-normal leading-relaxed text-[#30499B]/78 transition-colors duration-300 dark:text-slate-300 sm:text-lg">
-                    <div className="yl-chip">
-                        <Recycle className="w-5 h-5 text-[#56B949] dark:text-[#56B949]" />
-                        <span>{t('subtitle', '让绿色循环，用行动改变未来')}</span>
-                    </div>
-                </div>
+                <Image
+                    src="/assets/branding/youthloop-banner.jpg"
+                    alt="YouthLoop banner"
+                    fill
+                    priority
+                    quality={100}
+                    sizes="100vw"
+                    className="object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(245,247,246,0.04)_0%,rgba(238,244,239,0.1)_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01)_0%,rgba(255,255,255,0.04)_40%,rgba(245,247,246,0.16)_100%)]" />
+                <div className="absolute inset-0 ring-1 ring-white/30" />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,rgba(245,247,246,0)_0%,rgba(245,247,246,0.72)_100%)]" />
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        boxShadow: 'inset 0 0 64px rgba(245,247,246,0.28), inset 0 -20px 40px rgba(245,247,246,0.18)'
+                    }}
+                />
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        WebkitMaskImage: 'radial-gradient(circle at center, black 62%, transparent 100%)',
+                        background: 'rgba(255,255,255,0.03)'
+                    }}
+                />
+                <Image
+                    src="/assets/branding/youthloop-banner.jpg"
+                    alt="YouthLoop banner"
+                    width={1600}
+                    height={700}
+                    className="relative z-10 h-auto max-h-[78vh] w-full object-contain opacity-0"
+                    priority
+                />
             </AnimatedSection>
 
             {/* Interactive Carousel Section */}

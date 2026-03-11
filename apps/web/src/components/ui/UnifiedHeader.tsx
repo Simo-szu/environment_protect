@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useParams } from 'next/navigation';
 import { Menu, Search } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -49,9 +50,14 @@ export default function UnifiedHeader({
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Logo */}
                 <Link href={`/${locale}`} className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-serif font-bold text-lg shadow-lg shadow-[#56B949]/20 transform rotate-3 group-hover:rotate-6 transition-transform">
-                        YL
-                    </div>
+                    <Image
+                        src="/assets/branding/youthloop-logo.jpg"
+                        alt="YouthLoop logo"
+                        width={44}
+                        height={44}
+                        className="h-9 w-auto object-contain transition-transform group-hover:scale-[1.03] sm:h-10"
+                        priority
+                    />
                     <span className="text-[#30499B] dark:text-white font-bold text-lg sm:text-xl tracking-tight transition-colors duration-300">
                         YouthLoop
                     </span>

@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#7BC857"/>
+  <circle cx="256" cy="268" r="118" fill="#66C7EE" stroke="#1F2937" stroke-width="10"/>
+  <path d="M193 176C218 162 245 156 274 158C251 170 242 194 237 218C220 204 209 190 193 176Z" fill="#56B949" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M283 166C330 170 369 195 391 235C354 220 318 221 287 229C294 204 294 186 283 166Z" fill="#56B949" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M150 285C160 342 201 387 256 400C233 364 227 331 227 301C198 304 176 299 150 285Z" fill="#56B949" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M278 248L314 231L330 255L301 272L331 304L301 327L269 297L273 337H235L232 294L191 308L181 276L220 262L191 229L220 207L250 236L246 190H281L278 248Z" fill="white" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M104 136C141 112 183 100 224 103" stroke="#1F2937" stroke-width="14" stroke-linecap="round"/>
+  <path d="M288 103C333 104 376 120 411 148" stroke="#1F2937" stroke-width="14" stroke-linecap="round"/>
+  <text x="99" y="106" transform="rotate(-22 99 106)" fill="#111111" font-family="Arial, sans-serif" font-size="54" font-weight="700">Youth</text>
+  <text x="312" y="102" transform="rotate(22 312 102)" fill="#111111" font-family="Arial, sans-serif" font-size="54" font-weight="700">Loop</text>
+  <rect x="74" y="199" width="28" height="107" rx="10" fill="#56B949" stroke="#1F2937" stroke-width="8"/>
+  <rect x="76" y="183" width="24" height="18" rx="4" fill="#56B949" stroke="#1F2937" stroke-width="8"/>
+  <path d="M402 193H430C444 193 455 204 455 218V228" stroke="#1F2937" stroke-width="8" stroke-linecap="round"/>
+  <path d="M405 232H451V289C451 295 446 300 440 300H416C410 300 405 295 405 289V232Z" fill="white" stroke="#1F2937" stroke-width="8"/>
+  <path d="M112 356L148 322L170 346L133 380L112 356Z" fill="white" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M352 331L430 356L390 430L311 405L352 331Z" fill="white" stroke="#1F2937" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="236" y="408" width="46" height="24" rx="8" transform="rotate(-18 236 408)" fill="#30499B" stroke="#1F2937" stroke-width="8"/>
+</svg>

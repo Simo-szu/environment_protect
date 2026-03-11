@@ -9,6 +9,13 @@ type PlayStatsPanelProps = Pick<
   | 'resources'
   | 'metrics'
   | 'lowCarbonScore'
+  | 'activeNegativeEvents'
+  | 'handPolicySet'
+  | 'resolveEventLabel'
+  | 'resolvePolicyIdsByEvent'
+  | 'resolvePolicyDisplayLabel'
+  | 'selectPolicyForEvent'
+  | 'strictGuideMode'
 >;
 
 export default function PlayStatsPanel(props: PlayStatsPanelProps) {
@@ -16,7 +23,14 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
     t,
     resources,
     metrics,
-    lowCarbonScore
+    lowCarbonScore,
+    activeNegativeEvents,
+    handPolicySet,
+    resolveEventLabel,
+    resolvePolicyIdsByEvent,
+    resolvePolicyDisplayLabel,
+    selectPolicyForEvent,
+    strictGuideMode
   } = props;
 
   const rating = useMemo(() => {
@@ -89,6 +103,67 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="rounded-[1.35rem] border border-rose-200 bg-rose-50/90 px-3 py-3">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-700">
+          {t('play.events.title', 'Risk & Events')}
+        </div>
+        {activeNegativeEvents.length === 0 ? (
+          <div className="mt-2 text-[11px] font-semibold text-slate-600">
+            {t('play.events.noneActive', 'No active negative events')}
+          </div>
+        ) : (
+          <div className="mt-2 flex flex-col gap-2">
+            {activeNegativeEvents.map((event, index) => {
+              const eventType = String(event.eventType || '');
+              const resolverIds = resolvePolicyIdsByEvent(eventType);
+              const resolverLabels = resolverIds
+                .map((id) => resolvePolicyDisplayLabel(id))
+                .filter(Boolean);
+              const handResolverId = resolverIds.find((id) => handPolicySet.has(id)) || '';
+              const resolverAvailable = !!handResolverId;
+              return (
+                <div
+                  key={`${eventType || 'event'}-${index}`}
+                  className="rounded-xl border border-rose-200/80 bg-white/85 px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[11px] font-black text-rose-800">
+                      {resolveEventLabel(eventType)}
+                    </div>
+                    <div className="text-[10px] font-semibold text-rose-700">
+                      {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+                    </div>
+                  </div>
+                  <div className="mt-1 text-[10px] text-slate-600">
+                    {resolverAvailable
+                      ? t('play.events.resolverReady', '可用政策已在手牌中，可直接执行。')
+                      : t('play.events.resolverMissing', '当前手牌暂无对应政策，建议保留政策位并尽快抽取。')}
+                  </div>
+                  <div className="mt-1 text-[10px] text-slate-600">
+                    {t('play.events.suggestedPolicies', '建议政策')}: {resolverLabels.join('、') || t('play.common.none', 'None')}
+                  </div>
+                  {resolverAvailable ? (
+                    <button
+                      type="button"
+                      onClick={() => selectPolicyForEvent(eventType)}
+                      className="mt-2 w-full rounded-lg bg-rose-700 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white"
+                    >
+                      {t('play.events.selectResolver', 'Select Resolver Policy')}
+                    </button>
+                  ) : (
+                    <div className="mt-2 text-[10px] font-semibold text-amber-700">
+                      {strictGuideMode
+                        ? t('play.events.guideHint', '引导阶段中，若事件触发，政策卡已允许用于应对。')
+                        : t('play.events.noResolverHint', '本回合优先关注政策卡获取与保留。')}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -24,6 +24,7 @@ import {
   isConnectionIssueMessage,
   GuidedAction,
   GuidedTask,
+  LowCarbonScoreBreakdown,
   MetricState,
   PendingDiscardState,
   PLAY_ONBOARDING_STORAGE_KEY,
@@ -73,7 +74,7 @@ export function useGamePlayController() {
       },
       {
         title: t('play.onboarding.step3.title', '你的第一个回合'),
-        body: t('play.onboarding.step3.body', '先选一张核心卡，再点棋盘空地，最后点击“放置核心卡”。接着点击“结束回合”看结算变化。')
+        body: t('play.onboarding.step3.body', '先选一张核心卡，再点棋盘空地，最后点击“放置核心卡”。每回合放置上限为 1 张，放置后请点击“结束回合”看结算变化。')
       },
       {
         title: t('play.onboarding.step4.title', '提示信息在哪里看'),
@@ -98,12 +99,12 @@ export function useGamePlayController() {
       {
         id: 'place_core',
         title: t('play.guided.placeCore.title', '放置核心卡'),
-        detail: t('play.guided.placeCore.detail', '点击“放置核心卡”提交本回合放置。')
+        detail: t('play.guided.placeCore.detail', '点击“放置核心卡”提交本回合放置。注意：每回合最多只能放置 1 张核心卡。')
       },
       {
         id: 'end_turn',
         title: t('play.guided.endTurn.title', '结束回合并结算'),
-        detail: t('play.guided.endTurn.detail', '点击右上角“结束回合”，观察左侧指标变化。')
+        detail: t('play.guided.endTurn.detail', '本回合放置完成后，点击右上角“结束回合”进入下一回合（本回合不能再放第二张核心卡）。')
       }
     ],
     [t]
@@ -176,6 +177,7 @@ export function useGamePlayController() {
   const policyUnlocked = Array.isArray(pondState?.policyUnlocked) ? (pondState?.policyUnlocked as string[]) : [];
   const eventStats = (pondState?.eventStats || {}) as UnknownRecord;
   const runtimeConfig = (pondState?.runtimeConfig || {}) as UnknownRecord;
+  const lowCarbonScoreBreakdown = (pondState?.lowCarbonScoreBreakdown || null) as LowCarbonScoreBreakdown | null;
   const lowCarbonScore = Number(metrics.lowCarbonScore ?? 0);
 
   const tradeWindowOpened = Boolean(carbonTrade.windowOpened);
@@ -184,6 +186,14 @@ export function useGamePlayController() {
   const tradeProfit = Number(carbonTrade.profit || 0);
   const tradeHistory = Array.isArray(carbonTrade.history) ? carbonTrade.history : [];
   const latestTradeRecord = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1] : null;
+  const normalizedTradeAmount = useMemo(() => {
+    const parsed = typeof tradeAmount === 'number' ? tradeAmount : Number(tradeAmount);
+    if (!Number.isFinite(parsed)) {
+      return 1;
+    }
+    return Math.max(1, Math.floor(parsed));
+  }, [tradeAmount]);
+  const estimatedTradeIndustryCost = useMemo(() => Math.ceil(normalizedTradeAmount * tradeLastPrice), [normalizedTradeAmount, tradeLastPrice]);
   const uniquePoliciesUsed = useMemo(
     () => new Set(policyHistory.map((record) => String(record.policyId || ''))).size,
     [policyHistory]
@@ -230,6 +240,23 @@ export function useGamePlayController() {
     boardOccupied,
     freePlacementEnabled
   });
+
+  const selectedCoreDomainLabel = useMemo(() => {
+    const raw = String(selectedCoreCard?.domain || '').toLowerCase();
+    if (raw.includes('industry') || raw.includes('工业')) {
+      return t('play.domains.industry', '工业');
+    }
+    if (raw.includes('ecology') || raw.includes('生态')) {
+      return t('play.domains.ecology', '生态');
+    }
+    if (raw.includes('science') || raw.includes('科学') || raw.includes('科技')) {
+      return t('play.domains.science', '科学');
+    }
+    if (raw.includes('society') || raw.includes('社会') || raw.includes('人文')) {
+      return t('play.domains.society', '社会');
+    }
+    return t('play.domains.policy', '板块');
+  }, [selectedCoreCard?.domain, t]);
 
   const tradeDoneThisTurn = useMemo(() => {
     return tradeHistory.some((record) => {
@@ -280,6 +307,16 @@ export function useGamePlayController() {
     if (!selectedCoreId) {
       return t('play.actions.blocked.selectCore', '请先选择核心卡。');
     }
+    if (selectedCoreAffordability && !selectedCoreAffordability.canPlace) {
+      if (selectedCoreAffordability.blockedReason === 'no_placeable_tile') {
+        return t(
+          'play.actions.blocked.noPlaceableTileDetailed',
+          '当前没有可用落点：{domain}卡需要放在对应板块区域，且必须与已放置卡正交相邻。请更换核心卡或结束回合。',
+          { domain: selectedCoreDomainLabel }
+        );
+      }
+      return t('play.actions.blocked.insufficient', '资源不足，暂时无法放置。');
+    }
     if (!selectedTile) {
       return t('play.actions.blocked.selectTile', '请先选择棋盘空位。');
     }
@@ -288,11 +325,8 @@ export function useGamePlayController() {
         ? t('play.actions.blocked.mustBeAdjacent', '该格子必须与已放置卡牌正交相邻。')
         : t('play.actions.blocked.tileInvalid', '当前格子不可放置，请选择高亮可用格。');
     }
-    if (selectedCoreAffordability && !selectedCoreAffordability.canPlace) {
-      return t('play.actions.blocked.insufficient', '资源不足，暂时无法放置。');
-    }
     return '';
-  }, [pendingDiscardBlocking, corePlacedThisTurn, selectedCoreId, selectedTile, selectedTilePlaceable, adjacencyRequired, selectedCoreAffordability, t]);
+  }, [pendingDiscardBlocking, corePlacedThisTurn, selectedCoreId, selectedTile, selectedTilePlaceable, adjacencyRequired, selectedCoreAffordability, selectedCoreDomainLabel, t]);
 
   const policyActionBlockedReason = useMemo(() => {
     if (pendingDiscardBlocking) {
@@ -301,14 +335,14 @@ export function useGamePlayController() {
     if (policyUsedThisTurn) {
       return t('play.actions.blocked.policyUsed', '本回合已使用过政策卡。');
     }
-    if (strictGuideMode) {
+    if (strictGuideMode && activeNegativeEvents.length === 0) {
       return t('play.actions.blocked.guidePolicyLocked', '引导阶段前3回合暂不开放政策卡操作。');
     }
     if (!selectedPolicyId) {
       return t('play.actions.blocked.selectPolicy', '请先选择政策卡。');
     }
     return '';
-  }, [pendingDiscardBlocking, policyUsedThisTurn, strictGuideMode, selectedPolicyId, t]);
+  }, [pendingDiscardBlocking, policyUsedThisTurn, strictGuideMode, activeNegativeEvents.length, selectedPolicyId, t]);
 
   const tradeActionBlockedReason = useMemo(() => {
     if (pendingDiscardBlocking) {
@@ -320,8 +354,40 @@ export function useGamePlayController() {
     if (!tradeWindowOpened) {
       return t('play.actions.blocked.tradeClosed', '当前回合不可交易。');
     }
+    if (tradeType === 'buy') {
+      if (Number(resources.industry ?? 0) < estimatedTradeIndustryCost) {
+        return t(
+          'play.trade.errors.insufficientIndustry',
+          '产业值不足：买入 {amount} 配额需 {cost} 产业值，当前仅有 {current}。',
+          {
+            amount: normalizedTradeAmount,
+            cost: estimatedTradeIndustryCost,
+            current: Number(resources.industry ?? 0)
+          }
+        );
+      }
+    } else if (Number(tradeQuota) < normalizedTradeAmount) {
+      return t(
+        'play.trade.errors.insufficientQuota',
+        '配额不足：卖出 {amount} 需要至少 {amount} 配额，当前仅有 {current}。',
+        {
+          amount: normalizedTradeAmount,
+          current: Number(tradeQuota)
+        }
+      );
+    }
     return '';
-  }, [pendingDiscardBlocking, strictGuideMode, tradeWindowOpened, t]);
+  }, [
+    pendingDiscardBlocking,
+    strictGuideMode,
+    tradeWindowOpened,
+    tradeType,
+    resources.industry,
+    estimatedTradeIndustryCost,
+    normalizedTradeAmount,
+    tradeQuota,
+    t
+  ]);
 
   function guidedActionAllowed(action: GuidedAction): boolean {
     if (!guidedGateEnabled) {
@@ -583,7 +649,33 @@ export function useGamePlayController() {
   }
 
   function handleRequestError(error: unknown, fallbackMessage: string): string {
-    const message = getErrorMessage(error) || fallbackMessage;
+    const rawMessage = getErrorMessage(error) || fallbackMessage;
+    const normalizedRaw = String(rawMessage || '').toLowerCase();
+    let message = rawMessage;
+    if (normalizedRaw.includes('insufficient industry value for trade')) {
+      message = t(
+        'play.trade.errors.insufficientIndustry',
+        '产业值不足：买入 {amount} 配额需 {cost} 产业值，当前仅有 {current}。',
+        {
+          amount: normalizedTradeAmount,
+          cost: estimatedTradeIndustryCost,
+          current: Number(resources.industry ?? 0)
+        }
+      );
+    } else if (normalizedRaw.includes('insufficient quota for selling')) {
+      message = t(
+        'play.trade.errors.insufficientQuota',
+        '配额不足：卖出 {amount} 需要至少 {amount} 配额，当前仅有 {current}。',
+        {
+          amount: normalizedTradeAmount,
+          current: Number(tradeQuota)
+        }
+      );
+    } else if (normalizedRaw.includes('carbon trade window is not open')) {
+      message = t('play.actions.blocked.tradeClosed', '当前回合不可交易。');
+    } else if (normalizedRaw.includes('discard required before other actions')) {
+      message = t('play.actions.blocked.discardFirst', '请先完成弃牌。');
+    }
     if (isConnectionIssueMessage(message)) {
       setConnectionState('offline');
       setLastMessage(t('play.errors.connectionHint', '网络连接异常，已暂停当前操作。请重试连接。'));
@@ -639,7 +731,18 @@ export function useGamePlayController() {
 
   async function placeCoreCard(cardId: string, row: number, col: number) {
     if (!canPlaceCoreCard(cardId)) {
-      setError(t('play.actions.blocked.insufficient', '资源不足，暂时无法放置。'));
+      const affordability = coreAffordabilityMap.get(cardId);
+      if (affordability?.blockedReason === 'no_placeable_tile') {
+        setError(
+          t(
+            'play.actions.blocked.noPlaceableTileDetailed',
+            '当前没有可用落点：{domain}卡需要放在对应板块区域，且必须与已放置卡正交相邻。请更换核心卡或结束回合。',
+            { domain: selectedCoreDomainLabel }
+          )
+        );
+      } else {
+        setError(t('play.actions.blocked.insufficient', '资源不足，暂时无法放置。'));
+      }
       return;
     }
     const targetTile = `${row},${col}`;
@@ -675,6 +778,10 @@ export function useGamePlayController() {
 
   async function runTradeAction() {
     if (!sessionId) {
+      return;
+    }
+    if (tradeActionBlockedReason) {
+      setError(tradeActionBlockedReason);
       return;
     }
     setActionLoading(true);
@@ -753,6 +860,29 @@ export function useGamePlayController() {
     setSelectedPolicyId(matched);
     const policyName = catalog.get(matched)?.chineseName || matched;
     setLastMessage(t('play.events.policySelected', '已为你选中可用政策卡：{policy}', { policy: policyName }));
+  }
+
+  function resolvePolicyDisplayLabel(policyId: string) {
+    const id = String(policyId || '').trim();
+    if (!id) {
+      return '';
+    }
+    const card = catalog.get(id);
+    if (!card) {
+      return id;
+    }
+    const zhName = String(card.chineseName || '').trim();
+    const enName = String(card.englishName || '').trim();
+    const preferredName = locale === 'zh'
+      ? (zhName || enName)
+      : (enName || zhName);
+    if (!preferredName) {
+      return id;
+    }
+    if (preferredName.toLowerCase() === id.toLowerCase()) {
+      return preferredName;
+    }
+    return `${preferredName} (${id})`;
   }
 
   async function refreshSession() {
@@ -881,7 +1011,13 @@ export function useGamePlayController() {
   }, [actionLoading, sessionControlLoading, ending, pendingDiscardBlocking, guidedGateEnabled, currentGuidedTask, t]);
 
   const endTurnDisabled = actionLoading || sessionControlLoading || !!ending || pendingDiscardBlocking || !guidedActionAllowed('end_turn');
-  const tradeActionDisabled = actionLoading || !tradeWindowOpened || !!ending || pendingDiscardBlocking || strictGuideMode || !guidedActionAllowed('trade');
+  const tradeActionDisabled = actionLoading
+    || !tradeWindowOpened
+    || !!ending
+    || pendingDiscardBlocking
+    || strictGuideMode
+    || !guidedActionAllowed('trade')
+    || !!tradeActionBlockedReason;
 
   return {
     t,
@@ -916,6 +1052,8 @@ export function useGamePlayController() {
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,
+    normalizedTradeAmount,
+    estimatedTradeIndustryCost,
     tradeWindowInterval,
     guidedTaskProgress,
     guidedTutorialCompleted,
@@ -923,6 +1061,7 @@ export function useGamePlayController() {
     resources,
     metrics,
     lowCarbonScore,
+    lowCarbonScoreBreakdown,
     domainProgress,
     selectedCorePlacementPreview,
     selectedCorePreviewReady,
@@ -943,8 +1082,11 @@ export function useGamePlayController() {
     resolveEventLabel,
     resolvePolicyHintByEvent,
     resolvePolicyIdsByEvent,
+    resolvePolicyDisplayLabel,
     handPolicySet,
     pendingDiscardBlocking,
+    pendingDiscardCoreRequired,
+    pendingDiscardPolicyRequired,
     pendingDiscardRequiredTotal,
     pendingDiscardTargetHandSize,
     selectPolicyForEvent,

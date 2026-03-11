@@ -13,6 +13,30 @@ export interface MetricState extends UnknownRecord {
   green?: number;
   carbon?: number;
   satisfaction?: number;
+  lowCarbonScore?: number;
+}
+
+export interface LowCarbonScoreBreakdown extends UnknownRecord {
+  baseCards?: number;
+  latePhaseBonus?: number;
+  domainBonus?: number;
+  policyUnlockScore?: number;
+  policyUnlockAllBonus?: number;
+  eventResolveScore?: number;
+  eventUnresolvedPenalty?: number;
+  carbonTierScore?: number;
+  overLimitPenalty?: number;
+  tradeProfitScore?: number;
+  quotaPenalty?: number;
+  invalidPenalty?: number;
+  scoreBeforeBonuses?: number;
+  settlementBonus?: number;
+  phaseMatchBonus?: number;
+  percentageBonus?: number;
+  rawTotal?: number;
+  finalTotal?: number;
+  target?: number;
+  gapToTarget?: number;
 }
 
 export interface PendingDiscardState extends UnknownRecord {
@@ -105,6 +129,8 @@ export interface CoreCardAffordability {
   needTech: number;
   needPopulation: number;
   needGreen: number;
+  hasPlaceableTile: boolean;
+  blockedReason: 'none' | 'insufficient_resources' | 'no_placeable_tile';
 }
 
 export interface TileSynergyNeighbor {
@@ -142,26 +168,26 @@ export const PLAY_ONBOARDING_STORAGE_KEY = 'game:play-onboarding:v1';
 
 export function resolvePolicyHintByEvent(eventType: string): string {
   if (eventType === 'flood') {
-    return 'Use card063 or card064 to resolve';
+    return 'Use card063, card064 or card061 to resolve';
   }
   if (eventType === 'sea_level_rise') {
-    return 'Use card062 or card066 to resolve';
+    return 'Use card062, card066 or card061 to resolve';
   }
   if (eventType === 'citizen_protest') {
-    return 'Use card067 or card068 to resolve';
+    return 'Use card067, card068 or card061 to resolve';
   }
   return 'No policy mapping';
 }
 
 export function resolvePolicyIdsByEvent(eventType: string): string[] {
   if (eventType === 'flood') {
-    return ['card063', 'card064'];
+    return ['card063', 'card064', 'card061'];
   }
   if (eventType === 'sea_level_rise') {
-    return ['card062', 'card066'];
+    return ['card062', 'card066', 'card061'];
   }
   if (eventType === 'citizen_protest') {
-    return ['card067', 'card068'];
+    return ['card067', 'card068', 'card061'];
   }
   return [];
 }

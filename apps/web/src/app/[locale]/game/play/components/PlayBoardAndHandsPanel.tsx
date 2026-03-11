@@ -54,6 +54,9 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'runTradeAction'
   | 'tradeActionDisabled'
   | 'tradeActionBlockedReason'
+  | 'normalizedTradeAmount'
+  | 'estimatedTradeIndustryCost'
+  | 'resources'
   | 'tradeWindowOpened'
   | 'tradeWindowInterval'
   | 'tradeQuota'
@@ -157,6 +160,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,
+    normalizedTradeAmount,
+    estimatedTradeIndustryCost,
+    resources,
     tradeWindowOpened,
     tradeWindowInterval,
     tradeQuota,
@@ -168,8 +174,22 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     locale
   } = props;
 
+  const TRADE_HELP_STORAGE_KEY = 'game:trade-help-seen:v1';
   const [tradeModalOpen, setTradeModalOpen] = useState(false);
+  const [tradeHelpOpen, setTradeHelpOpen] = useState(false);
   const [hoveredHandCardKey, setHoveredHandCardKey] = useState('');
+
+  function openTradeModal() {
+    setTradeModalOpen(true);
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const seen = window.localStorage.getItem(TRADE_HELP_STORAGE_KEY);
+    if (!seen) {
+      setTradeHelpOpen(true);
+      window.localStorage.setItem(TRADE_HELP_STORAGE_KEY, '1');
+    }
+  }
 
   const zoneDefinitions = useMemo<ZoneDefinition[]>(() => {
     const half = Math.max(1, Math.floor(boardSize / 2));
@@ -333,6 +353,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                         <button
                           key={key}
                           type="button"
+                          data-board-key={key}
                           data-tutorial-role="planning-slot"
                           data-tutorial-placeable={placeableTile ? '1' : '0'}
                           disabled={pendingDiscardActive || actionLoading}
@@ -445,7 +466,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       const { card, key, type } = item;
                       const isHovered = hoveredHandCardKey === key;
                       const isCore = type === 'core';
-                      const canPlace = isCore ? coreAffordabilityMap.get(card.cardId)?.canPlace : true;
+                      const affordability = isCore ? coreAffordabilityMap.get(card.cardId) : null;
+                      const canPlace = isCore ? affordability?.canPlace : true;
+                      const coreBlockedReason = isCore ? (affordability?.blockedReason || 'none') : 'none';
                       const isSelected = isCore ? selectedCoreId === card.cardId : selectedPolicyId === card.cardId;
 
                       const baseCardFrameStyles = isCore
@@ -491,7 +514,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                             left: `${4 + itemIndex * overlapStepPercent}%`,
                             zIndex: isHovered ? 220 : isSelected ? 130 : 20 + itemIndex
                           }}
-                          className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-40 grayscale' : 'opacity-40 grayscale pointer-events-none') : ''}`}
+                          className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-50' : 'opacity-80') : ''}`}
                         >
                           {card.imageKey ? (
                             <img
@@ -507,6 +530,13 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
                           {isCore ? (
                             <>
+                              {canPlace === false && (
+                                <div className="absolute right-2 top-2 z-30 rounded-full border border-amber-300 bg-amber-100/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-amber-700 shadow-sm">
+                                  {coreBlockedReason === 'no_placeable_tile'
+                                    ? t('play.afford.noPlaceableTile', '无可用落点')
+                                    : t('play.afford.insufficient', '资源不足')}
+                                </div>
+                              )}
                               <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
                                 <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max">
                                   {card.domain}
@@ -565,13 +595,18 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
                 : t('play.common.selectedCard', 'Selected Card')}
             </div>
+            {!!selectedCoreId && !!placeActionBlockedReason && (
+              <div className="mt-1 max-w-[520px] text-[11px] font-semibold text-amber-700">
+                {placeActionBlockedReason}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <button
               type="button"
               data-tutorial-id="trade-button"
-              onClick={() => setTradeModalOpen(true)}
+              onClick={openTradeModal}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
             >
               {locale === 'zh' ? '碳交易区' : 'Carbon Trading'}
@@ -623,13 +658,34 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/40 dark:text-emerald-200/40">
                 {t('play.trade.title', 'Carbon Market')}
               </h2>
-              <button
-                type="button"
-                onClick={() => setTradeModalOpen(false)}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-              >
-                {t('play.actions.back', 'Back')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-tutorial-id="trade-help-button"
+                  onClick={() => {
+                    setTradeHelpOpen(true);
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem(TRADE_HELP_STORAGE_KEY, '1');
+                    }
+                  }}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                  title={t('play.trade.help.title', 'Carbon Trade Rules')}
+                  aria-label={t('play.trade.help.title', 'Carbon Trade Rules')}
+                >
+                  ?
+                </button>
+                <button
+                  type="button"
+                  data-tutorial-id="trade-modal-close"
+                  onClick={() => {
+                    setTradeModalOpen(false);
+                    setTradeHelpOpen(false);
+                  }}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                >
+                  {t('play.actions.back', 'Back')}
+                </button>
+              </div>
             </div>
 
             {tradeWindowOpened ? (
@@ -694,6 +750,23 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     {t('play.trade.execute', 'Execute Trade')}
                   </button>
                 </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  {tradeType === 'buy'
+                    ? t('play.trade.validation.buyCost', 'Buying {amount} quota requires about {cost} industry (current: {current}).', {
+                      amount: normalizedTradeAmount,
+                      cost: estimatedTradeIndustryCost,
+                      current: Number(resources.industry ?? 0)
+                    })
+                    : t('play.trade.validation.sellQuota', 'Selling {amount} quota requires at least {amount} quota (current: {current}).', {
+                      amount: normalizedTradeAmount,
+                      current: Number(tradeQuota)
+                    })}
+                </div>
+                {!!tradeActionBlockedReason && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700">
+                    {tradeActionBlockedReason}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-[1.4rem] border border-amber-200/80 bg-amber-50/85 px-4 py-4">
@@ -715,6 +788,36 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             <div className="mt-4 rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
               {t('play.trade.profit', 'Profit')}: {tradeProfit.toFixed(1)}
             </div>
+
+            {tradeHelpOpen && (
+              <div className="fixed inset-0 z-[230] flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-sm">
+                <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-800 dark:text-slate-100">
+                        {t('play.trade.help.title', 'Carbon Trade Rules')}
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        {t('play.trade.help.desc', 'Trade opens only in open windows. You can trade once per open turn, then the window closes.')}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      data-tutorial-id="trade-help-close"
+                      onClick={() => setTradeHelpOpen(false)}
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200"
+                    >
+                      {t('play.actions.back', 'Back')}
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px] leading-6 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <p>{t('play.trade.help.buyRule', 'Buy: consume industry value = ceil(amount × price).')}</p>
+                    <p>{t('play.trade.help.sellRule', 'Sell: requires enough quota; gained industry value = floor(amount × price).')}</p>
+                    <p>{t('play.trade.help.windowRule', 'Window rule: if not traded before ending turn, this turn\'s trade chance is forfeited.')}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

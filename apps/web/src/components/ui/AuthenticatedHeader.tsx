@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import { Menu, Search, Bell, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -60,9 +61,14 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Logo */}
                 <Link href={`/${locale}`} className="flex items-center gap-2 group">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#56B949] to-[#30499B] text-lg font-serif font-bold text-white shadow-lg shadow-[#56B949]/20 transition-transform group-hover:rotate-6">
-                        YL
-                    </div>
+                    <Image
+                        src="/assets/branding/youthloop-logo.jpg"
+                        alt="YouthLoop logo"
+                        width={44}
+                        height={44}
+                        className="h-9 w-auto object-contain transition-transform group-hover:scale-[1.03] sm:h-10"
+                        priority
+                    />
                     <span className="text-lg font-bold tracking-tight text-[#30499B] dark:text-white sm:text-xl">
                         YouthLoop
                     </span>

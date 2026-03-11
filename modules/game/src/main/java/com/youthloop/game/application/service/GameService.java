@@ -396,6 +396,9 @@ public class GameService {
         root.put("policyUsedThisTurn", false);
         root.put("corePlacedThisTurn", false);
         root.putNull("lastPolicyUsed");
+        ObjectNode policyDrawStats = root.putObject("policyDrawStats");
+        policyDrawStats.set("drawCount", objectMapper.createObjectNode());
+        policyDrawStats.put("lastDrawn", "");
         root.set("handOverflowHistory", objectMapper.createArrayNode());
         ObjectNode pendingDiscard = root.putObject("pendingDiscard");
         pendingDiscard.put("active", false);
@@ -663,12 +666,14 @@ public class GameService {
         updateCarbonOverLimitStreak(state);
 
         int phaseMatchBonus = calculatePhaseMatchBonus(state);
-        int lowCarbonScoreRaw = Math.max(0, calculateLowCarbonScore(state, counts.late) + settlementBonus.path("lowCarbon").asInt(0) + phaseMatchBonus);
+        LowCarbonScoreBreakdown scoreBreakdown = calculateLowCarbonScoreBreakdown(state, counts.late);
+        int lowCarbonScoreRaw = Math.max(0, scoreBreakdown.totalBeforeBonuses() + settlementBonus.path("lowCarbon").asInt(0) + phaseMatchBonus);
         int lowCarbonScore = Math.max(
             0,
             applyPercentage(lowCarbonScoreRaw, settlementBonus.path("lowCarbonPct").asInt(0) + globalPct)
         );
         metrics.put("lowCarbonScore", lowCarbonScore);
+        updateLowCarbonScoreBreakdown(state, scoreBreakdown, settlementBonus.path("lowCarbon").asInt(0), phaseMatchBonus, settlementBonus.path("lowCarbonPct").asInt(0) + globalPct, lowCarbonScoreRaw, lowCarbonScore);
         appendSettlementHistory(state, settlementBonus, resourcesBefore, metricsBefore, tradeBefore);
 
         tickActiveNegativeEvents(state);
@@ -1193,20 +1198,50 @@ public class GameService {
         }
 
         ArrayNode handPolicy = state.withArray("handPolicy");
-        String selected = pickPolicyCardForDraw(state, unlocked);
+        String selected = pickPolicyCardForDraw(state, unlocked, handPolicy);
+        if (selected == null || selected.isBlank()) {
+            return;
+        }
         handPolicy.add(selected);
+        recordPolicyDraw(state, selected);
         enforcePolicyHandLimit(state);
     }
 
-    private String pickPolicyCardForDraw(ObjectNode state, ArrayNode unlocked) {
+    private String pickPolicyCardForDraw(ObjectNode state, ArrayNode unlocked, ArrayNode handPolicy) {
+        List<String> unlockedIds = new ArrayList<>();
+        for (JsonNode node : unlocked) {
+            String policyId = node.asText("");
+            if (!policyId.isBlank()) {
+                unlockedIds.add(policyId);
+            }
+        }
+        if (unlockedIds.isEmpty()) {
+            return "";
+        }
+
+        Set<String> handPolicySet = new HashSet<>();
+        for (JsonNode node : handPolicy) {
+            String policyId = node.asText("");
+            if (!policyId.isBlank()) {
+                handPolicySet.add(policyId);
+            }
+        }
+
+        List<String> candidatePool = new ArrayList<>();
+        for (String policyId : unlockedIds) {
+            if (!handPolicySet.contains(policyId)) {
+                candidatePool.add(policyId);
+            }
+        }
+        if (candidatePool.isEmpty()) {
+            // Avoid drawing duplicate policy cards into hand when no new candidate exists.
+            return "";
+        }
+
         Set<String> activeEventTypes = activeNegativeEventTypeSet(state);
         if (!activeEventTypes.isEmpty()) {
             List<String> resolvers = new ArrayList<>();
-            for (JsonNode node : unlocked) {
-                String policyId = node.asText("");
-                if (policyId.isBlank()) {
-                    continue;
-                }
+            for (String policyId : candidatePool) {
                 List<String> resolvableTypes = resolvableEventTypes(policyId);
                 for (String eventType : resolvableTypes) {
                     if (activeEventTypes.contains(eventType)) {
@@ -1216,17 +1251,20 @@ public class GameService {
                 }
             }
             if (!resolvers.isEmpty()) {
-                return resolvers.get(ThreadLocalRandom.current().nextInt(resolvers.size()));
+                return pickLeastUsedAndLeastDrawnPolicy(state, resolvers);
             }
         }
 
+        return pickLeastUsedAndLeastDrawnPolicy(state, candidatePool);
+    }
+
+    private String pickLeastUsedAndLeastDrawnPolicy(ObjectNode state, List<String> candidates) {
+        if (candidates.isEmpty()) {
+            return "";
+        }
         int minUsage = Integer.MAX_VALUE;
         List<String> leastUsed = new ArrayList<>();
-        for (JsonNode node : unlocked) {
-            String policyId = node.asText("");
-            if (policyId.isBlank()) {
-                continue;
-            }
+        for (String policyId : candidates) {
             int usage = countPolicyUsage(state, policyId);
             if (usage < minUsage) {
                 minUsage = usage;
@@ -1236,10 +1274,52 @@ public class GameService {
                 leastUsed.add(policyId);
             }
         }
-        if (!leastUsed.isEmpty()) {
-            return leastUsed.get(ThreadLocalRandom.current().nextInt(leastUsed.size()));
+
+        int minDrawCount = Integer.MAX_VALUE;
+        List<String> leastDrawn = new ArrayList<>();
+        for (String policyId : leastUsed) {
+            int drawCount = countPolicyDraw(state, policyId);
+            if (drawCount < minDrawCount) {
+                minDrawCount = drawCount;
+                leastDrawn.clear();
+                leastDrawn.add(policyId);
+            } else if (drawCount == minDrawCount) {
+                leastDrawn.add(policyId);
+            }
         }
-        return unlocked.get(ThreadLocalRandom.current().nextInt(unlocked.size())).asText();
+
+        String lastDrawn = state.with("policyDrawStats").path("lastDrawn").asText("");
+        if (leastDrawn.size() > 1 && lastDrawn != null && !lastDrawn.isBlank()) {
+            List<String> nonRepeating = new ArrayList<>();
+            for (String policyId : leastDrawn) {
+                if (!lastDrawn.equals(policyId)) {
+                    nonRepeating.add(policyId);
+                }
+            }
+            if (!nonRepeating.isEmpty()) {
+                return nonRepeating.get(ThreadLocalRandom.current().nextInt(nonRepeating.size()));
+            }
+        }
+
+        return leastDrawn.get(ThreadLocalRandom.current().nextInt(leastDrawn.size()));
+    }
+
+    private int countPolicyDraw(ObjectNode state, String policyId) {
+        if (policyId == null || policyId.isBlank()) {
+            return 0;
+        }
+        return state.with("policyDrawStats").with("drawCount").path(policyId).asInt(0);
+    }
+
+    private void recordPolicyDraw(ObjectNode state, String policyId) {
+        if (policyId == null || policyId.isBlank()) {
+            return;
+        }
+        ObjectNode drawStats = state.with("policyDrawStats");
+        ObjectNode drawCount = drawStats.with("drawCount");
+        int current = drawCount.path(policyId).asInt(0);
+        drawCount.put(policyId, current + 1);
+        drawStats.put("lastDrawn", policyId);
     }
 
     private Set<String> activeNegativeEventTypeSet(ObjectNode state) {
@@ -1569,6 +1649,10 @@ public class GameService {
     }
 
     private int calculateLowCarbonScore(ObjectNode state, int latePlaced) {
+        return calculateLowCarbonScoreBreakdown(state, latePlaced).totalBeforeBonuses();
+    }
+
+    private LowCarbonScoreBreakdown calculateLowCarbonScoreBreakdown(ObjectNode state, int latePlaced) {
         GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         DomainCounts counts = countPlacedDomains(state);
         int policyUnlocked = state.withArray("policyUnlocked").size();
@@ -1576,33 +1660,101 @@ public class GameService {
         ObjectNode trade = state.with("carbonTrade");
         ObjectNode eventStats = state.with("eventStats");
 
-        int score = counts.total + latePlaced * 2;
-        if (counts.industry >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
-        if (counts.ecology >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
-        if (counts.science >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
-        if (counts.society >= balance.lowCarbonDomainThreshold()) score += balance.lowCarbonDomainBonus();
+        int baseCards = counts.total;
+        int lateBonus = latePlaced * 2;
 
-        score += policyUnlocked * balance.lowCarbonPolicyUnlockScore();
-        if (policyUnlocked >= balance.lowCarbonPolicyUnlockAllCount()) {
-            score += balance.lowCarbonPolicyUnlockAllBonus();
-        }
+        int domainBonus = 0;
+        if (counts.industry >= balance.lowCarbonDomainThreshold()) domainBonus += balance.lowCarbonDomainBonus();
+        if (counts.ecology >= balance.lowCarbonDomainThreshold()) domainBonus += balance.lowCarbonDomainBonus();
+        if (counts.science >= balance.lowCarbonDomainThreshold()) domainBonus += balance.lowCarbonDomainBonus();
+        if (counts.society >= balance.lowCarbonDomainThreshold()) domainBonus += balance.lowCarbonDomainBonus();
 
-        score += eventStats.path("negativeResolved").asInt(0) * balance.lowCarbonEventResolvedScore();
-        score -= eventStats.path("negativeTriggered").asInt(0) * balance.lowCarbonEventTriggeredPenalty();
+        int policyUnlockScore = policyUnlocked * balance.lowCarbonPolicyUnlockScore();
+        int policyUnlockAllBonus = policyUnlocked >= balance.lowCarbonPolicyUnlockAllCount()
+            ? balance.lowCarbonPolicyUnlockAllBonus()
+            : 0;
 
-        score += calculateCarbonTierScore(carbon);
-        if (state.path("highCarbonOverLimitStreak").asInt(0) >= balance.lowCarbonOverLimitStreakThreshold()) {
-            score -= balance.lowCarbonOverLimitStreakPenalty();
-        }
+        int resolvedEvents = eventStats.path("negativeResolved").asInt(0);
+        int triggeredEvents = eventStats.path("negativeTriggered").asInt(0);
+        int unresolvedEvents = Math.max(0, triggeredEvents - resolvedEvents);
+        int eventResolveScore = resolvedEvents * balance.lowCarbonEventResolvedScore();
+        int eventUnresolvedPenalty = unresolvedEvents * balance.lowCarbonEventTriggeredPenalty();
 
+        int carbonTierScore = calculateCarbonTierScore(carbon);
+        int overLimitPenalty = state.path("highCarbonOverLimitStreak").asInt(0) >= balance.lowCarbonOverLimitStreakThreshold()
+            ? balance.lowCarbonOverLimitStreakPenalty()
+            : 0;
+
+        int tradeProfitScore = 0;
         double profit = trade.path("profit").asDouble(0D);
         if (profit > 0 && balance.lowCarbonTradeProfitDivisor() > 0) {
-            score += ((int) Math.floor(profit / balance.lowCarbonTradeProfitDivisor())) * balance.lowCarbonTradeProfitBonus();
+            tradeProfitScore = ((int) Math.floor(profit / balance.lowCarbonTradeProfitDivisor())) * balance.lowCarbonTradeProfitBonus();
         }
-        score -= trade.path("quotaExhaustedCount").asInt(0) * balance.lowCarbonQuotaExhaustedPenalty();
-        score -= trade.path("invalidOperationCount").asInt(0) * balance.lowCarbonInvalidOperationPenalty();
+        int quotaPenalty = trade.path("quotaExhaustedCount").asInt(0) * balance.lowCarbonQuotaExhaustedPenalty();
+        int invalidPenalty = trade.path("invalidOperationCount").asInt(0) * balance.lowCarbonInvalidOperationPenalty();
 
-        return Math.max(0, score);
+        int total = baseCards
+            + lateBonus
+            + domainBonus
+            + policyUnlockScore
+            + policyUnlockAllBonus
+            + eventResolveScore
+            - eventUnresolvedPenalty
+            + carbonTierScore
+            - overLimitPenalty
+            + tradeProfitScore
+            - quotaPenalty
+            - invalidPenalty;
+
+        return new LowCarbonScoreBreakdown(
+            baseCards,
+            lateBonus,
+            domainBonus,
+            policyUnlockScore,
+            policyUnlockAllBonus,
+            eventResolveScore,
+            eventUnresolvedPenalty,
+            carbonTierScore,
+            overLimitPenalty,
+            tradeProfitScore,
+            quotaPenalty,
+            invalidPenalty,
+            Math.max(0, total)
+        );
+    }
+
+    private void updateLowCarbonScoreBreakdown(
+        ObjectNode state,
+        LowCarbonScoreBreakdown breakdown,
+        int settlementBonus,
+        int phaseMatchBonus,
+        int percentageBonus,
+        int rawTotal,
+        int finalTotal
+    ) {
+        int target = balanceRule().lowCarbonMinForPositiveEnding();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("baseCards", breakdown.baseCards());
+        node.put("latePhaseBonus", breakdown.latePhaseBonus());
+        node.put("domainBonus", breakdown.domainBonus());
+        node.put("policyUnlockScore", breakdown.policyUnlockScore());
+        node.put("policyUnlockAllBonus", breakdown.policyUnlockAllBonus());
+        node.put("eventResolveScore", breakdown.eventResolveScore());
+        node.put("eventUnresolvedPenalty", breakdown.eventUnresolvedPenalty());
+        node.put("carbonTierScore", breakdown.carbonTierScore());
+        node.put("overLimitPenalty", breakdown.overLimitPenalty());
+        node.put("tradeProfitScore", breakdown.tradeProfitScore());
+        node.put("quotaPenalty", breakdown.quotaPenalty());
+        node.put("invalidPenalty", breakdown.invalidPenalty());
+        node.put("scoreBeforeBonuses", breakdown.totalBeforeBonuses());
+        node.put("settlementBonus", settlementBonus);
+        node.put("phaseMatchBonus", phaseMatchBonus);
+        node.put("percentageBonus", percentageBonus);
+        node.put("rawTotal", rawTotal);
+        node.put("finalTotal", finalTotal);
+        node.put("target", target);
+        node.put("gapToTarget", Math.max(0, target - finalTotal));
+        state.set("lowCarbonScoreBreakdown", node);
     }
 
     private int calculateCarbonTierScore(int carbon) {
@@ -2812,12 +2964,24 @@ public class GameService {
         if (!(source instanceof ObjectNode objectNode)) {
             throw new BizException(ErrorCode.SYSTEM_ERROR, "Invalid session state");
         }
-        ObjectNode sanitized = objectNode.deepCopy();
-        JsonNode metricsNode = sanitized.path("metrics");
-        if (metricsNode instanceof ObjectNode metrics) {
-            metrics.remove("lowCarbonScore");
-        }
-        return sanitized;
+        return objectNode.deepCopy();
+    }
+
+    private record LowCarbonScoreBreakdown(
+        int baseCards,
+        int latePhaseBonus,
+        int domainBonus,
+        int policyUnlockScore,
+        int policyUnlockAllBonus,
+        int eventResolveScore,
+        int eventUnresolvedPenalty,
+        int carbonTierScore,
+        int overLimitPenalty,
+        int tradeProfitScore,
+        int quotaPenalty,
+        int invalidPenalty,
+        int totalBeforeBonuses
+    ) {
     }
 
     private static class Coord {

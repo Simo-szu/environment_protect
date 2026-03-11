@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowRight, Globe2, PlayCircle, X } from 'lucide-react';
-import { EventRecord, MetricState, readDelta, ResourceState, SettlementRecord, TransitionNotice } from '../hooks/gamePlay.shared';
+import { EventRecord, MetricState, readDelta, ResourceState, SettlementRecord, TransitionKind, TransitionNotice } from '../hooks/gamePlay.shared';
 
 interface RoundSettlementOverlayProps {
   locale: string;
@@ -40,7 +40,16 @@ function formatDelta(delta: number): string {
   return `${delta > 0 ? '+' : ''}${delta}`;
 }
 
-function deltaClass(delta: number): string {
+function deltaClass(cardKey: string, delta: number): string {
+  if (cardKey === 'carbon') {
+    if (delta > 0) {
+      return 'text-rose-700';
+    }
+    if (delta < 0) {
+      return 'text-emerald-700';
+    }
+    return 'text-slate-500';
+  }
   if (delta > 0) {
     return 'text-emerald-700';
   }
@@ -48,6 +57,66 @@ function deltaClass(delta: number): string {
     return 'text-rose-700';
   }
   return 'text-slate-500';
+}
+
+function resolveTransitionCopy(
+  kind: TransitionKind,
+  t: (key: string, defaultValue?: string, values?: Record<string, unknown>) => string
+): { title: string; subtitle: string } {
+  switch (kind) {
+    case 'carbon_disaster':
+      return {
+        title: t('play.settlement.transition.carbon_disaster.title', 'Carbon Disaster'),
+        subtitle: t('play.settlement.transition.carbon_disaster.subtitle', 'Emergency pressure is rising')
+      };
+    case 'industry_growth':
+      return {
+        title: t('play.settlement.transition.industry_growth.title', 'Industry Growth'),
+        subtitle: t('play.settlement.transition.industry_growth.subtitle', 'Infrastructure momentum accelerated')
+      };
+    case 'green_growth':
+      return {
+        title: t('play.settlement.transition.green_growth.title', 'Green Building Rise'),
+        subtitle: t('play.settlement.transition.green_growth.subtitle', 'Eco assets expanded this turn')
+      };
+    case 'tech_burst':
+      return {
+        title: t('play.settlement.transition.tech_burst.title', 'Tech Burst'),
+        subtitle: t('play.settlement.transition.tech_burst.subtitle', 'Innovation output spiked')
+      };
+    case 'satisfaction_growth':
+      return {
+        title: t('play.settlement.transition.satisfaction_growth.title', 'Citizen Confidence'),
+        subtitle: t('play.settlement.transition.satisfaction_growth.subtitle', 'Public support improved')
+      };
+    case 'carbon_optimized':
+      return {
+        title: t('play.settlement.transition.carbon_optimized.title', 'Carbon Optimization'),
+        subtitle: t('play.settlement.transition.carbon_optimized.subtitle', 'Emission reduction was effective')
+      };
+    case 'balanced_growth':
+    default:
+      return {
+        title: t('play.settlement.transition.balanced_growth.title', 'Balanced Development'),
+        subtitle: t('play.settlement.transition.balanced_growth.subtitle', 'All systems moved steadily')
+      };
+  }
+}
+
+function resolveEventTypeLabel(
+  eventType: string,
+  t: (key: string, defaultValue?: string, values?: Record<string, unknown>) => string
+): string {
+  if (eventType === 'flood') {
+    return t('play.events.type.flood', 'Flood');
+  }
+  if (eventType === 'sea_level_rise') {
+    return t('play.events.type.seaLevelRise', 'Sea Level Rise');
+  }
+  if (eventType === 'citizen_protest') {
+    return t('play.events.type.citizenProtest', 'Citizen Protest');
+  }
+  return eventType || t('play.events.title', 'Event');
 }
 
 export default function RoundSettlementOverlay(props: RoundSettlementOverlayProps) {
@@ -66,6 +135,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
   const router = useRouter();
   const settlementTurn = Number(latestSettlement.turn ?? transitionNotice.turn ?? 1);
   const videoSrc = '/assets/videos/green-upgrade-animation.mp4';
+  const transitionCopy = resolveTransitionCopy(transitionNotice.kind, t);
 
   const deltaCards: DeltaCard[] = [
     {
@@ -151,7 +221,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                     locale === 'en' ? 'bg-[#173b2f] text-white' : 'text-[#5d645f] hover:bg-[#ece5d8]'
                   }`}
                 >
-                  English
+                  {t('play.settlement.languageEnglish', 'English')}
                 </button>
               </div>
 
@@ -171,10 +241,10 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="inline-flex rounded-full bg-[#173b2f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-[#ecf4ef]">
-                    {transitionNotice.title}
+                    {transitionCopy.title}
                   </div>
                   <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#4f5b53]">
-                    {transitionNotice.subtitle}
+                    {transitionCopy.subtitle}
                   </p>
                 </div>
 
@@ -187,7 +257,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                 <div className="rounded-[1.5rem] border border-[#d8d0c4] bg-[#fffdf8] p-4">
                   <div className="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-[#6a736d]">
                     <PlayCircle className="h-4 w-4 text-[#b07643]" />
-                    {t('play.settlement.videoLabel', '4:3 Video Slot')}
+                    {t('play.settlement.videoLabel', 'Turn Settlement Video')}
                   </div>
                   <div className="aspect-[4/3] overflow-hidden rounded-[1.2rem] border border-[#d4ccbf] bg-[#efe8d9]">
                     <video
@@ -201,9 +271,6 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                       preload="metadata"
                     />
                   </div>
-                  <p className="mt-3 text-[13px] leading-6 text-[#6a645b]">
-                    {t('play.settlement.videoHint', 'Place your sample file here later. The slot keeps a fixed 4:3 ratio and will not affect the layout.')}
-                  </p>
                 </div>
 
                 <div className="rounded-[1.5rem] border border-[#d8d0c4] bg-[#fffdf8] p-4">
@@ -219,7 +286,6 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                         ? t('play.settlement.eventsActive', '{count} active risks entered the next turn.', { count: activeNegativeEvents.length })
                         : t('play.settlement.eventsCalm', 'No active negative event carried into the next turn.')}
                     </p>
-                    <p>{t('play.settlement.summaryFoot', 'Use the language buttons in the top-right corner at any time. This settlement page stays isolated from the board and card area until you continue.')}</p>
                   </div>
 
                   <div className="mt-4 rounded-[1.2rem] border border-[#d8d0c4] bg-[#f4efe6] p-4">
@@ -233,7 +299,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                             key={`${String(event.eventType || 'event')}-${index}`}
                             className="rounded-full bg-[#5f2f2f] px-3 py-1 text-xs font-bold text-[#fff4f4]"
                           >
-                            {String(event.eventType || t('play.events.title', 'Event'))}
+                            {resolveEventTypeLabel(String(event.eventType || ''), t)}
                             {' · '}
                             {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
                           </span>
@@ -259,7 +325,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                     </div>
                     <div className="mt-3 flex items-end justify-between gap-3">
                       <div className="text-[2.35rem] font-black leading-none text-[#14281d]">{item.after}</div>
-                      <div className={`text-base font-black ${deltaClass(item.delta)}`}>{formatDelta(item.delta)}</div>
+                      <div className={`text-base font-black ${deltaClass(item.key, item.delta)}`}>{formatDelta(item.delta)}</div>
                     </div>
                   </div>
                 ))}
@@ -271,19 +337,8 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                 <div className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6a736d]">
                   {t('play.settlement.insightTitle', 'Round Insight')}
                 </div>
-                <div className="mt-3 text-[2rem] font-black leading-tight text-[#173b2f]">{transitionNotice.title}</div>
-                <p className="mt-3 text-[15px] leading-7 text-[#505c54]">{transitionNotice.subtitle}</p>
-              </div>
-
-              <div className="rounded-[1.4rem] border border-[#d8d0c4] bg-white p-5">
-                <div className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6a736d]">
-                  {t('play.settlement.requirementsTitle', 'Overlay Rules')}
-                </div>
-                <ul className="mt-3 space-y-3 text-[15px] leading-7 text-[#505c54]">
-                  <li>{t('play.settlement.ruleFullscreen', 'This settlement layer occupies the full viewport and blocks the board below.')}</li>
-                  <li>{t('play.settlement.ruleVideo', 'The video slot keeps a fixed 4:3 area, so adding media later will not disturb the page.')}</li>
-                  <li>{t('play.settlement.ruleLanguage', 'Chinese and English can be switched here directly without leaving the current game session.')}</li>
-                </ul>
+                <div className="mt-3 text-[2rem] font-black leading-tight text-[#173b2f]">{transitionCopy.title}</div>
+                <p className="mt-3 text-[15px] leading-7 text-[#505c54]">{transitionCopy.subtitle}</p>
               </div>
 
               <div className="mt-auto hidden rounded-[1.4rem] border border-[#d8d0c4] bg-white p-4 xl:block">

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import type { GamePlayController } from '../hooks/useGamePlayController';
 import type { SettlementRecord } from '../hooks/gamePlay.shared';
 import InteractiveOnboardingOverlay from './InteractiveOnboardingOverlay';
@@ -16,6 +17,12 @@ type PlayOverlaysProps = Pick<
   | 'lastMessage'
   | 'transitionNotice'
   | 'activeNegativeEvents'
+  | 'handPolicySet'
+  | 'resolveEventLabel'
+  | 'resolvePolicyIdsByEvent'
+  | 'resolvePolicyDisplayLabel'
+  | 'selectPolicyForEvent'
+  | 'strictGuideMode'
   | 'showOnboarding'
   | 'selectedCoreId'
   | 'selectedTile'
@@ -37,6 +44,7 @@ type PlayOverlaysProps = Pick<
   | 'settlementHistory'
   | 'resources'
   | 'metrics'
+  | 'lowCarbonScoreBreakdown'
   | 'tradeQuota'
   | 'tradeProfit'
   | 'eventStats'
@@ -62,6 +70,12 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     lastMessage,
     transitionNotice,
     activeNegativeEvents,
+    handPolicySet,
+    resolveEventLabel,
+    resolvePolicyIdsByEvent,
+    resolvePolicyDisplayLabel,
+    selectPolicyForEvent,
+    strictGuideMode,
     showOnboarding,
     selectedCoreId,
     selectedTile,
@@ -83,6 +97,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     settlementHistory,
     resources,
     metrics,
+    lowCarbonScoreBreakdown,
     tradeQuota,
     tradeProfit,
     eventStats,
@@ -96,6 +111,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     setLastMessage,
     setTransitionNotice
   } = props;
+  const [dismissedEventAlertToken, setDismissedEventAlertToken] = useState('');
 
   const latestSettlement = settlementHistory.length > 0
     ? settlementHistory[settlementHistory.length - 1] as SettlementRecord
@@ -137,8 +153,150 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     || normalizedError.includes('service unavailable')
     || normalizedError.includes('http_5');
 
+  function containsCjk(text: string): boolean {
+    return /[\u3400-\u9fff]/.test(text);
+  }
+
+  function containsLatin(text: string): boolean {
+    return /[A-Za-z]/.test(text);
+  }
+
+  function pickLocalizedText(rawText: string | undefined): string {
+    const source = String(rawText || '').trim();
+    if (!source) {
+      return '';
+    }
+
+    const byLines = source
+      .split(/\r?\n+/)
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+    const segments = byLines.length > 1
+      ? byLines
+      : source
+        .split(/\s+[|｜/]\s+/)
+        .map((segment) => segment.trim())
+        .filter(Boolean);
+
+    if (segments.length <= 1) {
+      return source;
+    }
+
+    if (locale === 'zh') {
+      const zh = segments.find((segment) => containsCjk(segment));
+      return zh || segments[0];
+    }
+    const en = segments.find((segment) => containsLatin(segment) && !containsCjk(segment));
+    return en || segments[segments.length - 1];
+  }
+
+  const endingTitle = pickLocalizedText(ending?.endingName || '');
+  const endingReason = pickLocalizedText(ending?.reason || '');
+  const endingLowCarbonTarget = Number(lowCarbonScoreBreakdown?.target ?? 0);
+  const endingLowCarbonGap = Math.max(0, Number(lowCarbonScoreBreakdown?.gapToTarget ?? 0));
+  const endingLowCarbonTotal = Number(lowCarbonScoreBreakdown?.finalTotal ?? metrics.lowCarbonScore ?? 0);
+  const activeEventAlertToken = useMemo(() => {
+    return Array.from(
+      new Set(
+        activeNegativeEvents.map((event) => {
+          const eventType = String(event.eventType || '');
+          const eventTurn = Number(event.turn || 0);
+          return eventType ? `${eventType}@${eventTurn}` : '';
+        }).filter(Boolean)
+      )
+    ).sort().join('|');
+  }, [activeNegativeEvents]);
+  const showEventAlertModal = Boolean(
+    activeNegativeEvents.length > 0
+    && !transitionNotice
+    && !showOnboarding
+    && !ending
+    && activeEventAlertToken
+    && activeEventAlertToken !== dismissedEventAlertToken
+  );
+
   return (
     <>
+      {showEventAlertModal && (
+        <div className="fixed inset-0 z-[360] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[1.75rem] border border-rose-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.35)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.22em] text-rose-700">
+                  {t('play.events.title', 'Risk & Events')}
+                </div>
+                <h3 className="mt-1 text-xl font-black text-slate-900">
+                  {t('play.events.modalTitle', '负面事件已出现，请立即应对')}
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  {t('play.events.modalSubtitle', '优先使用对应政策卡化解事件，避免持续惩罚。')}
+                </p>
+              </div>
+              <button
+                type="button"
+                data-tutorial-id="event-alert-close"
+                onClick={() => setDismissedEventAlertToken(activeEventAlertToken)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-600"
+              >
+                {t('play.actions.close', 'Close')}
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {activeNegativeEvents.map((event, index) => {
+                const eventType = String(event.eventType || '');
+                const resolverIds = resolvePolicyIdsByEvent(eventType);
+                const resolverLabels = resolverIds
+                  .map((id) => resolvePolicyDisplayLabel(id))
+                  .filter(Boolean);
+                const availableResolverId = resolverIds.find((id) => handPolicySet.has(id)) || '';
+                return (
+                  <div
+                    key={`${eventType || 'event'}-${index}`}
+                    className="rounded-xl border border-rose-200 bg-rose-50/70 p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-sm font-black text-rose-800">
+                        {resolveEventLabel(eventType)}
+                      </div>
+                      <div className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                        {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-slate-700">
+                      {availableResolverId
+                        ? t('play.events.modalResolverReady', '你当前手牌中已有可用政策，建议立即执行。')
+                        : t('play.events.modalResolverMissing', '当前手牌无直接解法政策，请优先保留政策位并尽快抽取。')}
+                    </div>
+                    <div className="mt-2 text-[11px] text-slate-600">
+                      {t('play.events.suggestedPolicies', '建议政策')}: {resolverLabels.join('、') || t('play.common.none', 'None')}
+                    </div>
+                    {availableResolverId ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          selectPolicyForEvent(eventType);
+                          setDismissedEventAlertToken(activeEventAlertToken);
+                        }}
+                        className="mt-3 rounded-lg bg-rose-700 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-white"
+                      >
+                        {t('play.events.selectResolver', 'Select Resolver Policy')}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+
+            {strictGuideMode && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+                {t('play.events.guideHint', '引导阶段中，若事件触发，政策卡已允许用于应对。')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {connectionState !== 'online' && (
         <div className="fixed inset-x-0 top-2 z-[115] px-2 sm:top-4 sm:px-4">
           <div
@@ -233,6 +391,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
             {isConnectionIssue ? (
               <div className="space-y-2">
                 <button
+                  data-tutorial-id="error-retry-connection"
                   onClick={() => {
                     setError(null);
                     void refreshSession();
@@ -242,6 +401,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   {t('play.errors.retryConnection', 'Retry Connection')}
                 </button>
                 <button
+                  data-tutorial-id="error-reload-page"
                   onClick={() => {
                     setError(null);
                     window.location.reload();
@@ -251,6 +411,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   {t('play.errors.reloadPage', 'Reload Page')}
                 </button>
                 <button
+                  data-tutorial-id="error-back-home"
                   onClick={() => {
                     setError(null);
                     void handleExitSession();
@@ -262,6 +423,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
               </div>
             ) : (
               <button
+                data-tutorial-id="error-acknowledge"
                 onClick={() => {
                   setError(null);
                   setLastMessage('');
@@ -353,60 +515,96 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       )}
 
       {ending && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/80 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-            <div className="space-y-4 p-5 md:p-6">
-              <div className="space-y-1">
-                <div className="text-xl font-semibold text-slate-900 dark:text-slate-100 md:text-2xl">{ending.endingName}</div>
-                <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">{ending.reason}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">Reached at turn: {ending.turn}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">Auto open archive in {endingCountdown}s</div>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/70">
-                <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">Replay Summary</div>
-                <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
-                  <div>Placed Core Cards: {placedCore.length}</div>
-                  <div>Policies Used: {policyHistory.length}</div>
-                  <div>Unique Policies Used: {uniquePoliciesUsed}</div>
-                  <div>Settlement Turns: {settlementHistory.length}</div>
-                  <div>Industry: {resources.industry ?? 0}</div>
-                  <div>Tech: {resources.tech ?? 0}</div>
-                  <div>Population: {resources.population ?? 0}</div>
-                  <div>Green: {metrics.green ?? 0}</div>
-                  <div>Carbon: {metrics.carbon ?? 0}</div>
-                  <div>Satisfaction: {metrics.satisfaction ?? 0}</div>
-                  <div>Quota: {tradeQuota}</div>
-                  <div>Trade Profit: {tradeProfit.toFixed(1)}</div>
-                  <div>Negative Events: {Number(eventStats.negativeTriggered || 0)}</div>
-                  <div>Resolved Events: {Number(eventStats.negativeResolved || 0)}</div>
-                  <div>Resolve Rate: {Number(eventStats.resolveRate ?? 0).toFixed(1)}%</div>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+          <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 text-slate-900 shadow-[0_28px_90px_rgba(15,23,42,0.45)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            <div className="space-y-5 p-5 md:p-7">
+              <div className="space-y-2">
+                <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  {t('play.ending.badge', 'Ending Result')}
+                </div>
+                <div className="text-2xl font-semibold leading-tight text-slate-900 dark:text-slate-100 md:text-3xl">{endingTitle || ending.endingName}</div>
+                <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">{endingReason || ending.reason}</div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                  <span>{t('play.ending.reachedTurn', 'Reached at turn: {turn}', { turn: ending.turn })}</span>
+                  <span>{t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })}</span>
                 </div>
               </div>
 
-              {ending.imageKey && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/40">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Final Board Snapshot
+              <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
+                <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{t('play.ending.replaySummary', 'Replay Summary')}</div>
+                <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+                  <div>{t('play.ending.summary.placedCore', 'Placed Core Cards')}: {placedCore.length}</div>
+                  <div>{t('play.ending.summary.policiesUsed', 'Policies Used')}: {policyHistory.length}</div>
+                  <div>{t('play.ending.summary.uniquePolicies', 'Unique Policies Used')}: {uniquePoliciesUsed}</div>
+                  <div>{t('play.ending.summary.settlementTurns', 'Settlement Turns')}: {settlementHistory.length}</div>
+                  <div>{t('play.ending.summary.industry', 'Industry')}: {resources.industry ?? 0}</div>
+                  <div>{t('play.ending.summary.tech', 'Tech')}: {resources.tech ?? 0}</div>
+                  <div>{t('play.ending.summary.population', 'Population')}: {resources.population ?? 0}</div>
+                  <div>{t('play.ending.summary.green', 'Green')}: {metrics.green ?? 0}</div>
+                  <div>{t('play.ending.summary.carbon', 'Carbon')}: {metrics.carbon ?? 0}</div>
+                  <div>{t('play.ending.summary.satisfaction', 'Satisfaction')}: {metrics.satisfaction ?? 0}</div>
+                  <div>{t('play.ending.summary.quota', 'Quota')}: {tradeQuota}</div>
+                  <div>{t('play.ending.summary.tradeProfit', 'Trade Profit')}: {tradeProfit.toFixed(1)}</div>
+                  <div>{t('play.ending.summary.negativeEvents', 'Negative Events')}: {Number(eventStats.negativeTriggered || 0)}</div>
+                  <div>{t('play.ending.summary.resolvedEvents', 'Resolved Events')}: {Number(eventStats.negativeResolved || 0)}</div>
+                  <div>{t('play.ending.summary.resolveRate', 'Resolve Rate')}: {Number(eventStats.resolveRate ?? 0).toFixed(1)}%</div>
+                  <div>{t('play.metrics.lowCarbon', 'Low Carbon Score')}: {endingLowCarbonTotal}</div>
+                  <div>{t('play.ending.summary.lowCarbonTarget', 'Low Carbon Target')}: {endingLowCarbonTarget}</div>
+                  <div>{t('play.ending.summary.lowCarbonGap', 'Gap to Target')}: {endingLowCarbonGap}</div>
+                </div>
+              </div>
+
+              {!!lowCarbonScoreBreakdown && (
+                <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
+                  <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{t('play.ending.scoreBreakdown', 'Low-Carbon Score Breakdown')}</div>
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+                    <div>{t('play.ending.breakdown.baseCards', 'Base Cards')}: {Number(lowCarbonScoreBreakdown.baseCards ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.latePhaseBonus', 'Late Phase Bonus')}: {Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.domainBonus', 'Domain Bonus')}: {Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.policyUnlockScore', 'Policy Unlock Score')}: {Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.policyUnlockAllBonus', 'Policy Unlock All Bonus')}: {Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.eventResolveScore', 'Event Resolve Score')}: {Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.eventUnresolvedPenalty', 'Event Unresolved Penalty')}: -{Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.carbonTierScore', 'Carbon Tier Score')}: {Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.overLimitPenalty', 'Over-limit Penalty')}: -{Number(lowCarbonScoreBreakdown.overLimitPenalty ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.tradeProfitScore', 'Trade Profit Score')}: {Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.quotaPenalty', 'Quota Penalty')}: -{Number(lowCarbonScoreBreakdown.quotaPenalty ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.invalidPenalty', 'Invalid Penalty')}: -{Number(lowCarbonScoreBreakdown.invalidPenalty ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.scoreBeforeBonuses', 'Score Before Settlement Bonuses')}: {Number(lowCarbonScoreBreakdown.scoreBeforeBonuses ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.settlementBonus', 'Settlement Bonus')}: {Number(lowCarbonScoreBreakdown.settlementBonus ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.phaseMatchBonus', 'Phase Match Bonus')}: {Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.percentageBonus', 'Percentage Bonus')}: {Number(lowCarbonScoreBreakdown.percentageBonus ?? 0)}%</div>
+                    <div>{t('play.ending.breakdown.rawTotal', 'Raw Total')}: {Number(lowCarbonScoreBreakdown.rawTotal ?? 0)}</div>
+                    <div>{t('play.ending.breakdown.finalTotal', 'Final Total')}: {Number(lowCarbonScoreBreakdown.finalTotal ?? 0)}</div>
                   </div>
-                  <img
-                    src={resolveImageUrl(ending.imageKey)}
-                    alt={ending.endingName}
-                    className="max-h-[320px] w-full rounded-lg border border-slate-200 object-cover dark:border-slate-700"
-                    onError={(event) => {
-                      const target = event.currentTarget;
-                      target.style.display = 'none';
-                      const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
-                      if (fallback instanceof HTMLElement) {
-                        fallback.style.display = 'flex';
-                      }
-                    }}
-                  />
+                </div>
+              )}
+
+              {ending.imageKey && (
+                <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    {t('play.ending.snapshotTitle', 'Final Board Snapshot')}
+                  </div>
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-100 to-emerald-100/60 dark:border-slate-700 dark:from-slate-900 dark:to-slate-800">
+                    <img
+                      src={resolveImageUrl(ending.imageKey)}
+                      alt={endingTitle || ending.endingName}
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        const target = event.currentTarget;
+                        target.style.display = 'none';
+                        const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
+                        if (fallback instanceof HTMLElement) {
+                          fallback.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  </div>
                   <div
                     data-ending-image-fallback
-                    className="hidden min-h-[140px] w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white/70 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-400"
+                    className="hidden aspect-[4/3] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-400"
                   >
-                    Ending image not found in storage
+                    {t('play.ending.snapshotMissing', 'Ending image not found in storage')}
                   </div>
                 </div>
               )}
@@ -416,7 +614,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   onClick={handleOpenArchive}
                   className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  Skip
+                  {t('play.ending.skip', 'Skip')}
                 </button>
                 <button
                   onClick={() => {
@@ -424,7 +622,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   }}
                   className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
                 >
-                  Restart
+                  {t('play.ending.restart', 'Restart')}
                 </button>
                 <button
                   onClick={() => {
@@ -432,7 +630,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   }}
                   className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  Back to Game Home
+                  {t('play.ending.backHome', 'Back to Game Home')}
                 </button>
               </div>
             </div>

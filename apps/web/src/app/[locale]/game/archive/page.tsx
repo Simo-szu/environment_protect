@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { GameActionLogItem, getSessionById, listSessionActions } from '@/lib/api/game';
+import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import { ArrowLeft, Archive, Clock, AlertTriangle } from 'lucide-react';
 
 type AnyRecord = Record<string, any>;
@@ -21,31 +22,35 @@ function safeAfter(node: AnyRecord | undefined): number {
   return Number(node?.after ?? 0);
 }
 
-function resolveEventText(record: AnyRecord): string {
+function resolveEventText(record: AnyRecord, t: (key: string, fallback: string, vars?: Record<string, any>) => string): string {
   const eventType = String(record?.eventType || '');
   if (eventType === 'policy_unlock') {
-    return `Unlocked ${String(record?.policyId || '-')}`;
+    return t('archive.replay.eventPolicyUnlock', 'Unlocked {policyId}', { policyId: String(record?.policyId || '-') });
   }
   if (eventType === 'event_resolved') {
-    return `Resolved ${String(record?.resolvedEvent || '-')} via ${String(record?.policyId || '-')}`;
+    return t('archive.replay.eventResolved', 'Resolved {event} via {policyId}', {
+      event: String(record?.resolvedEvent || '-'),
+      policyId: String(record?.policyId || '-')
+    });
   }
-  return `Triggered ${eventType || '-'}`;
+  return t('archive.replay.eventTriggered', 'Triggered {eventType}', { eventType: eventType || '-' });
 }
 
-function resolveActionTypeLabel(actionType: number): string {
-  if (actionType === 1) return 'Place Core Card';
-  if (actionType === 2) return 'End Turn';
-  if (actionType === 3) return 'Use Policy Card';
-  if (actionType === 4) return 'Trade Carbon';
-  if (actionType === 5) return 'Discard Card';
-  if (actionType === 6) return 'Remove Core Card';
-  return `Action ${actionType}`;
+function resolveActionTypeLabel(actionType: number, t: (key: string, fallback: string, vars?: Record<string, any>) => string): string {
+  if (actionType === 1) return t('archive.replay.action.placeCore', 'Place Core Card');
+  if (actionType === 2) return t('archive.replay.action.endTurn', 'End Turn');
+  if (actionType === 3) return t('archive.replay.action.usePolicy', 'Use Policy Card');
+  if (actionType === 4) return t('archive.replay.action.tradeCarbon', 'Trade Carbon');
+  if (actionType === 5) return t('archive.replay.action.discardCard', 'Discard Card');
+  if (actionType === 6) return t('archive.replay.action.removeCore', 'Remove Core Card');
+  return t('archive.replay.action.fallback', 'Action {type}', { type: actionType });
 }
 
 export default function GameArchivePage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const { t } = useSafeTranslation('game');
   const locale = params.locale as string;
 
   const [loading, setLoading] = useState(true);
@@ -64,7 +69,7 @@ export default function GameArchivePage() {
       try {
         const sessionId = sessionIdFromUrl || window.sessionStorage.getItem('game:lastSessionId') || '';
         if (!sessionId) {
-          setError('No available session for archive replay');
+          setError(t('archive.replay.loadErrorNoSession', 'No available session for archive replay'));
           return;
         }
         const session = await getSessionById(sessionId);
@@ -90,7 +95,7 @@ export default function GameArchivePage() {
         setSelectedTurn(lastTurn);
       } catch (e: any) {
         if (!canceled) {
-          setError(e?.message || 'Failed to load archive');
+          setError(e?.message || t('archive.replay.loadErrorFailed', 'Failed to load archive'));
         }
       } finally {
         if (!canceled) {
@@ -102,12 +107,24 @@ export default function GameArchivePage() {
     return () => {
       canceled = true;
     };
-  }, [sessionIdFromUrl]);
+  }, [sessionIdFromUrl, t]);
 
-  const settlementHistory: AnyRecord[] = state?.settlementHistory || [];
-  const eventHistory: AnyRecord[] = state?.eventHistory || [];
-  const comboHistory: AnyRecord[] = state?.comboHistory || [];
-  const policyHistory: AnyRecord[] = state?.policyHistory || [];
+  const settlementHistory = useMemo<AnyRecord[]>(
+    () => (Array.isArray(state?.settlementHistory) ? (state?.settlementHistory as AnyRecord[]) : []),
+    [state]
+  );
+  const eventHistory = useMemo<AnyRecord[]>(
+    () => (Array.isArray(state?.eventHistory) ? (state?.eventHistory as AnyRecord[]) : []),
+    [state]
+  );
+  const comboHistory = useMemo<AnyRecord[]>(
+    () => (Array.isArray(state?.comboHistory) ? (state?.comboHistory as AnyRecord[]) : []),
+    [state]
+  );
+  const policyHistory = useMemo<AnyRecord[]>(
+    () => (Array.isArray(state?.policyHistory) ? (state?.policyHistory as AnyRecord[]) : []),
+    [state]
+  );
 
   const snapshots = useMemo(() => {
     const rows: TurnSnapshot[] = settlementHistory.map((entry) => ({
@@ -135,8 +152,13 @@ export default function GameArchivePage() {
     router.push(`/${locale}/game/play`);
   }
 
+  function formatDateTime(input: string): string {
+    const localeName = locale === 'zh' ? 'zh-CN' : 'en-US';
+    return new Date(input).toLocaleString(localeName);
+  }
+
   if (loading) {
-    return <div className="p-6 text-sm text-slate-600">Loading archive...</div>;
+    return <div className="p-6 text-sm text-slate-600">{t('archive.replay.loading', 'Loading archive...')}</div>;
   }
 
   return (
@@ -154,8 +176,8 @@ export default function GameArchivePage() {
               <Archive className="w-5 h-5 text-[#30499b]" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-800">Planning Archive</h1>
-              <p className="text-xs text-slate-500">Replay from real session state</p>
+              <h1 className="text-lg font-semibold tracking-tight text-slate-800">{t('archive.title', '游戏档案')}</h1>
+              <p className="text-xs text-slate-500">{t('archive.replay.subtitle', 'Replay from real session state')}</p>
             </div>
           </div>
         </div>
@@ -174,7 +196,7 @@ export default function GameArchivePage() {
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <h2 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#30499b]" />
-                  Turn Selector
+                  {t('archive.replay.turnSelector', 'Turn Selector')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {snapshots.map((row) => (
@@ -185,7 +207,7 @@ export default function GameArchivePage() {
                         selectedTurn === row.turn ? 'bg-[#30499b] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
-                      Turn {row.turn}
+                      {t('archive.replay.turnLabel', 'Turn {turn}', { turn: row.turn })}
                     </button>
                   ))}
                 </div>
@@ -193,44 +215,46 @@ export default function GameArchivePage() {
 
               {selectedSnapshot ? (
                 <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <h2 className="text-sm font-semibold text-slate-800 mb-4">Turn {selectedSnapshot.turn} Snapshot</h2>
+                  <h2 className="text-sm font-semibold text-slate-800 mb-4">
+                    {t('archive.replay.snapshotTitle', 'Turn {turn} Snapshot', { turn: selectedSnapshot.turn })}
+                  </h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div className="rounded border border-slate-200 p-3">Industry: {selectedSnapshot.industry}</div>
-                    <div className="rounded border border-slate-200 p-3">Tech: {selectedSnapshot.tech}</div>
-                    <div className="rounded border border-slate-200 p-3">Population: {selectedSnapshot.population}</div>
-                    <div className="rounded border border-slate-200 p-3">Green: {selectedSnapshot.green}</div>
-                    <div className="rounded border border-slate-200 p-3">Carbon: {selectedSnapshot.carbon}</div>
-                    <div className="rounded border border-slate-200 p-3">Satisfaction: {selectedSnapshot.satisfaction}</div>
-                    <div className="rounded border border-slate-200 p-3">Policies Used: {selectedPolicies.length}</div>
-                    <div className="rounded border border-slate-200 p-3">Combos: {selectedCombos.length}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.industry', 'Industry')}: {selectedSnapshot.industry}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.tech', 'Tech')}: {selectedSnapshot.tech}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.population', 'Population')}: {selectedSnapshot.population}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.green', 'Green')}: {selectedSnapshot.green}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.carbon', 'Carbon')}: {selectedSnapshot.carbon}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.satisfaction', 'Satisfaction')}: {selectedSnapshot.satisfaction}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.policiesUsed', 'Policies Used')}: {selectedPolicies.length}</div>
+                    <div className="rounded border border-slate-200 p-3">{t('archive.replay.stats.combos', 'Combos')}: {selectedCombos.length}</div>
                   </div>
                 </section>
               ) : (
                 <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 text-sm text-slate-500">
-                  No settlement snapshots available.
+                  {t('archive.replay.noSnapshots', 'No settlement snapshots available.')}
                 </section>
               )}
 
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <h2 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  Turn {selectedTurn} Events
+                  {t('archive.replay.eventsTitle', 'Turn {turn} Events', { turn: selectedTurn })}
                 </h2>
                 {selectedEvents.length === 0 ? (
-                  <div className="text-sm text-slate-500">No event records.</div>
+                  <div className="text-sm text-slate-500">{t('archive.replay.noEvents', 'No event records.')}</div>
                 ) : (
                   <div className="space-y-2">
                     {selectedEvents.map((item, index) => (
                       <div key={`${selectedTurn}-${index}`} className="text-sm rounded border border-slate-200 p-2">
-                        {resolveEventText(item)}
+                        {resolveEventText(item, t)}
                       </div>
                     ))}
                   </div>
                 )}
                 <div className="mt-4 text-sm">
-                  <div className="font-semibold mb-1">Combos</div>
+                  <div className="font-semibold mb-1">{t('archive.replay.combosTitle', 'Combos')}</div>
                   {selectedCombos.length === 0 ? (
-                    <div className="text-slate-500">No combo triggered.</div>
+                    <div className="text-slate-500">{t('archive.replay.noCombos', 'No combo triggered.')}</div>
                   ) : (
                     <div className="text-slate-700">{selectedCombos.join(', ')}</div>
                   )}
@@ -238,16 +262,18 @@ export default function GameArchivePage() {
               </section>
 
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-sm font-semibold text-slate-800 mb-3">Turn {selectedTurn} Actions</h2>
+                <h2 className="text-sm font-semibold text-slate-800 mb-3">
+                  {t('archive.replay.actionsTitle', 'Turn {turn} Actions', { turn: selectedTurn })}
+                </h2>
                 {selectedTurnActions.length === 0 ? (
-                  <div className="text-sm text-slate-500">No action logs for this turn.</div>
+                  <div className="text-sm text-slate-500">{t('archive.replay.noActions', 'No action logs for this turn.')}</div>
                 ) : (
                   <div className="space-y-2">
                     {selectedTurnActions.map((item) => (
                       <div key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                        <div className="font-semibold text-slate-700">{resolveActionTypeLabel(item.actionType)}</div>
+                        <div className="font-semibold text-slate-700">{resolveActionTypeLabel(item.actionType, t)}</div>
                         <div className="text-xs text-slate-500 mt-1">
-                          Points {item.pointsEarned} | {new Date(item.createdAt).toLocaleString()}
+                          {t('archive.replay.points', 'Points')} {item.pointsEarned} | {formatDateTime(item.createdAt)}
                         </div>
                         {item.actionData && (
                           <pre className="mt-2 text-xs text-slate-600 bg-slate-50 rounded p-2 overflow-x-auto">

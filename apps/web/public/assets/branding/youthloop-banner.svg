@@ -1,0 +1,27 @@
+<svg width="1600" height="700" viewBox="0 0 1600 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="700" rx="40" fill="#7BC857"/>
+  <circle cx="803" cy="364" r="178" fill="#66C7EE" stroke="#1F2937" stroke-width="12"/>
+  <path d="M707 227C748 206 792 198 839 201C803 220 788 259 779 298C751 276 732 254 707 227Z" fill="#56B949" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M856 205C926 210 985 248 1018 307C962 285 908 286 861 298C870 262 871 235 856 205Z" fill="#56B949" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M646 383C660 467 719 535 800 555C766 501 756 453 756 408C714 414 681 406 646 383Z" fill="#56B949" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M829 333L885 307L911 344L866 370L913 419L867 455L819 408L825 471H765L760 404L698 425L683 375L742 354L699 305L742 271L788 316L781 246H836L829 333Z" fill="white" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <text x="78" y="428" fill="white" font-family="Arial, sans-serif" font-size="168" font-weight="700">Youth</text>
+  <text x="1177" y="428" fill="white" font-family="Arial, sans-serif" font-size="168" font-weight="700">Loop</text>
+  <rect x="545" y="275" width="35" height="135" rx="13" fill="#56B949" stroke="#1F2937" stroke-width="10"/>
+  <rect x="548" y="252" width="30" height="23" rx="5" fill="#56B949" stroke="#1F2937" stroke-width="10"/>
+  <path d="M1009 266H1044C1061 266 1076 281 1076 298V311" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1013 316H1070V392C1070 400 1064 406 1056 406H1027C1019 406 1013 400 1013 392V316Z" fill="white" stroke="#1F2937" stroke-width="10"/>
+  <rect x="813" y="120" width="54" height="95" rx="14" fill="#B7EBF8" stroke="#1F2937" stroke-width="10"/>
+  <path d="M736 148L681 197" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/>
+  <path d="M700 135L647 183" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1108 155L1086 192" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1116 194H1147C1160 194 1170 204 1170 217V226" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1099 229H1162V279C1162 286 1157 291 1150 291H1111C1104 291 1099 286 1099 279V229Z" fill="#E9D5B5" stroke="#1F2937" stroke-width="10"/>
+  <path d="M603 485L655 436L685 470L632 519L603 485Z" fill="white" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M760 550H826L849 589H780L760 550Z" fill="white" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <rect x="887" y="557" width="61" height="33" rx="10" transform="rotate(-18 887 557)" fill="#30499B" stroke="#1F2937" stroke-width="10"/>
+  <path d="M1015 484L1136 521L1073 629L951 592L1015 484Z" fill="white" stroke="#1F2937" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M1040 522H1124V615H1040V522Z" stroke="#1F2937" stroke-width="8"/>
+  <path d="M1040 572H1124" stroke="#1F2937" stroke-width="8"/>
+  <path d="M1082 522V615" stroke="#1F2937" stroke-width="8"/>
+</svg>

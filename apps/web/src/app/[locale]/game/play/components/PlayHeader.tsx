@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { GamePlayController, GuidedTask, TurnFlowStep } from '../hooks/useGamePlayController';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -10,7 +11,7 @@ interface PlayHeaderProps {
   turn: number;
   maxTurn: number;
   phase: string;
-  domainProgress: GamePlayController['domainProgress'];
+  carbon: number;
   turnFlowSteps: TurnFlowStep[];
   strictGuideMode: boolean;
   handleBack: () => Promise<void>;
@@ -29,6 +30,7 @@ interface PlayHeaderProps {
   currentGuidedTaskId?: GuidedTask['id'];
   boardViewMode: GamePlayController['boardViewMode'];
   setBoardViewMode: GamePlayController['setBoardViewMode'];
+  locale: string;
 }
 
 export default function PlayHeader(props: PlayHeaderProps) {
@@ -37,35 +39,157 @@ export default function PlayHeader(props: PlayHeaderProps) {
     turn,
     maxTurn,
     phase,
-    domainProgress,
+    carbon,
     turnFlowSteps,
     handleBack,
     handleOpenArchive,
     handleRestartSession,
     handleExitSession,
     sessionControlLoading,
+    onOpenGuide,
     transitionAnimationEnabled,
     onToggleTransitionAnimation,
     onEndTurn,
     endTurnDisabled,
     endTurnBlockedReason,
     boardViewMode,
-    setBoardViewMode
+    setBoardViewMode,
+    locale
   } = props;
+  const [manualOpen, setManualOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+  const manualSections = useMemo(() => {
+    if (locale === 'zh') {
+      return [
+        {
+          title: '总目标（先看这个）',
+          bullets: [
+            '你是深圳低碳规划师：在最多 30 回合内，平衡产业、生态、科创、民生四大板块。',
+            '核心方向：稳住碳排放、避免配额耗尽、提升低碳总分，并争取更高等级结局。',
+            '每回合最多放置 1 张核心卡、最多使用 1 张政策卡。'
+          ]
+        },
+        {
+          title: '开局基线',
+          bullets: [
+            '核心资源：产业值 30 / 科创点 20 / 人口 25。',
+            '关键指标：绿建度 50 / 碳排放 80 / 市民满意度 60。',
+            '碳交易：初始配额 50；首轮会从前期卡池发 4 张核心卡。'
+          ]
+        },
+        {
+          title: '每回合流程（简版）',
+          bullets: [
+            '抽牌 -> 选 1 张核心卡放置 -> 触发组合与结算 -> 事件判定 -> 政策卡使用 -> 结局校验。',
+            '手牌超上限时需要弃牌：核心手牌上限 6，政策手牌上限 2。',
+            '如果“结束回合”被阻塞，优先检查：是否有待弃牌、是否已放核心卡、是否有引导任务未完成。'
+          ]
+        },
+        {
+          title: '碳交易规则与建议',
+          bullets: [
+            '碳交易用于买卖配额：配额富余可卖出增利，配额不足可买入止损。',
+            '碳排放过高会持续侵蚀分数，配额耗尽会拖慢结局质量。',
+            '实战建议：碳排放接近高风险时优先补配额；碳排放稳定且配额富余时再考虑卖出。'
+          ]
+        },
+        {
+          title: '政策卡与结局方向',
+          bullets: [
+            '政策卡需先满足解锁条件；解锁后才会抽到并可使用。',
+            '同一回合最多 1 张；持续型常见为 3 回合，同类效果后用会覆盖前者。',
+            '想冲高结局：保持板块均衡布局 + 控碳 + 做好碳交易盈利 + 及时化解负面事件。'
+          ]
+        },
+        {
+          title: '卡关时怎么做',
+          bullets: [
+            '先点右上角“教程”重开引导，再按右下角提示完成当回合目标。',
+            '若资源不足：先放低消耗卡稳住基础产出，下一回合再上高阶卡。',
+            '若频繁触发负面事件：提高生态/科创投入，并预留政策卡应急。'
+          ]
+        }
+      ] as Array<{ title: string; bullets: string[] }>;
+    }
 
-  const domainRows = useMemo(
-    () => [
-      { key: 'industry', label: t('play.domains.industry', 'Industry') },
-      { key: 'ecology', label: t('play.domains.ecology', 'Ecology') },
-      { key: 'science', label: t('play.domains.science', 'Science') },
-      { key: 'society', label: t('play.domains.society', 'Society') }
-    ],
-    [t]
-  );
+    return [
+      {
+        title: 'Main Objective',
+        bullets: [
+          'You are Shenzhen’s low-carbon planner. Balance Industry, Ecology, Science, and Society within up to 30 turns.',
+          'Keep emissions controlled, avoid quota depletion, and push for stronger ending tiers.',
+          'Per turn: deploy up to 1 core card and use up to 1 policy card.'
+        ]
+      },
+      {
+        title: 'Starting Baseline',
+        bullets: [
+          'Core resources: Industry 30 / Tech 20 / Population 25.',
+          'Key metrics: Green 50 / Carbon 80 / Satisfaction 60.',
+          'Carbon trade starts with quota 50; opening hand draws 4 early-stage core cards.'
+        ]
+      },
+      {
+        title: 'Turn Loop (Quick)',
+        bullets: [
+          'Draw -> deploy 1 core card -> combos/settlement -> event check -> policy use -> ending check.',
+          'Hand limits: Core 6, Policy 2. Over-limit requires discard.',
+          'If End Turn is blocked, check pending discard, placement requirement, or guided task gating.'
+        ]
+      },
+      {
+        title: 'Carbon Trading',
+        bullets: [
+          'Trade buys/sells emission quota: sell surplus for profit, buy deficit to prevent penalties.',
+          'High carbon and quota depletion hurt your ending potential.',
+          'Practical rule: buy near risk thresholds; sell only when carbon is stable and quota is clearly surplus.'
+        ]
+      },
+      {
+        title: 'Policy Cards and Ending Path',
+        bullets: [
+          'Policy cards must be unlocked before they can be drawn and used.',
+          'Only 1 policy card per turn; continuous effects commonly last 3 turns and same-type effects overwrite.',
+          'For better endings: balanced sectors + carbon control + positive trade profit + event mitigation.'
+        ]
+      },
+      {
+        title: 'If You Get Stuck',
+        bullets: [
+          'Use the Tutorial button in this menu and follow the active mission prompt.',
+          'When resources are tight, place low-cost cards first to stabilize income.',
+          'If negative events stack up, increase ecology/science investment and keep policy cards for response.'
+        ]
+      }
+    ] as Array<{ title: string; bullets: string[] }>;
+  }, [locale]);
+
+  const carbonPct = clampPct(carbon);
+  const carbonHighRisk = carbonPct >= 70;
+  const carbonToneClass = carbonHighRisk
+    ? 'text-rose-600 dark:text-rose-300'
+    : 'text-emerald-600 dark:text-emerald-300';
+  const carbonBarClass = carbonHighRisk ? 'bg-rose-500' : 'bg-emerald-500';
+  const carbonStatusLabel = carbonHighRisk
+    ? t('play.stats.carbonStatusAlert', 'Alert')
+    : t('play.stats.carbonStatusGood', 'Good');
   const activeTurnStep = useMemo(
     () => turnFlowSteps.find((step) => step.active) || turnFlowSteps.find((step) => !step.done) || null,
     [turnFlowSteps]
   );
+  const closeSettingsDropdown = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const details = target.closest('details');
+    if (details) {
+      details.removeAttribute('open');
+    }
+  };
 
   return (
     <header className="relative border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl px-3 sm:px-4 py-2 z-[120] flex flex-wrap items-center justify-between gap-3 overflow-visible">
@@ -99,29 +223,29 @@ export default function PlayHeader(props: PlayHeaderProps) {
       <div className="flex-1 min-w-0 flex items-center justify-center gap-3 overflow-visible">
         <details className="relative group">
           <summary className="list-none cursor-pointer px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-[10px] font-black tracking-wide text-slate-600 dark:text-slate-200 flex items-center gap-2">
-            <span className="text-slate-400 dark:text-slate-500">{t('play.stats.domainProgress', 'Domain')}</span>
-            <span>{Math.round(Number(domainProgress.industry ?? 0))}%</span>
-            <span>{Math.round(Number(domainProgress.ecology ?? 0))}%</span>
-            <span>{Math.round(Number(domainProgress.science ?? 0))}%</span>
-            <span>{Math.round(Number(domainProgress.society ?? 0))}%</span>
+            <span className="text-slate-400 dark:text-slate-500">{t('play.stats.carbonProgress', 'Carbon')}</span>
+            <span className={carbonToneClass}>{carbonPct}%</span>
+            <span className={carbonToneClass}>{carbonStatusLabel}</span>
           </summary>
           <div className="absolute top-full left-0 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 p-3 shadow-xl z-[130]">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{t('play.stats.domainProgress', 'Domain Progress')}</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+              {t('play.stats.carbonProgress', 'Carbon Emission Progress')}
+            </div>
             <div className="space-y-2">
-              {domainRows.map((row) => {
-                const pct = clampPct(Number(domainProgress[row.key] ?? 0));
-                return (
-                  <div key={row.key}>
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                      <span>{row.label}</span>
-                      <span>{pct}%</span>
-                    </div>
-                    <div className="h-1.5 mt-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, pct)}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                  <span>{t('play.metrics.carbon', 'Carbon')}</span>
+                  <span className={carbonToneClass}>{carbonPct}%</span>
+                </div>
+                <div className="h-2 mt-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className={`h-full rounded-full transition-all ${carbonBarClass}`} style={{ width: `${carbonPct}%` }} />
+                </div>
+              </div>
+              <div className={`text-[11px] font-semibold ${carbonToneClass}`}>
+                {carbonHighRisk
+                  ? t('play.stats.carbonWarning', 'Red alert: carbon emission is too high.')
+                  : t('play.stats.carbonHealthy', 'Green status: carbon emission is under control.')}
+              </div>
             </div>
           </div>
         </details>
@@ -197,6 +321,24 @@ export default function PlayHeader(props: PlayHeaderProps) {
               </div>
             </div>
             <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+            <button
+              onClick={(event) => {
+                closeSettingsDropdown(event.currentTarget);
+                setManualOpen(true);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-100 text-[11px] font-black transition-colors"
+            >
+              {locale === 'zh' ? '游戏说明书' : 'Game Manual'}
+            </button>
+            <button
+              onClick={(event) => {
+                closeSettingsDropdown(event.currentTarget);
+                onOpenGuide();
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20 text-sky-700 dark:text-sky-300 text-[11px] font-black transition-colors"
+            >
+              {locale === 'zh' ? '教程引导' : 'Tutorial Guide'}
+            </button>
             <button onClick={handleOpenArchive} className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-200 text-[11px] font-bold transition-colors">
               {t('play.actions.archive', 'Archive')}
             </button>
@@ -227,6 +369,61 @@ export default function PlayHeader(props: PlayHeaderProps) {
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
         </button>
       </div>
+
+      {manualOpen && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[560] overflow-y-auto bg-slate-950/55 p-3 backdrop-blur-sm sm:p-5"
+          onClick={() => setManualOpen(false)}
+        >
+          <div
+            className="mx-auto mt-2 flex max-h-[92vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900/95 sm:mt-6 sm:p-5"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-700">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-slate-100">
+                  {locale === 'zh' ? '《深圳低碳规划师》游戏说明书' : 'Shenzhen Low-Carbon Planner Manual'}
+                </h3>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  {locale === 'zh' ? '来自需求文档的实战要点（精简版）' : 'Practical quick guide distilled from the requirement spec'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManualOpen(false)}
+                className="rounded-xl border border-slate-300 px-3 py-1.5 text-[11px] font-black text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                {locale === 'zh' ? '关闭' : 'Close'}
+              </button>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+              {manualSections.map((section) => (
+                <section key={section.title} className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/70">
+                  <h4 className="text-sm font-black text-emerald-800 dark:text-emerald-300">{section.title}</h4>
+                  <ul className="mt-2 space-y-1.5 text-xs leading-5 text-slate-700 dark:text-slate-200">
+                    {section.bullets.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-[2px] text-emerald-600 dark:text-emerald-300">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setManualOpen(false)}
+                className="w-full rounded-xl bg-emerald-700 px-4 py-2 text-xs font-black text-white transition-colors hover:bg-emerald-600"
+              >
+                {locale === 'zh' ? '退出说明书' : 'Exit Manual'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }

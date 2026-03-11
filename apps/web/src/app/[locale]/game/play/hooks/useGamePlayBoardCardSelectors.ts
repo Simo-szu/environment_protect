@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { GameCardMeta } from '@/lib/api/game';
 import { CoreCardAffordability, MetricState, ResourceState, TileSynergyBreakdown, TileSynergyNeighbor } from './gamePlay.shared';
 
+type DomainZone = 'industry' | 'ecology' | 'science' | 'society';
+
 interface UseGamePlayBoardCardSelectorsParams {
   handCore: string[];
   handPolicy: string[];
@@ -16,6 +18,40 @@ interface UseGamePlayBoardCardSelectorsParams {
   boardSize: number;
   boardOccupied: Record<string, string>;
   freePlacementEnabled: boolean;
+}
+
+function resolveTileDomain(row: number, col: number, boardSize: number): DomainZone {
+  const half = Math.max(1, Math.floor(boardSize / 2));
+  if (row < half && col < half) {
+    return 'industry';
+  }
+  if (row < half && col >= half) {
+    return 'ecology';
+  }
+  if (row >= half && col < half) {
+    return 'science';
+  }
+  return 'society';
+}
+
+function normalizeDomain(value: unknown): DomainZone | null {
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!raw) {
+    return null;
+  }
+  if (raw === 'industry' || raw === 'industrial' || raw === '工业') {
+    return 'industry';
+  }
+  if (raw === 'ecology' || raw === 'ecological' || raw === '生态') {
+    return 'ecology';
+  }
+  if (raw === 'science' || raw === 'scientific' || raw === '科技' || raw === '科学') {
+    return 'science';
+  }
+  if (raw === 'society' || raw === 'social' || raw === '人文' || raw === '社会' || raw === '人与社会') {
+    return 'society';
+  }
+  return null;
 }
 
 export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelectorsParams) {
@@ -45,6 +81,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
 
   const selectedCoreCard = selectedCoreId ? catalog.get(selectedCoreId) || null : null;
   const selectedPolicyCard = selectedPolicyId ? catalog.get(selectedPolicyId) || null : null;
+  const selectedCoreDomain: DomainZone | null = normalizeDomain(selectedCoreCard?.domain);
 
   const coreAffordabilityMap = useMemo(() => {
     const resourceIndustry = Number(resources.industry ?? 0);
@@ -52,8 +89,12 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     const resourcePopulation = Number(resources.population ?? 0);
     const metricGreen = Number(metrics.green ?? 0);
     const result = new Map<string, CoreCardAffordability>();
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+    const occupiedCount = Object.keys(boardOccupied).length;
+    const adjacencyRequiredForPlacement = !freePlacementEnabled && occupiedCount > 0;
 
     for (const card of handCoreCards) {
+      const expectedDomain = normalizeDomain(card.domain);
       const costIndustry = Number(card.unlockCost?.industry ?? 0);
       const costTech = Number(card.unlockCost?.tech ?? 0);
       const costPopulation = Number(card.unlockCost?.population ?? 0);
@@ -62,16 +103,62 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       const needTech = Math.max(0, costTech - resourceTech);
       const needPopulation = Math.max(0, costPopulation - resourcePopulation);
       const needGreen = Math.max(0, costGreen - metricGreen);
+      const resourcesSatisfied = needIndustry === 0 && needTech === 0 && needPopulation === 0 && needGreen === 0;
+      let hasPlaceableTile = false;
+
+      for (let row = 0; row < boardSize; row += 1) {
+        if (hasPlaceableTile) {
+          break;
+        }
+        for (let col = 0; col < boardSize; col += 1) {
+          const key = `${row},${col}`;
+          if (boardOccupied[key]) {
+            continue;
+          }
+          if (expectedDomain && resolveTileDomain(row, col, boardSize) !== expectedDomain) {
+            continue;
+          }
+          if (!adjacencyRequiredForPlacement) {
+            hasPlaceableTile = true;
+            break;
+          }
+          let adjacent = false;
+          for (const [dr, dc] of dirs) {
+            const nr = row + dr;
+            const nc = col + dc;
+            if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+              continue;
+            }
+            if (boardOccupied[`${nr},${nc}`]) {
+              adjacent = true;
+              break;
+            }
+          }
+          if (adjacent) {
+            hasPlaceableTile = true;
+            break;
+          }
+        }
+      }
+
+      const blockedReason: CoreCardAffordability['blockedReason'] = !resourcesSatisfied
+        ? 'insufficient_resources'
+        : hasPlaceableTile
+          ? 'none'
+          : 'no_placeable_tile';
+
       result.set(card.cardId, {
-        canPlace: needIndustry === 0 && needTech === 0 && needPopulation === 0 && needGreen === 0,
+        canPlace: resourcesSatisfied && hasPlaceableTile,
         needIndustry,
         needTech,
         needPopulation,
-        needGreen
+        needGreen,
+        hasPlaceableTile,
+        blockedReason
       });
     }
     return result;
-  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green]);
+  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green, boardSize, boardOccupied, freePlacementEnabled]);
 
   const selectedCoreAffordability = selectedCoreCard ? coreAffordabilityMap.get(selectedCoreCard.cardId) : null;
 
@@ -175,9 +262,18 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
         if (boardOccupied[key]) {
           continue;
         }
+        const tileDomain = resolveTileDomain(row, col, boardSize);
+        if (selectedCoreDomain && tileDomain !== selectedCoreDomain) {
+          continue;
+        }
         let adjacency = 0;
         for (const [dr, dc] of dirs) {
-          const neighbor = `${row + dr},${col + dc}`;
+          const nr = row + dr;
+          const nc = col + dc;
+          if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+            continue;
+          }
+          const neighbor = `${nr},${nc}`;
           if (boardOccupied[neighbor]) {
             adjacency += 1;
           }
@@ -186,9 +282,21 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [selectedCoreId, boardSize, boardOccupied]);
+  }, [selectedCoreId, selectedCoreDomain, boardSize, boardOccupied]);
 
   const occupiedTileCount = useMemo(() => Object.keys(boardOccupied).length, [boardOccupied]);
+  const selectedDomainOccupiedTileCount = useMemo(() => {
+    if (!selectedCoreDomain) {
+      return occupiedTileCount;
+    }
+    return Object.keys(boardOccupied).reduce((count, key) => {
+      const [row, col] = key.split(',').map((value) => Number(value));
+      if (!Number.isInteger(row) || !Number.isInteger(col)) {
+        return count;
+      }
+      return resolveTileDomain(row, col, boardSize) === selectedCoreDomain ? count + 1 : count;
+    }, 0);
+  }, [selectedCoreDomain, boardOccupied, boardSize, occupiedTileCount]);
   const adjacencyRequired = !freePlacementEnabled && occupiedTileCount > 0;
 
   const placeableTileKeySet = useMemo(() => {
@@ -197,6 +305,10 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       for (let col = 0; col < boardSize; col += 1) {
         const key = `${row},${col}`;
         if (boardOccupied[key]) {
+          continue;
+        }
+        const tileDomain = resolveTileDomain(row, col, boardSize);
+        if (selectedCoreDomain && tileDomain !== selectedCoreDomain) {
           continue;
         }
         if (!adjacencyRequired) {
@@ -210,7 +322,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [boardSize, boardOccupied, adjacencyRequired, tileAdjacencyScoreMap]);
+  }, [boardSize, boardOccupied, selectedCoreDomain, adjacencyRequired, tileAdjacencyScoreMap]);
 
   const selectedTilePlaceable = selectedTile ? placeableTileKeySet.has(selectedTile) : false;
   const selectedTileAdjacency = selectedTile ? (tileAdjacencyScoreMap.get(selectedTile) || 0) : 0;
@@ -220,11 +332,16 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     if (!selectedCoreCard) {
       return result;
     }
+    const expectedDomain = selectedCoreDomain;
     const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
     for (let row = 0; row < boardSize; row += 1) {
       for (let col = 0; col < boardSize; col += 1) {
         const key = `${row},${col}`;
         if (boardOccupied[key]) {
+          continue;
+        }
+        const tileDomain = resolveTileDomain(row, col, boardSize);
+        if (expectedDomain && tileDomain !== expectedDomain) {
           continue;
         }
         const neighbors: TileSynergyNeighbor[] = [];
@@ -240,15 +357,15 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
             continue;
           }
           const neighborCard = catalog.get(neighborCardId);
-          const neighborDomain = String(neighborCard?.domain || 'unknown');
+          const neighborDomain = normalizeDomain(neighborCard?.domain);
           const neighborPhase = String(neighborCard?.phaseBucket || 'unknown');
           neighbors.push({
             position: neighborKey,
             cardId: neighborCardId,
             cardName: String(neighborCard?.chineseName || neighborCardId),
-            domain: neighborDomain,
+            domain: neighborDomain || 'unknown',
             phaseBucket: neighborPhase,
-            sameDomain: neighborDomain === selectedCoreCard.domain,
+            sameDomain: neighborDomain !== null && neighborDomain === expectedDomain,
             samePhase: neighborPhase === selectedCoreCard.phaseBucket
           });
         }
@@ -267,18 +384,21 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [selectedCoreCard, boardSize, boardOccupied, catalog]);
+  }, [selectedCoreCard, selectedCoreDomain, boardSize, boardOccupied, catalog]);
 
   const selectedTileSynergyBreakdown = selectedTile ? (tileSynergyBreakdownMap.get(selectedTile) || null) : null;
 
   const recommendedTile = useMemo(() => {
-    if (!selectedCoreId || tileSynergyBreakdownMap.size === 0) {
+    if (!selectedCoreId || tileSynergyBreakdownMap.size === 0 || placeableTileKeySet.size === 0) {
       return '';
     }
     let bestKey = '';
     let bestScore = -1;
     let bestAdjacency = -1;
     for (const [key, breakdown] of tileSynergyBreakdownMap.entries()) {
+      if (!placeableTileKeySet.has(key)) {
+        continue;
+      }
       const score = Number(breakdown.totalScore || 0);
       const adjacency = Number(breakdown.adjacencyBonus || 0);
       if (
@@ -292,7 +412,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return bestScore >= 0 ? bestKey : '';
-  }, [selectedCoreId, tileSynergyBreakdownMap]);
+  }, [selectedCoreId, tileSynergyBreakdownMap, placeableTileKeySet]);
 
   return {
     handCoreCards,

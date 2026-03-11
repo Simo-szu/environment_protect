@@ -98,12 +98,27 @@ export default function GamePlayPage() {
           size: controller.boardSize,
           occupied: Object.entries(controller.boardOccupied).map(([tile, cardId]) => ({ tile, cardId })),
           recommendedTile: controller.recommendedTile || null,
+          placeableTiles: Array.from(controller.placeableTileKeySet),
         },
         hand: {
           core: controller.handCoreCards.map((card) => card.cardId),
           policy: controller.handPolicyCards.map((card) => card.cardId),
         },
-        resources: controller.resources,
+        actionFlags: {
+          corePlacedThisTurn: controller.corePlacedThisTurn,
+          policyUsedThisTurn: controller.policyUsedThisTurn,
+        },
+        pendingDiscard: {
+          active: controller.pendingDiscardActive,
+          coreRequired: controller.pendingDiscardCoreRequired,
+          policyRequired: controller.pendingDiscardPolicyRequired,
+          requiredTotal: controller.pendingDiscardRequiredTotal,
+          targetHandSize: controller.pendingDiscardTargetHandSize,
+        },
+        resources: {
+          ...controller.resources,
+          green: Number(controller.metrics.green ?? 0),
+        },
         metrics: controller.metrics,
         trade: {
           quota: controller.tradeQuota,
@@ -168,7 +183,7 @@ export default function GamePlayPage() {
           turn={controller.turn}
           maxTurn={controller.maxTurn}
           phase={controller.phase}
-          domainProgress={controller.domainProgress}
+          carbon={Number(controller.metrics.carbon ?? 0)}
           turnFlowSteps={controller.turnFlowSteps}
           strictGuideMode={controller.strictGuideMode}
           handleBack={controller.handleBack}
@@ -187,6 +202,7 @@ export default function GamePlayPage() {
           currentGuidedTaskId={controller.currentGuidedTask?.id}
           boardViewMode={controller.boardViewMode}
           setBoardViewMode={controller.setBoardViewMode}
+          locale={controller.locale}
         />
       </div>
 
@@ -220,6 +236,13 @@ export default function GamePlayPage() {
             resources={controller.resources}
             metrics={controller.metrics}
             lowCarbonScore={controller.lowCarbonScore}
+            activeNegativeEvents={controller.activeNegativeEvents}
+            handPolicySet={controller.handPolicySet}
+            resolveEventLabel={controller.resolveEventLabel}
+            resolvePolicyIdsByEvent={controller.resolvePolicyIdsByEvent}
+            resolvePolicyDisplayLabel={controller.resolvePolicyDisplayLabel}
+            selectPolicyForEvent={controller.selectPolicyForEvent}
+            strictGuideMode={controller.strictGuideMode}
           />
         </aside>
 
@@ -273,6 +296,9 @@ export default function GamePlayPage() {
             runTradeAction={controller.runTradeAction}
             tradeActionDisabled={controller.tradeActionDisabled}
             tradeActionBlockedReason={controller.tradeActionBlockedReason}
+            normalizedTradeAmount={controller.normalizedTradeAmount}
+            estimatedTradeIndustryCost={controller.estimatedTradeIndustryCost}
+            resources={controller.resources}
             tradeWindowOpened={controller.tradeWindowOpened}
             tradeWindowInterval={controller.tradeWindowInterval}
             tradeQuota={controller.tradeQuota}
@@ -296,6 +322,12 @@ export default function GamePlayPage() {
         lastMessage={controller.lastMessage}
         transitionNotice={controller.transitionNotice}
         activeNegativeEvents={controller.activeNegativeEvents}
+        handPolicySet={controller.handPolicySet}
+        resolveEventLabel={controller.resolveEventLabel}
+        resolvePolicyIdsByEvent={controller.resolvePolicyIdsByEvent}
+        resolvePolicyDisplayLabel={controller.resolvePolicyDisplayLabel}
+        selectPolicyForEvent={controller.selectPolicyForEvent}
+        strictGuideMode={controller.strictGuideMode}
         showOnboarding={controller.showOnboarding}
         selectedCoreId={controller.selectedCoreId}
         selectedTile={controller.selectedTile}
@@ -320,6 +352,7 @@ export default function GamePlayPage() {
         settlementHistory={controller.settlementHistory}
         resources={controller.resources}
         metrics={controller.metrics}
+        lowCarbonScoreBreakdown={controller.lowCarbonScoreBreakdown}
         tradeQuota={controller.tradeQuota}
         tradeProfit={controller.tradeProfit}
         eventStats={controller.eventStats}
