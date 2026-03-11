@@ -142,6 +142,7 @@ export function useGamePlayController() {
   const transitionTimerRef = useRef<number | null>(null);
   const endingTimerRef = useRef<number | null>(null);
   const recoveredTimerRef = useRef<number | null>(null);
+  const tradeRequestInFlightRef = useRef(false);
   const [connectionState, setConnectionState] = useState<'online' | 'retrying' | 'offline' | 'recovered'>('online');
 
   function clearSavedSessionId() {
@@ -188,6 +189,11 @@ export function useGamePlayController() {
   const tradeProfit = Number(carbonTrade.profit || 0);
   const tradeHistory = Array.isArray(carbonTrade.history) ? carbonTrade.history : [];
   const latestTradeRecord = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1] : null;
+  const runtimeMaxCarbonQuotaRaw = Number(runtimeConfig.maxCarbonQuota);
+  const maxCarbonQuota = Number.isFinite(runtimeMaxCarbonQuotaRaw) && runtimeMaxCarbonQuotaRaw > 0
+    ? Math.floor(runtimeMaxCarbonQuotaRaw)
+    : 120;
+  const tradeQuotaCapacityLeft = Math.max(0, maxCarbonQuota - tradeQuota);
   const normalizedTradeAmount = useMemo(() => {
     const parsed = typeof tradeAmount === 'number' ? tradeAmount : Number(tradeAmount);
     if (!Number.isFinite(parsed)) {
@@ -196,6 +202,16 @@ export function useGamePlayController() {
     return Math.max(1, Math.floor(parsed));
   }, [tradeAmount]);
   const estimatedTradeIndustryCost = useMemo(() => Math.ceil(normalizedTradeAmount * tradeLastPrice), [normalizedTradeAmount, tradeLastPrice]);
+  const maxTradeAmount = useMemo(() => {
+    if (tradeType === 'sell') {
+      return Math.max(0, Math.floor(Number(tradeQuota) || 0));
+    }
+    const industryValue = Number(resources.industry ?? 0);
+    const affordableByIndustry = tradeLastPrice > 0
+      ? Math.max(0, Math.floor(industryValue / tradeLastPrice))
+      : 0;
+    return Math.max(0, Math.min(tradeQuotaCapacityLeft, affordableByIndustry));
+  }, [tradeType, tradeQuota, resources.industry, tradeLastPrice, tradeQuotaCapacityLeft]);
   const uniquePoliciesUsed = useMemo(
     () => new Set(policyHistory.map((record) => String(record.policyId || ''))).size,
     [policyHistory]
@@ -356,6 +372,19 @@ export function useGamePlayController() {
     if (!tradeWindowOpened) {
       return t('play.actions.blocked.tradeClosed', '当前回合不可交易。');
     }
+    if (maxTradeAmount <= 0) {
+      return tradeType === 'buy'
+        ? t('play.trade.errors.quotaCapacityReached', '当前配额容量已满或产业值不足，无法继续买入。')
+        : t('play.trade.errors.insufficientQuota', '配额不足：卖出 {amount} 需要至少 {amount} 配额，当前仅有 {current}。', {
+          amount: 1,
+          current: Number(tradeQuota)
+        });
+    }
+    if (normalizedTradeAmount > maxTradeAmount) {
+      return tradeType === 'buy'
+        ? t('play.trade.errors.buyAmountTooHigh', '买入数量过高：本回合最多可买入 {max}。', { max: maxTradeAmount })
+        : t('play.trade.errors.sellAmountTooHigh', '卖出数量过高：本回合最多可卖出 {max}。', { max: maxTradeAmount });
+    }
     if (tradeType === 'buy') {
       if (Number(resources.industry ?? 0) < estimatedTradeIndustryCost) {
         return t(
@@ -387,6 +416,7 @@ export function useGamePlayController() {
     resources.industry,
     estimatedTradeIndustryCost,
     normalizedTradeAmount,
+    maxTradeAmount,
     tradeQuota,
     t
   ]);
@@ -679,6 +709,10 @@ export function useGamePlayController() {
       );
     } else if (normalizedRaw.includes('carbon trade window is not open')) {
       message = t('play.actions.blocked.tradeClosed', '当前回合不可交易。');
+    } else if (normalizedRaw.includes('quota exceeds maximum capacity')) {
+      message = t('play.trade.errors.quotaCapacityReached', '当前配额容量已满或产业值不足，无法继续买入。');
+    } else if (normalizedRaw.includes('trade amount exceeds supported range')) {
+      message = t('play.trade.errors.tradeAmountOutOfRange', '交易数量超出系统支持范围，请降低交易配额后重试。');
     } else if (normalizedRaw.includes('discard required before other actions')) {
       message = t('play.actions.blocked.discardFirst', '请先完成弃牌。');
     }
@@ -786,15 +820,20 @@ export function useGamePlayController() {
     if (!sessionId) {
       return;
     }
+    if (tradeRequestInFlightRef.current) {
+      return;
+    }
     if (tradeActionBlockedReason) {
       setError(tradeActionBlockedReason);
       return;
     }
+    tradeRequestInFlightRef.current = true;
     setActionLoading(true);
     setError(null);
     try {
       const parsedTradeAmount = typeof tradeAmount === 'number' ? tradeAmount : Number(tradeAmount);
-      const amount = Number.isFinite(parsedTradeAmount) ? Math.max(1, Math.floor(parsedTradeAmount)) : 1;
+      const normalizedAmount = Number.isFinite(parsedTradeAmount) ? Math.max(1, Math.floor(parsedTradeAmount)) : 1;
+      const amount = Math.min(normalizedAmount, Math.max(1, maxTradeAmount));
       setTradeAmount(amount);
       const response = await tradeCarbon({
         sessionId,
@@ -803,8 +842,14 @@ export function useGamePlayController() {
       });
       applyActionResult(response);
     } catch (e: unknown) {
+      const rawMessage = (getErrorMessage(e) || '').toLowerCase();
+      // In case of rapid double click or stale UI state, force-sync session to avoid repeated trade errors.
+      if (rawMessage.includes('carbon trade window is not open')) {
+        await refreshSession();
+      }
       setError(handleRequestError(e, 'Carbon trade failed'));
     } finally {
+      tradeRequestInFlightRef.current = false;
       setActionLoading(false);
     }
   }
@@ -1061,6 +1106,7 @@ export function useGamePlayController() {
     normalizedTradeAmount,
     estimatedTradeIndustryCost,
     tradeWindowInterval,
+    maxTradeAmount,
     guidedTaskProgress,
     guidedTutorialCompleted,
     setGuidedTutorialActive,

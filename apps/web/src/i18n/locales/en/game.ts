@@ -204,6 +204,10 @@ const game = {
             errors: {
                 insufficientIndustry: 'Insufficient industry value: buying {amount} quota needs {cost}, current is {current}.',
                 insufficientQuota: 'Insufficient quota: selling {amount} needs at least {amount} quota, current is {current}.',
+                quotaCapacityReached: 'Quota capacity is full or industry value is insufficient, cannot buy more this turn.',
+                buyAmountTooHigh: 'Buy amount is too high: maximum buyable this turn is {max}.',
+                sellAmountTooHigh: 'Sell amount is too high: maximum sellable this turn is {max}.',
+                tradeAmountOutOfRange: 'Trade amount exceeds supported system range. Please lower the amount and retry.',
             },
             help: {
                 title: 'Carbon Trade Rules',

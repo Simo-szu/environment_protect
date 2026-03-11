@@ -55,6 +55,7 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'tradeActionDisabled'
   | 'tradeActionBlockedReason'
   | 'normalizedTradeAmount'
+  | 'maxTradeAmount'
   | 'estimatedTradeIndustryCost'
   | 'resources'
   | 'tradeWindowOpened'
@@ -161,6 +162,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     tradeActionDisabled,
     tradeActionBlockedReason,
     normalizedTradeAmount,
+    maxTradeAmount,
     estimatedTradeIndustryCost,
     resources,
     tradeWindowOpened,
@@ -724,6 +726,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   <input
                     type="number"
                     min={1}
+                    max={Math.max(1, maxTradeAmount)}
                     value={tradeAmount}
                     onChange={(event) => {
                       const rawValue = event.target.value;
@@ -741,7 +744,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       if (tradeAmount === '') {
                         return;
                       }
-                      setTradeAmount(Math.max(1, Math.floor(tradeAmount)));
+                      setTradeAmount(Math.max(1, Math.min(Math.floor(tradeAmount), Math.max(1, maxTradeAmount))));
                     }}
                     className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 px-2 py-1 text-sm"
                   />

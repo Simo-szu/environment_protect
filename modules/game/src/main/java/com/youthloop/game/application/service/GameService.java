@@ -1388,24 +1388,39 @@ public class GameService {
 
         ObjectNode resources = state.with("resources");
         int currentQuota = trade.path("quota").asInt(0);
+        int maxQuota = maxCarbonQuota();
         double price = trade.path("lastPrice").asDouble(baseCarbonPrice());
         double tradeValue = roundToOneDecimal(amount * price);
+        if (!Double.isFinite(tradeValue) || tradeValue < 0D) {
+            markTradeViolation(state, "invalid_amount");
+            throw new BizException(ErrorCode.INVALID_PARAMETER, "Trade amount exceeds supported range");
+        }
         double buyTotal = trade.path("buyAmountTotal").asDouble(0D);
         double sellTotal = trade.path("sellAmountTotal").asDouble(0D);
         int industryBefore = resources.path("industry").asInt();
 
         if ("buy".equals(tradeType)) {
-            if (currentQuota + amount > maxCarbonQuota()) {
+            if (amount > maxQuota) {
                 markTradeViolation(state, "quota_overflow");
                 throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Quota exceeds maximum capacity");
             }
-            int industryCost = (int) Math.ceil(tradeValue);
+            long quotaAfter = (long) currentQuota + amount;
+            if (quotaAfter > maxQuota) {
+                markTradeViolation(state, "quota_overflow");
+                throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Quota exceeds maximum capacity");
+            }
+            long industryCostLong = (long) Math.ceil(tradeValue);
+            if (industryCostLong > Integer.MAX_VALUE) {
+                markTradeViolation(state, "invalid_amount");
+                throw new BizException(ErrorCode.INVALID_PARAMETER, "Trade amount exceeds supported range");
+            }
+            int industryCost = (int) industryCostLong;
             if (industryBefore < industryCost) {
                 markTradeViolation(state, "insufficient_industry");
                 throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Insufficient industry value for trade");
             }
             resources.put("industry", industryBefore - industryCost);
-            trade.put("quota", currentQuota + amount);
+            trade.put("quota", (int) quotaAfter);
             buyTotal = roundToOneDecimal(buyTotal + tradeValue);
             trade.put("buyAmountTotal", buyTotal);
         } else if ("sell".equals(tradeType)) {
@@ -1413,8 +1428,18 @@ public class GameService {
                 markTradeViolation(state, "insufficient_quota");
                 throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Insufficient quota for selling");
             }
-            int industryGain = (int) Math.floor(tradeValue);
-            resources.put("industry", industryBefore + industryGain);
+            long industryGainLong = (long) Math.floor(tradeValue);
+            if (industryGainLong > Integer.MAX_VALUE) {
+                markTradeViolation(state, "invalid_amount");
+                throw new BizException(ErrorCode.INVALID_PARAMETER, "Trade amount exceeds supported range");
+            }
+            int industryGain = (int) industryGainLong;
+            long industryAfter = (long) industryBefore + industryGain;
+            if (industryAfter > Integer.MAX_VALUE) {
+                markTradeViolation(state, "invalid_amount");
+                throw new BizException(ErrorCode.INVALID_PARAMETER, "Trade amount exceeds supported range");
+            }
+            resources.put("industry", (int) industryAfter);
             trade.put("quota", currentQuota - amount);
             sellTotal = roundToOneDecimal(sellTotal + tradeValue);
             trade.put("sellAmountTotal", sellTotal);
@@ -2899,6 +2924,7 @@ public class GameService {
     private void syncRuntimeConfigForSession(ObjectNode state) {
         ObjectNode runtimeConfig = state.with("runtimeConfig");
         runtimeConfig.put("tradeWindowInterval", tradeWindowInterval());
+        runtimeConfig.put("maxCarbonQuota", maxCarbonQuota());
         runtimeConfig.put("freePlacementEnabled", freePlacementEnabled());
     }
 

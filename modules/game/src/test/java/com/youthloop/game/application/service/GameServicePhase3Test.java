@@ -1219,6 +1219,44 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void tradeCarbonShouldFailGracefullyWhenBuyAmountExceedsMaxQuotaCapacity() {
+        ObjectNode state = baseState();
+        state.with("carbonTrade").put("windowOpened", true);
+        state.with("carbonTrade").put("lastWindowTurn", 2);
+        state.with("carbonTrade").put("lastPrice", 2.0D);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(4);
+        request.setActionData(objectMapper.createObjectNode().put("tradeType", "buy").put("amount", 999999));
+
+        BizException ex = assertThrows(BizException.class, () -> gameService.performAction(request));
+        assertTrue(ex.getMessage().contains("Quota exceeds maximum capacity"));
+    }
+
+    @Test
+    void tradeCarbonShouldFailGracefullyWhenTradeValueOverflowsSupportedRange() {
+        ObjectNode state = baseState();
+        state.with("carbonTrade").put("windowOpened", true);
+        state.with("carbonTrade").put("lastWindowTurn", 2);
+        state.with("carbonTrade").put("lastPrice", Double.MAX_VALUE);
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(4);
+        request.setActionData(objectMapper.createObjectNode().put("tradeType", "buy").put("amount", 1));
+
+        BizException ex = assertThrows(BizException.class, () -> gameService.performAction(request));
+        assertTrue(ex.getMessage().contains("Trade amount exceeds supported range"));
+    }
+
+    @Test
     void getSessionByIdShouldProcessPendingDiscardTimeout() {
         ObjectNode state = baseState();
         state.withArray("handCore").add("card001").add("card002").add("card003").add("card004").add("card005").add("card006").add("card007");

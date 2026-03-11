@@ -297,6 +297,7 @@ export default function GamePlayPage() {
             tradeActionDisabled={controller.tradeActionDisabled}
             tradeActionBlockedReason={controller.tradeActionBlockedReason}
             normalizedTradeAmount={controller.normalizedTradeAmount}
+            maxTradeAmount={controller.maxTradeAmount}
             estimatedTradeIndustryCost={controller.estimatedTradeIndustryCost}
             resources={controller.resources}
             tradeWindowOpened={controller.tradeWindowOpened}

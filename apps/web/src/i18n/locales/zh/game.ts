@@ -203,6 +203,10 @@ const game = {
             errors: {
                 insufficientIndustry: '产业值不足：买入 {amount} 配额需 {cost} 产业值，当前仅有 {current}。',
                 insufficientQuota: '配额不足：卖出 {amount} 需要至少 {amount} 配额，当前仅有 {current}。',
+                quotaCapacityReached: '当前配额容量已满或产业值不足，无法继续买入。',
+                buyAmountTooHigh: '买入数量过高：本回合最多可买入 {max}。',
+                sellAmountTooHigh: '卖出数量过高：本回合最多可卖出 {max}。',
+                tradeAmountOutOfRange: '交易数量超出系统支持范围，请降低交易配额后重试。',
             },
             help: {
                 title: '碳交易规则说明',
