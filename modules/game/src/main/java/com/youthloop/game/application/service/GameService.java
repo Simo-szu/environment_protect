@@ -1584,6 +1584,24 @@ public class GameService {
             return;
         }
 
+        // Safety net: if the player reaches low-carbon baseline with controlled risk,
+        // avoid forcing a failure solely due to strict specialization thresholds.
+        boolean positiveBaselineReached = lowCarbonScore >= balance.lowCarbonMinForPositiveEnding()
+            && metrics.path("carbon").asInt() <= balance.failureHighCarbonThreshold()
+            && eventResolveRate >= Math.max(40D, balance.endingEventResolveRateRequired() - 30D);
+        if (positiveBaselineReached) {
+            if (counts.science >= counts.ecology && counts.science >= counts.society && counts.science >= counts.industry) {
+                setEnding(state, ENDING_INNOVATION, null);
+                return;
+            }
+            if (counts.ecology >= counts.society && counts.ecology >= counts.industry) {
+                setEnding(state, ENDING_ECOLOGY, null);
+                return;
+            }
+            setEnding(state, ENDING_DOUGHNUT, null);
+            return;
+        }
+
         setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_BOUNDARY_DEFAULT));
     }
 

@@ -190,8 +190,23 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     return en || segments[segments.length - 1];
   }
 
+  function resolveEventImageKey(eventType: string): string {
+    if (eventType === 'flood') {
+      return 'events/内涝.jpg';
+    }
+    if (eventType === 'sea_level_rise') {
+      return 'events/海平面上升.jpg';
+    }
+    if (eventType === 'citizen_protest') {
+      return 'events/市民抗议.jpg';
+    }
+    return '';
+  }
+
   const endingTitle = pickLocalizedText(ending?.endingName || '');
   const endingReason = pickLocalizedText(ending?.reason || '');
+  const endingImageUrl = resolveImageUrl(ending?.imageKey);
+  const scoreLabel = (zh: string, en: string) => (locale === 'zh' ? zh : en);
   const endingLowCarbonTarget = Number(lowCarbonScoreBreakdown?.target ?? 0);
   const endingLowCarbonGap = Math.max(0, Number(lowCarbonScoreBreakdown?.gapToTarget ?? 0));
   const endingLowCarbonTotal = Number(lowCarbonScoreBreakdown?.finalTotal ?? metrics.lowCarbonScore ?? 0);
@@ -245,6 +260,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
             <div className="mt-4 space-y-3">
               {activeNegativeEvents.map((event, index) => {
                 const eventType = String(event.eventType || '');
+                const eventImageUrl = resolveImageUrl(resolveEventImageKey(eventType));
                 const resolverIds = resolvePolicyIdsByEvent(eventType);
                 const resolverLabels = resolverIds
                   .map((id) => resolvePolicyDisplayLabel(id))
@@ -255,34 +271,52 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                     key={`${eventType || 'event'}-${index}`}
                     className="rounded-xl border border-rose-200 bg-rose-50/70 p-3"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-black text-rose-800">
-                        {resolveEventLabel(eventType)}
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="text-sm font-black text-rose-800">
+                            {resolveEventLabel(eventType)}
+                          </div>
+                          <div className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                            {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-slate-700">
+                          {availableResolverId
+                            ? t('play.events.modalResolverReady', '你当前手牌中已有可用政策，建议立即执行。')
+                            : t('play.events.modalResolverMissing', '当前手牌无直接解法政策，请优先保留政策位并尽快抽取。')}
+                        </div>
+                        <div className="mt-2 text-[11px] text-slate-600">
+                          {t('play.events.suggestedPolicies', '建议政策')}: {resolverLabels.join('、') || t('play.common.none', 'None')}
+                        </div>
+                        {availableResolverId ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              selectPolicyForEvent(eventType);
+                              setDismissedEventAlertToken(activeEventAlertToken);
+                            }}
+                            className="mt-3 rounded-lg bg-rose-700 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-white"
+                          >
+                            {t('play.events.selectResolver', 'Select Resolver Policy')}
+                          </button>
+                        ) : null}
                       </div>
-                      <div className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-                        {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+
+                      <div className="overflow-hidden rounded-xl border border-rose-200 bg-white/85">
+                        {eventImageUrl ? (
+                          <img
+                            src={eventImageUrl}
+                            alt={resolveEventLabel(eventType)}
+                            className="h-full min-h-[132px] w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex min-h-[132px] items-center justify-center px-3 text-center text-xs font-semibold text-slate-500">
+                            {t('play.events.imageMissing', 'Event image unavailable')}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="mt-2 text-xs text-slate-700">
-                      {availableResolverId
-                        ? t('play.events.modalResolverReady', '你当前手牌中已有可用政策，建议立即执行。')
-                        : t('play.events.modalResolverMissing', '当前手牌无直接解法政策，请优先保留政策位并尽快抽取。')}
-                    </div>
-                    <div className="mt-2 text-[11px] text-slate-600">
-                      {t('play.events.suggestedPolicies', '建议政策')}: {resolverLabels.join('、') || t('play.common.none', 'None')}
-                    </div>
-                    {availableResolverId ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          selectPolicyForEvent(eventType);
-                          setDismissedEventAlertToken(activeEventAlertToken);
-                        }}
-                        className="mt-3 rounded-lg bg-rose-700 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-white"
-                      >
-                        {t('play.events.selectResolver', 'Select Resolver Policy')}
-                      </button>
-                    ) : null}
                   </div>
                 );
               })}
@@ -549,33 +583,33 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   <div>{t('play.ending.summary.resolvedEvents', 'Resolved Events')}: {Number(eventStats.negativeResolved || 0)}</div>
                   <div>{t('play.ending.summary.resolveRate', 'Resolve Rate')}: {Number(eventStats.resolveRate ?? 0).toFixed(1)}%</div>
                   <div>{t('play.metrics.lowCarbon', 'Low Carbon Score')}: {endingLowCarbonTotal}</div>
-                  <div>{t('play.ending.summary.lowCarbonTarget', 'Low Carbon Target')}: {endingLowCarbonTarget}</div>
-                  <div>{t('play.ending.summary.lowCarbonGap', 'Gap to Target')}: {endingLowCarbonGap}</div>
+                  <div>{scoreLabel('低碳目标分', 'Low Carbon Target')}: {endingLowCarbonTarget}</div>
+                  <div>{scoreLabel('距离目标', 'Gap to Target')}: {endingLowCarbonGap}</div>
                 </div>
               </div>
 
               {!!lowCarbonScoreBreakdown && (
                 <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
-                  <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{t('play.ending.scoreBreakdown', 'Low-Carbon Score Breakdown')}</div>
+                  <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{scoreLabel('低碳总分构成', 'Low-Carbon Score Breakdown')}</div>
                   <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
-                    <div>{t('play.ending.breakdown.baseCards', 'Base Cards')}: {Number(lowCarbonScoreBreakdown.baseCards ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.latePhaseBonus', 'Late Phase Bonus')}: {Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.domainBonus', 'Domain Bonus')}: {Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.policyUnlockScore', 'Policy Unlock Score')}: {Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.policyUnlockAllBonus', 'Policy Unlock All Bonus')}: {Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.eventResolveScore', 'Event Resolve Score')}: {Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.eventUnresolvedPenalty', 'Event Unresolved Penalty')}: -{Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.carbonTierScore', 'Carbon Tier Score')}: {Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.overLimitPenalty', 'Over-limit Penalty')}: -{Number(lowCarbonScoreBreakdown.overLimitPenalty ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.tradeProfitScore', 'Trade Profit Score')}: {Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.quotaPenalty', 'Quota Penalty')}: -{Number(lowCarbonScoreBreakdown.quotaPenalty ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.invalidPenalty', 'Invalid Penalty')}: -{Number(lowCarbonScoreBreakdown.invalidPenalty ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.scoreBeforeBonuses', 'Score Before Settlement Bonuses')}: {Number(lowCarbonScoreBreakdown.scoreBeforeBonuses ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.settlementBonus', 'Settlement Bonus')}: {Number(lowCarbonScoreBreakdown.settlementBonus ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.phaseMatchBonus', 'Phase Match Bonus')}: {Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.percentageBonus', 'Percentage Bonus')}: {Number(lowCarbonScoreBreakdown.percentageBonus ?? 0)}%</div>
-                    <div>{t('play.ending.breakdown.rawTotal', 'Raw Total')}: {Number(lowCarbonScoreBreakdown.rawTotal ?? 0)}</div>
-                    <div>{t('play.ending.breakdown.finalTotal', 'Final Total')}: {Number(lowCarbonScoreBreakdown.finalTotal ?? 0)}</div>
+                    <div>{scoreLabel('基础卡分', 'Base Cards')}: {Number(lowCarbonScoreBreakdown.baseCards ?? 0)}</div>
+                    <div>{scoreLabel('后期阶段加成', 'Late Phase Bonus')}: {Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0)}</div>
+                    <div>{scoreLabel('板块均衡加成', 'Domain Bonus')}: {Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}</div>
+                    <div>{scoreLabel('政策解锁得分', 'Policy Unlock Score')}: {Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0)}</div>
+                    <div>{scoreLabel('全政策额外加成', 'Policy Unlock All Bonus')}: {Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}</div>
+                    <div>{scoreLabel('事件化解得分', 'Event Resolve Score')}: {Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}</div>
+                    <div>{scoreLabel('未化解事件扣分', 'Event Unresolved Penalty')}: -{Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}</div>
+                    <div>{scoreLabel('碳排分档得分', 'Carbon Tier Score')}: {Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0)}</div>
+                    <div>{scoreLabel('超限连续扣分', 'Over-limit Penalty')}: -{Number(lowCarbonScoreBreakdown.overLimitPenalty ?? 0)}</div>
+                    <div>{scoreLabel('碳交易盈利得分', 'Trade Profit Score')}: {Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}</div>
+                    <div>{scoreLabel('配额耗尽扣分', 'Quota Penalty')}: -{Number(lowCarbonScoreBreakdown.quotaPenalty ?? 0)}</div>
+                    <div>{scoreLabel('无效操作扣分', 'Invalid Penalty')}: -{Number(lowCarbonScoreBreakdown.invalidPenalty ?? 0)}</div>
+                    <div>{scoreLabel('结算前总分', 'Score Before Settlement Bonuses')}: {Number(lowCarbonScoreBreakdown.scoreBeforeBonuses ?? 0)}</div>
+                    <div>{scoreLabel('结算固定加成', 'Settlement Bonus')}: {Number(lowCarbonScoreBreakdown.settlementBonus ?? 0)}</div>
+                    <div>{scoreLabel('阶段匹配加成', 'Phase Match Bonus')}: {Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}</div>
+                    <div>{scoreLabel('百分比加成', 'Percentage Bonus')}: {Number(lowCarbonScoreBreakdown.percentageBonus ?? 0)}%</div>
+                    <div>{scoreLabel('加成后原始分', 'Raw Total')}: {Number(lowCarbonScoreBreakdown.rawTotal ?? 0)}</div>
+                    <div>{scoreLabel('最终低碳总分', 'Final Total')}: {Number(lowCarbonScoreBreakdown.finalTotal ?? 0)}</div>
                   </div>
                 </div>
               )}
@@ -586,19 +620,21 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                     {t('play.ending.snapshotTitle', 'Final Board Snapshot')}
                   </div>
                   <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-100 to-emerald-100/60 dark:border-slate-700 dark:from-slate-900 dark:to-slate-800">
-                    <img
-                      src={resolveImageUrl(ending.imageKey)}
-                      alt={endingTitle || ending.endingName}
-                      className="h-full w-full object-cover"
-                      onError={(event) => {
-                        const target = event.currentTarget;
-                        target.style.display = 'none';
-                        const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
-                        if (fallback instanceof HTMLElement) {
-                          fallback.style.display = 'flex';
-                        }
-                      }}
-                    />
+                    {endingImageUrl ? (
+                      <img
+                        src={endingImageUrl}
+                        alt={endingTitle || ending.endingName}
+                        className="h-full w-full object-cover"
+                        onError={(event) => {
+                          const target = event.currentTarget;
+                          target.style.display = 'none';
+                          const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
+                          if (fallback instanceof HTMLElement) {
+                            fallback.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
                   </div>
                   <div
                     data-ending-image-fallback

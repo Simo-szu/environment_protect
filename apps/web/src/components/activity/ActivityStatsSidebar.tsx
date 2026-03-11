@@ -18,21 +18,16 @@ export default function ActivityStatsSidebar({ onCategorySelect }: ActivityStats
 
     useEffect(() => {
         const loadStats = async () => {
-            try {
-                setLoading(true);
-                const now = new Date();
-                const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                const [s, c] = await Promise.all([
-                    activityApi.getActivitySummary(month),
-                    activityApi.getPopularActivityCategories(month, 1, 3)
-                ]);
-                setSummary(s);
-                setCategories(c);
-            } catch (error) {
-                console.error('Failed to load stats:', error);
-            } finally {
-                setLoading(false);
-            }
+            setLoading(true);
+            const now = new Date();
+            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const [s, c] = await Promise.all([
+                activityApi.getActivitySummary(month).catch(() => null),
+                activityApi.getPopularActivityCategories(month, 1, 3).catch(() => [])
+            ]);
+            setSummary(s);
+            setCategories(Array.isArray(c) ? c : []);
+            setLoading(false);
         };
         loadStats();
     }, []);

@@ -53,22 +53,16 @@ function ActivitiesPageContent() {
     // 加载活动数据
     useEffect(() => {
         const loadActivities = async () => {
-            try {
-                setLoading(true);
-                const result = await activityApi.getActivities({
-                    page: currentPage,
-                    size: itemsPerPage,
-                    sort: 'hot',
-                    category: selectedCategory
-                });
-                setActivities(result.items);
-                setTotalPages(Math.ceil(result.total / itemsPerPage));
-            } catch (error) {
-                console.error('Failed to load activities:', error);
-                // 失败时使用空数组
-            } finally {
-                setLoading(false);
-            }
+            setLoading(true);
+            const result = await activityApi.getActivities({
+                page: currentPage,
+                size: itemsPerPage,
+                sort: 'hot',
+                category: selectedCategory
+            }).catch(() => null);
+            setActivities(result?.items || []);
+            setTotalPages(Math.max(1, Math.ceil((result?.total || 0) / itemsPerPage)));
+            setLoading(false);
         };
 
         loadActivities();

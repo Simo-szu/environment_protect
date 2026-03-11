@@ -261,13 +261,16 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       );
     }
     const effectSummary = collectCoreContinuousEffects(card).slice(0, 3).join('  ');
+    const cardImageUrl = resolveImageUrl(card.imageKey);
     return (
       <>
-        <img
-          src={resolveImageUrl(card.imageKey)}
-          className="absolute inset-0 h-full w-full object-cover"
-          alt={locale === 'zh' ? card.chineseName : card.englishName}
-        />
+        {cardImageUrl ? (
+          <img
+            src={cardImageUrl}
+            className="absolute inset-0 h-full w-full object-cover"
+            alt={locale === 'zh' ? card.chineseName : card.englishName}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/88 via-slate-900/30 to-slate-950/10" />
         <div className="relative z-10 flex h-full flex-col justify-between p-2">
           <div className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
@@ -464,6 +467,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   <div key={`row-${rowIndex}`} className="relative h-[240px] overflow-visible">
                     {rowItems.map((item, itemIndex) => {
                       const { card, key, type } = item;
+                      const cardImageUrl = resolveImageUrl(card.imageKey);
                       const isHovered = hoveredHandCardKey === key;
                       const isCore = type === 'core';
                       const affordability = isCore ? coreAffordabilityMap.get(card.cardId) : null;
@@ -516,9 +520,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                           }}
                           className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-50' : 'opacity-80') : ''}`}
                         >
-                          {card.imageKey ? (
+                          {cardImageUrl ? (
                             <img
-                              src={resolveImageUrl(card.imageKey)}
+                              src={cardImageUrl}
                               className="absolute inset-0 h-full w-full object-cover"
                               alt={locale === 'zh' ? card.chineseName : card.englishName}
                               onError={(event) => {

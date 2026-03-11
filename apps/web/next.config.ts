@@ -39,6 +39,9 @@ const storagePublicBaseUrl = requireEnv('STORAGE_PUBLIC_BASE_URL');
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  env: {
+    NEXT_PUBLIC_STORAGE_BASE_URL: storagePublicBaseUrl,
+  },
   images: {
     remotePatterns: [parseRemotePattern(storagePublicBaseUrl)],
   },

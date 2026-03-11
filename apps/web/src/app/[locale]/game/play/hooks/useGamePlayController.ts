@@ -131,7 +131,9 @@ export function useGamePlayController() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [guidedTutorialActive, setGuidedTutorialActive] = useState(false);
-  const [storageBaseUrl, setStorageBaseUrl] = useState('');
+  const [storageBaseUrl, setStorageBaseUrl] = useState(
+    () => (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '')
+  );
   const [draggingCoreId, setDraggingCoreId] = useState('');
   const [dragOverTile, setDragOverTile] = useState('');
   const [boardViewMode, setBoardViewMode] = useState<BoardViewMode>('smart');
@@ -598,6 +600,7 @@ export function useGamePlayController() {
 
   useEffect(() => {
     let cancelled = false;
+    const fallbackBase = (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '');
     async function loadPublicConfig() {
       try {
         const config = await getPublicSystemConfig();
@@ -606,7 +609,10 @@ export function useGamePlayController() {
           setStorageBaseUrl(nextBase.replace(/\/+$/, ''));
         }
       } catch {
-        // Keep images unresolved when public config is unavailable.
+        // Keep env fallback when public config is unavailable.
+        if (!cancelled && fallbackBase) {
+          setStorageBaseUrl(fallbackBase);
+        }
       }
     }
     void loadPublicConfig();
@@ -615,9 +621,9 @@ export function useGamePlayController() {
     };
   }, []);
 
-  function resolveImageUrl(imageKey?: string | null): string {
+  function resolveImageUrl(imageKey?: string | null): string | undefined {
     if (!imageKey) {
-      return '';
+      return undefined;
     }
     if (imageKey.startsWith('http://') || imageKey.startsWith('https://')) {
       return imageKey;
@@ -628,7 +634,7 @@ export function useGamePlayController() {
     }
     const base = storageBaseUrl.trim().replace(/\/+$/, '');
     if (!base) {
-      return '';
+      return undefined;
     }
     return `${base}/${normalizedKey.replace(/^\/+/, '')}`;
   }

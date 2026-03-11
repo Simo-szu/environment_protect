@@ -76,12 +76,15 @@ export function AdminGameCardsTab() {
     const { t } = useSafeTranslation('admin');
     const [loading, setLoading] = useState(false);
     const [gameCards, setGameCards] = useState<AdminGameCardItem[]>([]);
-    const [storageBaseUrl, setStorageBaseUrl] = useState('');
+    const [storageBaseUrl, setStorageBaseUrl] = useState(
+        () => (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '')
+    );
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
+        const fallbackBase = (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '');
         const loadPublicConfig = async () => {
             try {
                 const config = await getPublicSystemConfig();
@@ -90,7 +93,9 @@ export function AdminGameCardsTab() {
                     setStorageBaseUrl(nextBase);
                 }
             } catch {
-                // Leave storage base empty when public config is unavailable.
+                if (!cancelled && fallbackBase) {
+                    setStorageBaseUrl(fallbackBase);
+                }
             }
         };
         void loadPublicConfig();

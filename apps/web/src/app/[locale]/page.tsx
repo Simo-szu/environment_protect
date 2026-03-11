@@ -49,31 +49,25 @@ export default function HomePage() {
     // 加载首页数据
     useEffect(() => {
         const loadHomeData = async () => {
-            try {
-                setLoading(true);
+            setLoading(true);
 
-                // 并行加载科普内容和活动
-                const [homeData, banners, contentsRes, activitiesRes, latestRecommendation, weeklyRecommendation] = await Promise.all([
-                    homeApi.getHomeData().catch(() => null),
-                    homeApi.getHomeBanners().catch(() => []),
-                    contentApi.getContents({ page: 1, size: 3, sort: 'latest' }),
-                    activityApi.getActivities({ page: 1, size: 3, sort: 'hot' }),
-                    recommendationApi.getLatestRecommendation().catch(() => null),
-                    recommendationApi.getWeeklyRecommendation().catch(() => null)
-                ]);
+            // 任何单个接口失败都不影响首页渲染，统一降级为空数据
+            const [homeData, banners, contentsRes, activitiesRes, latestRecommendation, weeklyRecommendation] = await Promise.all([
+                homeApi.getHomeData().catch(() => null),
+                homeApi.getHomeBanners().catch(() => []),
+                contentApi.getContents({ page: 1, size: 3, sort: 'latest' }).catch(() => ({ items: [] })),
+                activityApi.getActivities({ page: 1, size: 3, sort: 'hot' }).catch(() => ({ items: [] })),
+                recommendationApi.getLatestRecommendation().catch(() => null),
+                recommendationApi.getWeeklyRecommendation().catch(() => null)
+            ]);
 
-                setHomeDataAvailable(!!homeData);
-                setHomeBanners(banners);
-                setContents(contentsRes.items);
-                setActivities(activitiesRes.items);
-                setLatestRecommendationSource(latestRecommendation?.source || null);
-                setWeeklyRecommendationSource(weeklyRecommendation?.source || null);
-            } catch (error) {
-                console.error('Failed to load home data:', error);
-                // 失败时使用空数组，页面仍可正常显示
-            } finally {
-                setLoading(false);
-            }
+            setHomeDataAvailable(!!homeData);
+            setHomeBanners(Array.isArray(banners) ? banners : []);
+            setContents(contentsRes.items || []);
+            setActivities(activitiesRes.items || []);
+            setLatestRecommendationSource(latestRecommendation?.source || null);
+            setWeeklyRecommendationSource(weeklyRecommendation?.source || null);
+            setLoading(false);
         };
 
         loadHomeData();
