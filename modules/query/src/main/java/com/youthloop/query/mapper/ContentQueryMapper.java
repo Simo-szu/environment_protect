@@ -25,6 +25,7 @@ public interface ContentQueryMapper {
      */
     List<Map<String, Object>> selectContentListWithStats(
         @Param("type") Integer type,
+        @Param("sourceKeys") List<String> sourceKeys,
         @Param("status") Integer status,
         @Param("sort") String sort,
         @Param("offset") Integer offset,
@@ -36,6 +37,7 @@ public interface ContentQueryMapper {
      */
     Long countContentList(
         @Param("type") Integer type,
+        @Param("sourceKeys") List<String> sourceKeys,
         @Param("status") Integer status
     );
     

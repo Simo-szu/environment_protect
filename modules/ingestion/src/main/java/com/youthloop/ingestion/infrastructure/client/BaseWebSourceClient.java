@@ -113,7 +113,8 @@ public abstract class BaseWebSourceClient {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
             DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
             DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"),
-            DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm")
+            DateTimeFormatter.ofPattern("yyyy\u5e74M\u6708d\u65e5 HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy\u5e74MM\u6708dd\u65e5 HH:mm")
         );
         for (DateTimeFormatter formatter : localDateTimeFormatters) {
             try {
@@ -125,7 +126,8 @@ public abstract class BaseWebSourceClient {
         List<DateTimeFormatter> localDateFormatters = List.of(
             DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
             DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH),
-            DateTimeFormatter.ofPattern("yyyy年M月d日"),
+            DateTimeFormatter.ofPattern("yyyy\u5e74M\u6708d\u65e5"),
+            DateTimeFormatter.ofPattern("yyyy\u5e74MM\u6708dd\u65e5"),
             DateTimeFormatter.ofPattern("yyyy-MM-dd"),
             DateTimeFormatter.ofPattern("yyyy/MM/dd")
         );

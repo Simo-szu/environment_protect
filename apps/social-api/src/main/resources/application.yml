@@ -92,3 +92,14 @@ resend:
 # Google 登录配置
 google:
   client-id: ${GOOGLE_CLIENT_ID}
+
+ingestion:
+  ai-cleaner:
+    enabled: ${INGESTION_AI_CLEANER_ENABLED:false}
+    api-url: ${INGESTION_AI_CLEANER_API_URL:https://api.deepseek.com/v1/chat/completions}
+    api-key: ${INGESTION_AI_CLEANER_API_KEY:}
+    model: ${INGESTION_AI_CLEANER_MODEL:deepseek-chat}
+    connect-timeout-ms: ${INGESTION_AI_CLEANER_CONNECT_TIMEOUT_MS:5000}
+    read-timeout-ms: ${INGESTION_AI_CLEANER_READ_TIMEOUT_MS:20000}
+    max-input-body-chars: ${INGESTION_AI_CLEANER_MAX_INPUT_BODY_CHARS:14000}
+    max-summary-chars: ${INGESTION_AI_CLEANER_MAX_SUMMARY_CHARS:220}

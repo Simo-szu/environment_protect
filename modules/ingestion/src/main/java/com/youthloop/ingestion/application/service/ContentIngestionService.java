@@ -1,9 +1,9 @@
 package com.youthloop.ingestion.application.service;
 
-import com.youthloop.common.api.ErrorCode;
-import com.youthloop.common.exception.BizException;
 import com.youthloop.content.api.dto.CreateContentRequest;
 import com.youthloop.content.api.facade.ContentCommandFacade;
+import com.youthloop.common.api.ErrorCode;
+import com.youthloop.common.exception.BizException;
 import com.youthloop.ingestion.api.dto.DailyIngestionSummary;
 import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
 import com.youthloop.ingestion.api.dto.IngestionReport;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,6 +32,7 @@ public class ContentIngestionService {
     private final IngestionSettingsFacade ingestionSettingsFacade;
     private final ContentCommandFacade contentCommandFacade;
     private final List<ContentSourceClient> contentSourceClients;
+    private final AiContentCleanerService aiContentCleanerService;
 
     public DailyIngestionSummary ingestDaily() {
         IngestionSettingsDTO settings = ingestionSettingsFacade.getSettings();
@@ -60,6 +62,16 @@ public class ContentIngestionService {
     private IngestionReport ingestOneSource(ContentSourceClient client, IngestionSettingsDTO settings) {
         String sourceKey = client.sourceKey();
         IngestionSettingsDTO.SourceSettings sourceProperties = resolveSourceSettings(sourceKey, settings);
+        if (sourceProperties == null) {
+            log.info("Skip source {} because no settings found.", sourceKey);
+            return IngestionReport.builder()
+                .sourceKey(sourceKey)
+                .fetched(0)
+                .created(0)
+                .skipped(0)
+                .failed(0)
+                .build();
+        }
         if (!sourceProperties.isEnabled()) {
             log.info("Skip source {} because it is disabled.", sourceKey);
             return IngestionReport.builder()
@@ -80,26 +92,32 @@ public class ContentIngestionService {
             sourceProperties.getMaxPages(),
             sourceProperties.getMaxArticles(),
             settings.getRequestTimeoutMs(),
-            settings.getRequestIntervalMs()
+            sourceProperties.getRequestIntervalMs() != null
+                ? sourceProperties.getRequestIntervalMs()
+                : settings.getRequestIntervalMs()
         );
         fetched = articles.size();
 
         for (ExternalArticle article : articles) {
-            if (!isValidArticle(article)) {
+            ExternalArticle cleanedArticle = aiContentCleanerService.clean(article);
+
+            if (!isValidArticle(cleanedArticle)) {
                 skipped++;
                 continue;
             }
 
             try {
                 CreateContentRequest request = new CreateContentRequest();
-                request.setType(article.getType());
-                request.setTitle(article.getTitle());
-                request.setSummary(article.getSummary());
-                request.setCoverUrl(article.getCoverUrl());
-                request.setBody(article.getBody());
+                request.setType(sourceProperties.getContentType() != null
+                    ? sourceProperties.getContentType()
+                    : cleanedArticle.getType());
+                request.setTitle(cleanedArticle.getTitle());
+                request.setSummary(cleanedArticle.getSummary());
+                request.setCoverUrl(cleanedArticle.getCoverUrl());
+                request.setBody(cleanedArticle.getBody());
                 request.setSourceType(SOURCE_TYPE_CRAWLED);
-                request.setSourceUrl(article.getSourceUrl());
-                request.setPublishedAt(article.getPublishedAt());
+                request.setSourceUrl(cleanedArticle.getSourceUrl());
+                request.setPublishedAt(cleanedArticle.getPublishedAt());
                 request.setStatus(settings.getPublishStatus());
                 contentCommandFacade.createContent(request);
                 created++;
@@ -109,11 +127,11 @@ public class ContentIngestionService {
                 } else {
                     failed++;
                     log.warn("Create content failed for sourceUrl={}, code={}, message={}",
-                        article.getSourceUrl(), e.getCode(), e.getMessage());
+                        cleanedArticle.getSourceUrl(), e.getCode(), e.getMessage());
                 }
             } catch (Exception e) {
                 failed++;
-                log.error("Create content failed for sourceUrl={}", article.getSourceUrl(), e);
+                log.error("Create content failed for sourceUrl={}", cleanedArticle.getSourceUrl(), e);
             }
         }
 
@@ -130,11 +148,11 @@ public class ContentIngestionService {
     }
 
     private IngestionSettingsDTO.SourceSettings resolveSourceSettings(String sourceKey, IngestionSettingsDTO settings) {
-        return switch (sourceKey) {
-            case "earth" -> settings.getEarth();
-            case "ecoepn" -> settings.getEcoepn();
-            default -> throw new BizException(ErrorCode.INVALID_PARAMETER, "Unsupported source: " + sourceKey);
-        };
+        Map<String, IngestionSettingsDTO.SourceSettings> sources = settings.getSources();
+        if (sources == null || sources.isEmpty()) {
+            return null;
+        }
+        return sources.get(sourceKey);
     }
 
     private boolean isValidArticle(ExternalArticle article) {

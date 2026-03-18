@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.IngestionSourceConfigMapper">
+
+  <resultMap id="BaseResultMap" type="com.youthloop.ingestion.persistence.entity.IngestionSourceConfigEntity">
+    <id column="source_key" property="sourceKey" jdbcType="VARCHAR"/>
+    <result column="is_enabled" property="isEnabled" jdbcType="BOOLEAN"/>
+    <result column="max_pages" property="maxPages" jdbcType="INTEGER"/>
+    <result column="max_articles" property="maxArticles" jdbcType="INTEGER"/>
+    <result column="request_interval_ms" property="requestIntervalMs" jdbcType="BIGINT"/>
+    <result column="content_type" property="contentType" jdbcType="INTEGER"/>
+    <result column="placement" property="placement" jdbcType="VARCHAR"/>
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP_WITH_TIMEZONE"/>
+  </resultMap>
+
+  <sql id="BaseColumnList">
+    source_key, is_enabled, max_pages, max_articles, request_interval_ms,
+    content_type, placement, created_at, updated_at
+  </sql>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT <include refid="BaseColumnList"/>
+    FROM social.ingestion_source_config
+    ORDER BY source_key ASC
+  </select>
+
+  <select id="selectBySourceKey" resultMap="BaseResultMap">
+    SELECT <include refid="BaseColumnList"/>
+    FROM social.ingestion_source_config
+    WHERE source_key = #{sourceKey}
+  </select>
+
+  <insert id="upsert" parameterType="com.youthloop.ingestion.persistence.entity.IngestionSourceConfigEntity">
+    INSERT INTO social.ingestion_source_config (
+      source_key, is_enabled, max_pages, max_articles, request_interval_ms,
+      content_type, placement, created_at, updated_at
+    ) VALUES (
+      #{sourceKey}, #{isEnabled}, #{maxPages}, #{maxArticles}, #{requestIntervalMs},
+      #{contentType}, #{placement},
+      COALESCE(#{createdAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}, now()),
+      COALESCE(#{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}, now())
+    )
+    ON CONFLICT (source_key) DO UPDATE
+    SET
+      is_enabled = EXCLUDED.is_enabled,
+      max_pages = EXCLUDED.max_pages,
+      max_articles = EXCLUDED.max_articles,
+      request_interval_ms = EXCLUDED.request_interval_ms,
+      content_type = EXCLUDED.content_type,
+      placement = EXCLUDED.placement,
+      updated_at = EXCLUDED.updated_at
+  </insert>
+</mapper>
+

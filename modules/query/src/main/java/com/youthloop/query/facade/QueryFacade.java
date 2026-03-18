@@ -20,7 +20,14 @@ public interface QueryFacade {
     /**
      * 查询内容列表（含统计和用户状态）
      */
-    PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String sort, Integer page, Integer size);
+    PageResponse<ContentListItemDTO> getContentList(
+        Integer type,
+        String sourceKey,
+        Integer status,
+        String sort,
+        Integer page,
+        Integer size
+    );
     
     /**
      * 查询内容详情（含统计和用户状态）

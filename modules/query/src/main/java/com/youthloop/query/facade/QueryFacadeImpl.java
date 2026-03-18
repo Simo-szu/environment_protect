@@ -39,8 +39,15 @@ public class QueryFacadeImpl implements QueryFacade {
     }
     
     @Override
-    public PageResponse<ContentListItemDTO> getContentList(Integer type, Integer status, String sort, Integer page, Integer size) {
-        return contentQueryService.getContentList(type, status, sort, page, size);
+    public PageResponse<ContentListItemDTO> getContentList(
+        Integer type,
+        String sourceKey,
+        Integer status,
+        String sort,
+        Integer page,
+        Integer size
+    ) {
+        return contentQueryService.getContentList(type, sourceKey, status, sort, page, size);
     }
     
     @Override

@@ -1,17 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.youthloop.query.mapper.ContentQueryMapper">
 
-  <!-- 查询内容列表（含统计） -->
+  <sql id="sourceKeyFilter">
+    <if test="sourceKeys != null and sourceKeys.size() > 0">
+      AND (
+      <foreach collection="sourceKeys" item="key" separator=" OR ">
+        <choose>
+          <when test="key == 'owid_data_news'">
+            c.source_url LIKE '%ourworldindata.org/data-insights/%'
+          </when>
+          <when test="key == 'pudding_data_news'">
+            c.source_url LIKE '%pudding.cool/%'
+          </when>
+          <when test="key == 'iea_policy'">
+            c.source_url LIKE '%iea.org/policies/%'
+          </when>
+          <when test="key == 'kepuchina_wiki'">
+            c.source_url LIKE '%cloud.kepuchina.cn/newSearch/imgText%'
+          </when>
+          <when test="key == 'inen_co2'">
+            c.source_url LIKE '%huanbao.in-en.com%'
+          </when>
+          <when test="key == 'tanpaifang_cases'">
+            c.source_url LIKE '%tanpaifang.com/%'
+          </when>
+          <when test="key == 'sceex_market'">
+            c.source_url LIKE '%ets.sceex.com.cn/%'
+          </when>
+          <when test="key == 'cteam_cases'">
+            c.source_url LIKE '%cteam.org.cn/%'
+          </when>
+          <when test="key == 'earth'">
+            c.source_url LIKE '%earth.org/%'
+          </when>
+          <when test="key == 'ecoepn'">
+            c.source_url LIKE '%ecoepn.com/%'
+          </when>
+          <otherwise>
+            c.source_url LIKE CONCAT('%', #{key}, '%')
+          </otherwise>
+        </choose>
+      </foreach>
+      )
+    </if>
+  </sql>
+
   <select id="selectContentListWithStats" resultType="map">
-    SELECT 
+    SELECT
       c.id,
       c.type,
       c.title,
       c.summary,
       c.cover_url,
+      c.source_url,
       c.published_at,
       c.status,
       c.created_at,
@@ -29,7 +73,8 @@
       <if test="status != null">
         AND c.status = #{status}
       </if>
-    ORDER BY 
+      <include refid="sourceKeyFilter" />
+    ORDER BY
       <choose>
         <when test="sort == 'hot'">
           s.hot_score DESC NULLS LAST, c.published_at DESC NULLS LAST
@@ -41,7 +86,6 @@
     LIMIT #{limit} OFFSET #{offset}
   </select>
 
-  <!-- 统计内容总数 -->
   <select id="countContentList" resultType="long">
     SELECT COUNT(*)
     FROM social.content c
@@ -52,11 +96,11 @@
       <if test="status != null">
         AND c.status = #{status}
       </if>
+      <include refid="sourceKeyFilter" />
   </select>
 
-  <!-- 查询内容详情（含统计） -->
   <select id="selectContentDetailWithStats" resultType="map">
-    SELECT 
+    SELECT
       c.id,
       c.type,
       c.title,
@@ -80,9 +124,8 @@
     WHERE c.id = #{contentId}::uuid
   </select>
 
-  <!-- 批量查询用户对内容的反应状态 -->
   <select id="selectUserReactionsForContents" resultType="map">
-    SELECT 
+    SELECT
       r.target_id AS content_id,
       BOOL_OR(CASE WHEN r.reaction_type = 1 THEN true ELSE false END) AS liked,
       BOOL_OR(CASE WHEN r.reaction_type = 2 THEN true ELSE false END) AS favorited,
@@ -97,14 +140,14 @@
     GROUP BY r.target_id
   </select>
 
-  <!-- 查询最新内容（首页用） -->
   <select id="selectLatestContents" resultType="map">
-    SELECT 
+    SELECT
       c.id,
       c.type,
       c.title,
       c.summary,
       c.cover_url,
+      c.source_url,
       c.published_at,
       c.status,
       c.created_at,

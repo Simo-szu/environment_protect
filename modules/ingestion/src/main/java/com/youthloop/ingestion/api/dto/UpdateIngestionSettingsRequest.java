@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Admin request to update ingestion settings.
  */
@@ -40,6 +43,8 @@ public class UpdateIngestionSettingsRequest {
     @NotNull
     @Valid
     private SourceSettingsRequest ecoepn;
+    @Valid
+    private Map<String, SourceSettingsRequest> sources = new LinkedHashMap<>();
 
     @Data
     public static class SourceSettingsRequest {
@@ -53,5 +58,10 @@ public class UpdateIngestionSettingsRequest {
         @NotNull
         @Min(1)
         private Integer maxArticles;
+        @Min(0)
+        private Long requestIntervalMs;
+        @Min(1)
+        private Integer contentType;
+        private String placement;
     }
 }

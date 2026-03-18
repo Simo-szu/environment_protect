@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-@Tag(name = "内容查询", description = "内容聚合查询")
+@Tag(name = "Content Query", description = "Aggregated content query APIs")
 @RestController
 @RequestMapping("/api/v1/contents")
 @RequiredArgsConstructor
@@ -33,17 +33,18 @@ public class ContentQueryController {
     private final QueryFacade queryFacade;
     private final ContentStatsUpdateService contentStatsUpdateService;
 
-    @Operation(summary = "查询内容列表", description = "聚合查询内容列表")
+    @Operation(summary = "Get content list", description = "Query content list with stats and optional source filter")
     @GetMapping
     @ApiResponseContract(ApiEndpointKind.PAGE_LIST)
     public ApiSpecResponse<ApiPageData<ContentListItemDTO>> getContentList(
-        @Parameter(description = "内容类型") @RequestParam(value = "type", required = false) Integer type,
-        @Parameter(description = "状态") @RequestParam(value = "status", required = false) Integer status,
-        @Parameter(description = "排序") @RequestParam(value = "sort", defaultValue = "latest") String sort,
-        @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "20") Integer size
+        @Parameter(description = "Content type") @RequestParam(value = "type", required = false) Integer type,
+        @Parameter(description = "Source key, supports comma-separated values") @RequestParam(value = "sourceKey", required = false) String sourceKey,
+        @Parameter(description = "Status") @RequestParam(value = "status", required = false) Integer status,
+        @Parameter(description = "Sort") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "Page") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "20") Integer size
     ) {
-        PageResponse<ContentListItemDTO> result = queryFacade.getContentList(type, status, sort, page, size);
+        PageResponse<ContentListItemDTO> result = queryFacade.getContentList(type, sourceKey, status, sort, page, size);
         ApiPageData<ContentListItemDTO> pageData = new ApiPageData<>(
             result.getPage(),
             result.getSize(),
@@ -53,11 +54,11 @@ public class ContentQueryController {
         return ApiSpecResponse.ok(pageData);
     }
 
-    @Operation(summary = "查询内容详情", description = "聚合查询内容详情")
+    @Operation(summary = "Get content detail", description = "Query content detail and update view count")
     @GetMapping("/{id}")
     @ApiResponseContract(ApiEndpointKind.DETAIL)
     public ApiSpecResponse<ContentDetailDTO> getContentDetail(
-        @Parameter(description = "内容 ID") @PathVariable("id") UUID id
+        @Parameter(description = "Content ID") @PathVariable("id") UUID id
     ) {
         ContentDetailDTO detail = queryFacade.getContentDetail(id);
         if (detail != null) {
@@ -66,14 +67,14 @@ public class ContentQueryController {
         return ApiSpecResponse.ok(detail);
     }
 
-    @Operation(summary = "查询内容评论树", description = "根评论分页 + 最新回复")
+    @Operation(summary = "Get comment tree", description = "Query root comments with latest replies")
     @GetMapping("/{id}/comments")
     @ApiResponseContract(ApiEndpointKind.DETAIL)
     public ApiSpecResponse<CommentTreeDTO> getContentComments(
-        @Parameter(description = "内容 ID") @PathVariable("id") UUID id,
-        @Parameter(description = "排序") @RequestParam(value = "sort", defaultValue = "latest") String sort,
-        @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
-        @Parameter(description = "每页数量") @RequestParam(value = "size", defaultValue = "10") Integer size
+        @Parameter(description = "Content ID") @PathVariable("id") UUID id,
+        @Parameter(description = "Sort") @RequestParam(value = "sort", defaultValue = "latest") String sort,
+        @Parameter(description = "Page") @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @Parameter(description = "Page size") @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
         CommentTreeDTO tree = queryFacade.getCommentTree(1, id, sort, page, size);
         return ApiSpecResponse.ok(tree);

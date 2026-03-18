@@ -1,20 +1,15 @@
-/**
- * 科普内容相关 API
- */
-
 import { apiGet } from '../api-client';
 import { PageResponse } from '../api-types';
 
-// 内容类型（前端使用）
 export type ContentType = 'NEWS' | 'DYNAMIC' | 'POLICY' | 'WIKI';
 
-// 后端内容列表项 DTO（实际返回的结构）
 interface ContentListItemDTO {
   id: string;
-  type: number; // 1=新闻 2=动态 3=政策 4=百科
+  type: number;
   title: string;
   summary?: string;
-  coverUrl?: string; // 后端字段名
+  coverUrl?: string;
+  sourceUrl?: string;
   publishedAt: string;
   status: number;
   createdAt: string;
@@ -28,7 +23,6 @@ interface ContentListItemDTO {
   };
 }
 
-// 后端内容详情 DTO
 interface ContentDetailDTO {
   id: string;
   type: number;
@@ -51,34 +45,30 @@ interface ContentDetailDTO {
   };
 }
 
-// 前端内容项（UI 使用）
 export interface ContentItem {
   id: string;
   type: ContentType;
   title: string;
   summary?: string;
   coverImageUrl?: string;
+  sourceUrl?: string;
   authorName?: string;
   publishedAt: string;
   viewCount: number;
   likeCount: number;
-  favoriteCount: number; // 收藏数
+  favoriteCount: number;
   commentCount: number;
-  // 用户状态（已登录时）
   userState?: {
     liked: boolean;
     favorited: boolean;
   };
 }
 
-// 内容详情
 export interface ContentDetail extends ContentItem {
   content: string;
   tags?: string[];
-  sourceUrl?: string;
 }
 
-// 评论
 export interface Comment {
   id: string;
   userId: string;
@@ -92,7 +82,6 @@ export interface Comment {
   replies?: Comment[];
 }
 
-// 后端评论 DTO
 interface CommentDTO {
   id: string;
   targetType: number;
@@ -112,15 +101,39 @@ interface CommentDTO {
   replies?: CommentDTO[];
 }
 
-// 后端评论树 DTO
 interface CommentTreeDTO {
   rootComments: PageResponse<CommentDTO>;
   sort: string;
 }
 
-/**
- * 映射后端评论 DTO 到前端 Comment
- */
+const DATA_NEWS_SOURCE_PATTERNS = [
+  /ourworldindata\.org\/data-insights\//i,
+  /pudding\.cool\//i,
+];
+
+function mapContentType(type: number): ContentType {
+  const typeMap: Record<number, ContentType> = {
+    1: 'NEWS',
+    2: 'DYNAMIC',
+    3: 'POLICY',
+    4: 'WIKI',
+  };
+  return typeMap[type] || 'NEWS';
+}
+
+function mapContentTypeToBackend(type?: ContentType): number | undefined {
+  if (!type) {
+    return undefined;
+  }
+  const typeMap: Record<ContentType, number> = {
+    NEWS: 1,
+    DYNAMIC: 2,
+    POLICY: 3,
+    WIKI: 4,
+  };
+  return typeMap[type];
+}
+
 function mapCommentDtoToComment(dto: CommentDTO): Comment {
   return {
     id: dto.id,
@@ -135,106 +148,90 @@ function mapCommentDtoToComment(dto: CommentDTO): Comment {
   };
 }
 
-/**
- * 映射内容类型：后端 int → 前端 string
- */
-function mapContentType(type: number): ContentType {
-  const typeMap: Record<number, ContentType> = {
-    1: 'NEWS',
-    2: 'DYNAMIC',
-    3: 'POLICY',
-    4: 'WIKI',
-  };
-  return typeMap[type] || 'NEWS';
-}
-
-/**
- * 映射内容类型：前端 string → 后端 int
- */
-function mapContentTypeToBackend(type?: ContentType): number | undefined {
-  if (!type) return undefined;
-  const typeMap: Record<ContentType, number> = {
-    'NEWS': 1,
-    'DYNAMIC': 2,
-    'POLICY': 3,
-    'WIKI': 4,
-  };
-  return typeMap[type];
-}
-
-/**
- * 映射后端内容列表项 DTO 到前端 ContentItem
- */
 function mapContentListItemDtoToItem(dto: ContentListItemDTO): ContentItem {
   return {
     id: dto.id,
     type: mapContentType(dto.type),
     title: dto.title,
     summary: dto.summary,
-    coverImageUrl: dto.coverUrl, // 字段名映射
+    coverImageUrl: dto.coverUrl,
+    sourceUrl: dto.sourceUrl,
     publishedAt: dto.publishedAt,
     viewCount: dto.viewCount,
     likeCount: dto.likeCount,
-    favoriteCount: dto.favCount, // 添加收藏数映射
+    favoriteCount: dto.favCount,
     commentCount: dto.commentCount,
     userState: dto.userState,
   };
 }
 
-/**
- * 映射后端内容详情 DTO 到前端 ContentDetail
- */
 function mapContentDetailDtoToDetail(dto: ContentDetailDTO): ContentDetail {
   return {
     id: dto.id,
     type: mapContentType(dto.type),
     title: dto.title,
     summary: dto.summary,
-    coverImageUrl: dto.coverUrl, // 字段名映射
-    content: dto.body, // body → content
+    coverImageUrl: dto.coverUrl,
     sourceUrl: dto.sourceUrl,
+    content: dto.body,
     publishedAt: dto.publishedAt,
     viewCount: dto.viewCount,
     likeCount: dto.likeCount,
-    favoriteCount: dto.favCount, // 添加收藏数映射
+    favoriteCount: dto.favCount,
     commentCount: dto.commentCount,
     userState: dto.userState,
   };
 }
 
-/**
- * 获取内容列表
- */
 export async function getContents(params: {
   type?: ContentType;
+  sourceKey?: string;
   page?: number;
   size?: number;
   sort?: 'latest' | 'hot';
 }): Promise<PageResponse<ContentItem>> {
   const response = await apiGet<PageResponse<ContentListItemDTO>>('/api/v1/contents', {
     type: mapContentTypeToBackend(params.type),
+    sourceKey: params.sourceKey,
     page: params.page || 1,
     size: params.size || 10,
     sort: params.sort || 'latest',
   });
-  
+
   return {
     ...response,
-    items: response.items.map(mapContentListItemDtoToItem)
+    items: response.items.map(mapContentListItemDtoToItem),
   };
 }
 
-/**
- * 获取内容详情
- */
 export async function getContentDetail(id: string): Promise<ContentDetail> {
   const dto = await apiGet<ContentDetailDTO>(`/api/v1/contents/${id}`);
   return mapContentDetailDtoToDetail(dto);
 }
 
-/**
- * 获取内容评论
- */
+export function isDataNewsSourceUrl(sourceUrl?: string): boolean {
+  if (!sourceUrl) {
+    return false;
+  }
+  return DATA_NEWS_SOURCE_PATTERNS.some((pattern) => pattern.test(sourceUrl));
+}
+
+export async function getDataNewsContents(params: {
+  page?: number;
+  size?: number;
+  sort?: 'latest' | 'hot';
+} = {}): Promise<PageResponse<ContentItem>> {
+  const page = params.page || 1;
+  const targetSize = params.size || 6;
+  return getContents({
+    type: 'NEWS',
+    sourceKey: 'owid_data_news,pudding_data_news',
+    page,
+    size: targetSize,
+    sort: params.sort || 'latest',
+  });
+}
+
 export async function getContentComments(
   id: string,
   params: {
@@ -248,10 +245,9 @@ export async function getContentComments(
     page: params.page || 1,
     size: params.size || 10,
   });
-  
-  // 将 CommentTreeDTO 转换为 PageResponse<Comment>
+
   return {
     ...treeDto.rootComments,
-    items: treeDto.rootComments.items.map(mapCommentDtoToComment)
+    items: treeDto.rootComments.items.map(mapCommentDtoToComment),
   };
 }

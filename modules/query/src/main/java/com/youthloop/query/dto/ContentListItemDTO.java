@@ -8,56 +8,55 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 内容列表项聚合 DTO
- * 包含：主数据 + 统计 + 用户状态
+ * Aggregated content list item DTO.
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "内容列表项（聚合）")
+@Schema(description = "Aggregated content list item")
 public class ContentListItemDTO {
-    
-    // === 主数据 ===
-    @Schema(description = "内容 ID")
+
+    @Schema(description = "Content ID")
     private UUID id;
-    
-    @Schema(description = "内容类型：1=新闻 2=动态 3=政策 4=百科")
+
+    @Schema(description = "Content type: 1=news 2=dynamic 3=policy 4=wiki")
     private Integer type;
-    
-    @Schema(description = "标题")
+
+    @Schema(description = "Title")
     private String title;
-    
-    @Schema(description = "摘要")
+
+    @Schema(description = "Summary")
     private String summary;
-    
-    @Schema(description = "封面图 URL")
+
+    @Schema(description = "Cover image URL")
     private String coverUrl;
-    
-    @Schema(description = "发布时间")
+
+    @Schema(description = "Source URL")
+    private String sourceUrl;
+
+    @Schema(description = "Published time")
     private LocalDateTime publishedAt;
-    
-    @Schema(description = "状态：1=已发布 2=草稿 3=隐藏")
+
+    @Schema(description = "Status: 1=published 2=draft 3=hidden")
     private Integer status;
-    
-    @Schema(description = "创建时间")
+
+    @Schema(description = "Created time")
     private LocalDateTime createdAt;
-    
-    // === 统计信息 ===
-    @Schema(description = "点赞数")
+
+    @Schema(description = "Like count")
     private Integer likeCount;
-    
-    @Schema(description = "收藏数")
+
+    @Schema(description = "Favorite count")
     private Integer favCount;
-    
-    @Schema(description = "评论数")
+
+    @Schema(description = "Comment count")
     private Integer commentCount;
 
-    @Schema(description = "浏览数")
+    @Schema(description = "View count")
     private Long viewCount;
 
-    @Schema(description = "热度分数")
+    @Schema(description = "Hot score")
     private Long hotScore;
-    
-    // === 用户状态（登录时返回）===
-    @Schema(description = "用户状态（未登录时为 null）")
+
+    @Schema(description = "User state when logged in")
     private UserState userState;
 }

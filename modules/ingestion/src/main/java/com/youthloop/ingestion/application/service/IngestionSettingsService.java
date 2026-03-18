@@ -6,7 +6,9 @@ import com.youthloop.common.util.SecurityUtil;
 import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
 import com.youthloop.ingestion.api.dto.UpdateIngestionSettingsRequest;
 import com.youthloop.ingestion.persistence.entity.IngestionConfigEntity;
+import com.youthloop.ingestion.persistence.entity.IngestionSourceConfigEntity;
 import com.youthloop.ingestion.persistence.mapper.IngestionConfigMapper;
+import com.youthloop.ingestion.persistence.mapper.IngestionSourceConfigMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.support.CronExpression;
@@ -15,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -28,6 +33,7 @@ public class IngestionSettingsService {
     private static final int SINGLETON_ID = 1;
 
     private final IngestionConfigMapper ingestionConfigMapper;
+    private final IngestionSourceConfigMapper ingestionSourceConfigMapper;
 
     @Transactional(readOnly = true)
     public IngestionSettingsDTO getSettings() {
@@ -35,7 +41,8 @@ public class IngestionSettingsService {
         if (entity == null) {
             throw new BizException(ErrorCode.RESOURCE_NOT_FOUND, "Ingestion settings not found");
         }
-        return toDto(entity);
+        List<IngestionSourceConfigEntity> sourceEntities = ingestionSourceConfigMapper.selectAll();
+        return toDto(entity, sourceEntities);
     }
 
     @Transactional
@@ -56,6 +63,7 @@ public class IngestionSettingsService {
             entity.setCreatedAt(now);
             ingestionConfigMapper.insert(entity);
         }
+        upsertSourceConfigs(request, now);
 
         log.info("Updated ingestion settings by user={}", currentUserId);
         return getSettings();
@@ -73,9 +81,23 @@ public class IngestionSettingsService {
         } catch (Exception ex) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Invalid time zone");
         }
+
+        if (request.getSources() == null) {
+            return;
+        }
+        for (Map.Entry<String, UpdateIngestionSettingsRequest.SourceSettingsRequest> entry : request.getSources().entrySet()) {
+            String sourceKey = entry.getKey();
+            UpdateIngestionSettingsRequest.SourceSettingsRequest source = entry.getValue();
+            if (sourceKey == null || sourceKey.isBlank()) {
+                throw new BizException(ErrorCode.INVALID_PARAMETER, "Source key must not be blank");
+            }
+            if (source == null) {
+                throw new BizException(ErrorCode.INVALID_PARAMETER, "Source settings must not be null: " + sourceKey);
+            }
+        }
     }
 
-    private IngestionSettingsDTO toDto(IngestionConfigEntity entity) {
+    private IngestionSettingsDTO toDto(IngestionConfigEntity entity, List<IngestionSourceConfigEntity> sourceEntities) {
         IngestionSettingsDTO dto = new IngestionSettingsDTO();
         dto.setCron(entity.getCron());
         dto.setZone(entity.getZoneId());
@@ -84,19 +106,47 @@ public class IngestionSettingsService {
         dto.setRequestTimeoutMs(entity.getRequestTimeoutMs());
         dto.setRequestIntervalMs(entity.getRequestIntervalMs());
 
-        IngestionSettingsDTO.SourceSettings earth = new IngestionSettingsDTO.SourceSettings();
-        earth.setEnabled(Boolean.TRUE.equals(entity.getEarthEnabled()));
-        earth.setMaxPages(entity.getEarthMaxPages());
-        earth.setMaxArticles(entity.getEarthMaxArticles());
-        dto.setEarth(earth);
-
-        IngestionSettingsDTO.SourceSettings ecoepn = new IngestionSettingsDTO.SourceSettings();
-        ecoepn.setEnabled(Boolean.TRUE.equals(entity.getEcoepnEnabled()));
-        ecoepn.setMaxPages(entity.getEcoepnMaxPages());
-        ecoepn.setMaxArticles(entity.getEcoepnMaxArticles());
-        dto.setEcoepn(ecoepn);
+        Map<String, IngestionSettingsDTO.SourceSettings> sources = new LinkedHashMap<>();
+        for (IngestionSourceConfigEntity sourceEntity : sourceEntities) {
+            sources.put(sourceEntity.getSourceKey(), mapSourceToDto(sourceEntity));
+        }
+        ensureLegacySources(entity, sources);
+        dto.setSources(sources);
+        dto.setEarth(sources.get("earth"));
+        dto.setEcoepn(sources.get("ecoepn"));
 
         return dto;
+    }
+
+    private void ensureLegacySources(
+        IngestionConfigEntity entity,
+        Map<String, IngestionSettingsDTO.SourceSettings> sources
+    ) {
+        if (!sources.containsKey("earth")) {
+            IngestionSettingsDTO.SourceSettings earth = new IngestionSettingsDTO.SourceSettings();
+            earth.setEnabled(Boolean.TRUE.equals(entity.getEarthEnabled()));
+            earth.setMaxPages(entity.getEarthMaxPages());
+            earth.setMaxArticles(entity.getEarthMaxArticles());
+            sources.put("earth", earth);
+        }
+        if (!sources.containsKey("ecoepn")) {
+            IngestionSettingsDTO.SourceSettings ecoepn = new IngestionSettingsDTO.SourceSettings();
+            ecoepn.setEnabled(Boolean.TRUE.equals(entity.getEcoepnEnabled()));
+            ecoepn.setMaxPages(entity.getEcoepnMaxPages());
+            ecoepn.setMaxArticles(entity.getEcoepnMaxArticles());
+            sources.put("ecoepn", ecoepn);
+        }
+    }
+
+    private IngestionSettingsDTO.SourceSettings mapSourceToDto(IngestionSourceConfigEntity entity) {
+        IngestionSettingsDTO.SourceSettings source = new IngestionSettingsDTO.SourceSettings();
+        source.setEnabled(Boolean.TRUE.equals(entity.getIsEnabled()));
+        source.setMaxPages(entity.getMaxPages());
+        source.setMaxArticles(entity.getMaxArticles());
+        source.setRequestIntervalMs(entity.getRequestIntervalMs());
+        source.setContentType(entity.getContentType());
+        source.setPlacement(entity.getPlacement());
+        return source;
     }
 
     private IngestionConfigEntity toEntity(UpdateIngestionSettingsRequest request) {
@@ -114,5 +164,31 @@ public class IngestionSettingsService {
         entity.setEcoepnMaxPages(request.getEcoepn().getMaxPages());
         entity.setEcoepnMaxArticles(request.getEcoepn().getMaxArticles());
         return entity;
+    }
+
+    private void upsertSourceConfigs(UpdateIngestionSettingsRequest request, OffsetDateTime now) {
+        Map<String, UpdateIngestionSettingsRequest.SourceSettingsRequest> merged = new LinkedHashMap<>();
+        merged.put("earth", request.getEarth());
+        merged.put("ecoepn", request.getEcoepn());
+        if (request.getSources() != null) {
+            request.getSources().forEach((key, value) -> {
+                if (key != null && !key.isBlank() && value != null) {
+                    merged.put(key, value);
+                }
+            });
+        }
+
+        for (Map.Entry<String, UpdateIngestionSettingsRequest.SourceSettingsRequest> entry : merged.entrySet()) {
+            IngestionSourceConfigEntity sourceEntity = new IngestionSourceConfigEntity();
+            sourceEntity.setSourceKey(entry.getKey().trim());
+            sourceEntity.setIsEnabled(entry.getValue().getEnabled());
+            sourceEntity.setMaxPages(entry.getValue().getMaxPages());
+            sourceEntity.setMaxArticles(entry.getValue().getMaxArticles());
+            sourceEntity.setRequestIntervalMs(entry.getValue().getRequestIntervalMs());
+            sourceEntity.setContentType(entry.getValue().getContentType());
+            sourceEntity.setPlacement(entry.getValue().getPlacement());
+            sourceEntity.setUpdatedAt(now);
+            ingestionSourceConfigMapper.upsert(sourceEntity);
+        }
     }
 }
