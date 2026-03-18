@@ -28,9 +28,9 @@ export default function UnifiedHeader({
     // 导航项目
     const navigationItems = [
         { href: `/${locale}`, label: t('home', '首页') },
+        { href: `/${locale}/game`, label: t('game', '游戏') },
         { href: `/${locale}/science`, label: t('science', '科普') },
         { href: `/${locale}/activities`, label: t('activities', '活动') },
-        { href: `/${locale}/game`, label: t('game', '游戏') },
         { href: `/${locale}/points`, label: t('points', '积分') }
     ];
 

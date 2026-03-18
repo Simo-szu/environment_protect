@@ -103,6 +103,11 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                                 </Link>
                             </li>
                             <li>
+                                <Link href={`/${locale}/game`} className="text-slate-500 dark:text-slate-400 hover:text-[#56B949] dark:hover:text-[#56B949] transition-colors">
+                                    {t('game', '环保游戏')}
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href={`/${locale}/science`} className="text-slate-500 dark:text-slate-400 hover:text-[#56B949] dark:hover:text-[#56B949] transition-colors">
                                     {t('science', '环保科普')}
                                 </Link>
@@ -110,11 +115,6 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
                             <li>
                                 <Link href={`/${locale}/activities`} className="text-slate-500 dark:text-slate-400 hover:text-[#56B949] dark:hover:text-[#56B949] transition-colors">
                                     {t('activities', '活动广场')}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href={`/${locale}/game`} className="text-slate-500 dark:text-slate-400 hover:text-[#56B949] dark:hover:text-[#56B949] transition-colors">
-                                    {t('game', '环保游戏')}
                                 </Link>
                             </li>
                             <li>
