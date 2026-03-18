@@ -50,6 +50,7 @@ type PlayOverlaysProps = Pick<
   | 'eventStats'
   | 'locale'
   | 'handleOpenArchive'
+  | 'handleLoginToSave'
   | 'refreshSession'
   | 'handleRestartSession'
   | 'handleExitSession'
@@ -57,6 +58,7 @@ type PlayOverlaysProps = Pick<
   | 'setError'
   | 'setLastMessage'
   | 'setTransitionNotice'
+  | 'isLoggedIn'
 >;
 
 export default function PlayOverlays(props: PlayOverlaysProps) {
@@ -103,13 +105,15 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     eventStats,
     locale,
     handleOpenArchive,
+    handleLoginToSave,
     refreshSession,
     handleRestartSession,
     handleExitSession,
     setGuidedTutorialActive,
     setError,
     setLastMessage,
-    setTransitionNotice
+    setTransitionNotice,
+    isLoggedIn
   } = props;
   const [dismissedEventAlertToken, setDismissedEventAlertToken] = useState('');
 
@@ -560,7 +564,11 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">{endingReason || ending.reason}</div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                   <span>{t('play.ending.reachedTurn', 'Reached at turn: {turn}', { turn: ending.turn })}</span>
-                  <span>{t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })}</span>
+                  <span>
+                    {isLoggedIn
+                      ? t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })
+                      : t('play.ending.archiveCountdownLoginRequired', 'Login required to save and view archive replay')}
+                  </span>
                 </div>
               </div>
 
@@ -646,12 +654,21 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
               )}
 
               <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  onClick={handleOpenArchive}
-                  className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                >
-                  {t('play.ending.skip', 'Skip')}
-                </button>
+                {isLoggedIn ? (
+                  <button
+                    onClick={handleOpenArchive}
+                    className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                  >
+                    {t('play.ending.skip', 'Skip')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleLoginToSave}
+                    className="rounded border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/45"
+                  >
+                    {t('play.ending.loginToSave', 'Login to Save')}
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     void handleRestartSession();

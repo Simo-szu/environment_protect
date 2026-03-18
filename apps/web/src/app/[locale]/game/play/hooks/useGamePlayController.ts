@@ -12,6 +12,7 @@ import {
   tradeCarbon
 } from '@/lib/api/game';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { useAuth } from '@/hooks/useAuth';
 import { getPublicSystemConfig } from '@/lib/api/system';
 import { useGamePlayEffects } from './useGamePlayEffects';
 import {
@@ -61,6 +62,7 @@ export function useGamePlayController() {
   const params = useParams();
   const locale = (params.locale as string) || 'zh';
   const { t } = useSafeTranslation('game');
+  const { isLoggedIn } = useAuth();
 
   const onboardingSteps = useMemo(
     () => [
@@ -612,7 +614,12 @@ export function useGamePlayController() {
     turn,
     guidedTutorialActive,
     guidedTutorialCompleted,
-    onEndingTimeout: handleOpenArchive,
+    onEndingTimeout: () => {
+      if (!isLoggedIn) {
+        return;
+      }
+      handleOpenArchive();
+    },
     resolveTransitionNotice: (
       settlement: Record<string, unknown> | undefined,
       activeEvents: Array<Record<string, unknown>>
@@ -1040,11 +1047,21 @@ export function useGamePlayController() {
   }
 
   function handleOpenArchive() {
-    if (!sessionId) {
-      router.push(`/${locale}/game/archive`);
+    const target = !sessionId
+      ? `/${locale}/game/archive`
+      : `/${locale}/game/archive?sessionId=${encodeURIComponent(sessionId)}`;
+    if (!isLoggedIn) {
+      router.push(`/${locale}/login?redirect=${encodeURIComponent(target)}`);
       return;
     }
-    router.push(`/${locale}/game/archive?sessionId=${encodeURIComponent(sessionId)}`);
+    router.push(target);
+  }
+
+  function handleLoginToSave() {
+    const target = !sessionId
+      ? `/${locale}/game/archive`
+      : `/${locale}/game/archive?sessionId=${encodeURIComponent(sessionId)}`;
+    router.push(`/${locale}/login?redirect=${encodeURIComponent(target)}`);
   }
 
   function closeOnboarding(markSeen: boolean, keepGuidedActive: boolean) {
@@ -1113,6 +1130,7 @@ export function useGamePlayController() {
     strictGuideMode,
     handleBack,
     handleOpenArchive,
+    handleLoginToSave,
     refreshSession,
     handleRestartSession,
     handleExitSession,
@@ -1159,6 +1177,7 @@ export function useGamePlayController() {
     tradeProfit,
     latestTradeRecord,
     tradeWindowOpened,
+    isLoggedIn,
     activeNegativeEvents,
     resolveEventLabel,
     resolvePolicyHintByEvent,

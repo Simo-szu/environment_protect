@@ -8,14 +8,8 @@ import {
     Coins,
     User,
     CheckCircle,
-    XCircle,
-    RefreshCw,
     BookOpen,
-    Share2,
-    Gift,
-    Star,
-    Sprout,
-    Leaf
+    Footprints
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
@@ -23,7 +17,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import { fadeUp, staggerContainer, staggerItem, pageEnter, cardEnter } from '@/lib/animations';
 import { pointsApi, userApi } from '@/lib/api';
-import type { PointsAccount, DailyTask, DailyQuiz, SigninRecord } from '@/lib/api/points';
+import type { PointsAccount, DailyTask } from '@/lib/api/points';
 
 const taskCodeToI18nKey: Record<string, string> = {
     read_content: 'taskNames.readContent',
@@ -45,12 +39,11 @@ function PointsPageContent() {
     // 积分动画状态
     const [displayPoints, setDisplayPoints] = useState(0);
     const [pointsIncrement, setPointsIncrement] = useState<number | null>(null);
-
-    // 签到数据
-    const [todaySignin, setTodaySignin] = useState<SigninRecord | null>(null);
-    const [loadingSignin, setLoadingSignin] = useState(false);
-    const [signingIn, setSigningIn] = useState(false);
-    const [showCheckInAnimation, setShowCheckInAnimation] = useState(false);
+    const [walkingSteps, setWalkingSteps] = useState(0);
+    const [walkingClaimed, setWalkingClaimed] = useState(false);
+    const [syncingSteps, setSyncingSteps] = useState(false);
+    const WALKING_DAILY_TARGET = 5000;
+    const WALKING_REWARD_POINTS = 10;
 
     // 每日任务数据 - 添加默认模拟数据
     const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([
@@ -77,19 +70,6 @@ function PointsPageContent() {
 
     const [claimingTask, setClaimingTask] = useState<string | null>(null);
 
-    // 每日问答数据
-    const [todayQuiz, setTodayQuiz] = useState<DailyQuiz | null>(null);
-    const [loadingQuiz, setLoadingQuiz] = useState(false);
-    const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
-    const [quizSubmitted, setQuizSubmitted] = useState(false);
-    const [quizResult, setQuizResult] = useState<{ correct: boolean; earnedPoints: number; explanation?: string } | null>(null);
-
-    const [quizStates, setQuizStates] = useState<{ [key: number]: { answered: boolean; correct: boolean } }>({
-        1: { answered: false, correct: false },
-        2: { answered: false, correct: false },
-        3: { answered: false, correct: false }
-    });
-
     const getTaskDisplayName = (task: DailyTask) => {
         const normalizedCode = task.code?.toLowerCase();
         const i18nKey = normalizedCode ? taskCodeToI18nKey[normalizedCode] : undefined;
@@ -100,17 +80,8 @@ function PointsPageContent() {
         return task.name;
     };
 
-    // 签到日历状态 - 动态计算本周日期
-    const now = new Date();
-    const dayOfWeek = now.getDay() || 7; // 1 (Mon) - 7 (Sun)
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
-
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate() + i);
-        return d;
-    });
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const walkingStorageKey = `points-walking-${todayKey}`;
 
     // 加载积分账户
     useEffect(() => {
@@ -157,22 +128,26 @@ function PointsPageContent() {
         return () => clearInterval(timer);
     }, [displayPoints, pointsAccount]);
 
-    // 加载签到状态
     useEffect(() => {
-        const loadSigninStatus = async () => {
-            try {
-                const signin = await pointsApi.getTodaySignin();
-                setTodaySignin(signin);
-            } catch (error) {
-                console.error('Failed to load signin status:', error);
-                // 失败时不设置 loading 状态
-            }
-        };
-
-        if (isLoggedIn) {
-            loadSigninStatus();
+        if (typeof window === 'undefined') return;
+        const raw = window.localStorage.getItem(walkingStorageKey);
+        if (!raw) return;
+        try {
+            const parsed = JSON.parse(raw) as { steps?: number; claimed?: boolean };
+            setWalkingSteps(parsed.steps ?? 0);
+            setWalkingClaimed(Boolean(parsed.claimed));
+        } catch {
+            window.localStorage.removeItem(walkingStorageKey);
         }
-    }, [isLoggedIn]);
+    }, [walkingStorageKey]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(
+            walkingStorageKey,
+            JSON.stringify({ steps: walkingSteps, claimed: walkingClaimed })
+        );
+    }, [walkingSteps, walkingClaimed, walkingStorageKey]);
 
     // 加载每日任务
     useEffect(() => {
@@ -191,55 +166,32 @@ function PointsPageContent() {
         }
     }, [isLoggedIn]);
 
-    // 加载每日问答
-    useEffect(() => {
-        const loadTodayQuiz = async () => {
-            try {
-                const quiz = await pointsApi.getTodayQuiz();
-                setTodayQuiz(quiz);
-            } catch (error) {
-                console.error('Failed to load today quiz:', error);
-                // 失败时不设置 loading 状态
-            }
-        };
-
-        if (isLoggedIn) {
-            loadTodayQuiz();
-        }
-    }, [isLoggedIn]);
-
-    // 处理签到
-    const handleCheckIn = async () => {
-        if (todaySignin || signingIn) return;
-
+    const handleSyncWalkingSteps = async () => {
+        if (walkingClaimed) return;
         try {
-            setSigningIn(true);
-            setShowCheckInAnimation(true);
-
-            const result = await pointsApi.signin();
-            setTodaySignin(result);
-
-            // 显示增加的积分动画
-            setPointsIncrement(result.points);
-            setTimeout(() => setPointsIncrement(null), 2000);
-
-            // 重新加载积分账户以获取最新的等级和进度信息
-            const updatedAccount = await userApi.getMyPoints();
-            setPointsAccount(updatedAccount);
-
-            alert(t('alerts.signInSuccess', '签到成功！获得 {points} 积分', { points: result.points }));
-
-            // 动画结束后重置
-            setTimeout(() => {
-                setShowCheckInAnimation(false);
-            }, 1000);
-        } catch (error: any) {
-            console.error('Failed to signin:', error);
-            alert(error.message || t('alerts.signInFailed', '签到失败'));
-            setShowCheckInAnimation(false);
+            setSyncingSteps(true);
+            const simulatedSteps = Math.floor(3000 + Math.random() * 5000);
+            setWalkingSteps(simulatedSteps);
         } finally {
-            setSigningIn(false);
+            setSyncingSteps(false);
         }
+    };
+
+    const handleClaimWalkingReward = () => {
+        if (walkingClaimed || walkingSteps < WALKING_DAILY_TARGET) return;
+
+        setWalkingClaimed(true);
+        setPointsIncrement(WALKING_REWARD_POINTS);
+        setTimeout(() => setPointsIncrement(null), 2000);
+        setPointsAccount((prev) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                availablePoints: prev.availablePoints + WALKING_REWARD_POINTS,
+                totalPoints: prev.totalPoints + WALKING_REWARD_POINTS,
+                pointsToNextLevel: Math.max(0, (prev.pointsToNextLevel ?? 0) - WALKING_REWARD_POINTS),
+            };
+        });
     };
 
     // 领取任务奖励
@@ -274,37 +226,6 @@ function PointsPageContent() {
             setClaimingTask(null);
         }
     };
-
-    // 提交问答答案
-    const handleSubmitQuiz = async () => {
-        if (!todayQuiz || quizAnswer === null || quizSubmitted) return;
-
-        try {
-            const result = await pointsApi.submitQuizAnswer({
-                quizDate: todayQuiz.quizDate,
-                userAnswer: quizAnswer
-            });
-
-            setQuizResult(result);
-            setQuizSubmitted(true);
-
-            // 如果答对了，重新加载积分账户
-            if (result.correct) {
-                // 显示增加的积分动画
-                setPointsIncrement(result.earnedPoints);
-                setTimeout(() => setPointsIncrement(null), 2000);
-
-                // 重新加载积分账户以获取最新数据
-                const updatedAccount = await userApi.getMyPoints();
-                setPointsAccount(updatedAccount);
-            }
-        } catch (error: any) {
-            console.error('Failed to submit quiz:', error);
-            alert(error.message || t('alerts.submitFailed', '提交失败'));
-        }
-    };
-
-
 
     return (
         <Layout>
@@ -488,7 +409,6 @@ function PointsPageContent() {
                     variants={staggerItem}
                     className="grid grid-cols-1 lg:grid-cols-2 gap-8"
                 >
-                    {/* 2. 签到日历 Check-in Calendar */}
                     <motion.section
                         variants={cardEnter}
                         initial="hidden"
@@ -498,128 +418,59 @@ function PointsPageContent() {
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">
-                                {t('signInCalendar', '签到日历')}
+                                {t('walking.title', '步行记录')}
                             </h3>
-                            <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">
-                                {t('currentMonth', 'May 2024', { month: new Date().toLocaleDateString(locale === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'long' }) })}
-                            </div>
+                            <span className="text-xs text-[#56B949] bg-[#56B949]/10 px-2 py-1 rounded-full font-medium">
+                                +{WALKING_REWARD_POINTS} {t('points', '积分')}
+                            </span>
                         </div>
 
-                        {/* 日历可视区域 */}
-                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-6 flex-1 flex flex-col items-center justify-center relative overflow-hidden border border-slate-100 dark:border-slate-700">
-                            {/* 装饰背景 */}
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#56B949]/20 via-[#F0A32F]/20 to-[#30499B]/20"></div>
-
-                            <div className="grid grid-cols-7 gap-2 sm:gap-4 w-full text-center">
-                                {/* 星期头 */}
-                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                    <div key={day} className="text-xs text-slate-400 dark:text-slate-500 pb-2">{day}</div>
-                                ))}
-
-                                {/* 日期格子 */}
-                                {weekDays.map((date, index) => {
-                                    const isToday = date.toDateString() === new Date().toDateString();
-                                    const isFuture = date > new Date() && !isToday;
-                                    const dayNum = date.getDate();
-
-                                    // 简单的模拟状态逻辑
-                                    // 如果是今天，根据 todaySignin 判断
-                                    // 如果是过去，假设前几天已签到 (根据 consecutiveDays 推断)
-                                    const consecutiveDays = todaySignin?.consecutiveDays || 0;
-                                    // 今天的 index 是 index. index < (今天index) 的是从周一开始的天数
-                                    // 简单起见，我们只处理今天和未来，过去的日子显示为"漏签"或者随机，
-                                    // 但为了展示"连续签到"，我们可以倒推：
-                                    // 如果今天已签到(consecutiveDays >= 1)，那今天亮。
-                                    // 昨天(index-1) 如果 consecutiveDays >= 2，那昨天亮...
-
-                                    const todayIndex = (new Date().getDay() || 7) - 1;
-                                    const distFromToday = todayIndex - index; // 0 for today, 1 for yesterday
-
-                                    const isSigned = (isToday && !!todaySignin) ||
-                                        (distFromToday > 0 && todaySignin && distFromToday < todaySignin.consecutiveDays);
-
-                                    // 过去且未签到 -> 漏签
-                                    const isMissed = !isFuture && !isToday && !isSigned;
-
-                                    if (isFuture) {
-                                        return (
-                                            <div key={index} className="aspect-square rounded-lg bg-white dark:bg-slate-800/80 border border-transparent flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
-                                                {dayNum}
-                                            </div>
-                                        );
-                                    }
-
-                                    if (isToday) {
-                                        return (
-                                            <div
-                                                key={index}
-                                                onClick={handleCheckIn}
-                                                className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all duration-300 ${todaySignin
-                                                    ? 'bg-white dark:bg-slate-800 border border-[#56B949]/30 hover:shadow-md cursor-default'
-                                                    : 'bg-[#56B949]/5 border-2 border-[#56B949] hover:bg-[#56B949]/10 hover:scale-105 cursor-pointer'
-                                                    }`}
-                                            >
-                                                <span className={`text-[10px] font-bold absolute top-1 left-1 ${todaySignin ? 'text-slate-400 dark:text-slate-500' : 'text-[#56B949]'}`}>
-                                                    {dayNum}
-                                                </span>
-
-                                                {todaySignin ? (
-                                                    <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" />
-                                                ) : (
-                                                    <div className="text-xs font-bold text-[#56B949]">{signingIn ? '...' : t('calendar.signIn', '签到')}</div>
-                                                )}
-
-                                                {showCheckInAnimation && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <div className="w-8 h-8 rounded-full bg-[#56B949]/20 animate-ping"></div>
-                                                        <Sprout className="w-6 h-6 text-[#56B949] absolute animate-bounce" />
-                                                    </div>
-                                                )}
-
-                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">
-                                                    {todaySignin ? `${t('calendar.signedIn', '已签到')} +${todaySignin.points}` : t('calendar.clickToSignIn', '点击签到')}
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-
-                                    if (isSigned) {
-                                        return (
-                                            <div key={index} className="aspect-square rounded-lg bg-white dark:bg-slate-800 border border-[#56B949]/30 flex flex-col items-center justify-center relative group hover:shadow-md transition-shadow">
-                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 absolute top-1 left-1">{dayNum}</span>
-                                                <Sprout className="w-5 h-5 text-[#56B949] animate-bounce" style={{ animationDelay: `${index * 0.1}s` }} />
-                                                <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.signedIn', '已签到')}</div>
-                                            </div>
-                                        );
-                                    }
-
-                                    // Missed
-                                    return (
-                                        <div key={index} className="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 flex flex-col items-center justify-center relative group grayscale">
-                                            <span className="text-[10px] text-slate-400 dark:text-slate-500 absolute top-1 left-1">{dayNum}</span>
-                                            <Leaf className="w-5 h-5 text-[#8b5a2b] dark:text-[#a07a50] rotate-45 opacity-60" />
-                                            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-slate-900 border dark:border-slate-700 text-white text-[10px] px-2 py-1 rounded z-10 whitespace-nowrap">{t('status.missed', '漏签')}</div>
-                                        </div>
-                                    );
-                                })}
+                        <div className="flex-1 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-[#56B949]/10 text-[#56B949] flex items-center justify-center">
+                                    <Footprints className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-slate-500">{t('walking.todaySteps', '今日步数')}</p>
+                                    <p className="text-2xl font-bold text-[#30499B] dark:text-slate-100">{walkingSteps.toLocaleString()}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="mt-4 flex flex-row justify-between sm:justify-around items-center text-[10px] sm:text-sm text-slate-500 font-medium px-1 sm:px-2 gap-1 sm:gap-2 text-center">
-                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.signedDays', '已签到')}</span>
-                                <span><b className="text-[#30499B] dark:text-[#56B949] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+                            <div className="mt-5 space-y-2">
+                                <div className="flex justify-between text-xs text-slate-500">
+                                    <span>{t('walking.target', '目标')} {WALKING_DAILY_TARGET.toLocaleString()}</span>
+                                    <span>{Math.min(100, Math.floor((walkingSteps / WALKING_DAILY_TARGET) * 100))}%</span>
+                                </div>
+                                <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-[#56B949] to-[#30499B] transition-all duration-500"
+                                        style={{ width: `${Math.min(100, Math.floor((walkingSteps / WALKING_DAILY_TARGET) * 100))}%` }}
+                                    />
+                                </div>
                             </div>
-                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
-                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.consecutiveDays', '连续签到')}</span>
-                                <span><b className="text-[#30499B] dark:text-[#56B949] text-sm">{todaySignin ? todaySignin.consecutiveDays : 0}</b> {t('calendar.days', '天')}</span>
+
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <button
+                                    onClick={handleSyncWalkingSteps}
+                                    disabled={syncingSteps || walkingClaimed}
+                                    className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-[#30499B] dark:hover:border-[#56B949] transition disabled:opacity-50"
+                                >
+                                    {syncingSteps ? t('walking.syncing', '同步中...') : t('walking.sync', '同步步行记录')}
+                                </button>
+                                <button
+                                    onClick={handleClaimWalkingReward}
+                                    disabled={walkingClaimed || walkingSteps < WALKING_DAILY_TARGET}
+                                    className="px-4 py-2 rounded-lg text-sm font-semibold bg-[#56B949] text-white hover:bg-[#4aa840] transition disabled:opacity-50"
+                                >
+                                    {walkingClaimed
+                                        ? t('walking.claimed', '今日已领取')
+                                        : t('walking.claim', '领取步行积分')}
+                                </button>
                             </div>
-                            <div className="h-6 sm:h-3 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
-                            <div className="flex flex-col sm:flex-row items-center sm:gap-1">
-                                <span className="text-slate-400 dark:text-slate-500 mb-0.5 sm:mb-0">{t('calendar.missedDays', '已漏签')}</span>
-                                <span><b className="text-[#EE4035] dark:text-red-400 text-sm">2</b> {t('calendar.days', '天')}</span>
-                            </div>
+
+                            <p className="mt-4 text-xs text-slate-500">
+                                {t('walking.tip', '每日步数达到目标后可领取积分奖励，每天仅可领取一次。')}
+                            </p>
                         </div>
                     </motion.section>
 
@@ -719,129 +570,6 @@ function PointsPageContent() {
                         )}
                     </motion.section>
                 </motion.div>
-
-                {/* 4. 每日问答 Daily Quiz */}
-                <motion.section
-                    variants={staggerItem}
-                >
-                    <div className="flex items-center gap-3 mb-6">
-                        <h3 className="text-xl font-bold text-[#30499B] dark:text-[#56B949] font-serif">
-                            {t('dailyQuiz', '每日问答')}
-                        </h3>
-
-
-                    </div>
-
-                    <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: '-50px' }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    >
-                        {/* Backend Daily Quiz */}
-                        {true && (
-                            <motion.div
-                                variants={staggerItem}
-                                className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 relative overflow-hidden md:col-span-2 lg:col-span-3"
-                            >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-[#56B949]/5 rounded-bl-full"></div>
-                                <div className="relative z-10">
-                                    <div className="flex items-center justify-between gap-3 mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded-full bg-[#30499B] text-white text-xs font-bold flex items-center justify-center">Q</div>
-                                            <span className="text-xs text-[#30499B] font-medium">
-                                                +{todayQuiz?.points ?? 0} 积分
-                                            </span>
-                                        </div>
-
-                                        {todayQuiz?.answered && (
-                                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${todayQuiz?.isCorrect ? 'bg-[#56B949]/10 text-[#56B949]' : 'bg-[#EE4035]/10 text-[#EE4035]'}`}>
-                                                {todayQuiz?.isCorrect ? t('status.correct', '已答对') : t('status.answered', '已答过')}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {!todayQuiz ? (
-                                        <div className="text-sm text-slate-500">
-                                            {t('quiz.noQuizToday', '今天暂无问答')}
-                                        </div>
-                                    ) : todayQuiz && (
-                                        <>
-                                            <h4 className="text-sm font-semibold text-[#30499B] dark:text-[#56B949] mb-3">
-                                                {(todayQuiz!.question as any)?.title ?? (todayQuiz!.question as any)?.question ?? t('quiz.title', 'Daily Quiz')}
-                                            </h4>
-
-                                            {Array.isArray((todayQuiz!.question as any)?.options) ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                                                    {((todayQuiz!.question as any).options as any[]).map((option, index) => {
-                                                        const optionId = typeof option?.id === 'number' ? option.id : index + 1;
-                                                        const selected = quizAnswer === optionId;
-                                                        return (
-                                                            <button
-                                                                key={optionId}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (todayQuiz!.answered || quizSubmitted) return;
-                                                                    setQuizAnswer(optionId);
-                                                                    setQuizResult(null);
-                                                                    setQuizSubmitted(false);
-                                                                }}
-                                                                className={`w-full text-left p-3 rounded-xl text-xs transition-all border ${selected
-                                                                    ? 'border-[#56B949] bg-[#56B949]/10 text-slate-800 dark:text-slate-200'
-                                                                    : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600/50 text-slate-700 dark:text-slate-300'
-                                                                    } ${todayQuiz!.answered ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                                                disabled={todayQuiz!.answered}
-                                                            >
-                                                                {option?.text ?? option?.label ?? String(optionId)}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <div className="mb-4">
-                                                    <input
-                                                        type="number"
-                                                        placeholder={t('quiz.enterNumber', '请输入数字')}
-                                                        className="w-full p-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 rounded-xl text-xs focus:border-[#56B949] focus:outline-none"
-                                                        value={quizAnswer ?? ''}
-                                                        onChange={(e) => {
-                                                            const v = e.target.value;
-                                                            setQuizAnswer(v === '' ? null : Number(v));
-                                                            setQuizResult(null);
-                                                            setQuizSubmitted(false);
-                                                        }}
-                                                        disabled={todayQuiz!.answered}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSubmitQuiz}
-                                                    disabled={!todayQuiz || todayQuiz!.answered || quizSubmitted || quizAnswer === null}
-                                                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#30499B] dark:bg-[#56B949] text-white disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 dark:disabled:text-slate-500 transition-colors"
-                                                >
-                                                    {t('quiz.submit', '提交')}
-                                                </button>
-
-                                                {quizResult && (
-                                                    <div className={`text-xs font-medium ${quizResult!.correct ? 'text-[#56B949]' : 'text-[#EE4035]'}`}>
-                                                        {quizResult!.correct ? t('quiz.correctAnswer', '✓ 回答正确！') : t('quiz.wrongAnswer', '✗ 回答错误')}
-                                                        {quizResult!.correct && quizResult!.earnedPoints ? ` +${quizResult!.earnedPoints}` : ''}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-
-
-                    </motion.div>
-                </motion.section>
             </motion.div>
 
             <style jsx>{`

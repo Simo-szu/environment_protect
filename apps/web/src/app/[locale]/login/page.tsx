@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useConfig } from '@/components/GoogleProvider';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
@@ -33,6 +33,7 @@ export default function LoginPage() {
         remember: false
     });
     const [error, setError] = useState('');
+    const [notice, setNotice] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [sendingOtp, setSendingOtp] = useState(false);
@@ -41,6 +42,9 @@ export default function LoginPage() {
     const { login } = useAuth();
     const config = useConfig();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
+    const safeRedirect = redirect && redirect.startsWith('/') ? redirect : null;
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const googleBtnContainerRef = useRef<HTMLDivElement>(null);
@@ -71,6 +75,12 @@ export default function LoginPage() {
         }
     }, [countdown]);
 
+    useEffect(() => {
+        if (!notice) return;
+        const timer = setTimeout(() => setNotice(''), 3000);
+        return () => clearTimeout(timer);
+    }, [notice]);
+
     // 发送验证码
     const handleSendOtp = async () => {
         if (!formData.email.trim()) {
@@ -81,6 +91,7 @@ export default function LoginPage() {
         try {
             setSendingOtp(true);
             setError('');
+            setNotice('');
 
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
@@ -93,7 +104,7 @@ export default function LoginPage() {
 
             setOtpSent(true);
             setCountdown(60);
-            alert(t('login.otpSent', '验证码已发送'));
+            setNotice(t('login.otpSent', '验证码已发送'));
         } catch (error: any) {
             console.error('Failed to send OTP:', error);
             setError(error.message || t('login.errors.otpSendFailed', '发送验证码失败'));
@@ -112,7 +123,7 @@ export default function LoginPage() {
 
             const userProfile = await userApi.getMyProfile();
             login(userProfile);
-            router.push(`/${locale}`);
+            router.push(safeRedirect || `/${locale}`);
         } catch (error: any) {
             console.error('Google Login Error:', error);
             setError(error.message || t('login.errors.googleLoginFailed', 'Google 登录失败，请重试'));
@@ -174,7 +185,7 @@ export default function LoginPage() {
             login(userProfile);
 
             // 跳转到首页
-            router.push(`/${locale}`);
+            router.push(safeRedirect || `/${locale}`);
         } catch (error: any) {
             console.error('Login failed:', error);
 
@@ -233,6 +244,11 @@ export default function LoginPage() {
                             {error && (
                                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                                     {error}
+                                </div>
+                            )}
+                            {notice && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-lg text-sm">
+                                    {notice}
                                 </div>
                             )}
 
@@ -294,7 +310,11 @@ export default function LoginPage() {
                                         disabled={sendingOtp || countdown > 0 || submitting}
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] dark:text-[#56B949] hover:text-[#56B949] dark:hover:text-[#4aa840] disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed"
                                     >
-                                        {sendingOtp ? t('login.sendingOtp', '发送中...') : countdown > 0 ? t('login.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('login.getOtp', '获取验证码')}
+                                        {sendingOtp
+                                            ? t('login.sendingOtp', '发送中...')
+                                            : countdown > 0
+                                                ? t('login.retryAfter', '{seconds}秒后重试', { seconds: countdown })
+                                                : t('login.getOtp', '获取验证码')}
                                     </button>
                                 </div>
                             )}

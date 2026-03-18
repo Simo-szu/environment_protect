@@ -366,7 +366,9 @@ export default function GamePlayPage() {
         tradeProfit={controller.tradeProfit}
         eventStats={controller.eventStats}
         locale={controller.locale}
+        isLoggedIn={controller.isLoggedIn}
         handleOpenArchive={controller.handleOpenArchive}
+        handleLoginToSave={controller.handleLoginToSave}
         refreshSession={controller.refreshSession}
         handleRestartSession={controller.handleRestartSession}
         handleExitSession={controller.handleExitSession}

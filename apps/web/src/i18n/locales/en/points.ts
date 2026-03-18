@@ -28,6 +28,16 @@ const points = {
     currentMonth: '{month}',
     dailyTasks: 'Daily Tasks',
     tasksRemaining: 'Remaining today',
+    walking: {
+        title: 'Walking Record',
+        todaySteps: "Today's Steps",
+        target: 'Target',
+        sync: 'Sync Walking Record',
+        syncing: 'Syncing...',
+        claim: 'Claim Walking Points',
+        claimed: 'Claimed Today',
+        tip: 'Reach the daily step target to claim points. This reward can be claimed once per day.',
+    },
     dailyQuiz: 'Daily Quiz',
     quiz: {
         noQuizToday: 'No quiz available today',

@@ -34,6 +34,7 @@ export default function RegisterPage() {
         terms: false
     });
     const [error, setError] = useState('');
+    const [notice, setNotice] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -71,6 +72,12 @@ export default function RegisterPage() {
         }
     }, [countdown]);
 
+    useEffect(() => {
+        if (!notice) return;
+        const timer = setTimeout(() => setNotice(''), 3000);
+        return () => clearTimeout(timer);
+    }, [notice]);
+
     // 发送验证码
     const handleSendOtp = async () => {
         if (!formData.email.trim()) {
@@ -81,6 +88,7 @@ export default function RegisterPage() {
         try {
             setSendingOtp(true);
             setError('');
+            setNotice('');
 
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
@@ -92,7 +100,7 @@ export default function RegisterPage() {
             await authApi.sendEmailOtp(formData.email, 'register');
 
             setCountdown(60);
-            alert(t('register.otpSent', '验证码已发送'));
+            setNotice(t('register.otpSent', '验证码已发送'));
         } catch (error: any) {
             console.error('Failed to send OTP:', error);
             setError(error.message || t('register.errors.otpSendFailed', '发送验证码失败'));
@@ -265,6 +273,11 @@ export default function RegisterPage() {
                                     )}
                                 </div>
                             )}
+                            {notice && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-lg text-sm">
+                                    {notice}
+                                </div>
+                            )}
 
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-[#30499B] dark:group-focus-within:text-[#56B949] transition-colors">
@@ -318,7 +331,11 @@ export default function RegisterPage() {
                                     disabled={sendingOtp || countdown > 0 || submitting}
                                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-[#30499B] dark:text-[#56B949] hover:text-[#56B949] dark:hover:text-[#4aa840] disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed"
                                 >
-                                    {sendingOtp ? t('register.sendingOtp', '发送中...') : countdown > 0 ? t('register.retryAfter', '{seconds}秒后重试').replace('{seconds}', countdown.toString()) : t('register.getOtp', '获取验证码')}
+                                    {sendingOtp
+                                        ? t('register.sendingOtp', '发送中...')
+                                        : countdown > 0
+                                            ? t('register.retryAfter', '{seconds}秒后重试', { seconds: countdown })
+                                            : t('register.getOtp', '获取验证码')}
                                 </button>
                             </div>
 

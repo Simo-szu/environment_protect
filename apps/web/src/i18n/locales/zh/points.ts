@@ -27,6 +27,16 @@ const points = {
     currentMonth: '{month}',
     dailyTasks: '每日任务',
     tasksRemaining: '今日剩余',
+    walking: {
+        title: '步行记录',
+        todaySteps: '今日步数',
+        target: '目标',
+        sync: '同步步行记录',
+        syncing: '同步中...',
+        claim: '领取步行积分',
+        claimed: '今日已领取',
+        tip: '每日步数达到目标后可领取积分奖励，每天仅可领取一次。',
+    },
     dailyQuiz: '每日问答',
     quiz: {
         noQuizToday: '今天暂无问答',

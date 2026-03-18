@@ -1150,6 +1150,57 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void endTurnShouldNotRedrawPolicyAlreadyDrawnInCurrentSession() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.withArray("policyUnlocked").add("card061");
+        state.withArray("policyUnlocked").add("card062");
+        state.with("policyDrawStats").with("drawCount").put("card061", 1);
+        state.with("policyDrawStats").put("lastDrawn", "card061");
+        when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(List.of());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(1, next.withArray("handPolicy").size());
+        assertEquals("card062", next.withArray("handPolicy").get(0).asText());
+        assertEquals(1, next.with("policyDrawStats").with("drawCount").path("card061").asInt());
+        assertEquals(1, next.with("policyDrawStats").with("drawCount").path("card062").asInt());
+    }
+
+    @Test
+    void endTurnShouldSkipPolicyDrawWhenOnlyAlreadyDrawnPolicyExists() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.with("remainingPools").withArray("early").add("card001");
+        state.withArray("policyUnlocked").add("card061");
+        state.with("policyDrawStats").with("drawCount").put("card061", 1);
+        state.with("policyDrawStats").put("lastDrawn", "card061");
+        when(gameRuleConfigService.listPolicyUnlockRules()).thenReturn(List.of());
+
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(0, next.withArray("handPolicy").size());
+        assertEquals(1, next.with("policyDrawStats").with("drawCount").path("card061").asInt());
+    }
+
+    @Test
     void tradeCarbonShouldBuyQuotaAndCloseWindow() {
         ObjectNode state = baseState();
         state.with("carbonTrade").put("windowOpened", true);
