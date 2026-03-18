@@ -12,6 +12,8 @@ interface PlayHeaderProps {
   maxTurn: number;
   phase: string;
   carbon: number;
+  carbonQuota: number;
+  maxCarbonQuota: number;
   turnFlowSteps: TurnFlowStep[];
   strictGuideMode: boolean;
   handleBack: () => Promise<void>;
@@ -40,6 +42,8 @@ export default function PlayHeader(props: PlayHeaderProps) {
     maxTurn,
     phase,
     carbon,
+    carbonQuota,
+    maxCarbonQuota,
     turnFlowSteps,
     handleBack,
     handleOpenArchive,
@@ -168,8 +172,13 @@ export default function PlayHeader(props: PlayHeaderProps) {
     ] as Array<{ title: string; bullets: string[] }>;
   }, [locale]);
 
-  const carbonPct = clampPct(carbon);
-  const carbonHighRisk = carbonPct >= 70;
+  const carbonValue = Math.max(0, Math.round(Number(carbon) || 0));
+  const carbonQuotaValue = Math.max(0, Math.round(Number(carbonQuota) || 0));
+  const effectiveQuotaForPct = Math.max(1, carbonQuotaValue);
+  const carbonPct = clampPct((carbonValue / effectiveQuotaForPct) * 100);
+  const carbonOverLimit = carbonValue > carbonQuotaValue;
+  const carbonHighRisk = carbonOverLimit || carbonPct >= 85;
+  const carbonRemaining = carbonQuotaValue - carbonValue;
   const carbonToneClass = carbonHighRisk
     ? 'text-rose-600 dark:text-rose-300'
     : 'text-emerald-600 dark:text-emerald-300';
@@ -220,59 +229,67 @@ export default function PlayHeader(props: PlayHeaderProps) {
         </div>
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center justify-center gap-3 overflow-visible">
-        <details className="relative group">
-          <summary className="list-none cursor-pointer px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-[10px] font-black tracking-wide text-slate-600 dark:text-slate-200 flex items-center gap-2">
-            <span className="text-slate-400 dark:text-slate-500">{t('play.stats.carbonProgress', 'Carbon')}</span>
-            <span className={carbonToneClass}>{carbonPct}%</span>
-            <span className={carbonToneClass}>{carbonStatusLabel}</span>
+      <div className="flex-1 min-w-0 flex items-center justify-center overflow-visible">
+        <details className="relative group w-full max-w-[430px]">
+          <summary className={`list-none cursor-pointer px-3 py-2 rounded-2xl border-2 ${carbonHighRisk ? 'border-rose-300 bg-rose-50/90 dark:border-rose-700/70 dark:bg-rose-950/20' : 'border-emerald-300 bg-emerald-50/90 dark:border-emerald-700/70 dark:bg-emerald-950/25'} text-slate-700 dark:text-slate-100 flex flex-col gap-1 shadow-sm`}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{t('play.stats.carbonProgress', 'Carbon Emission Cap')}</span>
+                <span className="rounded-full border border-emerald-400/60 bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-emerald-700 dark:border-emerald-300/50 dark:bg-emerald-300/10 dark:text-emerald-200">
+                  {t('play.stats.carbonQuotaTag', 'Quota')}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-end gap-1">
+                <span className={`text-[20px] leading-none font-black ${carbonToneClass}`}>{carbonValue}/{carbonQuotaValue}</span>
+                <span className={`pb-0.5 text-[12px] leading-none font-black ${carbonToneClass}`}>{carbonPct}%</span>
+                <span className={`pb-0.5 text-[11px] leading-none font-black ${carbonToneClass}`}>{carbonStatusLabel}</span>
+              </div>
+            </div>
+            <div className="h-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 overflow-hidden">
+              <div className={`h-full rounded-full transition-all ${carbonBarClass}`} style={{ width: `${Math.min(100, carbonPct)}%` }} />
+            </div>
           </summary>
-          <div className="absolute top-full left-0 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 p-3 shadow-xl z-[130]">
+          <div className="absolute top-full left-0 mt-2 w-[min(92vw,360px)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 p-3 shadow-xl z-[130]">
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
-              {t('play.stats.carbonProgress', 'Carbon Emission Progress')}
+              {t('play.stats.carbonProgress', 'Carbon Emission Cap')}
             </div>
             <div className="space-y-2">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                  <span>{t('play.metrics.carbon', 'Carbon')}</span>
-                  <span className={carbonToneClass}>{carbonPct}%</span>
+                  <span>{t('play.stats.emissionQuotaRatio', 'Emission / Quota')}</span>
+                  <span className={carbonToneClass}>{carbonValue}/{carbonQuotaValue} ({carbonPct}%)</span>
                 </div>
                 <div className="h-2 mt-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all ${carbonBarClass}`} style={{ width: `${carbonPct}%` }} />
+                  <div className={`h-full rounded-full transition-all ${carbonBarClass}`} style={{ width: `${Math.min(100, carbonPct)}%` }} />
                 </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-[10px] dark:border-slate-700 dark:bg-slate-800">
+                  <div className="text-slate-500 dark:text-slate-400">{t('play.stats.currentEmission', 'Emission')}</div>
+                  <div className="font-black text-slate-800 dark:text-slate-100">{carbonValue}</div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-[10px] dark:border-slate-700 dark:bg-slate-800">
+                  <div className="text-slate-500 dark:text-slate-400">{t('play.stats.currentQuota', 'Quota')}</div>
+                  <div className="font-black text-slate-800 dark:text-slate-100">{carbonQuotaValue}</div>
+                </div>
+                <div className={`rounded-lg border px-2 py-1.5 text-[10px] ${carbonRemaining < 0 ? 'border-rose-200 bg-rose-50 dark:border-rose-900/60 dark:bg-rose-950/20' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'}`}>
+                  <div className={carbonRemaining < 0 ? 'text-rose-600 dark:text-rose-300' : 'text-emerald-600 dark:text-emerald-300'}>
+                    {t('play.stats.remainingQuota', 'Remaining')}
+                  </div>
+                  <div className={`font-black ${carbonRemaining < 0 ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-700 dark:text-emerald-200'}`}>{carbonRemaining}</div>
+                </div>
+              </div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                {t('play.stats.quotaCapHint', 'Trade quota cap')}: {maxCarbonQuota}
               </div>
               <div className={`text-[11px] font-semibold ${carbonToneClass}`}>
                 {carbonHighRisk
-                  ? t('play.stats.carbonWarning', 'Red alert: carbon emission is too high.')
-                  : t('play.stats.carbonHealthy', 'Green status: carbon emission is under control.')}
+                  ? t('play.stats.carbonWarning', 'Red alert: emissions are near or above the cap.')
+                  : t('play.stats.carbonHealthy', 'Green status: emissions are within quota.')}
               </div>
             </div>
           </div>
         </details>
-
-        <div className="hidden md:flex w-[min(32vw,320px)] items-center justify-center">
-          <div className="w-full flex items-center gap-1 px-2.5 py-1.5 bg-slate-100/60 dark:bg-slate-900/60 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm relative group overflow-visible">
-            {turnFlowSteps.map((step, idx) => (
-              <div key={step.id} className="flex-1 flex items-center group/step relative justify-center">
-                {idx > 0 && (
-                  <div className={`absolute left-[-50%] top-1/2 -translate-y-1/2 w-full h-[2px] rounded-full ${step.active || step.done ? 'bg-emerald-500/40' : 'bg-slate-300 dark:bg-slate-700'}`} />
-                )}
-                <div
-                  title={step.label}
-                  className={`relative z-10 w-2.5 h-2.5 rounded-full transition-all duration-500 ${step.done
-                    ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                    : step.active
-                      ? 'bg-emerald-400 ring-4 ring-emerald-400/25 scale-110'
-                      : 'bg-slate-300 dark:bg-slate-600'
-                    }`}
-                />
-                <span className="pointer-events-none absolute top-full mt-2 px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-bold whitespace-nowrap opacity-0 group-hover/step:opacity-100 transition-opacity z-[130]">
-                  {step.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div className="flex w-full sm:w-auto items-center justify-end gap-2 shrink-0">

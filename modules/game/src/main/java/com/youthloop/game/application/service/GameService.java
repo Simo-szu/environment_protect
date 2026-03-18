@@ -337,6 +337,8 @@ public class GameService {
         root.putNull("ending");
         root.put("guestSession", guestSession);
         root.put("boardSize", balance.boardSize());
+        root.put("boardRows", balance.boardSize());
+        root.put("boardCols", Math.max(balance.boardSize(), balance.boardSize() + 2));
         root.set("boardOccupied", objectMapper.createObjectNode());
         ObjectNode runtimeConfig = root.putObject("runtimeConfig");
         runtimeConfig.put("endingDisplaySeconds", endingDisplaySeconds());
@@ -494,8 +496,9 @@ public class GameService {
     private int handleRemoveCoreCard(ObjectNode state, JsonNode actionData) {
         int row = readRequiredInt(actionData, "row");
         int col = readRequiredInt(actionData, "col");
-        int boardSize = state.path("boardSize").asInt(balanceRule().boardSize());
-        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+        int boardRows = boardRows(state);
+        int boardCols = boardCols(state);
+        if (row < 0 || row >= boardRows || col < 0 || col >= boardCols) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Tile is out of board range");
         }
 
@@ -710,8 +713,9 @@ public class GameService {
     }
 
     private void validateBoardPlacement(ObjectNode state, int row, int col) {
-        int boardSize = state.path("boardSize").asInt(balanceRule().boardSize());
-        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
+        int boardRows = boardRows(state);
+        int boardCols = boardCols(state);
+        if (row < 0 || row >= boardRows || col < 0 || col >= boardCols) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Tile is out of board range");
         }
         ObjectNode occupied = state.with("boardOccupied");
@@ -735,6 +739,16 @@ public class GameService {
             || occupied.has(boardKey(row + 1, col))
             || occupied.has(boardKey(row, col - 1))
             || occupied.has(boardKey(row, col + 1));
+    }
+
+    private int boardRows(ObjectNode state) {
+        int fallback = state.path("boardSize").asInt(balanceRule().boardSize());
+        return Math.max(1, state.path("boardRows").asInt(fallback));
+    }
+
+    private int boardCols(ObjectNode state) {
+        int fallback = state.path("boardSize").asInt(balanceRule().boardSize());
+        return Math.max(1, state.path("boardCols").asInt(fallback));
     }
 
     private String boardKey(int row, int col) {
@@ -1229,7 +1243,8 @@ public class GameService {
 
         List<String> candidatePool = new ArrayList<>();
         for (String policyId : unlockedIds) {
-            if (!handPolicySet.contains(policyId)) {
+            // Session uniqueness: do not redraw a policy that has already appeared in this run.
+            if (!handPolicySet.contains(policyId) && countPolicyDraw(state, policyId) == 0) {
                 candidatePool.add(policyId);
             }
         }

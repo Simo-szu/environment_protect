@@ -96,6 +96,8 @@ export default function GamePlayPage() {
         selectedOccupiedTile: controller.selectedOccupiedTile || null,
         board: {
           size: controller.boardSize,
+          rows: controller.boardRows,
+          cols: controller.boardCols,
           occupied: Object.entries(controller.boardOccupied).map(([tile, cardId]) => ({ tile, cardId })),
           recommendedTile: controller.recommendedTile || null,
           placeableTiles: Array.from(controller.placeableTileKeySet),
@@ -184,6 +186,8 @@ export default function GamePlayPage() {
           maxTurn={controller.maxTurn}
           phase={controller.phase}
           carbon={Number(controller.metrics.carbon ?? 0)}
+          carbonQuota={controller.tradeQuota}
+          maxCarbonQuota={controller.maxCarbonQuota}
           turnFlowSteps={controller.turnFlowSteps}
           strictGuideMode={controller.strictGuideMode}
           handleBack={controller.handleBack}
@@ -256,7 +260,8 @@ export default function GamePlayPage() {
             placeableTileKeySet={controller.placeableTileKeySet}
             guidedTutorialActive={controller.guidedTutorialActive}
             currentGuidedTask={controller.currentGuidedTask}
-            boardSize={controller.boardSize}
+            boardRows={controller.boardRows}
+            boardCols={controller.boardCols}
             boardOccupied={controller.boardOccupied}
             selectedOccupiedTile={controller.selectedOccupiedTile}
             tileAdjacencyScoreMap={controller.tileAdjacencyScoreMap}
@@ -269,6 +274,8 @@ export default function GamePlayPage() {
             setDragOverTile={controller.setDragOverTile}
             draggingCoreId={controller.draggingCoreId}
             setDraggingCoreId={controller.setDraggingCoreId}
+            corePlacedThisTurn={controller.corePlacedThisTurn}
+            handleCoreCardSelect={controller.handleCoreCardSelect}
             setSelectedCoreId={controller.setSelectedCoreId}
             handCoreCards={controller.handCoreCards}
             pendingDiscardActive={controller.pendingDiscardActive}
@@ -300,6 +307,7 @@ export default function GamePlayPage() {
             maxTradeAmount={controller.maxTradeAmount}
             estimatedTradeIndustryCost={controller.estimatedTradeIndustryCost}
             resources={controller.resources}
+            metrics={controller.metrics}
             tradeWindowOpened={controller.tradeWindowOpened}
             tradeWindowInterval={controller.tradeWindowInterval}
             tradeQuota={controller.tradeQuota}

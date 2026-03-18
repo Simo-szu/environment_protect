@@ -14,7 +14,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'placeableTileKeySet'
   | 'guidedTutorialActive'
   | 'currentGuidedTask'
-  | 'boardSize'
+  | 'boardRows'
+  | 'boardCols'
   | 'boardOccupied'
   | 'selectedOccupiedTile'
   | 'tileAdjacencyScoreMap'
@@ -27,6 +28,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'setDragOverTile'
   | 'draggingCoreId'
   | 'setDraggingCoreId'
+  | 'corePlacedThisTurn'
+  | 'handleCoreCardSelect'
   | 'setSelectedCoreId'
   | 'handCoreCards'
   | 'pendingDiscardActive'
@@ -58,6 +61,7 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'maxTradeAmount'
   | 'estimatedTradeIndustryCost'
   | 'resources'
+  | 'metrics'
   | 'tradeWindowOpened'
   | 'tradeWindowInterval'
   | 'tradeQuota'
@@ -121,7 +125,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     placeableTileKeySet,
     guidedTutorialActive,
     currentGuidedTask,
-    boardSize,
+    boardRows,
+    boardCols,
     boardOccupied,
     selectedOccupiedTile,
     tileAdjacencyScoreMap,
@@ -134,6 +139,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     setDragOverTile,
     draggingCoreId,
     setDraggingCoreId,
+    corePlacedThisTurn,
+    handleCoreCardSelect,
     setSelectedCoreId,
     handCoreCards,
     pendingDiscardActive,
@@ -165,6 +172,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     maxTradeAmount,
     estimatedTradeIndustryCost,
     resources,
+    metrics,
     tradeWindowOpened,
     tradeWindowInterval,
     tradeQuota,
@@ -179,6 +187,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   const TRADE_HELP_STORAGE_KEY = 'game:trade-help-seen:v1';
   const [tradeModalOpen, setTradeModalOpen] = useState(false);
   const [tradeHelpOpen, setTradeHelpOpen] = useState(false);
+  const [coreLockedHintOpen, setCoreLockedHintOpen] = useState(false);
   const [hoveredHandCardKey, setHoveredHandCardKey] = useState('');
 
   function openTradeModal() {
@@ -194,18 +203,19 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   }
 
   const zoneDefinitions = useMemo<ZoneDefinition[]>(() => {
-    const half = Math.max(1, Math.floor(boardSize / 2));
-    const topRows = Array.from({ length: half }, (_, index) => index);
-    const bottomRows = Array.from({ length: boardSize - half }, (_, index) => index + half);
-    const leftCols = Array.from({ length: half }, (_, index) => index);
-    const rightCols = Array.from({ length: boardSize - half }, (_, index) => index + half);
+    const halfRows = Math.max(1, Math.floor(boardRows / 2));
+    const halfCols = Math.max(1, Math.floor(boardCols / 2));
+    const topRows = Array.from({ length: halfRows }, (_, index) => index);
+    const bottomRows = Array.from({ length: boardRows - halfRows }, (_, index) => index + halfRows);
+    const leftCols = Array.from({ length: halfCols }, (_, index) => index);
+    const rightCols = Array.from({ length: boardCols - halfCols }, (_, index) => index + halfCols);
     return [
       { id: 'industry', title: t('play.domains.industry', 'Industrial'), rows: topRows, cols: leftCols },
       { id: 'ecology', title: t('play.domains.ecology', 'Ecological System'), rows: topRows, cols: rightCols },
       { id: 'science', title: t('play.domains.science', 'Science'), rows: bottomRows, cols: leftCols },
       { id: 'society', title: locale === 'zh' ? '人与社会' : 'Society', rows: bottomRows, cols: rightCols }
     ];
-  }, [boardSize, locale, t]);
+  }, [boardRows, boardCols, locale, t]);
 
   const roundsUntilTradeOpen = useMemo(() => {
     if (tradeWindowOpened) {
@@ -221,6 +231,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     const remainder = turn % interval;
     return remainder === 0 ? interval : interval - remainder;
   }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
+  const currentCarbon = Math.max(0, Math.round(Number(metrics.carbon ?? 0)));
+  const quotaRemaining = Math.round(Number(tradeQuota) - currentCarbon);
 
   const handStackItems = useMemo<HandStackItem[]>(() => {
     const coreItems = handCoreCards.map((card, index) => ({
@@ -475,6 +487,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       const affordability = isCore ? coreAffordabilityMap.get(card.cardId) : null;
                       const canPlace = isCore ? affordability?.canPlace : true;
                       const coreBlockedReason = isCore ? (affordability?.blockedReason || 'none') : 'none';
+                      const coreLockedThisTurn = Boolean(isCore && corePlacedThisTurn && !pendingDiscardActive);
                       const isSelected = isCore ? selectedCoreId === card.cardId : selectedPolicyId === card.cardId;
 
                       const baseCardFrameStyles = isCore
@@ -511,7 +524,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                               return;
                             }
                             if (isCore) {
-                              setSelectedCoreId((current) => current === card.cardId ? '' : card.cardId);
+                              if (coreLockedThisTurn) {
+                                setCoreLockedHintOpen(true);
+                                return;
+                              }
+                              handleCoreCardSelect(card.cardId);
                               return;
                             }
                             setSelectedPolicyId((current) => current === card.cardId ? '' : card.cardId);
@@ -520,7 +537,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                             left: `${4 + itemIndex * overlapStepPercent}%`,
                             zIndex: isHovered ? 220 : isSelected ? 130 : 20 + itemIndex
                           }}
-                          className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-50' : 'opacity-80') : ''}`}
+                          className={`absolute top-0 w-[42%] min-w-[118px] max-w-[168px] aspect-[9/16] overflow-hidden border-2 transition-all duration-300 ease-out ${isHovered ? '-translate-y-3 translate-x-3 scale-[1.03]' : ''} ${baseCardFrameStyles} ${isCore ? 'rounded-[1.4rem] shadow-xl' : 'rounded-[1.2rem] shadow-lg'} ${canPlace === false ? (pendingDiscardActive ? 'opacity-50' : 'opacity-80') : ''} ${coreLockedThisTurn ? 'cursor-not-allowed' : ''}`}
                         >
                           {cardImageUrl ? (
                             <img
@@ -541,6 +558,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                                   {coreBlockedReason === 'no_placeable_tile'
                                     ? t('play.afford.noPlaceableTile', '无可用落点')
                                     : t('play.afford.insufficient', '资源不足')}
+                                </div>
+                              )}
+                              {coreLockedThisTurn && (
+                                <div className="absolute left-2 top-2 z-30 rounded-full border border-rose-300 bg-rose-100/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-rose-700 shadow-sm">
+                                  {t('play.metrics.corePlacedDone', '本回合已放置核心卡')}
                                 </div>
                               )}
                               <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
@@ -656,6 +678,55 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           </div>
         </div>
       </div>
+
+      {coreLockedHintOpen && (
+        <div className="fixed inset-0 z-[320] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-rose-200 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.25)]">
+            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-rose-700">
+              {t('play.actions.blocked.alreadyPlaced', '本回合已放置过核心卡。')}
+            </div>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+              {t('play.coreHand.lockedHint', '每回合仅可放置一张核心卡。你本回合已放置核心卡，请点击“结束回合”进入下一回合。')}
+            </p>
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold leading-6 text-emerald-800">
+              {t('play.coreHand.lockedCarbonHint', '当前碳排放 {carbon} / 限额 {quota}（剩余 {remaining}）。建议在结束回合前关注碳交易窗口，避免超限。', {
+                carbon: String(currentCarbon),
+                quota: String(tradeQuota),
+                remaining: String(quotaRemaining)
+              })}
+            </div>
+            <div className="mt-2 text-xs font-semibold text-slate-600">
+              {tradeWindowOpened
+                ? t('play.coreHand.lockedTradeNow', '本回合碳交易窗口已开启，可前往“碳交易区”进行买入/卖出配额。')
+                : t('play.coreHand.lockedTradeLater', '碳交易窗口尚未开启，预计 {turns} 回合后开放。', {
+                  turns: String(roundsUntilTradeOpen)
+                })}
+            </div>
+            <div className="mt-4 flex justify-end">
+              {tradeWindowOpened && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoreLockedHintOpen(false);
+                    openTradeModal();
+                  }}
+                  className="mr-2 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-emerald-800"
+                >
+                  {t('play.trade.title', '碳交易区')}
+                </button>
+              )}
+              <button
+                type="button"
+                data-tutorial-id="core-locked-hint-close"
+                onClick={() => setCoreLockedHintOpen(false)}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50"
+              >
+                {t('play.actions.close', '关闭')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {tradeModalOpen && (
         <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">

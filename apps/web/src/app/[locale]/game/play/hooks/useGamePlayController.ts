@@ -160,7 +160,9 @@ export function useGamePlayController() {
   const maxTurn = Number(pondState?.maxTurn ?? 30);
   const corePlacedThisTurn = Boolean(pondState?.corePlacedThisTurn);
   const policyUsedThisTurn = Boolean(pondState?.policyUsedThisTurn);
-  const boardSize = Number(pondState?.boardSize || 6);
+  const boardRows = Number(pondState?.boardRows || pondState?.boardSize || 6);
+  const boardCols = Number(pondState?.boardCols || boardRows + 2);
+  const boardSize = boardRows;
   const phase = String(pondState?.phase || 'early');
   const boardOccupied = (pondState?.boardOccupied || {}) as Record<string, string>;
   const domainProgress = (pondState?.domainProgress || {}) as UnknownRecord;
@@ -254,7 +256,8 @@ export function useGamePlayController() {
     selectedTile,
     resources,
     metrics,
-    boardSize,
+    boardRows,
+    boardCols,
     boardOccupied,
     freePlacementEnabled
   });
@@ -918,6 +921,26 @@ export function useGamePlayController() {
     setLastMessage(t('play.events.policySelected', '已为你选中可用政策卡：{policy}', { policy: policyName }));
   }
 
+  function handleCoreCardSelect(cardId: string) {
+    if (!cardId) {
+      return;
+    }
+    if (pendingDiscardBlocking) {
+      setError(t('play.actions.blocked.discardFirst', '请先完成弃牌。'));
+      return;
+    }
+    if (corePlacedThisTurn) {
+      setError(t('play.actions.blocked.alreadyPlaced', '本回合已放置过核心卡。'));
+      return;
+    }
+    if (ending) {
+      setError(t('play.actions.blocked.sessionEnded', '当前对局已结束。'));
+      return;
+    }
+    setSelectedPolicyId('');
+    setSelectedCoreId((current) => (current === cardId ? '' : cardId));
+  }
+
   function resolvePolicyDisplayLabel(policyId: string) {
     const id = String(policyId || '').trim();
     if (!id) {
@@ -1112,6 +1135,7 @@ export function useGamePlayController() {
     estimatedTradeIndustryCost,
     tradeWindowInterval,
     maxTradeAmount,
+    maxCarbonQuota,
     guidedTaskProgress,
     guidedTutorialCompleted,
     setGuidedTutorialActive,
@@ -1154,6 +1178,8 @@ export function useGamePlayController() {
     placeableTileKeySet,
     boardPlacementMode,
     boardSize,
+    boardRows,
+    boardCols,
     boardOccupied,
     selectedOccupiedTile,
     tileAdjacencyScoreMap,
@@ -1167,6 +1193,7 @@ export function useGamePlayController() {
     setDragOverTile,
     draggingCoreId,
     setDraggingCoreId,
+    handleCoreCardSelect,
     setSelectedCoreId,
     setError,
     setLastMessage,

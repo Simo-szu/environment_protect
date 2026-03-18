@@ -15,20 +15,22 @@ interface UseGamePlayBoardCardSelectorsParams {
   selectedTile: string;
   resources: ResourceState;
   metrics: MetricState;
-  boardSize: number;
+  boardRows: number;
+  boardCols: number;
   boardOccupied: Record<string, string>;
   freePlacementEnabled: boolean;
 }
 
-function resolveTileDomain(row: number, col: number, boardSize: number): DomainZone {
-  const half = Math.max(1, Math.floor(boardSize / 2));
-  if (row < half && col < half) {
+function resolveTileDomain(row: number, col: number, boardRows: number, boardCols: number): DomainZone {
+  const halfRows = Math.max(1, Math.floor(boardRows / 2));
+  const halfCols = Math.max(1, Math.floor(boardCols / 2));
+  if (row < halfRows && col < halfCols) {
     return 'industry';
   }
-  if (row < half && col >= half) {
+  if (row < halfRows && col >= halfCols) {
     return 'ecology';
   }
-  if (row >= half && col < half) {
+  if (row >= halfRows && col < halfCols) {
     return 'science';
   }
   return 'society';
@@ -64,7 +66,8 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     selectedTile,
     resources,
     metrics,
-    boardSize,
+    boardRows,
+    boardCols,
     boardOccupied,
     freePlacementEnabled
   } = params;
@@ -106,16 +109,16 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       const resourcesSatisfied = needIndustry === 0 && needTech === 0 && needPopulation === 0 && needGreen === 0;
       let hasPlaceableTile = false;
 
-      for (let row = 0; row < boardSize; row += 1) {
+      for (let row = 0; row < boardRows; row += 1) {
         if (hasPlaceableTile) {
           break;
         }
-        for (let col = 0; col < boardSize; col += 1) {
+        for (let col = 0; col < boardCols; col += 1) {
           const key = `${row},${col}`;
           if (boardOccupied[key]) {
             continue;
           }
-          if (expectedDomain && resolveTileDomain(row, col, boardSize) !== expectedDomain) {
+          if (expectedDomain && resolveTileDomain(row, col, boardRows, boardCols) !== expectedDomain) {
             continue;
           }
           if (!adjacencyRequiredForPlacement) {
@@ -126,7 +129,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
           for (const [dr, dc] of dirs) {
             const nr = row + dr;
             const nc = col + dc;
-            if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+            if (nr < 0 || nc < 0 || nr >= boardRows || nc >= boardCols) {
               continue;
             }
             if (boardOccupied[`${nr},${nc}`]) {
@@ -158,7 +161,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       });
     }
     return result;
-  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green, boardSize, boardOccupied, freePlacementEnabled]);
+  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green, boardRows, boardCols, boardOccupied, freePlacementEnabled]);
 
   const selectedCoreAffordability = selectedCoreCard ? coreAffordabilityMap.get(selectedCoreCard.cardId) : null;
 
@@ -256,13 +259,13 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       return result;
     }
     const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
-    for (let row = 0; row < boardSize; row += 1) {
-      for (let col = 0; col < boardSize; col += 1) {
+    for (let row = 0; row < boardRows; row += 1) {
+      for (let col = 0; col < boardCols; col += 1) {
         const key = `${row},${col}`;
         if (boardOccupied[key]) {
           continue;
         }
-        const tileDomain = resolveTileDomain(row, col, boardSize);
+        const tileDomain = resolveTileDomain(row, col, boardRows, boardCols);
         if (selectedCoreDomain && tileDomain !== selectedCoreDomain) {
           continue;
         }
@@ -270,7 +273,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
         for (const [dr, dc] of dirs) {
           const nr = row + dr;
           const nc = col + dc;
-          if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+          if (nr < 0 || nc < 0 || nr >= boardRows || nc >= boardCols) {
             continue;
           }
           const neighbor = `${nr},${nc}`;
@@ -282,7 +285,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [selectedCoreId, selectedCoreDomain, boardSize, boardOccupied]);
+  }, [selectedCoreId, selectedCoreDomain, boardRows, boardCols, boardOccupied]);
 
   const occupiedTileCount = useMemo(() => Object.keys(boardOccupied).length, [boardOccupied]);
   const selectedDomainOccupiedTileCount = useMemo(() => {
@@ -294,20 +297,20 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       if (!Number.isInteger(row) || !Number.isInteger(col)) {
         return count;
       }
-      return resolveTileDomain(row, col, boardSize) === selectedCoreDomain ? count + 1 : count;
+      return resolveTileDomain(row, col, boardRows, boardCols) === selectedCoreDomain ? count + 1 : count;
     }, 0);
-  }, [selectedCoreDomain, boardOccupied, boardSize, occupiedTileCount]);
+  }, [selectedCoreDomain, boardOccupied, boardRows, boardCols, occupiedTileCount]);
   const adjacencyRequired = !freePlacementEnabled && occupiedTileCount > 0;
 
   const placeableTileKeySet = useMemo(() => {
     const result = new Set<string>();
-    for (let row = 0; row < boardSize; row += 1) {
-      for (let col = 0; col < boardSize; col += 1) {
+    for (let row = 0; row < boardRows; row += 1) {
+      for (let col = 0; col < boardCols; col += 1) {
         const key = `${row},${col}`;
         if (boardOccupied[key]) {
           continue;
         }
-        const tileDomain = resolveTileDomain(row, col, boardSize);
+        const tileDomain = resolveTileDomain(row, col, boardRows, boardCols);
         if (selectedCoreDomain && tileDomain !== selectedCoreDomain) {
           continue;
         }
@@ -322,7 +325,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [boardSize, boardOccupied, selectedCoreDomain, adjacencyRequired, tileAdjacencyScoreMap]);
+  }, [boardRows, boardCols, boardOccupied, selectedCoreDomain, adjacencyRequired, tileAdjacencyScoreMap]);
 
   const selectedTilePlaceable = selectedTile ? placeableTileKeySet.has(selectedTile) : false;
   const selectedTileAdjacency = selectedTile ? (tileAdjacencyScoreMap.get(selectedTile) || 0) : 0;
@@ -334,13 +337,13 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     }
     const expectedDomain = selectedCoreDomain;
     const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
-    for (let row = 0; row < boardSize; row += 1) {
-      for (let col = 0; col < boardSize; col += 1) {
+    for (let row = 0; row < boardRows; row += 1) {
+      for (let col = 0; col < boardCols; col += 1) {
         const key = `${row},${col}`;
         if (boardOccupied[key]) {
           continue;
         }
-        const tileDomain = resolveTileDomain(row, col, boardSize);
+        const tileDomain = resolveTileDomain(row, col, boardRows, boardCols);
         if (expectedDomain && tileDomain !== expectedDomain) {
           continue;
         }
@@ -348,7 +351,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
         for (const [dr, dc] of dirs) {
           const nr = row + dr;
           const nc = col + dc;
-          if (nr < 0 || nc < 0 || nr >= boardSize || nc >= boardSize) {
+          if (nr < 0 || nc < 0 || nr >= boardRows || nc >= boardCols) {
             continue;
           }
           const neighborKey = `${nr},${nc}`;
@@ -384,7 +387,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       }
     }
     return result;
-  }, [selectedCoreCard, selectedCoreDomain, boardSize, boardOccupied, catalog]);
+  }, [selectedCoreCard, selectedCoreDomain, boardRows, boardCols, boardOccupied, catalog]);
 
   const selectedTileSynergyBreakdown = selectedTile ? (tileSynergyBreakdownMap.get(selectedTile) || null) : null;
 
