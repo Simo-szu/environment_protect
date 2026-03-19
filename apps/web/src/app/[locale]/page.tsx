@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { contentApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
+import { ApiError } from '@/lib/api-types';
 import { formatShortDate } from '@/lib/date-utils';
 
 export default function HomePage() {
@@ -32,6 +33,17 @@ export default function HomePage() {
     const scarcityIndex = tradeDemand > 0 ? Math.max(0, (tradeDemand - tradeSupply) / tradeDemand) : 0;
     const carbonPrice = Math.round((68 * (1 + scarcityIndex * 0.8)) * 10) / 10;
 
+    function isBackendUnavailableError(error: unknown): boolean {
+        if (!(error instanceof ApiError)) {
+            return false;
+        }
+        const normalized = (error.message || '').toLowerCase();
+        return normalized.includes('http_500')
+            || normalized.includes('connection to game service failed')
+            || normalized.includes('failed to fetch')
+            || normalized.includes('networkerror');
+    }
+
     useEffect(() => {
         const loadHomeContents = async () => {
             try {
@@ -46,7 +58,11 @@ export default function HomePage() {
                 setCaseItems(casesPage.items);
                 setPolicyItems(policiesPage.items);
             } catch (error) {
-                console.error('Failed to load homepage content:', error);
+                if (!isBackendUnavailableError(error)) {
+                    console.error('Failed to load homepage content:', error);
+                } else {
+                    console.warn(isZh ? '首页内容服务暂不可用，已使用空内容兜底。' : 'Homepage content service is temporarily unavailable. Using empty fallback.');
+                }
             } finally {
                 setContentLoading(false);
             }

@@ -3,6 +3,7 @@
 import { DragEvent, useMemo, useState } from 'react';
 import type { GameCardMeta } from '@/lib/api/game';
 import type { GamePlayController } from '../hooks/useGamePlayController';
+import { CARD_INTRO_ZH_BY_ID } from './cardIntroReference';
 
 type PlayBoardAndHandsPanelProps = Pick<
   GamePlayController,
@@ -83,6 +84,10 @@ type ZoneDefinition = {
 type HandStackItem =
   | { key: string; type: 'core'; card: GameCardMeta; index: number }
   | { key: string; type: 'policy'; card: GameCardMeta; index: number };
+
+function formatSignedValue(value: number): string {
+  return `${value > 0 ? '+' : ''}${value}`;
+}
 
 function collectCoreContinuousEffects(card: GameCardMeta | null): string[] {
   if (!card) {
@@ -189,6 +194,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   const [tradeHelpOpen, setTradeHelpOpen] = useState(false);
   const [coreLockedHintOpen, setCoreLockedHintOpen] = useState(false);
   const [hoveredHandCardKey, setHoveredHandCardKey] = useState('');
+  const [detailCard, setDetailCard] = useState<GameCardMeta | null>(null);
 
   function openTradeModal() {
     setTradeModalOpen(true);
@@ -232,7 +238,9 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     return remainder === 0 ? interval : interval - remainder;
   }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
   const currentCarbon = Math.max(0, Math.round(Number(metrics.carbon ?? 0)));
-  const quotaRemaining = Math.round(Number(tradeQuota) - currentCarbon);
+  const quotaDeductPreview = currentCarbon > 90 ? Math.floor((currentCarbon - 90) / 10) : 0;
+  const detailCardEffects = detailCard ? resolveCardEffects(detailCard) : [];
+  const detailCardImageUrl = detailCard ? resolveImageUrl(detailCard.imageKey) : '';
 
   const handStackItems = useMemo<HandStackItem[]>(() => {
     const coreItems = handCoreCards.map((card, index) => ({
@@ -254,6 +262,128 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     const midpoint = Math.ceil(handStackItems.length / 2);
     return [handStackItems.slice(0, midpoint), handStackItems.slice(midpoint)] as const;
   }, [handStackItems]);
+
+  function resolveCardDomainLabel(card: GameCardMeta): string {
+    return t(`play.domains.${card.domain}`, card.domain);
+  }
+
+  function resolveCardIntro(card: GameCardMeta): string {
+    const introFromReference = CARD_INTRO_ZH_BY_ID[card.cardId];
+    if (locale === 'zh' && introFromReference) {
+      return introFromReference;
+    }
+
+    const possibleTextKeys = locale === 'zh'
+      ? ['descriptionZh', 'introZh', 'chineseDescription', 'cardIntroZh', 'flavorZh']
+      : ['descriptionEn', 'introEn', 'englishDescription', 'cardIntroEn', 'flavorEn'];
+
+    const fallbackTextKeys = ['description', 'intro', 'cardIntro', 'flavor'];
+    const records: Array<Record<string, unknown> | undefined> = [
+      card.coreImmediateExt,
+      card.coreContinuousExt,
+      card.policyImmediateExt,
+      card.policyContinuousExt,
+      card.coreImmediateEffect,
+      card.coreContinuousEffect,
+      card.policyImmediateEffect,
+      card.policyContinuousEffect
+    ];
+
+    for (const record of records) {
+      if (!record) {
+        continue;
+      }
+      for (const key of possibleTextKeys) {
+        const value = record[key];
+        if (typeof value === 'string' && value.trim()) {
+          return value.trim();
+        }
+      }
+    }
+
+    for (const record of records) {
+      if (!record) {
+        continue;
+      }
+      for (const key of fallbackTextKeys) {
+        const value = record[key];
+        if (typeof value === 'string' && value.trim()) {
+          return value.trim();
+        }
+      }
+    }
+
+    if (card.cardType === 'policy') {
+      return t(
+        'play.cardDetails.introPolicy',
+        'This is a policy card. It takes effect immediately when used and may provide ongoing bonuses in later turns.'
+      );
+    }
+    return t(
+      'play.cardDetails.introCore',
+      'This is a core card in the {domain} domain. Once deployed to the board, it continuously affects city metrics.',
+      { domain: resolveCardDomainLabel(card) }
+    );
+  }
+
+  function resolveCardEffects(card: GameCardMeta): string[] {
+    const metricLabels = {
+      industry: t('play.preview.industry', 'Industry'),
+      tech: t('play.preview.tech', 'Tech'),
+      population: t('play.preview.population', 'Population'),
+      green: t('play.preview.green', 'Green'),
+      carbon: t('play.preview.carbon', 'Carbon'),
+      satisfaction: t('play.preview.satisfaction', 'Satisfaction'),
+      quota: t('play.cardDetails.quota', 'Quota')
+    };
+    const immediateLabel = t('play.cardDetails.immediate', 'Immediate');
+    const continuousLabel = t('play.cardDetails.continuous', 'Continuous');
+    const effects: string[] = [];
+
+    function pushEffect(prefix: string, label: string, rawValue: number | undefined) {
+      const value = Number(rawValue ?? 0);
+      if (value === 0) {
+        return;
+      }
+      effects.push(`${prefix} · ${label} ${formatSignedValue(value)}`);
+    }
+
+    if (card.cardType === 'core') {
+      pushEffect(immediateLabel, metricLabels.industry, card.coreImmediateIndustryDelta);
+      pushEffect(immediateLabel, metricLabels.tech, card.coreImmediateTechDelta);
+      pushEffect(immediateLabel, metricLabels.population, card.coreImmediatePopulationDelta);
+      pushEffect(immediateLabel, metricLabels.green, card.coreImmediateGreenDelta);
+      pushEffect(immediateLabel, metricLabels.carbon, card.coreImmediateCarbonDelta);
+      pushEffect(immediateLabel, metricLabels.satisfaction, card.coreImmediateSatisfactionDelta);
+      pushEffect(immediateLabel, metricLabels.quota, card.coreImmediateQuotaDelta);
+
+      pushEffect(continuousLabel, metricLabels.industry, card.coreContinuousIndustryDelta);
+      pushEffect(continuousLabel, metricLabels.tech, card.coreContinuousTechDelta);
+      pushEffect(continuousLabel, metricLabels.population, card.coreContinuousPopulationDelta);
+      pushEffect(continuousLabel, metricLabels.green, card.coreContinuousGreenDelta);
+      pushEffect(continuousLabel, metricLabels.carbon, card.coreContinuousCarbonDelta);
+      pushEffect(continuousLabel, metricLabels.satisfaction, card.coreContinuousSatisfactionDelta);
+      pushEffect(continuousLabel, metricLabels.quota, card.coreContinuousQuotaDelta);
+      return effects;
+    }
+
+    pushEffect(immediateLabel, metricLabels.industry, card.policyImmediateIndustryDelta);
+    pushEffect(immediateLabel, metricLabels.tech, card.policyImmediateTechDelta);
+    pushEffect(immediateLabel, metricLabels.population, card.policyImmediatePopulationDelta);
+    pushEffect(immediateLabel, metricLabels.green, card.policyImmediateGreenDelta);
+    pushEffect(immediateLabel, metricLabels.carbon, card.policyImmediateCarbonDelta);
+    pushEffect(immediateLabel, metricLabels.satisfaction, card.policyImmediateSatisfactionDelta);
+    pushEffect(immediateLabel, metricLabels.quota, card.policyImmediateQuotaDelta);
+
+    pushEffect(continuousLabel, metricLabels.industry, card.policyContinuousIndustryDelta);
+    pushEffect(continuousLabel, metricLabels.tech, card.policyContinuousTechDelta);
+    pushEffect(continuousLabel, metricLabels.population, card.policyContinuousPopulationDelta);
+    pushEffect(continuousLabel, metricLabels.green, card.policyContinuousGreenDelta);
+    pushEffect(continuousLabel, metricLabels.carbon, card.policyContinuousCarbonDelta);
+    pushEffect(continuousLabel, metricLabels.satisfaction, card.policyContinuousSatisfactionDelta);
+
+    return effects;
+  }
 
   function handleCardDragStart(event: DragEvent<HTMLButtonElement>, cardId: string) {
     setDraggingCoreId(cardId);
@@ -457,11 +587,27 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           </div>
 
           {pendingDiscardActive && (
-            <div className="mb-3 rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-[11px] font-semibold leading-5 text-rose-700 shadow-sm">
-              {t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
-                count: pendingDiscardRequiredTotal,
-                limit: pendingDiscardTargetHandSize
-              })}
+            <div className="mb-3 rounded-2xl border-2 border-rose-300 bg-rose-100 px-4 py-3 shadow-md">
+              <div className="text-[12px] font-black uppercase tracking-[0.14em] text-rose-800">
+                {t('play.discard.title', 'Discarding Required')}
+              </div>
+              <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
+                {t('play.discard.overLimitGuide', '手牌太多？每回合最多只能保留6张牌哦～用不上的卡牌直接点击弃牌，就能腾出空位啦！')}
+              </div>
+              <div className="mt-1 text-sm font-black leading-6 text-rose-800">
+                {t('play.discard.clickToDiscardStrong', '点击下方任意卡牌即弃牌')}
+              </div>
+              <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
+                {t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
+                  count: pendingDiscardRequiredTotal,
+                  limit: pendingDiscardTargetHandSize
+                })}
+              </div>
+            </div>
+          )}
+          {!pendingDiscardActive && (
+            <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-600">
+              {t('play.cardDetails.openHint', 'Double-click a card to open details')}
             </div>
           )}
 
@@ -518,6 +664,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                           onMouseLeave={() => setHoveredHandCardKey((current) => (current === key ? '' : current))}
                           onFocus={() => setHoveredHandCardKey(key)}
                           onBlur={() => setHoveredHandCardKey((current) => (current === key ? '' : current))}
+                          onDoubleClick={() => setDetailCard(card)}
                           onClick={() => {
                             if (pendingDiscardActive) {
                               discardCard(type, card.cardId);
@@ -679,6 +826,94 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         </div>
       </div>
 
+      {detailCard && (
+        <div
+          className="fixed inset-0 z-[335] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+          onClick={() => setDetailCard(null)}
+        >
+          <div
+            className="w-full max-w-2xl overflow-hidden rounded-[1.8rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.35)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="relative h-52 w-full overflow-hidden bg-slate-900">
+              {detailCardImageUrl ? (
+                <img
+                  src={detailCardImageUrl}
+                  alt={locale === 'zh' ? detailCard.chineseName : detailCard.englishName}
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-slate-950/10" />
+              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                  {resolveCardDomainLabel(detailCard)}
+                </div>
+                <div className="mt-1 text-xl font-black leading-tight">
+                  {locale === 'zh' ? detailCard.chineseName : detailCard.englishName}
+                </div>
+                <div className="mt-1 text-xs font-semibold text-white/80">
+                  #{detailCard.cardNo} · {detailCard.cardType === 'core'
+                    ? t('play.actions.placeCore', 'Place Core Card')
+                    : t('play.actions.usePolicy', 'Use Policy Card')}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-4 md:p-5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                  {t('play.cardDetails.costTitle', 'Resource Cost')}
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <TradeCell label={t('play.resources.industry', 'Industry')} value={String(Number(detailCard.unlockCost?.industry ?? 0))} />
+                  <TradeCell label={t('play.resources.tech', 'Tech')} value={String(Number(detailCard.unlockCost?.tech ?? 0))} />
+                  <TradeCell label={t('play.resources.population', 'Population')} value={String(Number(detailCard.unlockCost?.population ?? 0))} />
+                  <TradeCell label={t('play.metrics.green', 'Green')} value={String(Number(detailCard.unlockCost?.green ?? 0))} />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                  {t('play.cardDetails.effectTitle', 'Card Effect')}
+                </div>
+                <div className="mt-2 space-y-1.5">
+                  {detailCardEffects.length > 0 ? (
+                    detailCardEffects.map((effect, index) => (
+                      <div key={`${effect}-${index}`} className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-2.5 py-1.5 text-sm font-semibold text-emerald-800">
+                        {effect}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-slate-500">
+                      {t('play.cardDetails.noEffect', 'No recognizable numeric effect for this card.')}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                  {t('play.cardDetails.introTitle', 'Card Introduction')}
+                </div>
+                <div className="mt-2 text-sm leading-6 text-slate-700">
+                  {resolveCardIntro(detailCard)}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setDetailCard(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50"
+                >
+                  {t('play.actions.close', 'Close')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {coreLockedHintOpen && (
         <div className="fixed inset-0 z-[320] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-rose-200 bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.25)]">
@@ -689,10 +924,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
               {t('play.coreHand.lockedHint', '每回合仅可放置一张核心卡。你本回合已放置核心卡，请点击“结束回合”进入下一回合。')}
             </p>
             <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold leading-6 text-emerald-800">
-              {t('play.coreHand.lockedCarbonHint', '当前碳排放 {carbon} / 限额 {quota}（剩余 {remaining}）。建议在结束回合前关注碳交易窗口，避免超限。', {
+              {t('play.coreHand.lockedCarbonHint', '当前碳排放 {carbon}（风险线 90），当前配额 {quota}。若碳排放 > 90，则每超出 10 点扣 1 配额（本回合预计扣 {deduct}）。', {
                 carbon: String(currentCarbon),
                 quota: String(tradeQuota),
-                remaining: String(quotaRemaining)
+                deduct: String(quotaDeductPreview)
               })}
             </div>
             <div className="mt-2 text-xs font-semibold text-slate-600">
@@ -889,9 +1124,12 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     </button>
                   </div>
                   <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px] leading-6 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <p>{t('play.trade.help.quotaRule', 'Quota settlement: when carbon > 90, every extra 10 carbon consumes 1 quota at end of turn.')}</p>
                     <p>{t('play.trade.help.buyRule', 'Buy: consume industry value = ceil(amount × price).')}</p>
                     <p>{t('play.trade.help.sellRule', 'Sell: requires enough quota; gained industry value = floor(amount × price).')}</p>
                     <p>{t('play.trade.help.windowRule', 'Window rule: if not traded before ending turn, this turn\'s trade chance is forfeited.')}</p>
+                    <p>{t('play.trade.help.warningRule', 'Warning: if quota is deducted for 2 consecutive turns and quota is still ≥ 20, a quota warning appears.')}</p>
+                    <p>{t('play.trade.help.lowRule', 'Urgent: quota < 20 means near depletion; quota = 0 means exhausted. Buy quota or lower emissions immediately.')}</p>
                   </div>
                 </div>
               </div>

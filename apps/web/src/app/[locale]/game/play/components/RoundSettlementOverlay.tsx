@@ -133,11 +133,12 @@ function resolveHint(
   delta: number,
   t: (key: string, defaultValue?: string, values?: Record<string, unknown>) => string
 ): { highRisk: boolean; hint: string } {
+  const carbonRiskBaseline = 90;
   if (key === 'carbon') {
-    if (after >= 80) {
+    if (after >= carbonRiskBaseline) {
       return {
         highRisk: true,
-        hint: t('play.settlement.hint.carbonHigh', '碳排放 > 80 属于高风险，建议优先降低碳排并补足配额。')
+        hint: t('play.settlement.hint.carbonHigh', '碳排放 > 90 属于高风险，建议优先降低碳排并补足配额。')
       };
     }
     if (delta > 0) {
@@ -252,6 +253,7 @@ function strategyTips(
   activeNegativeEvents: EventRecord[],
   t: (key: string, defaultValue?: string, values?: Record<string, unknown>) => string
 ): string[] {
+  const carbonRiskBaseline = 90;
   const byKey = new Map(cards.map((card) => [card.key, card]));
   const tips: string[] = [];
 
@@ -261,7 +263,7 @@ function strategyTips(
   const industry = byKey.get('industry');
   const tech = byKey.get('tech');
 
-  if (carbon && (carbon.after >= 80 || carbon.delta > 0)) {
+  if (carbon && (carbon.after >= carbonRiskBaseline || carbon.delta > 0)) {
     tips.push(t('play.settlement.strategy.carbonHigh', '碳排放偏高，建议优先发展生态类或减排科技类卡牌。'));
   }
 

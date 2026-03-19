@@ -57,6 +57,9 @@ public class GameService {
     private static final String ENDING_INNOVATION = "innovation_technology";
     private static final String ENDING_ECOLOGY = "ecology_priority";
     private static final String ENDING_DOUGHNUT = "doughnut_city";
+    private static final int INITIAL_CARBON_QUOTA = 50;
+    private static final int CARBON_QUOTA_BASELINE = 90;
+    private static final int CARBON_QUOTA_PER_N_OVER = 10;
 
     private final GameSessionMapper gameSessionMapper;
     private final GameActionMapper gameActionMapper;
@@ -364,7 +367,7 @@ public class GameService {
         domainProgress.put("society", 0);
 
         ObjectNode carbonTrade = root.putObject("carbonTrade");
-        carbonTrade.put("quota", balance.initialQuota());
+        carbonTrade.put("quota", INITIAL_CARBON_QUOTA);
         carbonTrade.put("buyAmountTotal", 0D);
         carbonTrade.put("sellAmountTotal", 0D);
         carbonTrade.put("profit", 0D);
@@ -375,6 +378,9 @@ public class GameService {
         carbonTrade.put("pricePctModifier", 0);
         carbonTrade.put("quotaExhaustedCount", 0);
         carbonTrade.put("invalidOperationCount", 0);
+        carbonTrade.put("quotaDeductionStreak", 0);
+        carbonTrade.put("lastQuotaConsumed", 0);
+        carbonTrade.put("lastQuotaShortage", 0);
         carbonTrade.set("history", objectMapper.createArrayNode());
 
         ObjectNode pools = root.putObject("remainingPools");
@@ -1349,16 +1355,19 @@ public class GameService {
     }
 
     private void applyCarbonQuotaSettlement(ObjectNode state) {
-        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int carbon = state.with("metrics").path("carbon").asInt();
-        int requiredQuota = Math.max(0, (carbon - balance.carbonQuotaBaseLine()) / balance.carbonQuotaPerNOver());
+        int requiredQuota = carbon > CARBON_QUOTA_BASELINE
+            ? Math.max(0, (carbon - CARBON_QUOTA_BASELINE) / CARBON_QUOTA_PER_N_OVER)
+            : 0;
         ObjectNode trade = state.with("carbonTrade");
-        int quota = trade.path("quota").asInt(balance.initialQuota());
+        int quota = trade.path("quota").asInt(INITIAL_CARBON_QUOTA);
         int consumed = Math.min(requiredQuota, quota);
         int shortage = Math.max(0, requiredQuota - consumed);
 
         trade.put("quota", Math.max(0, quota - consumed));
         trade.put("lastQuotaConsumed", consumed);
+        trade.put("lastQuotaShortage", shortage);
+        trade.put("quotaDeductionStreak", consumed > 0 ? trade.path("quotaDeductionStreak").asInt(0) + 1 : 0);
         if (shortage > 0) {
             trade.put("quotaExhaustedCount", trade.path("quotaExhaustedCount").asInt(0) + 1);
             ObjectNode record = objectMapper.createObjectNode();
@@ -1542,9 +1551,8 @@ public class GameService {
     }
 
     private void updateCarbonOverLimitStreak(ObjectNode state) {
-        GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int carbon = state.path("metrics").path("carbon").asInt();
-        if (carbon > balance.lowCarbonOverLimitCarbonThreshold()) {
+        if (carbon > CARBON_QUOTA_BASELINE) {
             state.put("highCarbonOverLimitStreak", state.path("highCarbonOverLimitStreak").asInt(0) + 1);
         } else {
             state.put("highCarbonOverLimitStreak", 0);

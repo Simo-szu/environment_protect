@@ -190,6 +190,9 @@ export function useGamePlayController() {
   const tradeWindowOpened = Boolean(carbonTrade.windowOpened);
   const tradeLastPrice = Number(carbonTrade.lastPrice || 2);
   const tradeQuota = Number(carbonTrade.quota || 0);
+  const tradeQuotaDeductionStreak = Math.max(0, Number(carbonTrade.quotaDeductionStreak || 0));
+  const tradeLastQuotaConsumed = Math.max(0, Number(carbonTrade.lastQuotaConsumed || 0));
+  const tradeLastQuotaShortage = Math.max(0, Number(carbonTrade.lastQuotaShortage || 0));
   const tradeProfit = Number(carbonTrade.profit || 0);
   const tradeHistory = Array.isArray(carbonTrade.history) ? carbonTrade.history : [];
   const latestTradeRecord = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1] : null;
@@ -1173,6 +1176,9 @@ export function useGamePlayController() {
     placedCore,
     corePlacedThisTurn,
     tradeQuota,
+    tradeQuotaDeductionStreak,
+    tradeLastQuotaConsumed,
+    tradeLastQuotaShortage,
     tradeLastPrice,
     tradeProfit,
     latestTradeRecord,

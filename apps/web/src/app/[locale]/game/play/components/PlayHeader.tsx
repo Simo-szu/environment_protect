@@ -96,9 +96,9 @@ export default function PlayHeader(props: PlayHeaderProps) {
         {
           title: '碳交易规则与建议',
           bullets: [
-            '碳交易用于买卖配额：配额富余可卖出增利，配额不足可买入止损。',
-            '碳排放过高会持续侵蚀分数，配额耗尽会拖慢结局质量。',
-            '实战建议：碳排放接近高风险时优先补配额；碳排放稳定且配额富余时再考虑卖出。'
+            '碳配额是每局可合法排放的抵扣额度：当碳排放 > 90 时，每超出 10 点，回合结算扣 1 份配额。',
+            '预警触发：连续 2 回合被扣配额且当前配额 >= 20，会提示你减少高排放工业卡并补生态/低碳卡。',
+            '紧急状态：配额 < 20 会触发“即将耗尽”；配额 = 0 会触发“已用尽”，应立即前往碳交易买入。'
           ]
         },
         {
@@ -148,9 +148,9 @@ export default function PlayHeader(props: PlayHeaderProps) {
       {
         title: 'Carbon Trading',
         bullets: [
-          'Trade buys/sells emission quota: sell surplus for profit, buy deficit to prevent penalties.',
-          'High carbon and quota depletion hurt your ending potential.',
-          'Practical rule: buy near risk thresholds; sell only when carbon is stable and quota is clearly surplus.'
+          'Quota is your legal emission offset. When carbon > 90, every extra 10 carbon consumes 1 quota at end-of-turn settlement.',
+          'Warning trigger: if quota is deducted for 2 consecutive turns and quota is still >= 20, you should reduce high-emission industry cards and place more eco/low-carbon cards.',
+          'Urgent trigger: quota < 20 means near depletion, and quota = 0 means exhausted. Buy quota immediately via carbon trading.'
         ]
       },
       {
@@ -174,11 +174,11 @@ export default function PlayHeader(props: PlayHeaderProps) {
 
   const carbonValue = Math.max(0, Math.round(Number(carbon) || 0));
   const carbonQuotaValue = Math.max(0, Math.round(Number(carbonQuota) || 0));
-  const effectiveQuotaForPct = Math.max(1, carbonQuotaValue);
-  const carbonPct = clampPct((carbonValue / effectiveQuotaForPct) * 100);
-  const carbonOverLimit = carbonValue > carbonQuotaValue;
-  const carbonHighRisk = carbonOverLimit || carbonPct >= 85;
-  const carbonRemaining = carbonQuotaValue - carbonValue;
+  const carbonBaseline = 90;
+  const effectiveBaselineForPct = Math.max(1, carbonBaseline);
+  const carbonPct = clampPct((carbonValue / effectiveBaselineForPct) * 100);
+  const carbonOverLimit = carbonValue > carbonBaseline;
+  const carbonHighRisk = carbonOverLimit || carbonPct >= 95;
   const carbonToneClass = carbonHighRisk
     ? 'text-rose-600 dark:text-rose-300'
     : 'text-emerald-600 dark:text-emerald-300';
@@ -240,7 +240,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
                 </span>
               </div>
               <div className="flex shrink-0 items-end gap-1">
-                <span className={`text-[20px] leading-none font-black ${carbonToneClass}`}>{carbonValue}/{carbonQuotaValue}</span>
+                <span className={`text-[20px] leading-none font-black ${carbonToneClass}`}>{carbonValue}/{carbonBaseline}</span>
                 <span className={`pb-0.5 text-[12px] leading-none font-black ${carbonToneClass}`}>{carbonPct}%</span>
                 <span className={`pb-0.5 text-[11px] leading-none font-black ${carbonToneClass}`}>{carbonStatusLabel}</span>
               </div>
@@ -256,8 +256,8 @@ export default function PlayHeader(props: PlayHeaderProps) {
             <div className="space-y-2">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                  <span>{t('play.stats.emissionQuotaRatio', 'Emission / Quota')}</span>
-                  <span className={carbonToneClass}>{carbonValue}/{carbonQuotaValue} ({carbonPct}%)</span>
+                  <span>{t('play.stats.emissionQuotaRatio', 'Emission / Risk Line')}</span>
+                  <span className={carbonToneClass}>{carbonValue}/{carbonBaseline} ({carbonPct}%)</span>
                 </div>
                 <div className="h-2 mt-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className={`h-full rounded-full transition-all ${carbonBarClass}`} style={{ width: `${Math.min(100, carbonPct)}%` }} />
@@ -272,11 +272,11 @@ export default function PlayHeader(props: PlayHeaderProps) {
                   <div className="text-slate-500 dark:text-slate-400">{t('play.stats.currentQuota', 'Quota')}</div>
                   <div className="font-black text-slate-800 dark:text-slate-100">{carbonQuotaValue}</div>
                 </div>
-                <div className={`rounded-lg border px-2 py-1.5 text-[10px] ${carbonRemaining < 0 ? 'border-rose-200 bg-rose-50 dark:border-rose-900/60 dark:bg-rose-950/20' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'}`}>
-                  <div className={carbonRemaining < 0 ? 'text-rose-600 dark:text-rose-300' : 'text-emerald-600 dark:text-emerald-300'}>
-                    {t('play.stats.remainingQuota', 'Remaining')}
+                <div className={`rounded-lg border px-2 py-1.5 text-[10px] ${carbonOverLimit ? 'border-rose-200 bg-rose-50 dark:border-rose-900/60 dark:bg-rose-950/20' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'}`}>
+                  <div className={carbonOverLimit ? 'text-rose-600 dark:text-rose-300' : 'text-emerald-600 dark:text-emerald-300'}>
+                    {locale === 'zh' ? '超出风险线' : 'Over Baseline'}
                   </div>
-                  <div className={`font-black ${carbonRemaining < 0 ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-700 dark:text-emerald-200'}`}>{carbonRemaining}</div>
+                  <div className={`font-black ${carbonOverLimit ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-700 dark:text-emerald-200'}`}>{Math.max(0, carbonValue - carbonBaseline)}</div>
                 </div>
               </div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400">

@@ -31,6 +31,30 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function renderRichText(text: string) {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, lineIndex) => {
+      const parts = line.split(/(\*\*[^*]+\*\*)/g);
+      return (
+        <p key={`line-${lineIndex}`} className={lineIndex === 0 ? '' : 'mt-1.5'}>
+          {parts.map((part, partIndex) => {
+            if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+              return (
+                <strong key={`part-${lineIndex}-${partIndex}`} className="font-black text-slate-800">
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            return <span key={`part-${lineIndex}-${partIndex}`}>{part}</span>;
+          })}
+        </p>
+      );
+    });
+}
+
 export default function InteractiveOnboardingOverlay(props: InteractiveOnboardingOverlayProps) {
   const {
     t,
@@ -61,13 +85,19 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
       {
         id: 'welcome',
         title: txt('欢迎来到深圳，新晋低碳规划师！', 'Welcome, new low-carbon planner of Shenzhen!'),
-        body: txt('你将直接在真实游戏界面中完成引导操作，边看边学边上手。', 'You will learn directly on the live game screen, step by step.'),
+        body: txt(
+          '欢迎来到深圳！恭喜你成为我们特聘的低碳规划师！\n你的核心任务是：为深圳制定低碳发展规划，既要让城市的工业、科技、民生稳步发展，又要控制碳排放，实现“绿色发展”。\n你将通过**卡牌布局**、**政策运用**和**碳交易**，带领这座城市走向可持续发展的未来。\n准备好了吗？先跟着教程熟悉你的工作内容吧～',
+          'Welcome to Shenzhen, and congratulations on becoming our specially appointed low-carbon planner!\nYour core mission is to design a low-carbon development plan for Shenzhen: keep industry, technology, and livelihood growing steadily while controlling emissions for green development.\nYou will lead the city toward a sustainable future through **card placement**, **policy usage**, and **carbon trading**.\nReady? Let us walk through your core tasks in this tutorial.'
+        ),
         placement: 'center'
       },
       {
         id: 'console.resources',
         title: txt('这是你的规划控制台', 'This is your planning console'),
-        body: txt('左侧是资源状态栏：产业值、市民数、科创点、绿建度和低碳总分。', 'Left panel shows core resources and low-carbon score.'),
+        body: txt(
+          '左侧是资源状态栏：\n产业值、市民数、科创点、绿建度，这些是你放置卡牌进行规划的“资金”；\n低碳总分是你的“成绩单”，是游戏最终结局的核心判定标准。\n产业值代表城市的工业发展水平。\n市民数量和满意度体现民生水平。\n科创点代表低碳技术的研发能力。\n绿建度是城市绿化、低碳建筑的覆盖程度。',
+          'The left side is your resource status panel:\nIndustry, Population, Tech, and Green are your planning capital for card placement.\nLow-Carbon Score is your report card and a core factor for final ending evaluation.\nIndustry reflects industrial development.\nPopulation and Satisfaction reflect livelihood conditions.\nTech reflects low-carbon R&D capability.\nGreen reflects city greening and low-carbon building coverage.'
+        ),
         placement: 'right',
         targetSelectors: ['[data-tutorial-id="resources-panel"]']
       },
@@ -84,13 +114,6 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
         body: txt('右侧是手牌区：核心卡用于放置，政策卡用于即时生效。', 'Right panel is your hand: core cards for placement, policy cards for instant effects.'),
         placement: 'left',
         targetSelectors: ['[data-tutorial-id="hand-panel"]']
-      },
-      {
-        id: 'console.actions',
-        title: txt('这是你的规划控制台', 'This is your planning console'),
-        body: txt('右下角是推进与交易入口：结束回合会触发结算，碳交易用于买卖配额。', 'Bottom-right area controls turn progression and carbon trading.'),
-        placement: 'top',
-        targetSelectors: ['[data-tutorial-id="action-bar"]']
       },
       {
         id: 'turn.select_core',
@@ -132,8 +155,8 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
         id: 'feature.trade',
         title: txt('特色玩法 1：碳交易', 'Feature 1: Carbon Trading'),
         body: txt(
-          '【科普小知识】现实中，碳交易是全球通用的低碳手段：每个城市有碳排放配额，富余可卖、不足需买，用市场力量倒逼环保。 【游戏玩法】卖出：配额富余时交易赚盈利，盈利越高低碳总分越高；买入：配额不足时避免超标惩罚，保住低碳总分。',
-          'Carbon trading is a global low-carbon mechanism: cities trade surplus/deficit emission quotas. In-game, selling surplus improves profit and low-carbon score; buying helps avoid emission penalties and protects your score.'
+          '碳交易区：碳排放的“买卖超市”\n碳交易是全球通用的低碳手段，每个城市有碳排放配额，富余可卖、不足需买，用市场力量倒逼环保。\n【游戏玩法】卖出：配额富余时交易赚盈利，获得更高的低碳总分；\n买入：配额不足时买入碳排放额度可以避免超标惩罚，保住低碳总分。',
+          'Carbon Trading Zone: your emission quota marketplace.\nCarbon trading is a global low-carbon mechanism. Every city has an emission quota: sell surplus, buy when short, and use market forces to push greener decisions.\n[Gameplay] Sell: when quota is surplus, trade for profit and gain higher low-carbon score;\nBuy: when quota is insufficient, buy quota to avoid over-limit penalties and protect your low-carbon score.'
         ),
         placement: 'top',
         targetSelectors: ['[data-tutorial-id="trade-button"]']
@@ -142,8 +165,8 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
         id: 'feature.policy',
         title: txt('特色玩法 2：政策卡', 'Feature 2: Policy Cards'),
         body: txt(
-          '【科普小知识】深圳作为低碳先锋，出台了红树林保护、低碳产业补贴、市民低碳激励等领先政策。 【游戏玩法】政策卡可直接点击生效（无需放置），用于化解负向事件、提升低碳总分，是平衡发展的“救命符”。',
-          'Shenzhen has leading low-carbon policies (ecology protection, industrial subsidy, citizen incentives). In-game, policy cards are instant-use (no placement), useful for resolving negative events and boosting low-carbon score.'
+          '【科普小知识】深圳作为低碳先锋，出台了红树林保护、低碳产业补贴、市民低碳激励等领先政策。\n【游戏玩法】政策卡可**点击直接生效**（无需部署），用于化解负向事件、提升低碳总分，是平衡发展的“救命符”。',
+          '[Knowledge] Shenzhen, as a low-carbon pioneer, has launched leading policies such as mangrove protection, low-carbon industry subsidies, and citizen incentives.\n[Gameplay] Policy cards can **take effect on click** (no deployment needed). They help resolve negative events and boost low-carbon score.'
         ),
         placement: 'left',
         targetSelectors: ['[data-tutorial-role="policy-card"]', '[data-tutorial-id="hand-panel"]']
@@ -157,12 +180,6 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
         ),
         placement: 'right',
         targetSelectors: ['[data-tutorial-id="planning-panel"]']
-      },
-      {
-        id: 'faq',
-        title: txt('异常情况说明', 'Need Help?'),
-        body: txt('手牌过多需弃牌；政策卡无需放置直接点击；遇到负向事件优先使用对应政策化解。', 'If hand is full, discard extras; policy cards are instant; negative events should be resolved early.'),
-        placement: 'center'
       },
       {
         id: 'finish',
@@ -356,7 +373,7 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
             {t('play.onboarding.progress', 'Quick Start')} {safeStepIndex + 1}/{steps.length}
           </div>
           <h3 className="mt-2 text-base font-black leading-tight text-slate-800 sm:text-lg">{step.title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{step.body}</p>
+          <div className="mt-2 text-sm leading-6 text-slate-600">{renderRichText(step.body)}</div>
 
           {step.action && !stepActionCompleted && (
             <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">

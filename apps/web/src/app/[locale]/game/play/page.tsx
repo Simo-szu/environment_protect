@@ -363,6 +363,9 @@ export default function GamePlayPage() {
         metrics={controller.metrics}
         lowCarbonScoreBreakdown={controller.lowCarbonScoreBreakdown}
         tradeQuota={controller.tradeQuota}
+        tradeQuotaDeductionStreak={controller.tradeQuotaDeductionStreak}
+        tradeLastQuotaConsumed={controller.tradeLastQuotaConsumed}
+        tradeLastQuotaShortage={controller.tradeLastQuotaShortage}
         tradeProfit={controller.tradeProfit}
         eventStats={controller.eventStats}
         locale={controller.locale}

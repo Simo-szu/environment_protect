@@ -46,6 +46,9 @@ type PlayOverlaysProps = Pick<
   | 'metrics'
   | 'lowCarbonScoreBreakdown'
   | 'tradeQuota'
+  | 'tradeQuotaDeductionStreak'
+  | 'tradeLastQuotaConsumed'
+  | 'tradeLastQuotaShortage'
   | 'tradeProfit'
   | 'eventStats'
   | 'locale'
@@ -101,6 +104,9 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     metrics,
     lowCarbonScoreBreakdown,
     tradeQuota,
+    tradeQuotaDeductionStreak,
+    tradeLastQuotaConsumed,
+    tradeLastQuotaShortage,
     tradeProfit,
     eventStats,
     locale,
@@ -116,6 +122,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     isLoggedIn
   } = props;
   const [dismissedEventAlertToken, setDismissedEventAlertToken] = useState('');
+  const [dismissedQuotaAlertToken, setDismissedQuotaAlertToken] = useState('');
 
   const latestSettlement = settlementHistory.length > 0
     ? settlementHistory[settlementHistory.length - 1] as SettlementRecord
@@ -233,6 +240,55 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     && activeEventAlertToken
     && activeEventAlertToken !== dismissedEventAlertToken
   );
+  const quotaValue = Math.max(0, Math.round(Number(tradeQuota || 0)));
+  const carbonValue = Math.max(0, Math.round(Number(metrics.carbon || 0)));
+  const quotaDeductionStreak = Math.max(0, Math.floor(Number(tradeQuotaDeductionStreak || 0)));
+  const lastQuotaConsumed = Math.max(0, Math.floor(Number(tradeLastQuotaConsumed || 0)));
+  const lastQuotaShortage = Math.max(0, Math.floor(Number(tradeLastQuotaShortage || 0)));
+  const quotaAlertLevel: 'warning' | 'low' | 'exhausted' | null = useMemo(() => {
+    if (quotaValue <= 0) {
+      return 'exhausted';
+    }
+    if (quotaValue < 20) {
+      return 'low';
+    }
+    if (quotaDeductionStreak >= 2 && quotaValue >= 20) {
+      return 'warning';
+    }
+    return null;
+  }, [quotaValue, quotaDeductionStreak]);
+  const quotaAlertToken = useMemo(() => {
+    if (!quotaAlertLevel) {
+      return '';
+    }
+    return [
+      quotaAlertLevel,
+      turn,
+      quotaValue,
+      carbonValue,
+      quotaDeductionStreak,
+      lastQuotaConsumed,
+      lastQuotaShortage
+    ].join('|');
+  }, [quotaAlertLevel, turn, quotaValue, carbonValue, quotaDeductionStreak, lastQuotaConsumed, lastQuotaShortage]);
+  const showQuotaAlertModal = Boolean(
+    quotaAlertLevel
+    && quotaAlertToken
+    && !transitionNotice
+    && !showOnboarding
+    && !ending
+    && quotaAlertToken !== dismissedQuotaAlertToken
+  );
+
+  function openTradePanelFromAlert() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const tradeButton = document.querySelector('[data-tutorial-id="trade-button"]');
+    if (tradeButton instanceof HTMLButtonElement) {
+      tradeButton.click();
+    }
+  }
 
   return (
     <>
@@ -331,6 +387,84 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 {t('play.events.guideHint', '引导阶段中，若事件触发，政策卡已允许用于应对。')}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showQuotaAlertModal && quotaAlertLevel && (
+        <div className="fixed inset-0 z-[365] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div
+            className={`w-full max-w-xl rounded-[1.75rem] border p-5 shadow-[0_24px_70px_rgba(15,23,42,0.35)] ${
+              quotaAlertLevel === 'exhausted'
+                ? 'border-rose-300 bg-white'
+                : quotaAlertLevel === 'low'
+                  ? 'border-amber-300 bg-white'
+                  : 'border-orange-300 bg-white'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.22em] text-rose-700">
+                  {t('play.quotaAlert.badge', 'Carbon Quota Alert')}
+                </div>
+                <h3 className="mt-1 text-xl font-black text-slate-900">
+                  {t(`play.quotaAlert.${quotaAlertLevel}.title`, 'Carbon Quota Alert')}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDismissedQuotaAlertToken(quotaAlertToken)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-600"
+              >
+                {t('play.actions.close', 'Close')}
+              </button>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              {t(`play.quotaAlert.${quotaAlertLevel}.content`, 'Carbon quota alert.')}
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div className="text-slate-500">{t('play.stats.currentEmission', 'Emission')}</div>
+                <div className="font-black text-slate-800">{carbonValue}</div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div className="text-slate-500">{t('play.stats.currentQuota', 'Quota')}</div>
+                <div className="font-black text-slate-800">{quotaValue}</div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div className="text-slate-500">{t('play.quotaAlert.thisTurnDeduct', 'Quota deducted')}</div>
+                <div className="font-black text-slate-800">-{lastQuotaConsumed}</div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDismissedQuotaAlertToken(quotaAlertToken);
+                  openTradePanelFromAlert();
+                }}
+                className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white hover:bg-emerald-800"
+              >
+                {t(`play.quotaAlert.${quotaAlertLevel}.primary`, 'Go to Trade')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDismissedQuotaAlertToken(quotaAlertToken);
+                  if (quotaAlertLevel === 'exhausted') {
+                    setLastMessage(
+                      t(
+                        'play.quotaAlert.exhausted.adjustHint',
+                        'Reduce high-emission industry cards and place more ecology/low-carbon cards before ending turn.'
+                      )
+                    );
+                  }
+                }}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-slate-700 hover:bg-slate-50"
+              >
+                {t(`play.quotaAlert.${quotaAlertLevel}.secondary`, 'Later')}
+              </button>
+            </div>
           </div>
         </div>
       )}
