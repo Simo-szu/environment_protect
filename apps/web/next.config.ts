@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [parseRemotePattern(storagePublicBaseUrl)],
+    qualities: [75, 100],
   },
   async rewrites() {
     return [

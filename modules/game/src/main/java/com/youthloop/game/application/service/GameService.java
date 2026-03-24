@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -57,6 +58,8 @@ public class GameService {
     private static final String ENDING_INNOVATION = "innovation_technology";
     private static final String ENDING_ECOLOGY = "ecology_priority";
     private static final String ENDING_DOUGHNUT = "doughnut_city";
+    private static final String ENDING_ZERO_TRADE_ECOLOGY = "zero_trade_ecology_priority";
+    private static final String ENDING_SPEEDRUN_EFFICIENT = "speedrun_efficient_layout";
     private static final int INITIAL_CARBON_QUOTA = 50;
     private static final int CARBON_QUOTA_BASELINE = 90;
     private static final int CARBON_QUOTA_PER_N_OVER = 10;
@@ -336,6 +339,7 @@ public class GameService {
         root.put("maxTurn", maxTurn());
         root.put("highCarbonStreak", 0);
         root.put("highCarbonOverLimitStreak", 0);
+        root.put("carbonOverLimitCount", 0);
         root.put("sessionEnded", false);
         root.putNull("ending");
         root.put("guestSession", guestSession);
@@ -397,6 +401,7 @@ public class GameService {
         root.set("activePolicies", objectMapper.createArrayNode());
         root.set("eventHistory", objectMapper.createArrayNode());
         root.set("activeNegativeEvents", objectMapper.createArrayNode());
+        root.set("activePositiveEvents", objectMapper.createArrayNode());
         root.set("comboHistory", objectMapper.createArrayNode());
         root.set("policyHistory", objectMapper.createArrayNode());
         root.set("settlementHistory", objectMapper.createArrayNode());
@@ -417,6 +422,8 @@ public class GameService {
         ObjectNode eventStats = root.putObject("eventStats");
         eventStats.put("negativeTriggered", 0);
         eventStats.put("negativeResolved", 0);
+        eventStats.put("positiveTriggered", 0);
+        eventStats.put("positiveEcologySinkTriggered", 0);
 
         decrementEventCooldownAtTurnStart(root);
         drawCoreCards(root, balance.initialPhase(), balance.initialDrawEarly());
@@ -605,6 +612,7 @@ public class GameService {
         applyCoreSpecialEffects(state, counts, settlementBonus);
         int comboTriggered = applyTurnCombos(state, counts, settlementBonus, adjacency);
         applyActivePolicyEffects(state, settlementBonus);
+        applyActivePositiveEventEffects(state, settlementBonus);
         applyActiveNegativeEventEffects(state, settlementBonus);
         state.set("cardEffectSnapshot", settlementBonus.deepCopy());
 
@@ -685,6 +693,7 @@ public class GameService {
         updateLowCarbonScoreBreakdown(state, scoreBreakdown, settlementBonus.path("lowCarbon").asInt(0), phaseMatchBonus, settlementBonus.path("lowCarbonPct").asInt(0) + globalPct, lowCarbonScoreRaw, lowCarbonScore);
         appendSettlementHistory(state, settlementBonus, resourcesBefore, metricsBefore, tradeBefore);
 
+        tickActivePositiveEvents(state);
         tickActiveNegativeEvents(state);
         applyEventCheck(state);
         processCarbonTradeWindow(state);
@@ -976,10 +985,14 @@ public class GameService {
         int lowCarbonIndustryCount = countPlacedTaggedCardsByTagAndDomain(state, "industry", TAG_LOW_CARBON_CORE);
         int shenzhenEcologyCount = countPlacedTaggedCardsByTagAndDomain(state, "ecology", TAG_SHENZHEN);
         int linkCardCount = countPlacedByTag(state, TAG_LINK);
+        boolean scienceComboBlocked = isScienceComboBlocked(state);
 
         for (GameRuleConfigService.ComboRuleConfig rule : gameRuleConfigService.listComboRules()) {
             if (triggered >= maxComboPerTurn()) {
                 break;
+            }
+            if (scienceComboBlocked && isScienceRelatedCombo(rule)) {
+                continue;
             }
             if (!matchesComboTriggerRule(
                 rule,
@@ -1005,6 +1018,26 @@ public class GameService {
             state.withArray("comboHistory").add(history);
         }
         return triggered;
+    }
+
+    private boolean isScienceComboBlocked(ObjectNode state) {
+        for (JsonNode node : state.withArray("activeNegativeEvents")) {
+            ObjectNode event = (ObjectNode) node;
+            if (event.path("remainingTurns").asInt(0) <= 0) {
+                continue;
+            }
+            if (event.path("blockScienceCombo").asBoolean(false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isScienceRelatedCombo(GameRuleConfigService.ComboRuleConfig rule) {
+        return rule.minScience() > 0
+            || rule.minScienceScienceAdjacentPairs() > 0
+            || rule.minScienceIndustryAdjacentPairs() > 0
+            || rule.comboId().contains("science");
     }
 
     private void applyPolicyEffectNow(ObjectNode state, String policyId) {
@@ -1152,6 +1185,27 @@ public class GameService {
             addBonus(settlementBonus, "satisfaction", event.path("satisfactionDelta").asInt(0));
             addPercentBonus(settlementBonus, "greenPct", event.path("greenPctDelta").asInt(0));
             addPercentBonus(settlementBonus, "populationPct", event.path("populationPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "industryPct", event.path("industryPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "techPct", event.path("techPctDelta").asInt(0));
+        }
+    }
+
+    private void applyActivePositiveEventEffects(ObjectNode state, ObjectNode settlementBonus) {
+        ArrayNode activeEvents = state.withArray("activePositiveEvents");
+        for (JsonNode node : activeEvents) {
+            ObjectNode event = (ObjectNode) node;
+            if (event.path("remainingTurns").asInt(0) <= 1) {
+                continue;
+            }
+            addBonus(settlementBonus, "green", event.path("greenDelta").asInt(0));
+            addBonus(settlementBonus, "carbon", event.path("carbonDelta").asInt(0));
+            addBonus(settlementBonus, "satisfaction", event.path("satisfactionDelta").asInt(0));
+            addBonus(settlementBonus, "population", event.path("populationDelta").asInt(0));
+            addBonus(settlementBonus, "lowCarbon", event.path("lowCarbonDelta").asInt(0));
+            addPercentBonus(settlementBonus, "industryPct", event.path("industryPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "techPct", event.path("techPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "populationPct", event.path("populationPctDelta").asInt(0));
+            addPercentBonus(settlementBonus, "industryCarbonReductionPct", event.path("industryCarbonReductionPct").asInt(0));
         }
     }
 
@@ -1161,19 +1215,14 @@ public class GameService {
             return;
         }
 
-        List<String> resolvableTypes = resolvableEventTypes(policyId);
-        if (resolvableTypes.isEmpty()) {
-            return;
-        }
-
         ObjectNode metrics = state.with("metrics");
         int resolvedCount = 0;
         for (int i = activeEvents.size() - 1; i >= 0; i--) {
             ObjectNode event = (ObjectNode) activeEvents.get(i);
-            String eventType = event.path("eventType").asText();
-            if (!resolvableTypes.contains(eventType)) {
+            if (!eventResolvableByPolicy(event, policyId)) {
                 continue;
             }
+            String eventType = event.path("eventType").asText();
 
             metrics.put("green", Math.max(0, metrics.path("green").asInt() - event.path("greenDelta").asInt()));
             metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() - event.path("carbonDelta").asInt()));
@@ -1198,17 +1247,17 @@ public class GameService {
         }
     }
 
-    private List<String> resolvableEventTypes(String policyId) {
+    private boolean eventResolvableByPolicy(ObjectNode event, String policyId) {
         if (policyId == null || policyId.isBlank()) {
-            return List.of();
+            return false;
         }
-        List<String> matched = new ArrayList<>();
-        for (GameRuleConfigService.EventRuleConfig eventRule : gameRuleConfigService.eventRuleMap().values()) {
-            if (eventRule.resolvablePolicyIds().contains(policyId)) {
-                matched.add(eventRule.eventType());
+        ArrayNode resolvableBy = event.withArray("resolvablePolicyIds");
+        for (JsonNode node : resolvableBy) {
+            if (policyId.equals(node.asText(""))) {
+                return true;
             }
         }
-        return matched;
+        return false;
     }
 
     private void drawPolicyCards(ObjectNode state) {
@@ -1263,12 +1312,8 @@ public class GameService {
         if (!activeEventTypes.isEmpty()) {
             List<String> resolvers = new ArrayList<>();
             for (String policyId : candidatePool) {
-                List<String> resolvableTypes = resolvableEventTypes(policyId);
-                for (String eventType : resolvableTypes) {
-                    if (activeEventTypes.contains(eventType)) {
-                        resolvers.add(policyId);
-                        break;
-                    }
+                if (canResolveAnyActiveNegativeEvent(state, policyId)) {
+                    resolvers.add(policyId);
                 }
             }
             if (!resolvers.isEmpty()) {
@@ -1277,6 +1322,20 @@ public class GameService {
         }
 
         return pickLeastUsedAndLeastDrawnPolicy(state, candidatePool);
+    }
+
+    private boolean canResolveAnyActiveNegativeEvent(ObjectNode state, String policyId) {
+        if (policyId == null || policyId.isBlank()) {
+            return false;
+        }
+        ArrayNode activeEvents = state.withArray("activeNegativeEvents");
+        for (JsonNode node : activeEvents) {
+            ObjectNode event = (ObjectNode) node;
+            if (eventResolvableByPolicy(event, policyId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String pickLeastUsedAndLeastDrawnPolicy(ObjectNode state, List<String> candidates) {
@@ -1554,6 +1613,7 @@ public class GameService {
         int carbon = state.path("metrics").path("carbon").asInt();
         if (carbon > CARBON_QUOTA_BASELINE) {
             state.put("highCarbonOverLimitStreak", state.path("highCarbonOverLimitStreak").asInt(0) + 1);
+            state.put("carbonOverLimitCount", state.path("carbonOverLimitCount").asInt(0) + 1);
         } else {
             state.put("highCarbonOverLimitStreak", 0);
         }
@@ -1595,6 +1655,55 @@ public class GameService {
         int usage6768 = countPolicyUsage(state, "card067") + countPolicyUsage(state, "card068");
         double eventResolveRate = calculateNegativeEventResolveRate(state);
         ObjectNode trade = state.with("carbonTrade");
+        ObjectNode eventStats = state.with("eventStats");
+        int unlockedPolicyCount = state.withArray("policyUnlocked").size();
+        int comboTriggeredCount = countTotalTriggeredCombos(state);
+        int positiveEventCount = eventStats.path("positiveTriggered").asInt(0);
+        int ecologySinkPositiveEventCount = eventStats.path("positiveEcologySinkTriggered").asInt(0);
+        int carbon = metrics.path("carbon").asInt();
+        int quota = trade.path("quota").asInt(0);
+        double buyAmountTotal = trade.path("buyAmountTotal").asDouble(0D);
+        double sellAmountTotal = trade.path("sellAmountTotal").asDouble(0D);
+        double tradeProfit = trade.path("profit").asDouble(0D);
+        int carbonOverLimitCount = state.path("carbonOverLimitCount").asInt(0);
+
+        boolean ending19ZeroTradeEcology = lowCarbonScore >= 140
+            && lowCarbonScore < 160
+            && counts.total >= 28
+            && unlockedPolicyCount >= 3
+            && unlockedPolicyCount <= 5
+            && nearlyZero(tradeProfit)
+            && nearlyZero(buyAmountTotal)
+            && nearlyZero(sellAmountTotal)
+            && quota >= 40
+            && counts.ecology >= 8
+            && metrics.path("green").asInt() >= 110
+            && carbon <= CARBON_QUOTA_BASELINE
+            && carbonOverLimitCount <= 0
+            && ecologySinkPositiveEventCount >= 1;
+
+        boolean ending21SpeedrunEfficient = lowCarbonScore >= 130
+            && lowCarbonScore < 150
+            && counts.total >= 25
+            && unlockedPolicyCount >= 2
+            && unlockedPolicyCount <= 4
+            && turn <= 25
+            && tradeProfit >= 60
+            && trade.path("quotaExhaustedCount").asInt(0) <= 0
+            && positiveEventCount >= 1
+            && state.with("eventStats").path("negativeTriggered").asInt(0) <= 0
+            && atLeastTwoDomainsAtLeast(counts, 8)
+            && atLeastAllDomains(counts, 4)
+            && comboTriggeredCount >= 3;
+
+        if (ending19ZeroTradeEcology) {
+            setEnding(state, ENDING_ZERO_TRADE_ECOLOGY, null);
+            return;
+        }
+        if (ending21SpeedrunEfficient) {
+            setEnding(state, ENDING_SPEEDRUN_EFFICIENT, null);
+            return;
+        }
 
         boolean innovation = counts.science == maxDomain
             && counts.science >= balance.endingInnovationMinScience()
@@ -1663,6 +1772,34 @@ public class GameService {
             }
         }
         return count;
+    }
+
+    private int countTotalTriggeredCombos(ObjectNode state) {
+        int total = 0;
+        for (JsonNode history : state.withArray("comboHistory")) {
+            total += history.withArray("combos").size();
+        }
+        return total;
+    }
+
+    private boolean nearlyZero(double value) {
+        return Math.abs(value) < 0.0001D;
+    }
+
+    private boolean atLeastTwoDomainsAtLeast(DomainCounts counts, int threshold) {
+        int reached = 0;
+        if (counts.industry >= threshold) reached++;
+        if (counts.ecology >= threshold) reached++;
+        if (counts.science >= threshold) reached++;
+        if (counts.society >= threshold) reached++;
+        return reached >= 2;
+    }
+
+    private boolean atLeastAllDomains(DomainCounts counts, int threshold) {
+        return counts.industry >= threshold
+            && counts.ecology >= threshold
+            && counts.science >= threshold
+            && counts.society >= threshold;
     }
 
     private double calculateNegativeEventResolveRate(ObjectNode state) {
@@ -1846,7 +1983,11 @@ public class GameService {
         GameRuleConfigService.BalanceRuleConfig balance = balanceRule();
         int cooldown = state.path("eventCooldown").asInt();
         if (cooldown <= 0) {
-            maybeTriggerNegativeEvent(state);
+            maybeTriggerPositiveEvent(state);
+            boolean triggeredSpecialNegative = maybeTriggerDocumentSpecialNegativeEvent(state);
+            if (!triggeredSpecialNegative) {
+                maybeTriggerNegativeEvent(state);
+            }
             state.put("eventCooldown", balance.eventCooldownResetTurns());
         }
     }
@@ -1867,6 +2008,316 @@ public class GameService {
                 event.put("remainingTurns", remain);
             }
         }
+    }
+
+    private void tickActivePositiveEvents(ObjectNode state) {
+        ArrayNode activeEvents = state.withArray("activePositiveEvents");
+        for (int i = activeEvents.size() - 1; i >= 0; i--) {
+            ObjectNode event = (ObjectNode) activeEvents.get(i);
+            int remain = event.path("remainingTurns").asInt(1) - 1;
+            if (remain <= 0) {
+                activeEvents.remove(i);
+            } else {
+                event.put("remainingTurns", remain);
+            }
+        }
+    }
+
+    private void maybeTriggerPositiveEvent(ObjectNode state) {
+        ObjectNode metrics = state.with("metrics");
+        ObjectNode resources = state.with("resources");
+        DomainCounts counts = countPlacedDomains(state);
+        int lowCarbonIndustryCount = countPlacedTaggedCardsByTagAndDomain(state, "industry", TAG_LOW_CARBON_CORE);
+        int baseProbability = resolveSpecialEventBaseProbability(state, counts);
+
+        List<SpecialPositiveEvent> candidates = new ArrayList<>();
+        if (counts.science >= 8 && resources.path("tech").asInt(0) >= 80) {
+            candidates.add(new SpecialPositiveEvent(
+                "positive_science_breakthrough",
+                "深圳低碳科创突破",
+                10,
+                2,
+                0,
+                -10,
+                0,
+                0,
+                0,
+                0,
+                30,
+                0,
+                "科创点+30%，碳排放-10/回合，持续2回合"
+            ));
+        }
+        if (counts.ecology >= 8 && metrics.path("green").asInt(0) >= 80) {
+            candidates.add(new SpecialPositiveEvent(
+                "positive_ecology_sink_growth",
+                "生态碳汇增值",
+                10,
+                1,
+                15,
+                0,
+                0,
+                0,
+                10,
+                0,
+                0,
+                0,
+                "绿建度+15，低碳总分+10，持续1回合"
+            ));
+        }
+        if (lowCarbonIndustryCount >= 5 && resources.path("industry").asInt(0) >= 70) {
+            candidates.add(new SpecialPositiveEvent(
+                "positive_low_carbon_industry_support",
+                "低碳产业扶持",
+                10,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                25,
+                0,
+                100,
+                "工业产业值+25%，无碳排放增加，持续2回合"
+            ));
+        }
+        if (counts.society >= 8 && metrics.path("satisfaction").asInt(0) >= 85) {
+            candidates.add(new SpecialPositiveEvent(
+                "positive_citizen_low_carbon_wave",
+                "市民低碳参与热潮",
+                10,
+                1,
+                0,
+                0,
+                15,
+                10,
+                0,
+                0,
+                0,
+                0,
+                "人口+10，市民满意度+15，持续1回合"
+            ));
+        }
+        if (candidates.isEmpty()) {
+            return;
+        }
+
+        Collections.shuffle(candidates);
+        for (SpecialPositiveEvent event : candidates) {
+            int finalProbability = clamp(baseProbability + event.probabilityBonusPct(), 0, 100);
+            if (ThreadLocalRandom.current().nextInt(100) >= finalProbability) {
+                continue;
+            }
+            applyPositiveEventImmediateEffect(state, event);
+            appendPositiveEventHistory(state, event);
+            appendPositiveActiveEvent(state, event);
+            ObjectNode stats = state.with("eventStats");
+            stats.put("positiveTriggered", stats.path("positiveTriggered").asInt(0) + 1);
+            if ("positive_ecology_sink_growth".equals(event.eventType())) {
+                stats.put("positiveEcologySinkTriggered", stats.path("positiveEcologySinkTriggered").asInt(0) + 1);
+            }
+            return;
+        }
+    }
+
+    private boolean maybeTriggerDocumentSpecialNegativeEvent(ObjectNode state) {
+        ObjectNode metrics = state.with("metrics");
+        ObjectNode resources = state.with("resources");
+        DomainCounts counts = countPlacedDomains(state);
+        int baseProbability = resolveSpecialEventBaseProbability(state, counts);
+        List<SpecialNegativeEvent> candidates = new ArrayList<>();
+
+        if (counts.industry >= 10 && metrics.path("carbon").asInt(0) >= 130) {
+            candidates.add(new SpecialNegativeEvent(
+                "negative_industrial_carbon_abnormal",
+                "工业碳排放异常",
+                15,
+                1,
+                0,
+                30,
+                0,
+                0,
+                0,
+                -15,
+                0,
+                false,
+                "碳排放+30，工业产业值-15%，持续1回合",
+                List.of("card062")
+            ));
+        }
+        if (counts.ecology <= 5 && metrics.path("green").asInt(0) <= 60) {
+            candidates.add(new SpecialNegativeEvent(
+                "negative_ecology_warning",
+                "生态破坏预警",
+                15,
+                2,
+                -8,
+                0,
+                -5,
+                0,
+                0,
+                0,
+                0,
+                false,
+                "绿建度-8/回合，市民满意度-5/回合，持续2回合",
+                List.of("card064")
+            ));
+        }
+        if (counts.science <= 5 && resources.path("tech").asInt(0) <= 60) {
+            candidates.add(new SpecialNegativeEvent(
+                "negative_science_research_blocked",
+                "科创研发受阻",
+                15,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                -25,
+                true,
+                "科创点-25%，无法触发科学板块联动，持续1回合",
+                List.of("card065")
+            ));
+        }
+        if (counts.society <= 5 && resources.path("population").asInt(0) >= 80 && metrics.path("green").asInt(0) <= 70) {
+            candidates.add(new SpecialNegativeEvent(
+                "negative_livability_decline",
+                "人口宜居性下降",
+                10,
+                2,
+                0,
+                0,
+                -8,
+                0,
+                -20,
+                0,
+                0,
+                false,
+                "人口产出-20%，市民满意度-8/回合，持续2回合",
+                List.of("card067")
+            ));
+        }
+        if (candidates.isEmpty()) {
+            return false;
+        }
+
+        Collections.shuffle(candidates);
+        for (SpecialNegativeEvent event : candidates) {
+            int finalProbability = clamp(baseProbability + event.probabilityBonusPct(), 0, 100);
+            if (ThreadLocalRandom.current().nextInt(100) >= finalProbability) {
+                continue;
+            }
+            applySpecialNegativeImmediateEffect(state, event);
+            appendSpecialNegativeEventHistory(state, event);
+            appendSpecialNegativeActiveEvent(state, event);
+            ObjectNode stats = state.with("eventStats");
+            stats.put("negativeTriggered", stats.path("negativeTriggered").asInt(0) + 1);
+            return true;
+        }
+        return false;
+    }
+
+    private int resolveSpecialEventBaseProbability(ObjectNode state, DomainCounts counts) {
+        int base = clamp(gameRuleConfigService.eventTriggerProbabilityPct(), 0, 100);
+        if (counts.science >= 8) {
+            base += 10;
+        }
+        if (hasActivePolicy(state, "card065")) {
+            base += 15;
+        }
+        return clamp(base, 0, 100);
+    }
+
+    private boolean hasActivePolicy(ObjectNode state, String policyId) {
+        if (policyId == null || policyId.isBlank()) {
+            return false;
+        }
+        for (JsonNode node : state.withArray("activePolicies")) {
+            if (policyId.equals(node.path("policyId").asText("")) && node.path("remainingTurns").asInt(0) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applySpecialNegativeImmediateEffect(ObjectNode state, SpecialNegativeEvent event) {
+        ObjectNode metrics = state.with("metrics");
+        metrics.put("green", Math.max(0, metrics.path("green").asInt() + event.greenDelta()));
+        metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + event.carbonDelta()));
+        metrics.put("satisfaction", clamp(metrics.path("satisfaction").asInt() + event.satisfactionDelta(), 0, balanceRule().satisfactionMax()));
+    }
+
+    private void appendSpecialNegativeEventHistory(ObjectNode state, SpecialNegativeEvent event) {
+        ObjectNode eventNode = objectMapper.createObjectNode();
+        eventNode.put("turn", state.path("turn").asInt());
+        eventNode.put("eventType", event.eventType());
+        eventNode.put("eventName", event.eventName());
+        eventNode.put("effectSummary", event.effectSummary());
+        eventNode.put("resolutionHint", "使用对应政策卡可立即化解");
+        ArrayNode resolvableBy = objectMapper.createArrayNode();
+        event.resolvablePolicyIds().forEach(resolvableBy::add);
+        eventNode.set("resolvablePolicyIds", resolvableBy);
+        state.withArray("eventHistory").add(eventNode);
+    }
+
+    private void appendSpecialNegativeActiveEvent(ObjectNode state, SpecialNegativeEvent event) {
+        ObjectNode activeEvent = objectMapper.createObjectNode();
+        activeEvent.put("eventType", event.eventType());
+        activeEvent.put("eventName", event.eventName());
+        activeEvent.put("remainingTurns", Math.max(1, event.durationTurns()));
+        activeEvent.put("greenDelta", event.greenDelta());
+        activeEvent.put("carbonDelta", event.carbonDelta());
+        activeEvent.put("satisfactionDelta", event.satisfactionDelta());
+        activeEvent.put("greenPctDelta", event.greenPctDelta());
+        activeEvent.put("populationPctDelta", event.populationPctDelta());
+        activeEvent.put("industryPctDelta", event.industryPctDelta());
+        activeEvent.put("techPctDelta", event.techPctDelta());
+        activeEvent.put("blockScienceCombo", event.blockScienceCombo());
+        ArrayNode resolvableBy = objectMapper.createArrayNode();
+        event.resolvablePolicyIds().forEach(resolvableBy::add);
+        activeEvent.set("resolvablePolicyIds", resolvableBy);
+        state.withArray("activeNegativeEvents").add(activeEvent);
+    }
+
+    private void applyPositiveEventImmediateEffect(ObjectNode state, SpecialPositiveEvent event) {
+        ObjectNode metrics = state.with("metrics");
+        ObjectNode resources = state.with("resources");
+        metrics.put("green", Math.max(0, metrics.path("green").asInt() + event.greenDelta()));
+        metrics.put("carbon", Math.max(0, metrics.path("carbon").asInt() + event.carbonDelta()));
+        metrics.put("satisfaction", clamp(metrics.path("satisfaction").asInt() + event.satisfactionDelta(), 0, balanceRule().satisfactionMax()));
+        metrics.put("lowCarbonScore", Math.max(0, metrics.path("lowCarbonScore").asInt(0) + event.lowCarbonDelta()));
+        resources.put("population", Math.max(0, resources.path("population").asInt() + event.populationDelta()));
+    }
+
+    private void appendPositiveEventHistory(ObjectNode state, SpecialPositiveEvent event) {
+        ObjectNode eventNode = objectMapper.createObjectNode();
+        eventNode.put("turn", state.path("turn").asInt());
+        eventNode.put("eventType", event.eventType());
+        eventNode.put("eventName", event.eventName());
+        eventNode.put("effectSummary", event.effectSummary());
+        eventNode.put("resolutionHint", "");
+        eventNode.put("eventCategory", "positive");
+        state.withArray("eventHistory").add(eventNode);
+    }
+
+    private void appendPositiveActiveEvent(ObjectNode state, SpecialPositiveEvent event) {
+        ObjectNode activeEvent = objectMapper.createObjectNode();
+        activeEvent.put("eventType", event.eventType());
+        activeEvent.put("eventName", event.eventName());
+        activeEvent.put("remainingTurns", Math.max(1, event.durationTurns()));
+        activeEvent.put("greenDelta", event.greenDelta());
+        activeEvent.put("carbonDelta", event.carbonDelta());
+        activeEvent.put("satisfactionDelta", event.satisfactionDelta());
+        activeEvent.put("populationDelta", event.populationDelta());
+        activeEvent.put("lowCarbonDelta", event.lowCarbonDelta());
+        activeEvent.put("industryPctDelta", event.industryPctDelta());
+        activeEvent.put("techPctDelta", event.techPctDelta());
+        activeEvent.put("industryCarbonReductionPct", event.industryCarbonReductionPct());
+        activeEvent.put("populationPctDelta", 0);
+        state.withArray("activePositiveEvents").add(activeEvent);
     }
 
     private void maybeTriggerNegativeEvent(ObjectNode state) {
@@ -3050,6 +3501,41 @@ public class GameService {
         int quotaPenalty,
         int invalidPenalty,
         int totalBeforeBonuses
+    ) {
+    }
+
+    private record SpecialPositiveEvent(
+        String eventType,
+        String eventName,
+        int probabilityBonusPct,
+        int durationTurns,
+        int greenDelta,
+        int carbonDelta,
+        int satisfactionDelta,
+        int populationDelta,
+        int lowCarbonDelta,
+        int industryPctDelta,
+        int techPctDelta,
+        int industryCarbonReductionPct,
+        String effectSummary
+    ) {
+    }
+
+    private record SpecialNegativeEvent(
+        String eventType,
+        String eventName,
+        int probabilityBonusPct,
+        int durationTurns,
+        int greenDelta,
+        int carbonDelta,
+        int satisfactionDelta,
+        int greenPctDelta,
+        int populationPctDelta,
+        int industryPctDelta,
+        int techPctDelta,
+        boolean blockScienceCombo,
+        String effectSummary,
+        List<String> resolvablePolicyIds
     ) {
     }
 
