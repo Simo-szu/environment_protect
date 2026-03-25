@@ -40,9 +40,18 @@ public class OwidDataNewsSourceClient extends BaseWebSourceClient implements Con
     public List<ExternalArticle> fetchLatest(int maxPages, int maxArticles, int requestTimeoutMs, long requestIntervalMs) {
         List<ExternalArticle> articles = new ArrayList<>();
         try {
-            ExternalArticle article = fetchDataNews(requestTimeoutMs);
-            if (article != null) {
-                articles.add(article);
+            Document feed = fetchDocument(DATA_NEWS_FEED_URL, requestTimeoutMs);
+            var entries = feed.select("entry");
+            log.debug("OWID feed parsed: entries={}", entries.size());
+
+            for (Element entry : entries) {
+                if (articles.size() >= maxArticles) {
+                    break;
+                }
+                ExternalArticle article = parseEntry(entry);
+                if (article != null) {
+                    articles.add(article);
+                }
             }
         } catch (IOException e) {
             log.warn("Fetch OWID data news failed, url={}", DATA_NEWS_FEED_URL, e);
@@ -50,17 +59,9 @@ public class OwidDataNewsSourceClient extends BaseWebSourceClient implements Con
         return articles;
     }
 
-    private ExternalArticle fetchDataNews(int requestTimeoutMs) throws IOException {
-        Document feed = fetchDocument(DATA_NEWS_FEED_URL, requestTimeoutMs);
-        Element entry = feed.selectFirst("entry");
-        if (entry == null) {
-            log.debug("Skip OWID feed due missing entry, url={}", DATA_NEWS_FEED_URL);
-            return null;
-        }
-
+    private ExternalArticle parseEntry(Element entry) {
         String title = firstText(entry, "title");
         if (title == null || title.isBlank()) {
-            log.debug("Skip OWID entry due missing title, url={}", DATA_NEWS_FEED_URL);
             return null;
         }
 
@@ -69,7 +70,7 @@ public class OwidDataNewsSourceClient extends BaseWebSourceClient implements Con
             sourceUrl = firstText(entry, "id");
         }
         if (sourceUrl == null || sourceUrl.isBlank()) {
-            sourceUrl = DATA_NEWS_FEED_URL;
+            return null;
         }
 
         String rawContent = firstText(entry, "content");
@@ -86,10 +87,8 @@ public class OwidDataNewsSourceClient extends BaseWebSourceClient implements Con
         }
 
         if (bodyHtml.isBlank()) {
-            bodyHtml = "<p>" + title + "</p>";
-            if (sourceUrl != null && !sourceUrl.isBlank()) {
-                bodyHtml += "<p><a href=\"" + sourceUrl + "\">Read the full story</a></p>";
-            }
+            bodyHtml = "<p>" + title + "</p>"
+                + "<p><a href=\"" + sourceUrl + "\">Read the full story</a></p>";
         }
         if (summary == null || summary.isBlank()) {
             summary = "Data insight from Our World in Data.";

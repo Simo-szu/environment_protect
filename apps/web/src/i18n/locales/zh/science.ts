@@ -53,9 +53,16 @@ const science = {
         viewAll: '查看全部',
         readFull: '阅读全文',
     },
+    tabs: {
+        data: '数据洞察',
+        news: '新闻资讯',
+        cases: '案例动态',
+        policy: '政策法规',
+        wiki: '环保百科',
+    },
     types: {
         NEWS: '环保新闻',
-        DYNAMIC: '活动动态',
+        DYNAMIC: '案例动态',
         POLICY: '政策法规',
         WIKI: '环保百科',
     },

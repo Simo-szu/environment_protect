@@ -83,25 +83,8 @@ public class EarthClimateSourceClient extends BaseWebSourceClient implements Con
     }
 
     private ExternalArticle fetchDetail(String detailUrl, int requestTimeoutMs) throws IOException {
-        ExternalArticle renderedArticle = tryFetchRenderedDetail(detailUrl, requestTimeoutMs);
-        if (renderedArticle != null) {
-            return renderedArticle;
-        }
         Document document = fetchDocument(detailUrl, requestTimeoutMs);
         return mapDetailDocument(document, detailUrl);
-    }
-
-    private ExternalArticle tryFetchRenderedDetail(String detailUrl, int requestTimeoutMs) {
-        String renderedUrl = detailUrl.contains("?")
-            ? detailUrl + "&output=1"
-            : detailUrl + "/?output=1";
-        try {
-            Document renderedDocument = fetchDocument(renderedUrl, requestTimeoutMs);
-            return mapDetailDocument(renderedDocument, detailUrl);
-        } catch (IOException e) {
-            log.debug("Fetch earth rendered detail failed, url={}", renderedUrl, e);
-            return null;
-        }
     }
 
     private ExternalArticle mapDetailDocument(Document document, String detailUrl) {

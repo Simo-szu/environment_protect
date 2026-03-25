@@ -11,7 +11,9 @@
       "Bash(python3:*)",
       "Bash(python:*)",
       "Bash(pandoc:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(find '/c/Personal Develop/environment_protect' -type f \\\\\\(-name nginx.conf -o -name *.nginx -o -name Jenkinsfile -o -name .env* \\\\\\))",
+      "Bash(export PATH=\"$PATH:/c/Users/11948/AppData/Local/Pandoc\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\11948\\.claude"

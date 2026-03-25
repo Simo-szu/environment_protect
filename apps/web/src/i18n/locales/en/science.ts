@@ -54,9 +54,16 @@ const science = {
         viewAll: 'View All',
         readFull: 'Read Full Article',
     },
+    tabs: {
+        data: 'Data Insights',
+        news: 'News',
+        cases: 'Cases',
+        policy: 'Policy',
+        wiki: 'Wiki',
+    },
     types: {
         NEWS: 'News',
-        DYNAMIC: 'Dynamics',
+        DYNAMIC: 'Cases',
         POLICY: 'Policies',
         WIKI: 'Wiki',
     },

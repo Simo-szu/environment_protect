@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { ArrowRight, BarChart3, Factory, Scale } from 'lucide-react';
+import { ArrowRight, BarChart3, BookOpen, Factory, Newspaper, Scale } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 import { contentApi } from '@/lib/api';
@@ -18,8 +18,10 @@ export default function HomePage() {
     const isZh = locale === 'zh';
 
     const [dataNews, setDataNews] = useState<ContentItem[]>([]);
+    const [newsItems, setNewsItems] = useState<ContentItem[]>([]);
     const [caseItems, setCaseItems] = useState<ContentItem[]>([]);
     const [policyItems, setPolicyItems] = useState<ContentItem[]>([]);
+    const [wikiItems, setWikiItems] = useState<ContentItem[]>([]);
     const [contentLoading, setContentLoading] = useState(false);
 
     const [companyAEmission, setCompanyAEmission] = useState(140);
@@ -31,7 +33,7 @@ export default function HomePage() {
         { key: 'volume', labelZh: '今日成交量', labelEn: 'Daily Volume', value: 48.6, unit: isZh ? '万吨' : '10k tons', precision: 1, min: 12, max: 95, delta: -0.4 },
         { key: 'turnover', labelZh: '累计成交额', labelEn: 'Total Turnover', value: 391.4, unit: isZh ? '亿元' : '100M CNY', precision: 1, min: 200, max: 520, delta: 0.8 }
     ]);
-    const [lastMarketUpdate, setLastMarketUpdate] = useState<Date>(new Date());
+    const [lastMarketUpdate, setLastMarketUpdate] = useState<Date | null>(null);
 
     const tradeDemand = Math.max(0, companyAEmission - companyAQuota);
     const tradeSupply = Math.max(0, companyBQuota - companyBEmission);
@@ -54,15 +56,19 @@ export default function HomePage() {
         const loadHomeContents = async () => {
             try {
                 setContentLoading(true);
-                const [dataNewsPage, casesPage, policiesPage] = await Promise.all([
+                const [dataNewsPage, newsPage, casesPage, policiesPage, wikiPage] = await Promise.all([
                     contentApi.getDataNewsContents({ size: 3, sort: 'latest' }),
+                    contentApi.getContents({ type: 'NEWS', size: 3, sort: 'latest' }),
                     contentApi.getContents({ type: 'DYNAMIC', size: 3, sort: 'latest' }),
-                    contentApi.getContents({ type: 'POLICY', size: 3, sort: 'latest' })
+                    contentApi.getContents({ type: 'POLICY', size: 3, sort: 'latest' }),
+                    contentApi.getContents({ type: 'WIKI', size: 3, sort: 'latest' })
                 ]);
 
                 setDataNews(dataNewsPage.items);
+                setNewsItems(newsPage.items);
                 setCaseItems(casesPage.items);
                 setPolicyItems(policiesPage.items);
+                setWikiItems(wikiPage.items);
             } catch (error) {
                 if (!isBackendUnavailableError(error)) {
                     console.error('Failed to load homepage content:', error);
@@ -78,6 +84,7 @@ export default function HomePage() {
     }, []);
 
     useEffect(() => {
+        setLastMarketUpdate(new Date());
         const timer = window.setInterval(() => {
             setMarketData((prev) =>
                 prev.map((item) => {
@@ -95,6 +102,8 @@ export default function HomePage() {
 
         return () => window.clearInterval(timer);
     }, []);
+
+    const dateLocale = locale === 'zh' ? 'zh-CN' : 'en-US';
 
     return (
         <Layout>
@@ -137,13 +146,13 @@ export default function HomePage() {
                                     {isZh ? '连接碳市场数据、政策解读与低碳行动，帮助青年用户理解并参与碳交易生态。' : 'Connecting market data, policy interpretation, and low-carbon actions for young users.'}
                                 </p>
                                 <div className="mt-5 flex flex-wrap gap-3">
-                                    <a
-                                        href={`/${locale}#data-news`}
+                                    <Link
+                                        href={`/${locale}/science`}
                                         className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white px-6 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.45)] transition-all hover:translate-y-[-1px] hover:bg-white/95"
                                     >
-                                        {isZh ? '进入科普' : 'Explore Data News'}
+                                        {isZh ? '进入科普' : 'Explore Science'}
                                         <ArrowRight className="h-4 w-4" />
-                                    </a>
+                                    </Link>
                                     <Link
                                         href={`/${locale}/game`}
                                         className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/8 px-6 py-2.5 text-sm font-semibold text-[#e6f6f0] backdrop-blur-md transition-all hover:translate-y-[-1px] hover:bg-white/14"
@@ -165,8 +174,9 @@ export default function HomePage() {
                                             {isZh ? '碳交易市场数据' : 'Carbon Market Snapshot'}
                                         </p>
                                         <span className="text-[11px] text-[#b9d3e7]">
-                                            {isZh ? '更新于 ' : 'Updated '}
-                                            {lastMarketUpdate.toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US', { hour12: false })}
+                                            {lastMarketUpdate
+                                                ? `${isZh ? '更新于 ' : 'Updated '}${lastMarketUpdate.toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US', { hour12: false })}`
+                                                : '\u00A0'}
                                         </span>
                                     </div>
                                     <div className="overflow-hidden rounded-2xl border border-white/12">
@@ -218,56 +228,45 @@ export default function HomePage() {
             <div className="px-4 py-12 sm:px-6 md:px-12">
                 <div className="mx-auto max-w-6xl space-y-14">
                     <AnimatedSection delay={0.05}>
-                        <section id="data-news" className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
-                            <header className="mb-8 text-center">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/35 px-4 py-2 backdrop-blur-sm dark:bg-slate-800/35">
-                                    <BarChart3 className="h-5 w-5 text-[#30499B]" />
-                                    <span className="text-sm font-semibold text-[#30499B] dark:text-slate-100">{isZh ? '数据新闻' : 'Data News'}</span>
-                                </div>
-                                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#30499B] dark:text-slate-100 md:text-4xl">
-                                    {isZh ? '用数据看懂碳问题' : 'Understand Carbon Through Data'}
-                                </h2>
-                                <p className="mx-auto mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300">
-                                    {isZh ? '聚焦 OWID / Pudding 等数据叙事来源，围绕趋势、机制和行为影响展开。' : 'Centered around OWID and Pudding-style narratives across trends, mechanisms, and behavior impact.'}
-                                </p>
-                            </header>
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                                {dataNews.map((item) => (
-                                    <article key={item.id} className="rounded-2xl border border-white/35 bg-white/45 p-5 shadow-[0_18px_45px_-34px_rgba(48,73,155,0.4)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
-                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#30499B]">Data Insight</p>
-                                        <h3 className="mt-2 line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
-                                        <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-                                            {item.summary || (isZh ? '点击查看详情。' : 'Open to read details.')}
-                                        </p>
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                {formatShortDate(item.publishedAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
-                                            </span>
-                                            <Link href={`/${locale}/science/${item.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#30499B] hover:underline">
-                                                {isZh ? '阅读全文' : 'Read'}
-                                                <ArrowRight className="h-3.5 w-3.5" />
-                                            </Link>
-                                        </div>
-                                    </article>
-                                ))}
-                                {!contentLoading && dataNews.length === 0 && (
-                                    <>
-                                        <div className="rounded-2xl border border-white/35 bg-white/45 p-5 text-sm text-slate-500 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-300">
-                                            {isZh ? '暂无数据新闻，稍后自动更新。' : 'No data news yet. Auto refresh soon.'}
-                                        </div>
-                                        <div className="rounded-2xl border border-white/35 bg-white/35 p-5 text-sm text-slate-500 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/30 dark:text-slate-300">
-                                            {isZh ? '正在等待下一批数据源同步。' : 'Waiting for the next content sync.'}
-                                        </div>
-                                        <div className="rounded-2xl border border-white/35 bg-white/35 p-5 text-sm text-slate-500 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/30 dark:text-slate-300">
-                                            {isZh ? '可先浏览案例与法律板块。' : 'Explore cases and policy sections in the meantime.'}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </section>
+                        <ContentPreviewSection
+                            id="data-news"
+                            icon={<BarChart3 className="h-5 w-5 text-[#30499B]" />}
+                            badge={isZh ? '数据洞察' : 'Data Insights'}
+                            title={isZh ? '用数据看懂碳问题' : 'Understand Carbon Through Data'}
+                            subtitle={isZh ? '聚焦 OWID / Pudding 等数据叙事来源，围绕趋势、机制和行为影响展开。' : 'Centered around OWID and Pudding-style narratives across trends, mechanisms, and behavior impact.'}
+                            items={dataNews}
+                            loading={contentLoading}
+                            emptyText={isZh ? '暂无数据新闻' : 'No data news yet'}
+                            moreHref={`/${locale}/science?tab=data`}
+                            moreText={isZh ? '查看全部数据洞察' : 'View all data insights'}
+                            accentColor="#30499B"
+                            shadowColor="rgba(48,73,155,0.4)"
+                            locale={locale}
+                            dateLocale={dateLocale}
+                            tagLabel="Data Insight"
+                        />
                     </AnimatedSection>
 
                     <AnimatedSection delay={0.08}>
+                        <ContentPreviewSection
+                            icon={<Newspaper className="h-5 w-5 text-[#2563eb]" />}
+                            badge={isZh ? '新闻资讯' : 'News'}
+                            title={isZh ? '环保新闻速递' : 'Environmental News'}
+                            subtitle={isZh ? '追踪全球气候变化、碳排放与可持续发展领域的最新报道。' : 'Track the latest coverage on climate change, carbon emissions, and sustainability.'}
+                            items={newsItems}
+                            loading={contentLoading}
+                            emptyText={isZh ? '暂无新闻' : 'No news yet'}
+                            moreHref={`/${locale}/science?tab=news`}
+                            moreText={isZh ? '查看全部新闻' : 'View all news'}
+                            accentColor="#2563eb"
+                            shadowColor="rgba(37,99,235,0.35)"
+                            locale={locale}
+                            dateLocale={dateLocale}
+                            tagLabel="NEWS"
+                        />
+                    </AnimatedSection>
+
+                    <AnimatedSection delay={0.10}>
                         <section className="rounded-[2rem] border border-slate-200/80 bg-white/70 p-6 shadow-[0_26px_70px_-45px_rgba(186,133,54,0.28)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/40 md:p-8">
                             <h2 className="text-2xl font-semibold text-[#30499B] dark:text-slate-100">
                                 {isZh ? '碳交易模拟' : 'Carbon Trading Simulator'}
@@ -313,79 +312,152 @@ export default function HomePage() {
                         </section>
                     </AnimatedSection>
 
-                    <AnimatedSection delay={0.11}>
-                        <section className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
-                            <header className="mb-8 text-center">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/35 px-4 py-2 backdrop-blur-sm dark:bg-slate-800/35">
-                                    <Factory className="h-5 w-5 text-[#56B949]" />
-                                    <span className="text-sm font-semibold text-[#30499B] dark:text-slate-100">{isZh ? '案例' : 'Cases'}</span>
-                                </div>
-                                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#30499B] dark:text-slate-100 md:text-4xl">
-                                    {isZh ? '真实市场案例' : 'Real Carbon Market Cases'}
-                                </h2>
-                                <p className="mx-auto mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300">
-                                    {isZh ? '从试点实践到校园应用，观察碳交易如何在真实场景落地。' : 'From pilot markets to campus practice, see how carbon trading works in real scenarios.'}
-                                </p>
-                            </header>
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                                {caseItems.map((item) => (
-                                    <article key={item.id} className="rounded-2xl border border-white/35 bg-white/45 p-5 shadow-[0_18px_45px_-34px_rgba(86,185,73,0.45)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
-                                        <h3 className="line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
-                                        <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-                                            {item.summary || (isZh ? '点击查看案例详情。' : 'Open to read case details.')}
-                                        </p>
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                {formatShortDate(item.publishedAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
-                                            </span>
-                                            <Link href={`/${locale}/science/${item.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#56B949] hover:underline">
-                                                {isZh ? '查看' : 'Open'}
-                                                <ArrowRight className="h-3.5 w-3.5" />
-                                            </Link>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-                        </section>
+                    <AnimatedSection delay={0.12}>
+                        <ContentPreviewSection
+                            icon={<Factory className="h-5 w-5 text-[#56B949]" />}
+                            badge={isZh ? '案例动态' : 'Cases'}
+                            title={isZh ? '真实市场案例' : 'Real Carbon Market Cases'}
+                            subtitle={isZh ? '从试点实践到校园应用，观察碳交易如何在真实场景落地。' : 'From pilot markets to campus practice, see how carbon trading works in real scenarios.'}
+                            items={caseItems}
+                            loading={contentLoading}
+                            emptyText={isZh ? '暂无案例' : 'No cases yet'}
+                            moreHref={`/${locale}/science?tab=cases`}
+                            moreText={isZh ? '查看全部案例' : 'View all cases'}
+                            accentColor="#56B949"
+                            shadowColor="rgba(86,185,73,0.45)"
+                            locale={locale}
+                            dateLocale={dateLocale}
+                        />
                     </AnimatedSection>
 
                     <AnimatedSection delay={0.14}>
-                        <section className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
-                            <header className="mb-8 text-center">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/35 px-4 py-2 backdrop-blur-sm dark:bg-slate-800/35">
-                                    <Scale className="h-5 w-5 text-[#F0A32F]" />
-                                    <span className="text-sm font-semibold text-[#30499B] dark:text-slate-100">{isZh ? '法律政策' : 'Policy & Laws'}</span>
-                                </div>
-                                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#30499B] dark:text-slate-100 md:text-4xl">
-                                    {isZh ? '政策与合规框架' : 'Policy & Compliance Framework'}
-                                </h2>
-                                <p className="mx-auto mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300">
-                                    {isZh ? '从国际协定到本地监管，梳理碳交易的法规与执行路径。' : 'From global agreements to local regulation, map the legal path of carbon trading.'}
-                                </p>
-                            </header>
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                                {policyItems.map((item) => (
-                                    <article key={item.id} className="rounded-2xl border border-white/35 bg-white/45 p-5 shadow-[0_18px_45px_-34px_rgba(240,163,47,0.4)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
-                                        <h3 className="line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
-                                        <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-                                            {item.summary || (isZh ? '点击查看政策详情。' : 'Open to read policy details.')}
-                                        </p>
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                {formatShortDate(item.publishedAt, locale === 'zh' ? 'zh-CN' : 'en-US')}
-                                            </span>
-                                            <Link href={`/${locale}/science/${item.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#30499B] hover:underline">
-                                                {isZh ? '查看' : 'Open'}
-                                                <ArrowRight className="h-3.5 w-3.5" />
-                                            </Link>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-                        </section>
+                        <ContentPreviewSection
+                            icon={<Scale className="h-5 w-5 text-[#F0A32F]" />}
+                            badge={isZh ? '政策法规' : 'Policy & Laws'}
+                            title={isZh ? '政策与合规框架' : 'Policy & Compliance Framework'}
+                            subtitle={isZh ? '从国际协定到本地监管，梳理碳交易的法规与执行路径。' : 'From global agreements to local regulation, map the legal path of carbon trading.'}
+                            items={policyItems}
+                            loading={contentLoading}
+                            emptyText={isZh ? '暂无政策' : 'No policies yet'}
+                            moreHref={`/${locale}/science?tab=policy`}
+                            moreText={isZh ? '查看全部政策' : 'View all policies'}
+                            accentColor="#F0A32F"
+                            shadowColor="rgba(240,163,47,0.4)"
+                            locale={locale}
+                            dateLocale={dateLocale}
+                        />
+                    </AnimatedSection>
+
+                    <AnimatedSection delay={0.16}>
+                        <ContentPreviewSection
+                            icon={<BookOpen className="h-5 w-5 text-[#8b5cf6]" />}
+                            badge={isZh ? '环保百科' : 'Wiki'}
+                            title={isZh ? '环保知识库' : 'Environmental Knowledge Base'}
+                            subtitle={isZh ? '从节水节能到垃圾分类，掌握日常环保实用知识。' : 'From water and energy saving to waste sorting, learn practical eco-friendly knowledge.'}
+                            items={wikiItems}
+                            loading={contentLoading}
+                            emptyText={isZh ? '暂无百科内容' : 'No wiki content yet'}
+                            moreHref={`/${locale}/science?tab=wiki`}
+                            moreText={isZh ? '查看全部百科' : 'View all wiki'}
+                            accentColor="#8b5cf6"
+                            shadowColor="rgba(139,92,246,0.35)"
+                            locale={locale}
+                            dateLocale={dateLocale}
+                        />
                     </AnimatedSection>
                 </div>
             </div>
         </Layout>
+    );
+}
+
+function ContentPreviewSection({
+    id,
+    icon,
+    badge,
+    title,
+    subtitle,
+    items,
+    loading,
+    emptyText,
+    moreHref,
+    moreText,
+    accentColor,
+    shadowColor,
+    locale,
+    dateLocale,
+    tagLabel,
+}: {
+    id?: string;
+    icon: React.ReactNode;
+    badge: string;
+    title: string;
+    subtitle: string;
+    items: ContentItem[];
+    loading: boolean;
+    emptyText: string;
+    moreHref: string;
+    moreText: string;
+    accentColor: string;
+    shadowColor: string;
+    locale: string;
+    dateLocale: string;
+    tagLabel?: string;
+}) {
+    const isZh = locale === 'zh';
+    return (
+        <section id={id} className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
+            <header className="mb-8 text-center">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/35 px-4 py-2 backdrop-blur-sm dark:bg-slate-800/35">
+                    {icon}
+                    <span className="text-sm font-semibold text-[#30499B] dark:text-slate-100">{badge}</span>
+                </div>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#30499B] dark:text-slate-100 md:text-4xl">
+                    {title}
+                </h2>
+                <p className="mx-auto mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300">
+                    {subtitle}
+                </p>
+            </header>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                {items.map((item) => (
+                    <article key={item.id} className="rounded-2xl border border-white/35 bg-white/45 p-5 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35" style={{ boxShadow: `0 18px 45px -34px ${shadowColor}` }}>
+                        {tagLabel && (
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: accentColor }}>{tagLabel}</p>
+                        )}
+                        <h3 className={`${tagLabel ? 'mt-2' : ''} line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100`}>{item.title}</h3>
+                        <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
+                            {item.summary || (isZh ? '点击查看详情。' : 'Open to read details.')}
+                        </p>
+                        <div className="mt-4 flex items-center justify-between">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {formatShortDate(item.publishedAt, dateLocale)}
+                            </span>
+                            <Link href={`/${locale}/science/${item.id}`} className="inline-flex items-center gap-1 text-sm font-semibold hover:underline" style={{ color: accentColor }}>
+                                {isZh ? '阅读' : 'Read'}
+                                <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                        </div>
+                    </article>
+                ))}
+                {!loading && items.length === 0 && (
+                    <div className="rounded-2xl border border-white/35 bg-white/45 p-5 text-sm text-slate-500 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-300">
+                        {emptyText}
+                    </div>
+                )}
+            </div>
+            {items.length > 0 && (
+                <div className="mt-6 text-center">
+                    <Link
+                        href={moreHref}
+                        className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all hover:translate-y-[-1px]"
+                        style={{ borderColor: `${accentColor}30`, color: accentColor }}
+                    >
+                        {moreText}
+                        <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </div>
+            )}
+        </section>
     );
 }

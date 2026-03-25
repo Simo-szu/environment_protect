@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Orchestrates daily ingestion flow for all configured sources.
@@ -48,8 +51,21 @@ public class ContentIngestionService {
                 .build();
         }
 
-        for (ContentSourceClient client : contentSourceClients) {
-            reports.add(ingestOneSource(client, settings));
+        ExecutorService executor = Executors.newFixedThreadPool(
+            Math.min(contentSourceClients.size(), 5));
+        try {
+            List<CompletableFuture<IngestionReport>> futures = contentSourceClients.stream()
+                .map(client -> CompletableFuture.supplyAsync(
+                    () -> ingestOneSource(client, settings), executor))
+                .toList();
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            for (CompletableFuture<IngestionReport> future : futures) {
+                reports.add(future.join());
+            }
+        } finally {
+            executor.shutdown();
         }
 
         return DailyIngestionSummary.builder()
