@@ -30,6 +30,18 @@ type DeltaCard = {
   score: number;
 };
 
+type SettlementAnimation = {
+  kind: TransitionKind | 'balanced_growth';
+  videoSrc: string;
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
 function readAfter(entry: SettlementRecord | undefined, section: string, field: string): number | null {
   const sectionNode = entry?.[section];
   if (!sectionNode || typeof sectionNode !== 'object' || Array.isArray(sectionNode)) {
@@ -105,6 +117,95 @@ function resolveEventTypeLabel(
     return t('play.events.type.citizenProtest', 'Citizen Protest');
   }
   return eventType || t('play.events.title', 'Event');
+}
+
+function resolveSettlementAnimation(latestSettlement: SettlementRecord): SettlementAnimation {
+  const industryUp = Math.max(0, readDelta(latestSettlement, 'resources', 'industry'));
+  const techUp = Math.max(0, readDelta(latestSettlement, 'resources', 'tech'));
+  const greenUp = Math.max(0, readDelta(latestSettlement, 'metrics', 'green'));
+  const satisfactionUp = Math.max(0, readDelta(latestSettlement, 'metrics', 'satisfaction'));
+  const carbonDelta = readDelta(latestSettlement, 'metrics', 'carbon');
+  const carbonOptimization = Math.max(0, -readDelta(latestSettlement, 'metrics', 'carbon'));
+  const cardEffects = asRecord(latestSettlement.cardEffects);
+  const effectCarbon = Number(cardEffects?.carbon ?? 0);
+  const effectCarbonDeltaReductionPct = Number(cardEffects?.carbonDeltaReductionPct ?? 0);
+  const effectIndustryCarbonReductionPct = Number(cardEffects?.industryCarbonReductionPct ?? 0);
+  const hasCarbonReductionMeasure = effectCarbon < 0
+    || effectCarbonDeltaReductionPct > 0
+    || effectIndustryCarbonReductionPct > 0;
+
+  if (carbonDelta >= 20 && !hasCarbonReductionMeasure) {
+    return {
+      kind: 'carbon_disaster',
+      videoSrc: '/assets/videos/carbon-disaster.mp4'
+    };
+  }
+
+  const industryGrowthTriggered = industryUp >= 8
+    && industryUp > greenUp
+    && industryUp > techUp
+    && industryUp > satisfactionUp
+    && industryUp > carbonOptimization;
+  if (industryGrowthTriggered) {
+    return {
+      kind: 'industry_growth',
+      videoSrc: '/assets/videos/industry-growth.mp4'
+    };
+  }
+
+  const greenGrowthTriggered = greenUp >= 6
+    && greenUp > industryUp
+    && greenUp > techUp
+    && greenUp > satisfactionUp
+    && greenUp > carbonOptimization;
+
+  if (greenGrowthTriggered) {
+    return {
+      kind: 'green_growth',
+      videoSrc: '/assets/videos/green-rise.mp4'
+    };
+  }
+
+  const techBurstTriggered = techUp >= 8
+    && techUp > industryUp
+    && techUp > greenUp
+    && techUp > satisfactionUp
+    && techUp > carbonOptimization;
+  if (techBurstTriggered) {
+    return {
+      kind: 'tech_burst',
+      videoSrc: '/assets/videos/tech-burst.mp4'
+    };
+  }
+
+  const satisfactionGrowthTriggered = satisfactionUp >= 6
+    && satisfactionUp > industryUp
+    && satisfactionUp > greenUp
+    && satisfactionUp > techUp
+    && satisfactionUp > carbonOptimization;
+  if (satisfactionGrowthTriggered) {
+    return {
+      kind: 'satisfaction_growth',
+      videoSrc: '/assets/videos/satisfaction-growth.mp4'
+    };
+  }
+
+  const carbonOptimizedTriggered = carbonOptimization >= 8
+    && carbonOptimization > industryUp
+    && carbonOptimization > greenUp
+    && carbonOptimization > techUp
+    && carbonOptimization > satisfactionUp;
+  if (carbonOptimizedTriggered) {
+    return {
+      kind: 'carbon_optimized',
+      videoSrc: '/assets/videos/carbon-optimized.mp4'
+    };
+  }
+
+  return {
+    kind: 'balanced_growth',
+    videoSrc: '/assets/videos/balanced-growth.mp4'
+  };
 }
 
 function trendOf(delta: number): Trend {
@@ -316,8 +417,9 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
   const pathname = usePathname();
   const router = useRouter();
   const settlementTurn = Number(latestSettlement.turn ?? transitionNotice.turn ?? 1);
-  const videoSrc = '/assets/videos/green-upgrade-animation.mp4';
-  const transitionCopy = resolveTransitionCopy(transitionNotice.kind, t);
+  const settlementAnimation = resolveSettlementAnimation(latestSettlement);
+  const videoSrc = settlementAnimation.videoSrc;
+  const transitionCopy = resolveTransitionCopy(settlementAnimation.kind ?? transitionNotice.kind, t);
 
   const baseCards: DeltaCard[] = [
     {

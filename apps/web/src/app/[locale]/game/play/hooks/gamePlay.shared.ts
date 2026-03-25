@@ -281,17 +281,23 @@ export function readDelta(entry: UnknownRecord | undefined, section: string, fie
 
 export function resolveTransitionNotice(
   settlement: UnknownRecord | undefined,
-  activeEvents: EventRecord[]
+  _activeEvents: EventRecord[]
 ): Omit<TransitionNotice, 'token' | 'turn'> {
   const carbonDelta = readDelta(settlement, 'metrics', 'carbon');
   const greenDelta = readDelta(settlement, 'metrics', 'green');
   const satisfactionDelta = readDelta(settlement, 'metrics', 'satisfaction');
   const industryDelta = readDelta(settlement, 'resources', 'industry');
   const techDelta = readDelta(settlement, 'resources', 'tech');
-  const growthMax = Math.max(industryDelta, greenDelta, techDelta, satisfactionDelta);
   const carbonDrop = -carbonDelta;
+  const cardEffects = asRecord(settlement?.cardEffects);
+  const effectCarbon = Number(cardEffects?.carbon ?? 0);
+  const effectCarbonDeltaReductionPct = Number(cardEffects?.carbonDeltaReductionPct ?? 0);
+  const effectIndustryCarbonReductionPct = Number(cardEffects?.industryCarbonReductionPct ?? 0);
+  const hasCarbonReductionMeasure = effectCarbon < 0
+    || effectCarbonDeltaReductionPct > 0
+    || effectIndustryCarbonReductionPct > 0;
 
-  if (activeEvents.length > 0 || carbonDelta >= 20) {
+  if (carbonDelta >= 20 && !hasCarbonReductionMeasure) {
     return {
       kind: 'carbon_disaster',
       title: 'Carbon Disaster',
@@ -299,7 +305,13 @@ export function resolveTransitionNotice(
       toneClass: 'border-rose-300 bg-rose-50 text-rose-700'
     };
   }
-  if (industryDelta >= 8 && industryDelta >= growthMax) {
+  if (
+    industryDelta >= 8
+    && industryDelta > greenDelta
+    && industryDelta > techDelta
+    && industryDelta > satisfactionDelta
+    && industryDelta > Math.max(0, carbonDrop)
+  ) {
     return {
       kind: 'industry_growth',
       title: 'Industry Growth',
@@ -307,7 +319,13 @@ export function resolveTransitionNotice(
       toneClass: 'border-sky-300 bg-sky-50 text-sky-700'
     };
   }
-  if (greenDelta >= 6 && greenDelta >= growthMax) {
+  if (
+    greenDelta >= 6
+    && greenDelta > industryDelta
+    && greenDelta > techDelta
+    && greenDelta > satisfactionDelta
+    && greenDelta > Math.max(0, carbonDrop)
+  ) {
     return {
       kind: 'green_growth',
       title: 'Green Building Rise',
@@ -315,7 +333,13 @@ export function resolveTransitionNotice(
       toneClass: 'border-emerald-300 bg-emerald-50 text-emerald-700'
     };
   }
-  if (techDelta >= 8 && techDelta >= growthMax) {
+  if (
+    techDelta >= 8
+    && techDelta > industryDelta
+    && techDelta > greenDelta
+    && techDelta > satisfactionDelta
+    && techDelta > Math.max(0, carbonDrop)
+  ) {
     return {
       kind: 'tech_burst',
       title: 'Tech Burst',
@@ -323,7 +347,13 @@ export function resolveTransitionNotice(
       toneClass: 'border-violet-300 bg-violet-50 text-violet-700'
     };
   }
-  if (satisfactionDelta >= 6 && satisfactionDelta >= growthMax) {
+  if (
+    satisfactionDelta >= 6
+    && satisfactionDelta > industryDelta
+    && satisfactionDelta > greenDelta
+    && satisfactionDelta > techDelta
+    && satisfactionDelta > Math.max(0, carbonDrop)
+  ) {
     return {
       kind: 'satisfaction_growth',
       title: 'Citizen Confidence',
@@ -331,7 +361,13 @@ export function resolveTransitionNotice(
       toneClass: 'border-amber-300 bg-amber-50 text-amber-700'
     };
   }
-  if (carbonDrop >= 8 && carbonDrop >= growthMax) {
+  if (
+    carbonDrop >= 8
+    && carbonDrop > industryDelta
+    && carbonDrop > greenDelta
+    && carbonDrop > techDelta
+    && carbonDrop > satisfactionDelta
+  ) {
     return {
       kind: 'carbon_optimized',
       title: 'Carbon Optimization',
