@@ -35,6 +35,19 @@ type SettlementAnimation = {
   videoSrc: string;
 };
 
+const storageBaseUrl = (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '');
+
+function resolveStorageAssetUrl(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const normalizedPath = path.replace(/^\/+/, '');
+  if (!storageBaseUrl) {
+    return '';
+  }
+  return `${storageBaseUrl}/${normalizedPath}`;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null;
@@ -418,7 +431,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
   const router = useRouter();
   const settlementTurn = Number(latestSettlement.turn ?? transitionNotice.turn ?? 1);
   const settlementAnimation = resolveSettlementAnimation(latestSettlement);
-  const videoSrc = settlementAnimation.videoSrc;
+  const videoSrc = resolveStorageAssetUrl(settlementAnimation.videoSrc);
   const transitionCopy = resolveTransitionCopy(settlementAnimation.kind ?? transitionNotice.kind, t);
 
   const baseCards: DeltaCard[] = [
