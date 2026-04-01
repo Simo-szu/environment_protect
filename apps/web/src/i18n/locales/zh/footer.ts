@@ -19,7 +19,7 @@ const footer = {
     helpSupport: '帮助与支持',
     help: '帮助中心',
     feedback: '意见反馈',
-    email: 'contact@youthloop.org',
+    email: 'contact@youthloop.top',
     phone: '400-123-4567',
     address: '深圳市南山区深圳大学',
     copyrightFull: '© 2026 YouthLoop. 保留所有权利',

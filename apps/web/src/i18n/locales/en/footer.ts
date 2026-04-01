@@ -20,7 +20,7 @@ const footer = {
     helpSupport: 'Help & Support',
     help: 'Help Center',
     feedback: 'Feedback',
-    email: 'contact@youthloop.org',
+    email: 'contact@youthloop.top',
     phone: '400-123-4567',
     address: 'Shenzhen University, Nanshan District, Shenzhen',
     copyrightFull: '© 2026 YouthLoop. All rights reserved',

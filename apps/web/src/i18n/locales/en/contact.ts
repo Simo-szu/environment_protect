@@ -18,7 +18,7 @@ const contact = {
         },
         email: {
             title: 'Email Address',
-            address: 'contact@youthloop.org',
+            address: 'contact@youthloop.top',
             response: 'Reply within 24 hours',
         },
         address: {

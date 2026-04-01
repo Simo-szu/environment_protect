@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Twitter, Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Twitter, Facebook, Instagram, Mail, MapPin } from 'lucide-react';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 
 interface UnifiedFooterProps {
@@ -192,14 +192,10 @@ export default function UnifiedFooter({ showFullFooter = true }: UnifiedFooterPr
 
                 {/* 联系信息 */}
                 <div className="border-t border-slate-200/50 dark:border-slate-800/50 pt-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <Mail className="w-4 h-4 text-[#56B949]" />
-                            <span>{t('email', 'contact@youthloop.org')}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                            <Phone className="w-4 h-4 text-[#30499B] dark:text-blue-400" />
-                            <span>{t('phone', '400-123-4567')}</span>
+                            <span>{t('email', 'contact@youthloop.top')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <MapPin className="w-4 h-4 text-[#F0A32F]" />
