@@ -259,6 +259,7 @@ const game = {
             suggestedPolicies: 'Suggested policies',
             resolverReady: 'A matching policy is already in your hand. You can execute it now.',
             resolverMissing: 'No direct resolver policy in hand. Keep policy slots and draw as soon as possible.',
+            noResolverHint: 'Focus on acquiring and retaining policy cards this turn.',
             selectResolver: 'Select Resolver Policy',
             modalResolverReady: 'A matching policy is already in your hand. Execute it now.',
             modalResolverMissing: 'No direct resolver policy in hand. Keep policy slots and draw as soon as possible.',

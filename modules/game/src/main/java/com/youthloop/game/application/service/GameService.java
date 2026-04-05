@@ -762,7 +762,8 @@ public class GameService {
     }
 
     private int boardCols(ObjectNode state) {
-        int fallback = state.path("boardSize").asInt(balanceRule().boardSize());
+        int boardSize = state.path("boardSize").asInt(balanceRule().boardSize());
+        int fallback = Math.max(boardSize, boardSize + 2);
         return Math.max(1, state.path("boardCols").asInt(fallback));
     }
 

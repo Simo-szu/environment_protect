@@ -258,6 +258,7 @@ const game = {
             suggestedPolicies: '建议政策',
             resolverReady: '可用政策已在手牌中，可直接执行。',
             resolverMissing: '当前手牌暂无对应政策，建议保留政策位并尽快抽取。',
+            noResolverHint: '本回合优先关注政策卡获取与保留。',
             selectResolver: '一键选中应对政策',
             modalResolverReady: '你当前手牌中已有可用政策，建议立即执行。',
             modalResolverMissing: '当前手牌无直接解法政策，请优先保留政策位并尽快抽取。',
