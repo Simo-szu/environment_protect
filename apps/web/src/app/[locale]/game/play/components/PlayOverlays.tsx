@@ -687,139 +687,140 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       )}
 
       {ending && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-          <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 text-slate-900 shadow-[0_28px_90px_rgba(15,23,42,0.45)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-            <div className="space-y-5 p-5 md:p-7">
-              <div className="space-y-2">
-                <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
-                  {t('play.ending.badge', 'Ending Result')}
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-md">
+          <div className="w-full max-w-5xl rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 text-slate-900 shadow-[0_28px_90px_rgba(15,23,42,0.45)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_200px] lg:grid-cols-[1fr_220px]">
+
+              {/* Left: title + stats */}
+              <div className="flex flex-col gap-3 overflow-y-auto p-4 md:max-h-[88vh] md:p-5">
+                {/* Header */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    {t('play.ending.badge', 'Ending Result')}
+                  </div>
+                  <div className="text-2xl font-bold leading-tight text-slate-900 dark:text-slate-100">{endingTitle || ending.endingName}</div>
+                  <div className="text-[15px] leading-6 text-slate-900 dark:text-slate-100">{endingReason || ending.reason}</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <span>{t('play.ending.reachedTurn', 'Reached at turn: {turn}', { turn: ending.turn })}</span>
+                    <span>
+                      {isLoggedIn
+                        ? t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })
+                        : t('play.ending.archiveCountdownLoginRequired', 'Login required to save and view archive replay')}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold leading-tight text-slate-900 dark:text-slate-100 md:text-3xl">{endingTitle || ending.endingName}</div>
-                <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">{endingReason || ending.reason}</div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span>{t('play.ending.reachedTurn', 'Reached at turn: {turn}', { turn: ending.turn })}</span>
-                  <span>
-                    {isLoggedIn
-                      ? t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })
-                      : t('play.ending.archiveCountdownLoginRequired', 'Login required to save and view archive replay')}
-                  </span>
+
+                {/* Core metrics */}
+                <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
+                  <div className="mb-2 text-xs font-semibold text-slate-900 dark:text-slate-100">{scoreLabel('核心指标', 'Key Metrics')}</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: scoreLabel('低碳总分', 'Low Carbon'), value: endingLowCarbonTotal, sub: `${scoreLabel('目标', 'Target')} ${endingLowCarbonTarget}` },
+                      { label: scoreLabel('碳排放', 'Carbon'), value: Math.round(Number(metrics.carbon ?? 0)), sub: '' },
+                      { label: scoreLabel('绿建度', 'Green'), value: Math.round(Number(metrics.green ?? 0)), sub: '' },
+                      { label: scoreLabel('满意度', 'Satisfaction'), value: Math.round(Number(metrics.satisfaction ?? 0)), sub: '' },
+                      { label: scoreLabel('交易收益', 'Trade Profit'), value: tradeProfit.toFixed(1), sub: '' },
+                      { label: scoreLabel('化解率', 'Resolve Rate'), value: `${Number(eventStats.resolveRate ?? 0).toFixed(0)}%`, sub: `${Number(eventStats.negativeTriggered || 0)}${scoreLabel('次事件', ' events')}` },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-800">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">{item.label}</div>
+                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{item.value}</div>
+                        {item.sub ? <div className="text-[10px] text-slate-400 dark:text-slate-500">{item.sub}</div> : null}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Score breakdown - simplified */}
+                {!!lowCarbonScoreBreakdown && (
+                  <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
+                    <div className="mb-2 text-xs font-semibold text-slate-900 dark:text-slate-100">{scoreLabel('低碳得分构成', 'Low-Carbon Score Breakdown')}</div>
+                    <div className="space-y-1">
+                      {[
+                        { label: scoreLabel('基础卡 + 阶段加成', 'Base Cards + Phase Bonus'), value: `+${Number(lowCarbonScoreBreakdown.baseCards ?? 0) + Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0) + Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}` },
+                        { label: scoreLabel('政策解锁', 'Policy Unlock'), value: `+${Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0) + Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}` },
+                        { label: scoreLabel('事件化解', 'Event Resolve'), value: `+${Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}` },
+                        { label: scoreLabel('未化解事件扣分', 'Unresolved Penalty'), value: `-${Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}`, neg: Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0) > 0 },
+                        { label: scoreLabel('碳排 + 交易得分', 'Carbon + Trade Score'), value: `+${Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0) + Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}` },
+                        { label: scoreLabel('结算加成', 'Settlement Bonus'), value: `+${Number(lowCarbonScoreBreakdown.settlementBonus ?? 0) + Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}` },
+                        { label: scoreLabel('最终低碳总分', 'Final Total'), value: String(Number(lowCarbonScoreBreakdown.finalTotal ?? 0)), bold: true },
+                      ].map((item) => (
+                        <div key={item.label} className={`flex items-center justify-between text-[11px] ${item.bold ? 'border-t border-slate-200 pt-1 font-bold text-slate-900 dark:border-slate-600 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                          <span>{item.label}</span>
+                          <span className={item.neg ? 'text-rose-600' : item.bold ? '' : 'text-emerald-700 dark:text-emerald-400'}>{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
-                <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{t('play.ending.replaySummary', 'Replay Summary')}</div>
-                <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
-                  <div>{t('play.ending.summary.placedCore', 'Placed Core Cards')}: {placedCore.length}</div>
-                  <div>{t('play.ending.summary.policiesUsed', 'Policies Used')}: {policyHistory.length}</div>
-                  <div>{t('play.ending.summary.uniquePolicies', 'Unique Policies Used')}: {uniquePoliciesUsed}</div>
-                  <div>{t('play.ending.summary.settlementTurns', 'Settlement Turns')}: {settlementHistory.length}</div>
-                  <div>{t('play.ending.summary.industry', 'Industry')}: {resources.industry ?? 0}</div>
-                  <div>{t('play.ending.summary.tech', 'Tech')}: {resources.tech ?? 0}</div>
-                  <div>{t('play.ending.summary.population', 'Population')}: {resources.population ?? 0}</div>
-                  <div>{t('play.ending.summary.green', 'Green')}: {metrics.green ?? 0}</div>
-                  <div>{t('play.ending.summary.carbon', 'Carbon')}: {metrics.carbon ?? 0}</div>
-                  <div>{t('play.ending.summary.satisfaction', 'Satisfaction')}: {metrics.satisfaction ?? 0}</div>
-                  <div>{t('play.ending.summary.quota', 'Quota')}: {tradeQuota}</div>
-                  <div>{t('play.ending.summary.tradeProfit', 'Trade Profit')}: {tradeProfit.toFixed(1)}</div>
-                  <div>{t('play.ending.summary.negativeEvents', 'Negative Events')}: {Number(eventStats.negativeTriggered || 0)}</div>
-                  <div>{t('play.ending.summary.resolvedEvents', 'Resolved Events')}: {Number(eventStats.negativeResolved || 0)}</div>
-                  <div>{t('play.ending.summary.resolveRate', 'Resolve Rate')}: {Number(eventStats.resolveRate ?? 0).toFixed(1)}%</div>
-                  <div>{t('play.metrics.lowCarbon', 'Low Carbon Score')}: {endingLowCarbonTotal}</div>
-                  <div>{scoreLabel('低碳目标分', 'Low Carbon Target')}: {endingLowCarbonTarget}</div>
-                  <div>{scoreLabel('距离目标', 'Gap to Target')}: {endingLowCarbonGap}</div>
-                </div>
-              </div>
+              {/* Right: image + actions */}
+              <div className="flex flex-col gap-3 border-t border-slate-200/60 p-4 dark:border-slate-700 md:border-l md:border-t-0 md:p-5">
+                {/* Ending image 3:4 */}
+                {ending.imageKey && (
+                  <div className="rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
+                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      {t('play.ending.snapshotTitle', 'Final Board Snapshot')}
+                    </div>
+                    <div className="h-[260px] w-full overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-slate-100 to-emerald-100/60 dark:border-slate-700 dark:from-slate-900 dark:to-slate-800">
+                      {endingImageUrl ? (
+                        <img
+                          src={endingImageUrl}
+                          alt={endingTitle || ending.endingName}
+                          className="h-full w-full object-cover"
+                          onError={(event) => {
+                            const target = event.currentTarget;
+                            target.style.display = 'none';
+                            const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
+                            if (fallback instanceof HTMLElement) {
+                              fallback.style.display = 'flex';
+                            }
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                    <div
+                      data-ending-image-fallback
+                      className="hidden h-[260px] w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white/70 text-xs text-slate-500 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-400"
+                    >
+                      {t('play.ending.snapshotMissing', 'Ending image not found in storage')}
+                    </div>
+                  </div>
+                )}
 
-              {!!lowCarbonScoreBreakdown && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
-                  <div className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{scoreLabel('低碳总分构成', 'Low-Carbon Score Breakdown')}</div>
-                  <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
-                    <div>{scoreLabel('基础卡分', 'Base Cards')}: {Number(lowCarbonScoreBreakdown.baseCards ?? 0)}</div>
-                    <div>{scoreLabel('后期阶段加成', 'Late Phase Bonus')}: {Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0)}</div>
-                    <div>{scoreLabel('板块均衡加成', 'Domain Bonus')}: {Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}</div>
-                    <div>{scoreLabel('政策解锁得分', 'Policy Unlock Score')}: {Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0)}</div>
-                    <div>{scoreLabel('全政策额外加成', 'Policy Unlock All Bonus')}: {Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}</div>
-                    <div>{scoreLabel('事件化解得分', 'Event Resolve Score')}: {Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}</div>
-                    <div>{scoreLabel('未化解事件扣分', 'Event Unresolved Penalty')}: -{Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}</div>
-                    <div>{scoreLabel('碳排分档得分', 'Carbon Tier Score')}: {Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0)}</div>
-                    <div>{scoreLabel('超限连续扣分', 'Over-limit Penalty')}: -{Number(lowCarbonScoreBreakdown.overLimitPenalty ?? 0)}</div>
-                    <div>{scoreLabel('碳交易盈利得分', 'Trade Profit Score')}: {Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}</div>
-                    <div>{scoreLabel('配额耗尽扣分', 'Quota Penalty')}: -{Number(lowCarbonScoreBreakdown.quotaPenalty ?? 0)}</div>
-                    <div>{scoreLabel('无效操作扣分', 'Invalid Penalty')}: -{Number(lowCarbonScoreBreakdown.invalidPenalty ?? 0)}</div>
-                    <div>{scoreLabel('结算前总分', 'Score Before Settlement Bonuses')}: {Number(lowCarbonScoreBreakdown.scoreBeforeBonuses ?? 0)}</div>
-                    <div>{scoreLabel('结算固定加成', 'Settlement Bonus')}: {Number(lowCarbonScoreBreakdown.settlementBonus ?? 0)}</div>
-                    <div>{scoreLabel('阶段匹配加成', 'Phase Match Bonus')}: {Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}</div>
-                    <div>{scoreLabel('百分比加成', 'Percentage Bonus')}: {Number(lowCarbonScoreBreakdown.percentageBonus ?? 0)}%</div>
-                    <div>{scoreLabel('加成后原始分', 'Raw Total')}: {Number(lowCarbonScoreBreakdown.rawTotal ?? 0)}</div>
-                    <div>{scoreLabel('最终低碳总分', 'Final Total')}: {Number(lowCarbonScoreBreakdown.finalTotal ?? 0)}</div>
-                  </div>
-                </div>
-              )}
-
-              {ending.imageKey && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/50">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    {t('play.ending.snapshotTitle', 'Final Board Snapshot')}
-                  </div>
-                  <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-100 to-emerald-100/60 dark:border-slate-700 dark:from-slate-900 dark:to-slate-800">
-                    {endingImageUrl ? (
-                      <img
-                        src={endingImageUrl}
-                        alt={endingTitle || ending.endingName}
-                        className="h-full w-full object-cover"
-                        onError={(event) => {
-                          const target = event.currentTarget;
-                          target.style.display = 'none';
-                          const fallback = target.parentElement?.querySelector('[data-ending-image-fallback]');
-                          if (fallback instanceof HTMLElement) {
-                            fallback.style.display = 'flex';
-                          }
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                  <div
-                    data-ending-image-fallback
-                    className="hidden aspect-[4/3] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-900/40 dark:text-slate-400"
-                  >
-                    {t('play.ending.snapshotMissing', 'Ending image not found in storage')}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                {isLoggedIn ? (
+                {/* Action buttons */}
+                <div className="flex flex-col gap-2 pt-1">
+                  {isLoggedIn ? (
+                    <button
+                      onClick={handleOpenArchive}
+                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    >
+                      {t('play.ending.skip', 'Skip')}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleLoginToSave}
+                      className="rounded border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/45"
+                    >
+                      {t('play.ending.loginToSave', 'Login to Save')}
+                    </button>
+                  )}
                   <button
-                    onClick={handleOpenArchive}
+                    onClick={() => { void handleRestartSession(); }}
+                    className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                  >
+                    {t('play.ending.restart', 'Restart')}
+                  </button>
+                  <button
+                    onClick={() => { void handleExitSession(); }}
                     className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   >
-                    {t('play.ending.skip', 'Skip')}
+                    {t('play.ending.backHome', 'Back to Game Home')}
                   </button>
-                ) : (
-                  <button
-                    onClick={handleLoginToSave}
-                    className="rounded border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/45"
-                  >
-                    {t('play.ending.loginToSave', 'Login to Save')}
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    void handleRestartSession();
-                  }}
-                  className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                >
-                  {t('play.ending.restart', 'Restart')}
-                </button>
-                <button
-                  onClick={() => {
-                    void handleExitSession();
-                  }}
-                  className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                >
-                  {t('play.ending.backHome', 'Back to Game Home')}
-                </button>
+                </div>
               </div>
+
             </div>
           </div>
         </div>

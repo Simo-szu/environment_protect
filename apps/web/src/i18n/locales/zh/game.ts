@@ -255,6 +255,7 @@ const game = {
             modalSubtitle: '优先使用对应政策卡化解事件，避免持续惩罚。',
             remaining: '剩余',
             noneActive: '当前无负面事件',
+            imageMissing: '事件图片暂不可用',
             suggestedPolicies: '建议政策',
             resolverReady: '可用政策已在手牌中，可直接执行。',
             resolverMissing: '当前手牌暂无对应政策，建议保留政策位并尽快抽取。',

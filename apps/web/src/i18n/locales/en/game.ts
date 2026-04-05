@@ -256,6 +256,7 @@ const game = {
             modalSubtitle: 'Use matching policy cards first to avoid ongoing penalties.',
             remaining: 'remaining',
             noneActive: 'No active negative events',
+            imageMissing: 'Event image unavailable',
             suggestedPolicies: 'Suggested policies',
             resolverReady: 'A matching policy is already in your hand. You can execute it now.',
             resolverMissing: 'No direct resolver policy in hand. Keep policy slots and draw as soon as possible.',
