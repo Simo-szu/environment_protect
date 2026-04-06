@@ -203,9 +203,9 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
 
   function resolveEventImageKey(eventType: string): string {
     const imageMap: Record<string, string> = {
-      flood: 'events/内涝.jpg',
-      sea_level_rise: 'events/海平面上升.jpg',
-      citizen_protest: 'events/市民抗议.jpg',
+      flood: 'events/内涝.webp',
+      sea_level_rise: 'events/海平面上升.webp',
+      citizen_protest: 'events/市民抗议.webp',
       negative_ecology_warning: 'events/生态破坏预警.jpg',
       negative_high_carbon_industry: 'events/工业碳排放异常.jpg',
     };
