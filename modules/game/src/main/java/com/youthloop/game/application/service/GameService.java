@@ -339,6 +339,7 @@ public class GameService {
         root.put("maxTurn", maxTurn());
         root.put("highCarbonStreak", 0);
         root.put("highCarbonOverLimitStreak", 0);
+        root.put("carbonTierScoreAccumulated", 0);
         root.put("carbonOverLimitCount", 0);
         root.put("sessionEnded", false);
         root.putNull("ending");
@@ -1613,6 +1614,9 @@ public class GameService {
 
     private void updateCarbonOverLimitStreak(ObjectNode state) {
         int carbon = state.path("metrics").path("carbon").asInt();
+        // Accumulate per-turn carbon tier score
+        int tierScore = calculateCarbonTierScore(carbon);
+        state.put("carbonTierScoreAccumulated", state.path("carbonTierScoreAccumulated").asInt(0) + tierScore);
         if (carbon > CARBON_QUOTA_BASELINE) {
             state.put("highCarbonOverLimitStreak", state.path("highCarbonOverLimitStreak").asInt(0) + 1);
             state.put("carbonOverLimitCount", state.path("carbonOverLimitCount").asInt(0) + 1);
@@ -1887,7 +1891,7 @@ public class GameService {
         int eventResolveScore = resolvedEvents * balance.lowCarbonEventResolvedScore();
         int eventUnresolvedPenalty = unresolvedEvents * balance.lowCarbonEventTriggeredPenalty();
 
-        int carbonTierScore = calculateCarbonTierScore(carbon);
+        int carbonTierScore = state.path("carbonTierScoreAccumulated").asInt(calculateCarbonTierScore(carbon));
         int overLimitPenalty = state.path("highCarbonOverLimitStreak").asInt(0) >= balance.lowCarbonOverLimitStreakThreshold()
             ? balance.lowCarbonOverLimitStreakPenalty()
             : 0;

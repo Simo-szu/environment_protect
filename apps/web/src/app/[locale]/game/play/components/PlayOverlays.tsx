@@ -202,16 +202,14 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
   }
 
   function resolveEventImageKey(eventType: string): string {
-    if (eventType === 'flood') {
-      return 'events/内涝.jpg';
-    }
-    if (eventType === 'sea_level_rise') {
-      return 'events/海平面上升.jpg';
-    }
-    if (eventType === 'citizen_protest') {
-      return 'events/市民抗议.jpg';
-    }
-    return '';
+    const imageMap: Record<string, string> = {
+      flood: 'events/内涝.jpg',
+      sea_level_rise: 'events/海平面上升.jpg',
+      citizen_protest: 'events/市民抗议.jpg',
+      negative_ecology_warning: 'events/生态破坏预警.jpg',
+      negative_high_carbon_industry: 'events/工业碳排放异常.jpg',
+    };
+    return imageMap[eventType] || '';
   }
 
   const endingTitle = pickLocalizedText(ending?.endingName || '');
@@ -247,6 +245,11 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
   const lastQuotaShortage = Math.max(0, Math.floor(Number(tradeLastQuotaShortage || 0)));
   const quotaAlertLevel: 'warning' | 'low' | 'exhausted' | null = useMemo(() => {
     if (quotaValue <= 0) {
+      // Only alert if carbon is over baseline (quota deduction would actually occur)
+      // If carbon <= 90, no quota deduction needed, so no alert even if quota is zero
+      if (carbonValue <= 90) {
+        return null;
+      }
       return 'exhausted';
     }
     if (quotaValue < 20) {
@@ -256,7 +259,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       return 'warning';
     }
     return null;
-  }, [quotaValue, quotaDeductionStreak]);
+  }, [quotaValue, carbonValue, quotaDeductionStreak]);
   const quotaAlertToken = useMemo(() => {
     if (!quotaAlertLevel) {
       return '';
@@ -338,7 +341,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                             {resolveEventLabel(eventType)}
                           </div>
                           <div className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-                            {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+                            {t('play.events.remainingTurns', '剩余 {count} 回合', { count: Number(event.remainingTurns || 0) })}
                           </div>
                         </div>
                         <div className="mt-2 text-xs text-slate-700">
@@ -700,13 +703,16 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   </div>
                   <div className="text-2xl font-bold leading-tight text-slate-900 dark:text-slate-100">{endingTitle || ending.endingName}</div>
                   <div className="text-[15px] leading-6 text-slate-900 dark:text-slate-100">{endingReason || ending.reason}</div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
                     <span>{t('play.ending.reachedTurn', 'Reached at turn: {turn}', { turn: ending.turn })}</span>
-                    <span>
-                      {isLoggedIn
-                        ? t('play.ending.archiveCountdown', 'Auto open archive in {seconds}s', { seconds: endingCountdown })
-                        : t('play.ending.archiveCountdownLoginRequired', 'Login required to save and view archive replay')}
-                    </span>
+                    {isLoggedIn && (
+                      <button
+                        onClick={handleOpenArchive}
+                        className="text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400"
+                      >
+                        {t('play.ending.viewArchive', '进入档案页')}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -736,20 +742,29 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                   <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/70">
                     <div className="mb-2 text-xs font-semibold text-slate-900 dark:text-slate-100">{scoreLabel('低碳得分构成', 'Low-Carbon Score Breakdown')}</div>
                     <div className="space-y-1">
-                      {[
-                        { label: scoreLabel('基础卡 + 阶段加成', 'Base Cards + Phase Bonus'), value: `+${Number(lowCarbonScoreBreakdown.baseCards ?? 0) + Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0) + Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}` },
-                        { label: scoreLabel('政策解锁', 'Policy Unlock'), value: `+${Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0) + Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}` },
-                        { label: scoreLabel('事件化解', 'Event Resolve'), value: `+${Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}` },
-                        { label: scoreLabel('未化解事件扣分', 'Unresolved Penalty'), value: `-${Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}`, neg: Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0) > 0 },
-                        { label: scoreLabel('碳排 + 交易得分', 'Carbon + Trade Score'), value: `+${Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0) + Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0)}` },
-                        { label: scoreLabel('结算加成', 'Settlement Bonus'), value: `+${Number(lowCarbonScoreBreakdown.settlementBonus ?? 0) + Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}` },
-                        { label: scoreLabel('最终低碳总分', 'Final Total'), value: String(Number(lowCarbonScoreBreakdown.finalTotal ?? 0)), bold: true },
-                      ].map((item) => (
-                        <div key={item.label} className={`flex items-center justify-between text-[11px] ${item.bold ? 'border-t border-slate-200 pt-1 font-bold text-slate-900 dark:border-slate-600 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
-                          <span>{item.label}</span>
-                          <span className={item.neg ? 'text-rose-600' : item.bold ? '' : 'text-emerald-700 dark:text-emerald-400'}>{item.value}</span>
-                        </div>
-                      ))}
+                      {(() => {
+                        const fmt = (v: number) => v >= 0 ? `+${v}` : `${v}`;
+                        const carbonTrade = Number(lowCarbonScoreBreakdown.carbonTierScore ?? 0) + Number(lowCarbonScoreBreakdown.tradeProfitScore ?? 0);
+                        const overLimit = Number(lowCarbonScoreBreakdown.overLimitPenalty ?? 0);
+                        const otherPenalty = Number(lowCarbonScoreBreakdown.quotaPenalty ?? 0) + Number(lowCarbonScoreBreakdown.invalidPenalty ?? 0);
+                        const items = [
+                          { label: scoreLabel('基础卡 + 阶段加成', 'Base Cards + Phase Bonus'), value: `+${Number(lowCarbonScoreBreakdown.baseCards ?? 0) + Number(lowCarbonScoreBreakdown.latePhaseBonus ?? 0) + Number(lowCarbonScoreBreakdown.domainBonus ?? 0)}`, neg: false },
+                          { label: scoreLabel('政策解锁', 'Policy Unlock'), value: `+${Number(lowCarbonScoreBreakdown.policyUnlockScore ?? 0) + Number(lowCarbonScoreBreakdown.policyUnlockAllBonus ?? 0)}`, neg: false },
+                          { label: scoreLabel('事件化解', 'Event Resolve'), value: `+${Number(lowCarbonScoreBreakdown.eventResolveScore ?? 0)}`, neg: false },
+                          { label: scoreLabel('未化解事件扣分', 'Unresolved Penalty'), value: `-${Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0)}`, neg: Number(lowCarbonScoreBreakdown.eventUnresolvedPenalty ?? 0) > 0 },
+                          { label: scoreLabel('碳排 + 交易得分', 'Carbon + Trade Score'), value: fmt(carbonTrade), neg: carbonTrade < 0 },
+                          ...(overLimit > 0 ? [{ label: scoreLabel('连续超标扣分', 'Over-limit Penalty'), value: `-${overLimit}`, neg: true }] : []),
+                          ...(otherPenalty > 0 ? [{ label: scoreLabel('其他扣分', 'Other Penalty'), value: `-${otherPenalty}`, neg: true }] : []),
+                          { label: scoreLabel('结算加成', 'Settlement Bonus'), value: `+${Number(lowCarbonScoreBreakdown.settlementBonus ?? 0) + Number(lowCarbonScoreBreakdown.phaseMatchBonus ?? 0)}`, neg: false },
+                          { label: scoreLabel('最终低碳总分', 'Final Total'), value: String(Number(lowCarbonScoreBreakdown.finalTotal ?? 0)), bold: true, neg: false },
+                        ];
+                        return items.map((item) => (
+                          <div key={item.label} className={`flex items-center justify-between text-[11px] ${item.bold ? 'border-t border-slate-200 pt-1 font-bold text-slate-900 dark:border-slate-600 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                            <span>{item.label}</span>
+                            <span className={item.neg ? 'text-rose-600' : item.bold ? '' : 'text-emerald-700 dark:text-emerald-400'}>{item.value}</span>
+                          </div>
+                        ));
+                      })()}
                     </div>
                   </div>
                 )}
@@ -791,14 +806,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
 
                 {/* Action buttons */}
                 <div className="flex flex-col gap-2 pt-1">
-                  {isLoggedIn ? (
-                    <button
-                      onClick={handleOpenArchive}
-                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                    >
-                      {t('play.ending.skip', 'Skip')}
-                    </button>
-                  ) : (
+                  {isLoggedIn ? null : (
                     <button
                       onClick={handleLoginToSave}
                       className="rounded border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/45"

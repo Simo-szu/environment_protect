@@ -1185,7 +1185,7 @@ export function useGamePlayController() {
     tradeWindowOpened,
     isLoggedIn,
     activeNegativeEvents,
-    resolveEventLabel,
+    resolveEventLabel: (eventType: string) => resolveEventLabel(eventType, locale),
     resolvePolicyHintByEvent,
     resolvePolicyIdsByEvent,
     resolvePolicyDisplayLabel,

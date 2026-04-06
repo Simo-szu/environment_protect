@@ -254,6 +254,7 @@ const game = {
             modalTitle: '负面事件已出现，请立即应对',
             modalSubtitle: '优先使用对应政策卡化解事件，避免持续惩罚。',
             remaining: '剩余',
+            remainingTurns: '剩余 {count} 回合',
             noneActive: '当前无负面事件',
             imageMissing: '事件图片暂不可用',
             suggestedPolicies: '建议政策',
@@ -545,6 +546,7 @@ const game = {
         ending: {
             badge: '结局结果',
             reachedTurn: '达成回合：{turn}',
+            viewArchive: '进入档案页',
             archiveCountdown: '{seconds} 秒后自动进入档案页',
             archiveCountdownLoginRequired: '登录后可保存档案并查看回放',
             archiveLoginRequired: '登录后可保存并查看游戏档案。',

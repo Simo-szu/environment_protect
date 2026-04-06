@@ -192,35 +192,42 @@ export function resolvePolicyIdsByEvent(eventType: string): string[] {
   return [];
 }
 
-export function resolveEventLabel(eventType: string): string {
-  if (eventType === 'flood') {
-    return 'Flood';
-  }
-  if (eventType === 'sea_level_rise') {
-    return 'Sea Level Rise';
-  }
-  if (eventType === 'citizen_protest') {
-    return 'Citizen Protest';
+export function resolveEventLabel(eventType: string, locale?: string): string {
+  const zh = locale === 'zh' || !locale;
+  const labels: Record<string, [string, string]> = {
+    flood: ['内涝', 'Flood'],
+    sea_level_rise: ['海平面上升', 'Sea Level Rise'],
+    citizen_protest: ['市民抗议', 'Citizen Protest'],
+    negative_ecology_warning: ['生态破坏预警', 'Ecology Warning'],
+    negative_high_carbon_industry: ['工业碳排放异常', 'High Carbon Industry'],
+    positive_ecology_sink_growth: ['生态碳汇增值', 'Ecology Carbon Sink Growth'],
+  };
+  const pair = labels[eventType];
+  if (pair) {
+    return zh ? pair[0] : pair[1];
   }
   return eventType;
 }
 
-export function resolveComboName(comboId: string): string {
-  const names: Record<string, string> = {
-    policy_industry_chain: 'Policy + Industry Chain',
-    policy_ecology_chain: 'Policy + Ecology Chain',
-    policy_science_chain: 'Policy + Science Chain',
-    policy_society_chain: 'Policy + Society Chain',
-    cross_science_industry: 'Cross Science-Industry',
-    cross_industry_ecology: 'Cross Industry-Ecology',
-    cross_ecology_society: 'Cross Ecology-Society',
-    cross_science_ecology: 'Cross Science-Ecology',
-    intra_industry_scale: 'Intra Industry Cluster',
-    intra_ecology_restore: 'Intra Ecology Cluster',
-    intra_science_boost: 'Intra Science Cluster',
-    intra_society_mobilize: 'Intra Society Cluster'
+export function resolveComboName(comboId: string, locale?: string): string {
+  const zh = locale === 'zh' || !locale;
+  const names: Record<string, [string, string]> = {
+    policy_industry_chain: ['政策×产业联动', 'Policy + Industry Chain'],
+    policy_ecology_chain: ['政策×生态联动', 'Policy + Ecology Chain'],
+    policy_science_chain: ['政策×科创联动', 'Policy + Science Chain'],
+    policy_society_chain: ['政策×社会联动', 'Policy + Society Chain'],
+    cross_science_industry: ['科创×产业跨板块', 'Cross Science-Industry'],
+    cross_industry_ecology: ['产业×生态跨板块', 'Cross Industry-Ecology'],
+    cross_ecology_society: ['生态×社会跨板块', 'Cross Ecology-Society'],
+    cross_science_ecology: ['科创×生态跨板块', 'Cross Science-Ecology'],
+    intra_industry_scale: ['产业板块集群', 'Intra Industry Cluster'],
+    intra_ecology_restore: ['生态板块集群', 'Intra Ecology Cluster'],
+    intra_science_boost: ['科创板块集群', 'Intra Science Cluster'],
+    intra_society_mobilize: ['社会板块集群', 'Intra Society Cluster'],
   };
-  return names[comboId] || comboId;
+  const pair = names[comboId];
+  if (pair) return zh ? pair[0] : pair[1];
+  return comboId;
 }
 
 export function asRecord(value: unknown): UnknownRecord | null {

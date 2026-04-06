@@ -255,6 +255,7 @@ const game = {
             modalTitle: 'Negative event detected, respond now',
             modalSubtitle: 'Use matching policy cards first to avoid ongoing penalties.',
             remaining: 'remaining',
+            remainingTurns: '{count} turns remaining',
             noneActive: 'No active negative events',
             imageMissing: 'Event image unavailable',
             suggestedPolicies: 'Suggested policies',
@@ -546,6 +547,7 @@ const game = {
         ending: {
             badge: 'Ending Result',
             reachedTurn: 'Reached at turn: {turn}',
+            viewArchive: 'View Archive',
             archiveCountdown: 'Auto open archive in {seconds}s',
             archiveCountdownLoginRequired: 'Login required to save and view archive replay',
             archiveLoginRequired: 'Please login to save and view this game archive.',
