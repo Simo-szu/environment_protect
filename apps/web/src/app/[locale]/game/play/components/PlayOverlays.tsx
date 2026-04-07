@@ -245,21 +245,24 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
   const lastQuotaShortage = Math.max(0, Math.floor(Number(tradeLastQuotaShortage || 0)));
   const quotaAlertLevel: 'warning' | 'low' | 'exhausted' | null = useMemo(() => {
     if (quotaValue <= 0) {
-      // Only alert if carbon is over baseline (quota deduction would actually occur)
-      // If carbon <= 90, no quota deduction needed, so no alert even if quota is zero
-      if (carbonValue <= 90) {
-        return null;
-      }
+      if (carbonValue <= 90) return null;
       return 'exhausted';
     }
-    if (quotaValue < 20) {
+    if (quotaValue < 20 && carbonValue > 90) {
       return 'low';
     }
-    if (quotaDeductionStreak >= 2 && quotaValue >= 20) {
-      return 'warning';
+    // warning: deduction streak >= 2 AND quota just crossed below a multiple of 10 (50, 40, 30)
+    if (quotaDeductionStreak >= 2 && carbonValue > 90) {
+      const prevQuota = quotaValue + lastQuotaConsumed;
+      const crossedThreshold = [50, 40, 30].some(
+        (threshold) => prevQuota >= threshold && quotaValue < threshold
+      );
+      if (crossedThreshold) {
+        return 'warning';
+      }
     }
     return null;
-  }, [quotaValue, carbonValue, quotaDeductionStreak]);
+  }, [quotaValue, carbonValue, quotaDeductionStreak, lastQuotaConsumed]);
   const quotaAlertToken = useMemo(() => {
     if (!quotaAlertLevel) {
       return '';
