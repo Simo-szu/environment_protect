@@ -60,6 +60,24 @@ public class GameService {
     private static final String ENDING_DOUGHNUT = "doughnut_city";
     private static final String ENDING_ZERO_TRADE_ECOLOGY = "zero_trade_ecology_priority";
     private static final String ENDING_SPEEDRUN_EFFICIENT = "speedrun_efficient_layout";
+    // New 17-ending system
+    private static final String E01_ZERO_TRADE_ECOLOGY   = "ending_01_zero_trade_ecology";
+    private static final String E02_ALL_POLICY_MASTER    = "ending_02_all_policy_master";
+    private static final String E03_INDUSTRY_PEAK        = "ending_03_industry_peak_lowcarbon";
+    private static final String E04_ZERO_CARBON_LEGEND   = "ending_04_shenzhen_zero_carbon_legend";
+    private static final String E05_BAY_AREA_CORE        = "ending_05_bay_area_carbon_core";
+    private static final String E06_SCI_TECH             = "ending_06_sci_tech_lowcarbon";
+    private static final String E07_ECOLOGY_LIVABLE      = "ending_07_ecology_livable";
+    private static final String E08_INDUSTRY_WINWIN      = "ending_08_industry_lowcarbon_winwin";
+    private static final String E09_LIVELIHOOD           = "ending_09_livelihood_lowcarbon";
+    private static final String E10_BALANCED             = "ending_10_balanced_steady";
+    private static final String E11_SPECIALTY            = "ending_11_specialty_breakthrough";
+    private static final String E12_BASIC_QUALIFIED      = "ending_12_basic_qualified";
+    private static final String E13_NOVICE               = "ending_13_novice_potential";
+    private static final String E14_PASS                 = "ending_14_pass";
+    private static final String E15_EXPLORE              = "ending_15_explore";
+    private static final String E16_EMISSION_CTRL        = "ending_16_emission_out_of_control";
+    private static final String E17_QUOTA_COLLAPSE       = "ending_17_quota_collapse";
     private static final int INITIAL_CARBON_QUOTA = 50;
     private static final int CARBON_QUOTA_BASELINE = 90;
     private static final int CARBON_QUOTA_PER_N_OVER = 10;
@@ -1639,135 +1657,268 @@ public class GameService {
             return;
         }
 
-        boolean immediateFailure = state.path("highCarbonStreak").asInt() >= balance.failureHighCarbonStreakLimit();
-        boolean tradeFailure = state.with("carbonTrade").path("quotaExhaustedCount").asInt(0) >= balance.tradeFailureQuotaExhaustedLimit()
-            && state.with("carbonTrade").path("profit").asDouble(0D) < balance.tradeFailureProfitThreshold();
-        if (immediateFailure) {
-            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_HIGH_CARBON));
-            return;
-        }
-        if (tradeFailure) {
-            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_TRADE));
-            return;
-        }
-
-        if (lowCarbonScore < balance.lowCarbonMinForPositiveEnding()) {
-            setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_LOW_SCORE));
-            return;
-        }
-
-        int maxDomain = Math.max(Math.max(counts.industry, counts.ecology), Math.max(counts.science, counts.society));
-        int minDomain = Math.min(Math.min(counts.industry, counts.ecology), Math.min(counts.science, counts.society));
-        int usage6768 = countPolicyUsage(state, "card067") + countPolicyUsage(state, "card068");
-        double eventResolveRate = calculateNegativeEventResolveRate(state);
         ObjectNode trade = state.with("carbonTrade");
         ObjectNode eventStats = state.with("eventStats");
+        int carbon = metrics.path("carbon").asInt();
+        int green = metrics.path("green").asInt();
+        int satisfaction = metrics.path("satisfaction").asInt();
+        int industry = resources.path("industry").asInt();
+        int tech = resources.path("tech").asInt();
+        int population = resources.path("population").asInt();
+        int quota = trade.path("quota").asInt(0);
+        double tradeProfit = trade.path("profit").asDouble(0D);
+        double buyAmountTotal = trade.path("buyAmountTotal").asDouble(0D);
+        double sellAmountTotal = trade.path("sellAmountTotal").asDouble(0D);
+        double tradeTotalVolume = buyAmountTotal + sellAmountTotal;
+        int quotaExhaustedCount = trade.path("quotaExhaustedCount").asInt(0);
         int unlockedPolicyCount = state.withArray("policyUnlocked").size();
         int comboTriggeredCount = countTotalTriggeredCombos(state);
         int positiveEventCount = eventStats.path("positiveTriggered").asInt(0);
         int ecologySinkPositiveEventCount = eventStats.path("positiveEcologySinkTriggered").asInt(0);
-        int carbon = metrics.path("carbon").asInt();
-        int quota = trade.path("quota").asInt(0);
-        double buyAmountTotal = trade.path("buyAmountTotal").asDouble(0D);
-        double sellAmountTotal = trade.path("sellAmountTotal").asDouble(0D);
-        double tradeProfit = trade.path("profit").asDouble(0D);
+        int negativeTriggered = eventStats.path("negativeTriggered").asInt(0);
+        int negativeResolved = eventStats.path("negativeResolved").asInt(0);
         int carbonOverLimitCount = state.path("carbonOverLimitCount").asInt(0);
+        double eventResolveRate = calculateNegativeEventResolveRate(state);
+        boolean allEventsResolved = negativeTriggered <= 0 || eventResolveRate >= 99.9;
+        int maxDomain = Math.max(Math.max(counts.industry, counts.ecology), Math.max(counts.science, counts.society));
+        int minDomain = Math.min(Math.min(counts.industry, counts.ecology), Math.min(counts.science, counts.society));
+        boolean hasCard060 = hasPlacedCard(state, "card060");
+        boolean hasCard054 = hasPlacedCard(state, "card054");
+        boolean hasCard061 = hasPolicyUnlocked(state, "card061");
+        boolean hasCard062 = hasPolicyUnlocked(state, "card062");
+        boolean hasCard063 = hasPolicyUnlocked(state, "card063");
+        boolean hasCard064 = hasPolicyUnlocked(state, "card064");
+        boolean hasCard065 = hasPolicyUnlocked(state, "card065");
+        boolean hasCard066 = hasPolicyUnlocked(state, "card066");
+        boolean hasCard067 = hasPolicyUnlocked(state, "card067");
+        boolean hasCard068 = hasPolicyUnlocked(state, "card068");
+        int shenzhenCardCount = countPlacedByTag(state, TAG_SHENZHEN);
+        int lowCarbonCoreCount = countPlacedByTag(state, TAG_LOW_CARBON_CORE);
+        int scienceCardCount = counts.science;
+        int ecologyCardCount = counts.ecology;
+        int industryCardCount = counts.industry;
+        int societyCardCount = counts.society;
+        boolean hasPositiveScienceTech = hasTriggeredPositiveEvent(state, "positive_science_breakthrough");
+        boolean hasPositiveEcologySink = ecologySinkPositiveEventCount >= 1;
+        boolean hasPositiveLowCarbonIndustry = hasTriggeredPositiveEvent(state, "positive_low_carbon_industry_support");
+        boolean hasPositiveCitizenWave = hasTriggeredPositiveEvent(state, "positive_citizen_low_carbon_wave");
+        boolean hasResolvedIndustrialCarbonAbnormal = hasResolvedNegativeEvent(state, "negative_industrial_carbon_abnormal");
 
-        boolean ending19ZeroTradeEcology = lowCarbonScore >= 140
-            && lowCarbonScore < 160
-            && counts.total >= 28
-            && unlockedPolicyCount >= 3
-            && unlockedPolicyCount <= 5
-            && nearlyZero(tradeProfit)
-            && nearlyZero(buyAmountTotal)
-            && nearlyZero(sellAmountTotal)
-            && quota >= 40
-            && counts.ecology >= 8
-            && metrics.path("green").asInt() >= 110
-            && carbon <= CARBON_QUOTA_BASELINE
-            && carbonOverLimitCount <= 0
-            && ecologySinkPositiveEventCount >= 1;
-
-        boolean ending21SpeedrunEfficient = lowCarbonScore >= 130
-            && lowCarbonScore < 150
-            && counts.total >= 25
-            && unlockedPolicyCount >= 2
-            && unlockedPolicyCount <= 4
-            && turn <= 25
-            && tradeProfit >= 60
-            && trade.path("quotaExhaustedCount").asInt(0) <= 0
-            && positiveEventCount >= 1
-            && state.with("eventStats").path("negativeTriggered").asInt(0) <= 0
-            && atLeastTwoDomainsAtLeast(counts, 8)
-            && atLeastAllDomains(counts, 4)
-            && comboTriggeredCount >= 3;
-
-        if (ending19ZeroTradeEcology) {
-            setEnding(state, ENDING_ZERO_TRADE_ECOLOGY, null);
+        // ── 负面结局（最高优先级）──────────────────────────────────────────
+        // 结局17：配额崩盘·运营失效
+        if (quota <= 0 && tradeProfit < -50 && lowCarbonScore < 60) {
+            setEnding(state, E17_QUOTA_COLLAPSE, null);
             return;
         }
-        if (ending21SpeedrunEfficient) {
-            setEnding(state, ENDING_SPEEDRUN_EFFICIENT, null);
-            return;
-        }
-
-        boolean innovation = counts.science == maxDomain
-            && counts.science >= balance.endingInnovationMinScience()
-            && resources.path("tech").asInt() >= balance.endingInnovationMinTech()
-            && lowCarbonScore >= balance.endingInnovationMinLowCarbon()
-            && metrics.path("carbon").asInt() <= balance.endingInnovationMaxCarbon()
-            && trade.path("profit").asDouble(0D) >= balance.endingInnovationMinProfit()
-            && eventResolveRate >= balance.endingEventResolveRateRequired();
-
-        boolean ecology = counts.ecology == maxDomain
-            && counts.ecology >= balance.endingEcologyMinEcology()
-            && metrics.path("green").asInt() >= balance.endingEcologyMinGreen()
-            && metrics.path("carbon").asInt() <= balance.endingEcologyMaxCarbon()
-            && lowCarbonScore >= balance.endingEcologyMinLowCarbon()
-            && trade.path("quota").asInt(0) >= balance.endingEcologyMinQuota()
-            && eventResolveRate >= balance.endingEventResolveRateRequired();
-
-        boolean doughnut = counts.society == maxDomain
-            && counts.society >= balance.endingDoughnutMinSociety()
-            && metrics.path("satisfaction").asInt() >= balance.endingDoughnutMinSatisfaction()
-            && resources.path("population").asInt() >= balance.endingDoughnutMinPopulation()
-            && minDomain >= balance.endingDoughnutMinDomain()
-            && metrics.path("carbon").asInt() <= balance.endingDoughnutMaxCarbon()
-            && lowCarbonScore >= balance.endingDoughnutMinLowCarbon()
-            && usage6768 >= balance.endingDoughnutMinPolicyUsage6768();
-
-        if (innovation) {
-            setEnding(state, ENDING_INNOVATION, null);
-            return;
-        }
-        if (ecology) {
-            setEnding(state, ENDING_ECOLOGY, null);
-            return;
-        }
-        if (doughnut) {
-            setEnding(state, ENDING_DOUGHNUT, null);
+        // 结局16：排放失控·发展失速
+        boolean highCarbonStreakFail = state.path("highCarbonStreak").asInt() >= balance.failureHighCarbonStreakLimit();
+        if (highCarbonStreakFail || (lowCarbonScore < 60 && carbonOverLimitCount >= 5)) {
+            setEnding(state, E16_EMISSION_CTRL, null);
             return;
         }
 
-        // Safety net: if the player reaches low-carbon baseline with controlled risk,
-        // avoid forcing a failure solely due to strict specialization thresholds.
-        boolean positiveBaselineReached = lowCarbonScore >= balance.lowCarbonMinForPositiveEnding()
-            && metrics.path("carbon").asInt() <= balance.failureHighCarbonThreshold()
-            && eventResolveRate >= Math.max(40D, balance.endingEventResolveRateRequired() - 30D);
-        if (positiveBaselineReached) {
-            if (counts.science >= counts.ecology && counts.science >= counts.society && counts.science >= counts.industry) {
-                setEnding(state, ENDING_INNOVATION, null);
-                return;
-            }
-            if (counts.ecology >= counts.society && counts.ecology >= counts.industry) {
-                setEnding(state, ENDING_ECOLOGY, null);
-                return;
-            }
-            setEnding(state, ENDING_DOUGHNUT, null);
+        // ── 第一梯度：特殊结局 ────────────────────────────────────────────
+        // 结局1：零交易稳健·生态优先
+        if (lowCarbonScore >= 140 && lowCarbonScore < 160
+                && counts.total >= 28
+                && unlockedPolicyCount >= 3 && unlockedPolicyCount <= 5
+                && nearlyZero(tradeProfit) && nearlyZero(buyAmountTotal) && nearlyZero(sellAmountTotal)
+                && quota >= 40
+                && ecologyCardCount >= 8 && green >= 110
+                && carbon <= CARBON_QUOTA_BASELINE && carbonOverLimitCount <= 0
+                && hasPositiveEcologySink) {
+            setEnding(state, E01_ZERO_TRADE_ECOLOGY, null);
+            return;
+        }
+        // 结局2：全政策解锁·策略全能
+        if (lowCarbonScore >= 150 && lowCarbonScore < 170
+                && counts.total >= 30
+                && unlockedPolicyCount >= 8
+                && allEventsResolved && negativeTriggered >= 1
+                && positiveEventCount >= 4
+                && comboTriggeredCount >= 6
+                && tradeProfit >= 80
+                && atLeastAllDomains(counts, 7)) {
+            setEnding(state, E02_ALL_POLICY_MASTER, null);
+            return;
+        }
+        // 结局3：产业巅峰·低碳翻盘
+        if (lowCarbonScore >= 145
+                && industry >= 1000
+                && carbonOverLimitCount <= 4
+                && carbon <= 70
+                && hasCard061 && hasCard062
+                && industryCardCount >= 8 && lowCarbonCoreCount >= 3
+                && tradeProfit >= 80 && quotaExhaustedCount <= 0) {
+            setEnding(state, E03_INDUSTRY_PEAK, null);
             return;
         }
 
-        setEnding(state, ENDING_FAILURE, endingFailureReason(ENDING_FAILURE_REASON_BOUNDARY_DEFAULT));
+        // ── 第二梯度：完美结局 ────────────────────────────────────────────
+        // 结局4：深碳标杆·零碳领航
+        if (lowCarbonScore >= 190
+                && counts.total >= 28
+                && unlockedPolicyCount >= 8
+                && hasCard060 && hasCard054
+                && quotaExhaustedCount <= 0 && tradeProfit >= 60
+                && tradeTotalVolume >= 40 && quota >= 20
+                && positiveEventCount >= 3 && negativeTriggered <= 0
+                && atLeastAllDomains(counts, 8)) {
+            setEnding(state, E04_ZERO_CARBON_LEGEND, null);
+            return;
+        }
+        // 结局5：湾区碳核·全域协同
+        if (lowCarbonScore >= 180
+                && counts.total >= 25
+                && unlockedPolicyCount >= 8
+                && shenzhenCardCount >= 3
+                && tradeProfit >= 50 && tradeTotalVolume >= 35 && quota >= 15
+                && hasPositiveScienceTech && hasPositiveEcologySink
+                && comboTriggeredCount >= 8
+                && atLeastAllDomains(counts, 8)) {
+            setEnding(state, E05_BAY_AREA_CORE, null);
+            return;
+        }
+
+        // ── 第三梯度：优质结局 ────────────────────────────────────────────
+        // 结局6：科创低碳·技术赋能
+        if (lowCarbonScore >= 150
+                && scienceCardCount >= 8
+                && hasCard065 && hasCard066
+                && tech >= 140 && comboTriggeredCount >= 2
+                && hasPositiveScienceTech
+                && tradeProfit >= 80 && quotaExhaustedCount <= 0) {
+            setEnding(state, E06_SCI_TECH, null);
+            return;
+        }
+        // 结局7：生态宜居·碳汇典范
+        if (lowCarbonScore >= 150
+                && ecologyCardCount >= 8 && shenzhenCardCount >= 2
+                && hasCard063 && hasCard064
+                && green >= 100 && satisfaction >= 80
+                && hasPositiveEcologySink
+                && !hasTriggeredNegativeEvent(state, "negative_ecology_warning")
+                && quota >= 30 && tradeProfit >= 80) {
+            setEnding(state, E07_ECOLOGY_LIVABLE, null);
+            return;
+        }
+        // 结局8：产业低碳·效益双赢
+        if (lowCarbonScore >= 145
+                && industryCardCount >= 8 && lowCarbonCoreCount >= 4
+                && hasCard061 && hasCard062
+                && industry >= 130 && carbonOverLimitCount <= 3
+                && hasPositiveLowCarbonIndustry && hasResolvedIndustrialCarbonAbnormal
+                && tradeProfit >= 100 && sellAmountTotal >= 40) {
+            setEnding(state, E08_INDUSTRY_WINWIN, null);
+            return;
+        }
+        // 结局9：民生低碳·共建共享
+        if (lowCarbonScore >= 145
+                && societyCardCount >= 8
+                && hasCard067 && hasCard068
+                && population >= 80 && satisfaction >= 80
+                && hasPositiveCitizenWave
+                && !hasTriggeredNegativeEvent(state, "negative_livability_decline")
+                && atLeastAllDomains(counts, 5)
+                && tradeProfit >= 80) {
+            setEnding(state, E09_LIVELIHOOD, null);
+            return;
+        }
+
+        // ── 第四梯度：普通结局 ────────────────────────────────────────────
+        // 结局10：均衡稳健·稳步前行
+        if (lowCarbonScore >= 135 && lowCarbonScore < 160
+                && unlockedPolicyCount >= 4
+                && atLeastAllDomains(counts, 6) && minDomain >= 6
+                && tradeProfit >= 60
+                && positiveEventCount >= 1 && negativeResolved >= 1
+                && state.path("highCarbonOverLimitStreak").asInt(0) < 3) {
+            setEnding(state, E10_BALANCED, null);
+            return;
+        }
+        // 结局11：专长突破·专项发力
+        if (lowCarbonScore >= 125 && lowCarbonScore < 150
+                && maxDomain >= 10
+                && positiveEventCount >= 1
+                && tradeProfit >= 70
+                && minDomain >= 3
+                && state.path("highCarbonOverLimitStreak").asInt(0) < 3) {
+            setEnding(state, E11_SPECIALTY, null);
+            return;
+        }
+
+        // ── 第五梯度：基础结局 ────────────────────────────────────────────
+        // 结局12：基础达标·稳步起步
+        if (lowCarbonScore >= 105 && lowCarbonScore < 125
+                && counts.total >= 20 && counts.total <= 27
+                && unlockedPolicyCount >= 1 && unlockedPolicyCount <= 3
+                && industry >= 80 && tech >= 60 && population >= 50
+                && tradeProfit >= 40 && quotaExhaustedCount <= 2
+                && state.path("highCarbonOverLimitStreak").asInt(0) < 3
+                && atLeastAllDomains(counts, 4)) {
+            setEnding(state, E12_BASIC_QUALIFIED, null);
+            return;
+        }
+        // 结局13：初探规划·潜力可期
+        if (lowCarbonScore >= 100 && lowCarbonScore < 120
+                && counts.total >= 18
+                && unlockedPolicyCount >= 1 && unlockedPolicyCount <= 2
+                && maxDomain >= 7 && minDomain >= 3
+                && tradeProfit >= 30
+                && state.path("highCarbonOverLimitStreak").asInt(0) < 5
+                && quotaExhaustedCount <= 2) {
+            setEnding(state, E13_NOVICE, null);
+            return;
+        }
+        // 结局14：顺利完成·规划合格
+        if (counts.total >= 15 && lowCarbonScore >= 80) {
+            setEnding(state, E14_PASS, null);
+            return;
+        }
+        // 结局15：稳步探索·持续优化
+        if (counts.total >= 10 && lowCarbonScore >= 70) {
+            setEnding(state, E15_EXPLORE, null);
+            return;
+        }
+
+        // 兜底：低碳分不足，判为排放失控
+        setEnding(state, E16_EMISSION_CTRL, null);
+    }
+
+    private boolean hasPlacedCard(ObjectNode state, String cardId) {
+        for (JsonNode node : state.withArray("placedCore")) {
+            if (cardId.equals(node.asText())) return true;
+        }
+        return false;
+    }
+
+    private boolean hasPolicyUnlocked(ObjectNode state, String cardId) {
+        for (JsonNode node : state.withArray("policyUnlocked")) {
+            if (cardId.equals(node.asText())) return true;
+        }
+        return false;
+    }
+
+    private boolean hasTriggeredPositiveEvent(ObjectNode state, String eventType) {
+        for (JsonNode node : state.withArray("eventHistory")) {
+            if (eventType.equals(node.path("eventType").asText())) return true;
+        }
+        return false;
+    }
+
+    private boolean hasTriggeredNegativeEvent(ObjectNode state, String eventType) {
+        for (JsonNode node : state.withArray("eventHistory")) {
+            if (eventType.equals(node.path("eventType").asText())) return true;
+        }
+        return false;
+    }
+
+    private boolean hasResolvedNegativeEvent(ObjectNode state, String eventType) {
+        for (JsonNode node : state.withArray("eventHistory")) {
+            if ("event_resolved".equals(node.path("eventType").asText())
+                    && eventType.equals(node.path("resolvedEvent").asText())) return true;
+        }
+        return false;
     }
 
     private int countPolicyUsage(ObjectNode state, String policyId) {
