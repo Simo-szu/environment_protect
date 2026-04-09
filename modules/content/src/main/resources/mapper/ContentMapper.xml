@@ -46,9 +46,8 @@
       </if>
       <if test="keyword != null and keyword != ''">
         AND (
-          title ILIKE CONCAT('%', #{keyword}, '%')
-          OR summary ILIKE CONCAT('%', #{keyword}, '%')
-          OR body ILIKE CONCAT('%', #{keyword}, '%')
+          COALESCE(title, '') ILIKE ('%' || #{keyword} || '%')
+          OR COALESCE(summary, '') ILIKE ('%' || #{keyword} || '%')
         )
       </if>
     </where>
@@ -69,9 +68,8 @@
       </if>
       <if test="keyword != null and keyword != ''">
         AND (
-          title ILIKE CONCAT('%', #{keyword}, '%')
-          OR summary ILIKE CONCAT('%', #{keyword}, '%')
-          OR body ILIKE CONCAT('%', #{keyword}, '%')
+          COALESCE(title, '') ILIKE ('%' || #{keyword} || '%')
+          OR COALESCE(summary, '') ILIKE ('%' || #{keyword} || '%')
         )
       </if>
     </where>

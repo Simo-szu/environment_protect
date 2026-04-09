@@ -176,6 +176,12 @@ export function resolvePolicyHintByEvent(eventType: string): string {
   if (eventType === 'citizen_protest') {
     return 'Use card067, card068 or card061 to resolve';
   }
+  if (eventType === 'negative_ecology_warning') {
+    return 'Use card064 to resolve';
+  }
+  if (eventType === 'negative_industrial_carbon_abnormal') {
+    return 'Use card062 to resolve';
+  }
   return 'No policy mapping';
 }
 
@@ -188,6 +194,12 @@ export function resolvePolicyIdsByEvent(eventType: string): string[] {
   }
   if (eventType === 'citizen_protest') {
     return ['card067', 'card068', 'card061'];
+  }
+  if (eventType === 'negative_ecology_warning') {
+    return ['card064'];
+  }
+  if (eventType === 'negative_industrial_carbon_abnormal') {
+    return ['card062'];
   }
   return [];
 }
@@ -202,6 +214,7 @@ export function resolveEventLabel(eventType: string, locale?: string): string {
     negative_high_carbon_industry: ['工业碳排放异常', 'High Carbon Industry'],
     positive_ecology_sink_growth: ['生态碳汇增值', 'Ecology Carbon Sink Growth'],
   };
+  labels.negative_industrial_carbon_abnormal = labels.negative_high_carbon_industry;
   const pair = labels[eventType];
   if (pair) {
     return zh ? pair[0] : pair[1];

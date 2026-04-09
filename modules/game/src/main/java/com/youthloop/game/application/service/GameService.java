@@ -38,6 +38,13 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 public class GameService {
+    private static final Set<String> SUPPORTED_NEGATIVE_EVENT_TYPES = Set.of(
+        "flood",
+        "sea_level_rise",
+        "citizen_protest",
+        "negative_ecology_warning",
+        "negative_industrial_carbon_abnormal"
+    );
 
     private static final int ACTION_PLACE_CORE_CARD = 1;
     private static final int ACTION_END_TURN = 2;
@@ -115,6 +122,7 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         ObjectNode state = ensureStateObject(session.getPondState());
+        normalizeNegativeEvents(state);
         syncRuntimeConfigForSession(state);
         processPendingDiscardTimeout(state);
         processTradeWindowTimeout(state);
@@ -136,6 +144,7 @@ public class GameService {
                 throw new BizException(ErrorCode.GAME_SESSION_INVALID);
             }
             ObjectNode state = ensureStateObject(session.getPondState());
+            normalizeNegativeEvents(state);
             syncRuntimeConfigForSession(state);
             processPendingDiscardTimeout(state);
             processTradeWindowTimeout(state);
@@ -150,6 +159,7 @@ public class GameService {
             throw new BizException(ErrorCode.GAME_SESSION_NOT_FOUND);
         }
         ObjectNode guestState = ensureStateObject(guestSession.getPondState());
+        normalizeNegativeEvents(guestState);
         syncRuntimeConfigForSession(guestState);
         processPendingDiscardTimeout(guestState);
         processTradeWindowTimeout(guestState);
@@ -221,6 +231,7 @@ public class GameService {
         }
 
         ObjectNode state = ensureStateObject(session.getPondState());
+        normalizeNegativeEvents(state);
         syncRuntimeConfigForSession(state);
         processPendingDiscardTimeout(state);
         processTradeWindowTimeout(state);
@@ -2284,6 +2295,7 @@ public class GameService {
         DomainCounts counts = countPlacedDomains(state);
         int baseProbability = resolveSpecialEventBaseProbability(state, counts);
         List<SpecialNegativeEvent> candidates = new ArrayList<>();
+        boolean legacySpecialEventsEnabled = false;
 
         if (counts.industry >= 10 && metrics.path("carbon").asInt(0) >= 130) {
             candidates.add(new SpecialNegativeEvent(
@@ -2321,7 +2333,7 @@ public class GameService {
                 List.of("card064")
             ));
         }
-        if (counts.science <= 5 && resources.path("tech").asInt(0) <= 60) {
+        if (legacySpecialEventsEnabled && counts.science <= 5 && resources.path("tech").asInt(0) <= 60) {
             candidates.add(new SpecialNegativeEvent(
                 "negative_science_research_blocked",
                 "科创研发受阻",
@@ -2339,7 +2351,7 @@ public class GameService {
                 List.of("card065")
             ));
         }
-        if (counts.society <= 5 && resources.path("population").asInt(0) >= 80 && metrics.path("green").asInt(0) <= 70) {
+        if (legacySpecialEventsEnabled && counts.society <= 5 && resources.path("population").asInt(0) >= 80 && metrics.path("green").asInt(0) <= 70) {
             candidates.add(new SpecialNegativeEvent(
                 "negative_livability_decline",
                 "人口宜居性下降",
@@ -3642,6 +3654,28 @@ public class GameService {
             throw new BizException(ErrorCode.SYSTEM_ERROR, "Invalid session state");
         }
         return objectNode.deepCopy();
+    }
+
+    private void normalizeNegativeEvents(ObjectNode state) {
+        ArrayNode activeEvents = state.withArray("activeNegativeEvents");
+        if (activeEvents.isEmpty()) {
+            return;
+        }
+        ArrayNode normalized = objectMapper.createArrayNode();
+        for (JsonNode node : activeEvents) {
+            if (!(node instanceof ObjectNode eventNode)) {
+                continue;
+            }
+            String eventType = eventNode.path("eventType").asText("");
+            if ("negative_high_carbon_industry".equals(eventType)) {
+                eventNode.put("eventType", "negative_industrial_carbon_abnormal");
+                eventType = "negative_industrial_carbon_abnormal";
+            }
+            if (SUPPORTED_NEGATIVE_EVENT_TYPES.contains(eventType)) {
+                normalized.add(eventNode);
+            }
+        }
+        state.set("activeNegativeEvents", normalized);
     }
 
     private record LowCarbonScoreBreakdown(

@@ -620,11 +620,13 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 const cardWidthPercent = 42;
                 const maxTravelPercent = 92 - cardWidthPercent;
                 const overlapStepPercent = rowItems.length > 1
-                  ? Math.max(10, Math.min(24, maxTravelPercent / (rowItems.length - 1)))
+                  ? (rowItems.length === 2
+                    ? Math.min(maxTravelPercent, cardWidthPercent + 4)
+                    : Math.max(10, Math.min(24, maxTravelPercent / (rowItems.length - 1))))
                   : 0;
 
                 return (
-                  <div key={`row-${rowIndex}`} className="relative h-[240px] overflow-visible">
+                  <div key={`row-${rowIndex}`} className="relative h-[304px] overflow-visible">
                     {rowItems.map((item, itemIndex) => {
                       const { card, key, type } = item;
                       const cardImageUrl = resolveImageUrl(card.imageKey);

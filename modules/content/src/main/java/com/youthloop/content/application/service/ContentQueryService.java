@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 @Service("contentBasicQueryService")
 @RequiredArgsConstructor
 public class ContentQueryService {
+
+    private static final int MAX_KEYWORD_LENGTH = 100;
     
     private final ContentMapper contentMapper;
     private final ContentStatsMapper contentStatsMapper;
@@ -44,10 +46,7 @@ public class ContentQueryService {
         int offset = (page - 1) * size;
         
         // 查询总数
-        String keyword = request.getKeyword() == null ? null : request.getKeyword().trim();
-        if (keyword != null && keyword.isEmpty()) {
-            keyword = null;
-        }
+        String keyword = normalizeKeyword(request.getKeyword());
 
         Long total = contentMapper.countList(request.getType(), status, keyword);
         
@@ -101,6 +100,20 @@ public class ContentQueryService {
             .collect(Collectors.toList());
         
         return PageResponse.of(dtoList, total, page, size);
+    }
+
+    private String normalizeKeyword(String rawKeyword) {
+        if (rawKeyword == null) {
+            return null;
+        }
+        String keyword = rawKeyword.trim();
+        if (keyword.isEmpty()) {
+            return null;
+        }
+        if (keyword.length() > MAX_KEYWORD_LENGTH) {
+            keyword = keyword.substring(0, MAX_KEYWORD_LENGTH);
+        }
+        return keyword;
     }
     
     /**

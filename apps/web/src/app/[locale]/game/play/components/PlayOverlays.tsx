@@ -209,6 +209,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
       negative_ecology_warning: 'events/生态破坏预警.jpg',
       negative_high_carbon_industry: 'events/工业碳排放异常.jpg',
     };
+    imageMap.negative_industrial_carbon_abnormal = imageMap.negative_high_carbon_industry;
     return imageMap[eventType] || '';
   }
 

@@ -134,7 +134,7 @@ export function useGamePlayController() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [guidedTutorialActive, setGuidedTutorialActive] = useState(false);
   const [storageBaseUrl, setStorageBaseUrl] = useState(
-    () => (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '')
+    () => normalizeStorageBaseUrl(process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '')
   );
   const [draggingCoreId, setDraggingCoreId] = useState('');
   const [dragOverTile, setDragOverTile] = useState('');
@@ -643,13 +643,13 @@ export function useGamePlayController() {
 
   useEffect(() => {
     let cancelled = false;
-    const fallbackBase = (process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '').trim().replace(/\/+$/, '');
+    const fallbackBase = normalizeStorageBaseUrl(process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '');
     async function loadPublicConfig() {
       try {
         const config = await getPublicSystemConfig();
-        const nextBase = typeof config?.storageBaseUrl === 'string' ? config.storageBaseUrl.trim() : '';
+        const nextBase = typeof config?.storageBaseUrl === 'string' ? normalizeStorageBaseUrl(config.storageBaseUrl) : '';
         if (!cancelled && nextBase) {
-          setStorageBaseUrl(nextBase.replace(/\/+$/, ''));
+          setStorageBaseUrl(nextBase);
         }
       } catch {
         // Keep env fallback when public config is unavailable.
@@ -672,10 +672,10 @@ export function useGamePlayController() {
       return imageKey;
     }
     let normalizedKey = imageKey;
-    if ((normalizedKey.startsWith('endings/') || normalizedKey.startsWith('events/')) && /\.jpe?g$/i.test(normalizedKey)) {
+    if (normalizedKey.startsWith('endings/') && /\.jpe?g$/i.test(normalizedKey)) {
       normalizedKey = normalizedKey.replace(/\.jpe?g$/i, '.webp');
     }
-    const base = storageBaseUrl.trim().replace(/\/+$/, '');
+    const base = normalizeStorageBaseUrl(storageBaseUrl);
     if (!base) {
       return undefined;
     }
@@ -1266,3 +1266,15 @@ export function useGamePlayController() {
 }
 
 export type GamePlayController = ReturnType<typeof useGamePlayController>;
+  function normalizeStorageBaseUrl(rawValue: string): string {
+    const trimmed = rawValue.trim();
+    if (!trimmed) {
+      return '';
+    }
+    const secondHttps = trimmed.indexOf('https://', 8);
+    const secondHttp = trimmed.indexOf('http://', 7);
+    const candidates = [secondHttps, secondHttp].filter((index) => index >= 0);
+    const cutoff = candidates.length > 0 ? Math.min(...candidates) : -1;
+    const single = cutoff > 0 ? trimmed.slice(0, cutoff) : trimmed;
+    return single.replace(/\/+$/, '');
+  }

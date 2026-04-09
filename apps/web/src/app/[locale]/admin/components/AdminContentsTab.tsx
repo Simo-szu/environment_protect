@@ -65,6 +65,22 @@ export function AdminContentsTab() {
     const [updatingContent, setUpdatingContent] = useState(false);
 
     const contentSize = 20;
+    const totalPages = Math.max(1, Math.ceil(contentTotal / contentSize));
+
+    const getContentTypeLabel = (type?: number) => {
+        if (type === 1) return t('contents.news');
+        if (type === 2) return t('contents.dynamic', '动态');
+        if (type === 3) return t('contents.policy');
+        if (type === 4) return t('contents.encyclopedia');
+        return t('contents.unknownType', '未知类型');
+    };
+
+    const getContentStatusLabel = (status?: number) => {
+        if (status === 1) return t('contents.published');
+        if (status === 2) return t('contents.draft');
+        if (status === 3) return t('contents.archived');
+        return t('contents.unknownStatus', '未知状态');
+    };
 
     const loadContents = useCallback(async () => {
         try {
@@ -103,6 +119,10 @@ export function AdminContentsTab() {
         loadContents();
         loadIngestionSettings();
     }, [loadContents, loadIngestionSettings]);
+
+    useEffect(() => {
+        setContentPage(1);
+    }, [contentTypeFilter, contentStatusFilter]);
 
     const saveSettings = async () => {
         try {
@@ -344,27 +364,29 @@ export function AdminContentsTab() {
                         <Select className="w-[140px]" value={contentTypeFilter?.toString() ?? ''} onValueChange={v => setContentTypeFilter(v ? Number(v) : undefined)}>
                             <SelectTrigger className="h-9">
                                 <SelectValue placeholder={t('contents.allTypes')}>
-                                    {contentTypeFilter === 1 ? t('contents.news') : contentTypeFilter === 2 ? t('contents.policy') : contentTypeFilter === 3 ? t('contents.encyclopedia') : null}
+                                    {contentTypeFilter ? getContentTypeLabel(contentTypeFilter) : null}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">{t('contents.allTypes')}</SelectItem>
                                 <SelectItem value="1">{t('contents.news')}</SelectItem>
-                                <SelectItem value="2">{t('contents.policy')}</SelectItem>
-                                <SelectItem value="3">{t('contents.encyclopedia')}</SelectItem>
+                                <SelectItem value="2">{t('contents.dynamic', '动态')}</SelectItem>
+                                <SelectItem value="3">{t('contents.policy')}</SelectItem>
+                                <SelectItem value="4">{t('contents.encyclopedia')}</SelectItem>
                             </SelectContent>
                         </Select>
 
                         <Select className="w-[140px]" value={contentStatusFilter?.toString() ?? ''} onValueChange={v => setContentStatusFilter(v ? Number(v) : undefined)}>
                             <SelectTrigger className="h-9">
                                 <SelectValue placeholder={t('contents.allStatus')}>
-                                    {contentStatusFilter === 1 ? t('contents.published') : contentStatusFilter === 2 ? t('contents.draft') : null}
+                                    {contentStatusFilter ? getContentStatusLabel(contentStatusFilter) : null}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">{t('contents.allStatus')}</SelectItem>
                                 <SelectItem value="1">{t('contents.published')}</SelectItem>
                                 <SelectItem value="2">{t('contents.draft')}</SelectItem>
+                                <SelectItem value="3">{t('contents.archived')}</SelectItem>
                             </SelectContent>
                         </Select>
                         <div className="flex">
@@ -383,8 +405,8 @@ export function AdminContentsTab() {
                         <div key={item.id} className="flex flex-col md:flex-row gap-4 justify-between bg-slate-50/50 dark:bg-slate-900/30 p-4 border border-slate-100 dark:border-slate-700/60 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded select-none">{item.type === 1 ? t('contents.news') : item.type === 2 ? t('contents.policy') : t('contents.encyclopedia')}</span>
-                                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded select-none ${item.status === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'}`}>{item.status === 1 ? t('contents.published') : t('contents.draft')}</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded select-none">{getContentTypeLabel(item.type)}</span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded select-none ${item.status === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : item.status === 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>{getContentStatusLabel(item.status)}</span>
                                     <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">{item.publishedAt || t('contents.notPublished')}</span>
                                 </div>
                                 <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-base">{item.title}</h4>
@@ -403,8 +425,8 @@ export function AdminContentsTab() {
                     <span>{t('contents.totalRecords', undefined, { total: contentTotal })}</span>
                     <div className="flex gap-2">
                         <button disabled={contentPage <= 1} onClick={() => setContentPage(p => p - 1)} className="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-600 dark:text-slate-300">{t('contents.prev')}</button>
-                        <span className="px-3 py-1 text-slate-600 dark:text-slate-300">{contentPage}</span>
-                        <button onClick={() => setContentPage(p => p + 1)} className="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-600 dark:text-slate-300">{t('contents.next')}</button>
+                        <span className="px-3 py-1 text-slate-600 dark:text-slate-300">{t('contents.pageInfo', undefined, { page: contentPage, totalPages })}</span>
+                        <button disabled={contentPage >= totalPages} onClick={() => setContentPage(p => Math.min(totalPages, p + 1))} className="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-600 dark:text-slate-300">{t('contents.next')}</button>
                     </div>
                 </div>
             </div>
@@ -427,8 +449,9 @@ export function AdminContentsTab() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="1">{t('contents.news')}</SelectItem>
-                                        <SelectItem value="2">{t('contents.policy')}</SelectItem>
-                                        <SelectItem value="3">{t('contents.encyclopedia')}</SelectItem>
+                                        <SelectItem value="2">{t('contents.dynamic', '动态')}</SelectItem>
+                                        <SelectItem value="3">{t('contents.policy')}</SelectItem>
+                                        <SelectItem value="4">{t('contents.encyclopedia')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </label>
