@@ -19,6 +19,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'boardCols'
   | 'boardOccupied'
   | 'selectedOccupiedTile'
+  | 'runRemoveCoreAction'
+  | 'removeActionBlockedReason'
   | 'tileAdjacencyScoreMap'
   | 'adjacencyRequired'
   | 'ending'
@@ -65,6 +67,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'metrics'
   | 'tradeWindowOpened'
   | 'tradeWindowInterval'
+  | 'retreatFatigueCount'
+  | 'retreatFatiguePct'
   | 'tradeQuota'
   | 'tradeLastPrice'
   | 'tradeProfit'
@@ -134,6 +138,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     boardCols,
     boardOccupied,
     selectedOccupiedTile,
+    runRemoveCoreAction,
+    removeActionBlockedReason,
     tileAdjacencyScoreMap,
     adjacencyRequired,
     ending,
@@ -180,6 +186,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     metrics,
     tradeWindowOpened,
     tradeWindowInterval,
+    retreatFatigueCount,
+    retreatFatiguePct,
     tradeQuota,
     tradeLastPrice,
     tradeProfit,
@@ -777,6 +785,14 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 {placeActionBlockedReason}
               </div>
             )}
+            {retreatFatiguePct > 0 && (
+              <div className="mt-1 max-w-[520px] text-[11px] font-semibold text-rose-700">
+                {t('play.actions.retreatFatigue', '撤退疲劳：本回合已撤退 {count} 次，核心卡部署成本 +{pct}%。', {
+                  count: retreatFatigueCount,
+                  pct: retreatFatiguePct
+                })}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
@@ -802,6 +818,18 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
                 DEPLOY
+              </button>
+            ) : selectedOccupiedTile ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void runRemoveCoreAction();
+                }}
+                disabled={actionLoading || !!removeActionBlockedReason}
+                title={removeActionBlockedReason || t('play.actions.removeCore', 'Remove Core Card')}
+                className="rounded-2xl bg-rose-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
+              >
+                {t('play.actions.removeCore', 'Remove Core Card')}
               </button>
             ) : selectedPolicyId ? (
               <button

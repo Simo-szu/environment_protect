@@ -264,6 +264,8 @@ export default function GamePlayPage() {
             boardCols={controller.boardCols}
             boardOccupied={controller.boardOccupied}
             selectedOccupiedTile={controller.selectedOccupiedTile}
+            runRemoveCoreAction={controller.runRemoveCoreAction}
+            removeActionBlockedReason={controller.removeActionBlockedReason}
             tileAdjacencyScoreMap={controller.tileAdjacencyScoreMap}
             adjacencyRequired={controller.adjacencyRequired}
             ending={controller.ending}
@@ -310,6 +312,8 @@ export default function GamePlayPage() {
             metrics={controller.metrics}
             tradeWindowOpened={controller.tradeWindowOpened}
             tradeWindowInterval={controller.tradeWindowInterval}
+            retreatFatigueCount={controller.retreatFatigueCount}
+            retreatFatiguePct={controller.retreatFatiguePct}
             tradeQuota={controller.tradeQuota}
             tradeLastPrice={controller.tradeLastPrice}
             tradeProfit={controller.tradeProfit}

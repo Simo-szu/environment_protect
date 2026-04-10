@@ -186,6 +186,8 @@ export function useGamePlayController() {
   const runtimeConfig = (pondState?.runtimeConfig || {}) as UnknownRecord;
   const lowCarbonScoreBreakdown = (pondState?.lowCarbonScoreBreakdown || null) as LowCarbonScoreBreakdown | null;
   const lowCarbonScore = Number(metrics.lowCarbonScore ?? 0);
+  const retreatFatigueCount = Math.max(0, Number(pondState?.retreatFatigueCount ?? 0));
+  const retreatFatiguePct = Math.max(0, Number(pondState?.retreatFatiguePct ?? 0));
 
   const tradeWindowOpened = Boolean(carbonTrade.windowOpened);
   const tradeLastPrice = Number(carbonTrade.lastPrice || 2);
@@ -264,7 +266,8 @@ export function useGamePlayController() {
     boardRows,
     boardCols,
     boardOccupied,
-    freePlacementEnabled
+    freePlacementEnabled,
+    retreatFatiguePct
   });
 
   const selectedCoreDomainLabel = useMemo(() => {
@@ -481,14 +484,11 @@ export function useGamePlayController() {
     if (!!ending) {
       return t('play.actions.blocked.sessionEnded', '当前对局已结束。');
     }
-    if (guidedGateEnabled && !guidedTutorialCompleted) {
-      return t('play.actions.blocked.guideRemoveLocked', '引导未完成前暂不开放移除操作。');
-    }
     if (!selectedOccupiedTile) {
       return t('play.actions.blocked.selectOccupiedTile', '请先选择一个已放置核心卡的棋盘格。');
     }
     return '';
-  }, [pendingDiscardBlocking, ending, guidedGateEnabled, guidedTutorialCompleted, selectedOccupiedTile, t]);
+  }, [pendingDiscardBlocking, ending, selectedOccupiedTile, t]);
 
   const guidedOverlayMessage = useMemo(() => {
     if (!guidedGateEnabled || !currentGuidedTask) {
@@ -1163,6 +1163,8 @@ export function useGamePlayController() {
     resources,
     metrics,
     lowCarbonScore,
+    retreatFatigueCount,
+    retreatFatiguePct,
     lowCarbonScoreBreakdown,
     domainProgress,
     selectedCorePlacementPreview,

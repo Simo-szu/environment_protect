@@ -19,6 +19,7 @@ interface UseGamePlayBoardCardSelectorsParams {
   boardCols: number;
   boardOccupied: Record<string, string>;
   freePlacementEnabled: boolean;
+  retreatFatiguePct: number;
 }
 
 function resolveTileDomain(row: number, col: number, boardRows: number, boardCols: number): DomainZone {
@@ -69,7 +70,8 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     boardRows,
     boardCols,
     boardOccupied,
-    freePlacementEnabled
+    freePlacementEnabled,
+    retreatFatiguePct
   } = params;
 
   const handCoreCards = useMemo(
@@ -102,10 +104,15 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       const costTech = Number(card.unlockCost?.tech ?? 0);
       const costPopulation = Number(card.unlockCost?.population ?? 0);
       const costGreen = Number(card.unlockCost?.green ?? 0);
-      const needIndustry = Math.max(0, costIndustry - resourceIndustry);
-      const needTech = Math.max(0, costTech - resourceTech);
-      const needPopulation = Math.max(0, costPopulation - resourcePopulation);
-      const needGreen = Math.max(0, costGreen - metricGreen);
+      const fatigueMultiplier = 1 + retreatFatiguePct / 100;
+      const adjustedCostIndustry = Math.round(costIndustry * fatigueMultiplier);
+      const adjustedCostTech = Math.round(costTech * fatigueMultiplier);
+      const adjustedCostPopulation = Math.round(costPopulation * fatigueMultiplier);
+      const adjustedCostGreen = Math.round(costGreen * fatigueMultiplier);
+      const needIndustry = Math.max(0, adjustedCostIndustry - resourceIndustry);
+      const needTech = Math.max(0, adjustedCostTech - resourceTech);
+      const needPopulation = Math.max(0, adjustedCostPopulation - resourcePopulation);
+      const needGreen = Math.max(0, adjustedCostGreen - metricGreen);
       const resourcesSatisfied = needIndustry === 0 && needTech === 0 && needPopulation === 0 && needGreen === 0;
       let hasPlaceableTile = false;
 
@@ -161,7 +168,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
       });
     }
     return result;
-  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green, boardRows, boardCols, boardOccupied, freePlacementEnabled]);
+  }, [handCoreCards, resources.industry, resources.tech, resources.population, metrics.green, boardRows, boardCols, boardOccupied, freePlacementEnabled, retreatFatiguePct]);
 
   const selectedCoreAffordability = selectedCoreCard ? coreAffordabilityMap.get(selectedCoreCard.cardId) : null;
 
@@ -179,6 +186,11 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     const costTech = Number(selectedCoreCard.unlockCost.tech ?? 0);
     const costPopulation = Number(selectedCoreCard.unlockCost.population ?? 0);
     const costGreen = Number(selectedCoreCard.unlockCost.green ?? 0);
+    const fatigueMultiplier = 1 + retreatFatiguePct / 100;
+    const adjustedCostIndustry = Math.round(costIndustry * fatigueMultiplier);
+    const adjustedCostTech = Math.round(costTech * fatigueMultiplier);
+    const adjustedCostPopulation = Math.round(costPopulation * fatigueMultiplier);
+    const adjustedCostGreen = Math.round(costGreen * fatigueMultiplier);
     // Preview combines placement cost with the card's base continuous effect.
     // It intentionally excludes combo/policy/event modifiers.
     const continuousIndustry = Number(selectedCoreCard.coreContinuousIndustryDelta ?? 0);
@@ -187,10 +199,10 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
     const continuousGreen = Number(selectedCoreCard.coreContinuousGreenDelta ?? 0);
     const continuousCarbon = Number(selectedCoreCard.coreContinuousCarbonDelta ?? 0);
     const continuousSatisfaction = Number(selectedCoreCard.coreContinuousSatisfactionDelta ?? 0);
-    const deltaIndustry = -costIndustry + continuousIndustry;
-    const deltaTech = -costTech + continuousTech;
-    const deltaPopulation = -costPopulation + continuousPopulation;
-    const deltaGreen = -costGreen + continuousGreen;
+    const deltaIndustry = -adjustedCostIndustry + continuousIndustry;
+    const deltaTech = -adjustedCostTech + continuousTech;
+    const deltaPopulation = -adjustedCostPopulation + continuousPopulation;
+    const deltaGreen = -adjustedCostGreen + continuousGreen;
     const deltaCarbon = continuousCarbon;
     const deltaSatisfaction = continuousSatisfaction;
     return {
@@ -209,7 +221,7 @@ export function useGamePlayBoardCardSelectors(params: UseGamePlayBoardCardSelect
         satisfaction: deltaSatisfaction
       }
     };
-  }, [selectedCoreCard, resources.industry, resources.tech, resources.population, metrics.green, metrics.carbon, metrics.satisfaction]);
+  }, [selectedCoreCard, resources.industry, resources.tech, resources.population, metrics.green, metrics.carbon, metrics.satisfaction, retreatFatiguePct]);
 
   const selectedCorePreviewReady = Boolean(selectedCoreId && selectedTile && selectedCorePlacementPreview);
 

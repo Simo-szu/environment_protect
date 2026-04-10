@@ -140,6 +140,7 @@ const game = {
             usePolicy: '使用政策卡',
             clearSelection: '取消选择',
             selectToRemove: '点击以选择移除',
+            retreatFatigue: '撤退疲劳：本回合已撤退 {count} 次，核心卡部署成本 +{pct}%。',
             blocked: {
                 selectCore: '请先选择核心卡。',
                 selectTile: '请先选择棋盘空位。',

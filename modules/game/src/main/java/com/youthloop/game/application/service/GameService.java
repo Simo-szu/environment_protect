@@ -52,6 +52,9 @@ public class GameService {
     private static final int ACTION_TRADE_CARBON = 4;
     private static final int ACTION_DISCARD_CARD = 5;
     private static final int ACTION_REMOVE_CORE_CARD = 6;
+    private static final int RETREAT_FATIGUE_STEP_PCT = 10;
+    private static final int RETREAT_FATIGUE_MAX_PCT = 50;
+    private static final int SAME_TURN_REDEPLOY_IMMEDIATE_REDUCTION_PCT = 40;
 
     private static final int SESSION_ACTIVE = 1;
     private static final int SESSION_ENDED = 3;
@@ -439,6 +442,9 @@ public class GameService {
         root.putNull("cardEffectSnapshot");
         root.put("policyUsedThisTurn", false);
         root.put("corePlacedThisTurn", false);
+        root.put("retreatFatigueCount", 0);
+        root.put("retreatFatiguePct", 0);
+        root.set("coreDeployCountThisTurn", objectMapper.createObjectNode());
         root.putNull("lastPolicyUsed");
         ObjectNode policyDrawStats = root.putObject("policyDrawStats");
         policyDrawStats.set("drawCount", objectMapper.createObjectNode());
@@ -492,6 +498,11 @@ public class GameService {
         techCost = applyPercentage(techCost, -costReductionPct);
         populationCost = applyPercentage(populationCost, -costReductionPct);
         greenCost = applyPercentage(greenCost, -costReductionPct);
+        int fatiguePct = resolveRetreatFatiguePct(state);
+        industryCost = applyPercentage(industryCost, fatiguePct);
+        techCost = applyPercentage(techCost, fatiguePct);
+        populationCost = applyPercentage(populationCost, fatiguePct);
+        greenCost = applyPercentage(greenCost, fatiguePct);
 
         if (resources.path("industry").asInt() < industryCost ||
             resources.path("tech").asInt() < techCost ||
@@ -509,7 +520,8 @@ public class GameService {
         state.withArray("placedCore").add(cardId);
         state.put("corePlacedThisTurn", true);
         state.with("boardOccupied").put(boardKey(row, col), cardId);
-        applyCoreImmediateEffectNow(state, cardId);
+        int deployCountThisTurn = incrementCoreDeployCountThisTurn(state, cardId);
+        applyCoreImmediateEffectNow(state, cardId, deployCountThisTurn);
 
         int placedCount = state.withArray("placedCore").size();
         metrics.put("lowCarbonScore", Math.max(0, metrics.path("lowCarbonScore").asInt() + 1));
@@ -585,6 +597,9 @@ public class GameService {
         state.withArray("placedCore").remove(placedIndex);
         state.withArray("handCore").add(cardId);
         metrics.put("lowCarbonScore", Math.max(0, metrics.path("lowCarbonScore").asInt() - 1));
+        int retreatCount = state.path("retreatFatigueCount").asInt(0) + 1;
+        state.put("retreatFatigueCount", retreatCount);
+        state.put("retreatFatiguePct", Math.min(RETREAT_FATIGUE_MAX_PCT, retreatCount * RETREAT_FATIGUE_STEP_PCT));
 
         int placedCount = state.withArray("placedCore").size();
         updatePhaseByProgress(state, placedCount, metrics.path("lowCarbonScore").asInt());
@@ -755,6 +770,9 @@ public class GameService {
         drawPolicyCards(state);
         state.put("policyUsedThisTurn", false);
         state.put("corePlacedThisTurn", false);
+        state.put("retreatFatigueCount", 0);
+        state.put("retreatFatiguePct", 0);
+        state.set("coreDeployCountThisTurn", objectMapper.createObjectNode());
         state.putNull("lastPolicyUsed");
     }
 
@@ -1191,7 +1209,7 @@ public class GameService {
         );
     }
 
-    private void applyCoreImmediateEffectNow(ObjectNode state, String cardId) {
+    private void applyCoreImmediateEffectNow(ObjectNode state, String cardId, int deployCountThisTurn) {
         GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
         DomainCounts counts = countPlacedDomains(state);
         ObjectNode resources = state.with("resources");
@@ -1200,22 +1218,48 @@ public class GameService {
             return;
         }
         CoreImmediateEffect effect = resolveCoreImmediateEffect(cardId, card);
-        resources.put("industry", resources.path("industry").asInt() + effect.industryDelta());
-        resources.put("tech", resources.path("tech").asInt() + effect.techDelta());
-        resources.put("population", resources.path("population").asInt() + effect.populationDelta());
-        metrics.put("green", metrics.path("green").asInt() + effect.greenDelta());
+        boolean sameTurnRedeploy = deployCountThisTurn > 1 || state.path("retreatFatigueCount").asInt(0) > 0;
+        int immediateEffectPct = sameTurnRedeploy
+            ? Math.max(0, 100 - SAME_TURN_REDEPLOY_IMMEDIATE_REDUCTION_PCT)
+            : 100;
+        int industryDelta = scaleByPct(effect.industryDelta(), immediateEffectPct);
+        int techDelta = scaleByPct(effect.techDelta(), immediateEffectPct);
+        int populationDelta = scaleByPct(effect.populationDelta(), immediateEffectPct);
+        int greenDelta = scaleByPct(effect.greenDelta(), immediateEffectPct);
+        int carbonDelta = scaleByPct(effect.carbonDelta(), immediateEffectPct);
+        int industryCarbonDelta = scaleByPct(effect.industryCarbonDelta(), immediateEffectPct);
+        int industryCarbonReductionPct = Math.max(0, scaleByPct(effect.industryCarbonReductionPct(), immediateEffectPct));
+        int satisfactionDelta = scaleByPct(effect.satisfactionDelta(), immediateEffectPct);
+        int quotaDelta = scaleByPct(effect.quotaDelta(), immediateEffectPct);
 
-        int carbon = Math.max(0, metrics.path("carbon").asInt() + effect.carbonDelta() + effect.industryCarbonDelta());
-        if (effect.industryCarbonReductionPct() > 0) {
-            carbon = Math.max(0, applyPercentage(carbon, -effect.industryCarbonReductionPct()));
+        resources.put("industry", resources.path("industry").asInt() + industryDelta);
+        resources.put("tech", resources.path("tech").asInt() + techDelta);
+        resources.put("population", resources.path("population").asInt() + populationDelta);
+        metrics.put("green", metrics.path("green").asInt() + greenDelta);
+
+        int carbon = Math.max(0, metrics.path("carbon").asInt() + carbonDelta + industryCarbonDelta);
+        if (industryCarbonReductionPct > 0) {
+            carbon = Math.max(0, applyPercentage(carbon, -industryCarbonReductionPct));
         }
         metrics.put("carbon", carbon);
         metrics.put(
             "satisfaction",
-            clamp(metrics.path("satisfaction").asInt() + effect.satisfactionDelta(), 0, balanceRule().satisfactionMax())
+            clamp(metrics.path("satisfaction").asInt() + satisfactionDelta, 0, balanceRule().satisfactionMax())
         );
         ObjectNode trade = state.with("carbonTrade");
-        trade.put("quota", clamp(trade.path("quota").asInt(0) + effect.quotaDelta(), 0, maxCarbonQuota()));
+        trade.put("quota", clamp(trade.path("quota").asInt(0) + quotaDelta, 0, maxCarbonQuota()));
+    }
+
+    private int resolveRetreatFatiguePct(ObjectNode state) {
+        int fatiguePct = state.path("retreatFatiguePct").asInt(0);
+        return clamp(fatiguePct, 0, RETREAT_FATIGUE_MAX_PCT);
+    }
+
+    private int incrementCoreDeployCountThisTurn(ObjectNode state, String cardId) {
+        ObjectNode deployCountMap = state.with("coreDeployCountThisTurn");
+        int nextCount = deployCountMap.path(cardId).asInt(0) + 1;
+        deployCountMap.put(cardId, nextCount);
+        return nextCount;
     }
 
     private void applyActiveNegativeEventEffects(ObjectNode state, ObjectNode settlementBonus) {
@@ -3500,6 +3544,13 @@ public class GameService {
             return baseValue;
         }
         return (int) Math.round(baseValue * (1.0D + percent / 100.0D));
+    }
+
+    private int scaleByPct(int value, int percent) {
+        if (percent == 100) {
+            return value;
+        }
+        return (int) Math.round(value * (percent / 100.0D));
     }
 
     private int calculateLevel(long score) {

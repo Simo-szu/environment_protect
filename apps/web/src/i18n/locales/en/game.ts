@@ -141,6 +141,7 @@ const game = {
             usePolicy: 'Use Policy Card',
             clearSelection: 'Clear Selection',
             selectToRemove: 'Click to select for removal',
+            retreatFatigue: 'Retreat fatigue: retreated {count} time(s) this turn, core deploy cost +{pct}%.',
             blocked: {
                 selectCore: 'Select a core card first.',
                 selectTile: 'Select an empty board tile first.',
