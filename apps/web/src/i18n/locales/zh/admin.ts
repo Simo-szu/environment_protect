@@ -281,6 +281,7 @@ const admin = {
             },
         },
         endings: {
+            displayOnlyHint: '此处仅用于结局展示内容（名称、图片、文案），不影响结局达成判定。',
             fields: {
                 endingId: '结局ID',
                 endingName: '结局名称',

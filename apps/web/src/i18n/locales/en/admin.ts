@@ -281,6 +281,7 @@ const admin = {
             },
         },
         endings: {
+            displayOnlyHint: 'This section edits display content only (name, image, copy). It does not affect ending trigger logic.',
             fields: {
                 endingId: 'Ending ID',
                 endingName: 'Ending Name',

@@ -75,6 +75,15 @@ function resolveActionDesc(item: GameActionLogItem, cardMap: Map<string, GameCar
   }
 }
 
+function resolveActionTurn(item: GameActionLogItem): number | null {
+  const data = (item.actionData || {}) as AnyRecord;
+  const turn = Number(data.actionTurn ?? data.turn ?? 0);
+  if (!Number.isFinite(turn) || turn <= 0) {
+    return null;
+  }
+  return turn;
+}
+
 
 export default function GameArchivePage() {
   const router = useRouter();
@@ -115,6 +124,7 @@ export default function GameArchivePage() {
           if (actionItems.length >= response.total || response.items.length < size) break;
           page += 1;
         }
+        actionItems.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         if (canceled) return;
         setCardMap(map);
         setActions(actionItems);
@@ -169,15 +179,19 @@ export default function GameArchivePage() {
 
   const actionsByTurn = useMemo(() => {
     const map = new Map<number, GameActionLogItem[]>();
-    if (snapshots.length === 0 || actions.length === 0) return map;
+    if (actions.length === 0) return map;
     const boundaries = snapshots.map((s) => ({ turn: s.turn, endedAt: s.endedAt ? new Date(s.endedAt).getTime() : 0 }));
     actions.forEach((action) => {
-      const actionTime = new Date(action.createdAt).getTime();
-      let assignedTurn = snapshots[0]?.turn ?? 1;
-      for (const b of boundaries) {
-        if (b.endedAt === 0 || actionTime <= b.endedAt) {
-          assignedTurn = b.turn;
-          break;
+      const turnFromActionData = resolveActionTurn(action);
+      let assignedTurn = turnFromActionData ?? 1;
+      if (turnFromActionData == null) {
+        const actionTime = new Date(action.createdAt).getTime();
+        assignedTurn = snapshots[0]?.turn ?? 1;
+        for (const b of boundaries) {
+          if (b.endedAt === 0 || actionTime <= b.endedAt) {
+            assignedTurn = b.turn;
+            break;
+          }
         }
       }
       if (!map.has(assignedTurn)) map.set(assignedTurn, []);
@@ -190,7 +204,7 @@ export default function GameArchivePage() {
   const selectedEvents = eventHistory.filter((item) => Number(item?.turn || 0) === selectedTurn);
   const selectedCombos = (comboHistory.find((item) => Number(item?.turn || 0) === selectedTurn)?.combos || []) as string[];
   const selectedPolicies = policyHistory.filter((item) => Number(item?.turn || 0) === selectedTurn);
-  const selectedTurnActions = (actionsByTurn.get(selectedTurn) || []).filter((a) => a.actionType !== 2);
+  const selectedTurnActions = actionsByTurn.get(selectedTurn) || [];
 
   function handleBack() { router.push(`/${locale}/game/play`); }
 
@@ -301,9 +315,12 @@ export default function GameArchivePage() {
                 </h2>
                 {selectedTurnActions.length === 0
                   ? <div className="text-sm text-slate-500">{locale === 'zh' ? '本回合暂无操作记录。' : 'No action logs for this turn.'}</div>
-                  : <div className="space-y-2">{selectedTurnActions.map((item) => (
+                  : <div className="space-y-2">{selectedTurnActions.map((item, index) => (
                       <div key={item.id} className="rounded border border-slate-200 p-3 text-sm flex items-center justify-between gap-3">
-                        <span className="text-slate-700">{resolveActionDesc(item, cardMap, locale)}</span>
+                        <span className="text-slate-700">
+                          {locale === 'zh' ? `步骤 ${index + 1}：` : `Step ${index + 1}: `}
+                          {resolveActionDesc(item, cardMap, locale)}
+                        </span>
                         <span className="text-[11px] text-slate-400 shrink-0">{formatDateTime(item.createdAt)}</span>
                       </div>
                     ))}</div>

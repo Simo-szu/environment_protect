@@ -503,6 +503,120 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void endTurnShouldApplyPolicy064EcologyCarbonSinkPctFromContinuousEffectJson() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+        state.withArray("placedCore").add("card059").add("card021");
+
+        ObjectNode activePolicy = objectMapper.createObjectNode();
+        activePolicy.put("policyId", "card064");
+        activePolicy.put("group", "ecology");
+        activePolicy.put("remainingTurns", 2);
+        state.withArray("activePolicies").add(activePolicy);
+
+        ObjectNode policyContinuousEffect = objectMapper.createObjectNode();
+        policyContinuousEffect.put("core_special_ecology_carbon_sink_pct", 15);
+        GameCardMetaDTO policy064 = GameCardMetaDTO.builder()
+            .cardId("card064")
+            .cardNo(64)
+            .cardType("policy")
+            .domain("policy")
+            .phaseBucket("policy")
+            .policyContinuousEffect(policyContinuousEffect)
+            .build();
+
+        Map<String, GameCardMetaDTO> cards = Map.of(
+            "card059", coreCard("card059", "ecology"),
+            "card021", coreCard("card021", "ecology"),
+            "card064", policy064
+        );
+        cards.forEach((id, card) -> when(cardCatalogService.getRequiredCard(id)).thenReturn(card));
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(46, next.with("metrics").path("carbon").asInt());
+    }
+
+    @Test
+    void endTurnShouldApplyPolicy065SciencePctFromContinuousEffectJson() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+
+        ObjectNode activePolicy = objectMapper.createObjectNode();
+        activePolicy.put("policyId", "card065");
+        activePolicy.put("group", "science_support");
+        activePolicy.put("remainingTurns", 2);
+        state.withArray("activePolicies").add(activePolicy);
+
+        ObjectNode policyContinuousEffect = objectMapper.createObjectNode();
+        policyContinuousEffect.put("core_continuous_science_pct", 12);
+        GameCardMetaDTO policy065 = GameCardMetaDTO.builder()
+            .cardId("card065")
+            .cardNo(65)
+            .cardType("policy")
+            .domain("policy")
+            .phaseBucket("policy")
+            .policyContinuousEffect(policyContinuousEffect)
+            .build();
+
+        when(cardCatalogService.getRequiredCard("card065")).thenReturn(policy065);
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(12, next.with("cardEffectSnapshot").path("techPct").asInt());
+    }
+
+    @Test
+    void endTurnShouldApplyPolicy066CrossDomainCarbonDeltaFromContinuousEffectJson() {
+        ObjectNode state = baseState();
+        state.put("eventCooldown", 2);
+
+        ObjectNode activePolicy = objectMapper.createObjectNode();
+        activePolicy.put("policyId", "card066");
+        activePolicy.put("group", "carbon_control");
+        activePolicy.put("remainingTurns", 2);
+        state.withArray("activePolicies").add(activePolicy);
+
+        ObjectNode policyContinuousEffect = objectMapper.createObjectNode();
+        policyContinuousEffect.put("core_continuous_cross_domain_carbon_delta", -8);
+        GameCardMetaDTO policy066 = GameCardMetaDTO.builder()
+            .cardId("card066")
+            .cardNo(66)
+            .cardType("policy")
+            .domain("policy")
+            .phaseBucket("policy")
+            .policyContinuousEffect(policyContinuousEffect)
+            .build();
+
+        when(cardCatalogService.getRequiredCard("card066")).thenReturn(policy066);
+        GameSessionEntity session = activeSession(state);
+        when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
+
+        GameActionRequest request = new GameActionRequest();
+        request.setSessionId(sessionId);
+        request.setActionType(2);
+
+        GameActionResponse response = gameService.performAction(request);
+        ObjectNode next = (ObjectNode) response.getNewPondState();
+
+        assertEquals(72, next.with("metrics").path("carbon").asInt());
+    }
+
+    @Test
     void placeCoreCardShouldApplyCard056EcologyCostReductionWithoutFloodHistory() {
         ObjectNode state = baseState();
         state.withArray("placedCore").add("card056");

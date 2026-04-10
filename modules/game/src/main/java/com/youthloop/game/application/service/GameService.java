@@ -239,6 +239,7 @@ public class GameService {
             && request.getActionType() != ACTION_DISCARD_CARD) {
             throw new BizException(ErrorCode.OPERATION_NOT_ALLOWED, "Discard required before other actions");
         }
+        int actionTurn = Math.max(1, state.path("turn").asInt(1));
         int pointsEarned;
         String summary;
 
@@ -287,7 +288,7 @@ public class GameService {
             action.setSessionId(session.getId());
             action.setUserId(userId);
             action.setActionType(request.getActionType());
-            action.setActionData(request.getActionData());
+            action.setActionData(buildPersistedActionData(request.getActionData(), actionTurn));
             action.setPointsEarned(pointsEarned);
             action.setCreatedAt(OffsetDateTime.now());
             gameActionMapper.insert(action);
@@ -1128,6 +1129,11 @@ public class GameService {
                 addPercentBonus(settlementBonus, "populationPct", effect.populationPct());
                 addPercentBonus(settlementBonus, "industryPct", effect.industryPct());
                 addPercentBonus(settlementBonus, "industryCarbonReductionPct", effect.industryCarbonReductionPct());
+                addPercentBonus(settlementBonus, "tradePricePct", effect.tradePricePct());
+                addPercentBonus(settlementBonus, "comboPct", effect.comboPct());
+                addPercentBonus(settlementBonus, "techPct", effect.sciencePct());
+                addBonus(settlementBonus, "carbon", effect.crossDomainCarbonDelta());
+                addPercentBonus(settlementBonus, "comboPct", effect.crossDomainComboPct());
             }
 
             int remain = policy.path("remainingTurns").asInt();
@@ -1162,6 +1168,7 @@ public class GameService {
         if (card == null) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Unknown policy id: " + policyId);
         }
+        JsonNode effectNode = card.getPolicyContinuousEffect();
         return new PolicyContinuousEffect(
             card.getPolicyContinuousIndustryDelta() == null ? 0 : card.getPolicyContinuousIndustryDelta(),
             card.getPolicyContinuousTechDelta() == null ? 0 : card.getPolicyContinuousTechDelta(),
@@ -1174,7 +1181,13 @@ public class GameService {
             card.getPolicyContinuousTechPct() == null ? 0 : card.getPolicyContinuousTechPct(),
             card.getPolicyContinuousPopulationPct() == null ? 0 : card.getPolicyContinuousPopulationPct(),
             card.getPolicyContinuousIndustryPct() == null ? 0 : card.getPolicyContinuousIndustryPct(),
-            card.getPolicyContinuousIndustryCarbonReductionPct() == null ? 0 : card.getPolicyContinuousIndustryCarbonReductionPct()
+            card.getPolicyContinuousIndustryCarbonReductionPct() == null ? 0 : card.getPolicyContinuousIndustryCarbonReductionPct(),
+            readFirstInt(effectNode, "policy_continuous_trade_price_pct", "core_continuous_trade_price_pct", "tradePricePct"),
+            readFirstInt(effectNode, "policy_continuous_combo_pct", "core_continuous_combo_pct", "comboPct"),
+            readFirstInt(effectNode, "policy_continuous_science_pct", "core_continuous_science_pct", "sciencePct"),
+            readFirstInt(effectNode, "policy_continuous_cross_domain_carbon_delta", "core_continuous_cross_domain_carbon_delta", "crossDomainCarbonDelta"),
+            readFirstInt(effectNode, "policy_continuous_cross_domain_combo_pct", "core_continuous_cross_domain_combo_pct", "crossDomainComboPct"),
+            readFirstInt(effectNode, "policy_special_ecology_carbon_sink_pct", "core_special_ecology_carbon_sink_pct", "ecologyCarbonSinkPct")
         );
     }
 
@@ -3153,6 +3166,7 @@ public class GameService {
     private void applyCoreSpecialEffects(ObjectNode state, DomainCounts counts, ObjectNode settlementBonus) {
         ObjectNode resources = state.with("resources");
         ObjectNode metrics = state.with("metrics");
+        int policyEcologySinkPctBonus = resolveActivePolicyEcologyCarbonSinkPct(state);
         for (JsonNode node : state.withArray("placedCore")) {
             String cardId = node.asText();
             GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
@@ -3163,12 +3177,26 @@ public class GameService {
             addPercentBonus(settlementBonus, "newEnergyIndustryPct", effect.newEnergyIndustryPct());
             if (effect.ecologyCarbonSinkPerTenGreen() > 0) {
                 int dynamicCarbonReduction = (metrics.path("green").asInt(0) / 10) * effect.ecologyCarbonSinkPerTenGreen();
-                if (effect.ecologyCarbonSinkPct() > 0) {
-                    dynamicCarbonReduction = applyPercentage(dynamicCarbonReduction, effect.ecologyCarbonSinkPct());
+                int ecologySinkPct = effect.ecologyCarbonSinkPct() + policyEcologySinkPctBonus;
+                if (ecologySinkPct > 0) {
+                    dynamicCarbonReduction = applyPercentage(dynamicCarbonReduction, ecologySinkPct);
                 }
                 addBonus(settlementBonus, "carbon", -dynamicCarbonReduction);
             }
         }
+    }
+
+    private int resolveActivePolicyEcologyCarbonSinkPct(ObjectNode state) {
+        int bonusPct = 0;
+        for (JsonNode node : state.withArray("activePolicies")) {
+            String policyId = node.path("policyId").asText();
+            if (policyId.isBlank()) {
+                continue;
+            }
+            PolicyContinuousEffect effect = resolvePolicyContinuousEffect(policyId);
+            bonusPct += effect.ecologyCarbonSinkPct();
+        }
+        return bonusPct;
     }
 
     private int resolveCorePlacementCostReductionPct(ObjectNode state, String targetDomain) {
@@ -3287,7 +3315,32 @@ public class GameService {
         if (requiredTag == null || requiredTag.isBlank()) {
             return 0;
         }
+        if ("ecology_card".equals(requiredTag)) {
+            return countPlacedByDomain(state, "ecology");
+        }
+        if ("shenzhen_featured_ecology".equals(requiredTag)) {
+            int shenzhenEcologyCount = countPlacedTaggedCardsByTagAndDomain(state, "ecology", "shenzhen_ecology");
+            if (shenzhenEcologyCount > 0) {
+                return shenzhenEcologyCount;
+            }
+            return countPlacedTaggedCardsByTagAndDomain(state, "ecology", TAG_SHENZHEN);
+        }
+        if ("flood_processed".equals(requiredTag)) {
+            return 1;
+        }
         return countPlacedByTag(state, requiredTag);
+    }
+
+    private int countPlacedByDomain(ObjectNode state, String domain) {
+        int count = 0;
+        for (JsonNode node : state.withArray("placedCore")) {
+            String cardId = node.asText();
+            GameCardMetaDTO card = cardCatalogService.getRequiredCard(cardId);
+            if (domain.equals(card.getDomain())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private void refreshDomainProgress(ObjectNode state, DomainCounts counts) {
@@ -3400,6 +3453,22 @@ public class GameService {
         return value == null ? 0 : value;
     }
 
+    private int readFirstInt(JsonNode node, String... keys) {
+        if (node == null || keys == null) {
+            return 0;
+        }
+        for (String key : keys) {
+            if (key == null || key.isBlank()) {
+                continue;
+            }
+            JsonNode valueNode = node.path(key);
+            if (!valueNode.isMissingNode() && !valueNode.isNull() && valueNode.canConvertToInt()) {
+                return valueNode.asInt(0);
+            }
+        }
+        return 0;
+    }
+
     private boolean matchesComboTriggerRule(
         GameRuleConfigService.ComboRuleConfig rule,
         String lastPolicyUsed,
@@ -3462,7 +3531,13 @@ public class GameService {
         int techPct,
         int populationPct,
         int industryPct,
-        int industryCarbonReductionPct
+        int industryCarbonReductionPct,
+        int tradePricePct,
+        int comboPct,
+        int sciencePct,
+        int crossDomainCarbonDelta,
+        int crossDomainComboPct,
+        int ecologyCarbonSinkPct
     ) {
     }
 
@@ -3696,6 +3771,23 @@ public class GameService {
             .pointsEarned(entity.getPointsEarned())
             .createdAt(entity.getCreatedAt())
             .build();
+    }
+
+    private JsonNode buildPersistedActionData(JsonNode requestActionData, int actionTurn) {
+        if (requestActionData == null) {
+            ObjectNode enriched = objectMapper.createObjectNode();
+            enriched.put("actionTurn", actionTurn);
+            return enriched;
+        }
+        if (requestActionData.isObject()) {
+            ObjectNode enriched = ((ObjectNode) requestActionData).deepCopy();
+            enriched.put("actionTurn", actionTurn);
+            return enriched;
+        }
+        ObjectNode wrapped = objectMapper.createObjectNode();
+        wrapped.set("rawActionData", requestActionData.deepCopy());
+        wrapped.put("actionTurn", actionTurn);
+        return wrapped;
     }
 
     private ObjectNode sanitizeStateForClient(JsonNode source) {

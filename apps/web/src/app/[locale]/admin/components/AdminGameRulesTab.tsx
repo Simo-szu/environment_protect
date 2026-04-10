@@ -472,7 +472,7 @@ function BalanceRuleSection({
 
             <GroupPanel title={g('lowCarbonScore')}>
                 <FieldGrid>
-                    {(['lowCarbonMinForPositiveEnding', 'lowCarbonDomainThreshold', 'lowCarbonDomainBonus', 'lowCarbonPolicyUnlockScore', 'lowCarbonPolicyUnlockAllCount', 'lowCarbonPolicyUnlockAllBonus', 'lowCarbonEventResolvedScore', 'lowCarbonEventTriggeredPenalty', 'lowCarbonOverLimitCarbonThreshold', 'lowCarbonOverLimitStreakThreshold', 'lowCarbonOverLimitStreakPenalty', 'lowCarbonTradeProfitDivisor', 'lowCarbonTradeProfitBonus', 'lowCarbonQuotaExhaustedPenalty', 'lowCarbonInvalidOperationPenalty'] as const).map((k) => (
+                    {(['lowCarbonDomainThreshold', 'lowCarbonDomainBonus', 'lowCarbonPolicyUnlockScore', 'lowCarbonPolicyUnlockAllCount', 'lowCarbonPolicyUnlockAllBonus', 'lowCarbonEventResolvedScore', 'lowCarbonEventTriggeredPenalty', 'lowCarbonOverLimitCarbonThreshold', 'lowCarbonOverLimitStreakThreshold', 'lowCarbonOverLimitStreakPenalty', 'lowCarbonTradeProfitDivisor', 'lowCarbonTradeProfitBonus', 'lowCarbonQuotaExhaustedPenalty', 'lowCarbonInvalidOperationPenalty'] as const).map((k) => (
                         <div key={k}>
                             <FieldLabel label={f(k)} />
                             <NumberInput value={b[k]} step={k === 'lowCarbonTradeProfitDivisor' ? 0.01 : 1} onChange={(v) => set({ [k]: v })} />
@@ -503,41 +503,6 @@ function BalanceRuleSection({
                 </FieldGrid>
             </GroupPanel>
 
-            <GroupPanel title={g('endingConditions')}>
-                <FieldGrid>
-                    <div>
-                        <FieldLabel label={f('endingEventResolveRateRequired')} />
-                        <NumberInput value={b.endingEventResolveRateRequired} step={0.01} onChange={(v) => set({ endingEventResolveRateRequired: v ?? undefined })} />
-                    </div>
-                </FieldGrid>
-                <SubSection label="Innovation" />
-                <FieldGrid>
-                    {(['endingInnovationMinScience', 'endingInnovationMinTech', 'endingInnovationMinLowCarbon', 'endingInnovationMaxCarbon', 'endingInnovationMinProfit'] as const).map((k) => (
-                        <div key={k}>
-                            <FieldLabel label={f(k)} />
-                            <NumberInput value={b[k]} step={k === 'endingInnovationMinProfit' ? 0.01 : 1} onChange={(v) => set({ [k]: v })} />
-                        </div>
-                    ))}
-                </FieldGrid>
-                <SubSection label="Ecology" />
-                <FieldGrid>
-                    {(['endingEcologyMinEcology', 'endingEcologyMinGreen', 'endingEcologyMinLowCarbon', 'endingEcologyMaxCarbon', 'endingEcologyMinQuota'] as const).map((k) => (
-                        <div key={k}>
-                            <FieldLabel label={f(k)} />
-                            <NumberInput value={b[k]} onChange={(v) => set({ [k]: v })} />
-                        </div>
-                    ))}
-                </FieldGrid>
-                <SubSection label="Doughnut City" />
-                <FieldGrid>
-                    {(['endingDoughnutMinSociety', 'endingDoughnutMinSatisfaction', 'endingDoughnutMinPopulation', 'endingDoughnutMinDomain', 'endingDoughnutMinLowCarbon', 'endingDoughnutMaxCarbon', 'endingDoughnutMinPolicyUsage6768'] as const).map((k) => (
-                        <div key={k}>
-                            <FieldLabel label={f(k)} />
-                            <NumberInput value={b[k]} onChange={(v) => set({ [k]: v })} />
-                        </div>
-                    ))}
-                </FieldGrid>
-            </GroupPanel>
         </div>
     );
 }
@@ -962,6 +927,9 @@ function EndingContentsSection({
 
     return (
         <div className="space-y-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
+                {t('gameRules.endings.displayOnlyHint', 'Ending content here is display-only (name, image, reasons). Ending trigger conditions are code-owned and not configurable in admin.')}
+            </div>
             {data.map((ending, i) => (
                 <CardPanel
                     key={i}

@@ -63,6 +63,7 @@ public class GameRuleAdminService {
             if (balanceRule.getConfigId() == null) {
                 balanceRule.setConfigId(1);
             }
+            preserveCodeOwnedEndingConditionFields(balanceRule);
             gameRuleConfigMapper.upsertBalanceRuleConfig(balanceRule);
         }
 
@@ -130,5 +131,35 @@ public class GameRuleAdminService {
         if (value == null || value.isBlank()) {
             throw new BizException(ErrorCode.INVALID_PARAMETER, "Missing required field: " + field);
         }
+    }
+
+    /**
+     * Ending trigger conditions are code-owned in GameService.
+     * Keep admin updates from mutating these fields.
+     */
+    private void preserveCodeOwnedEndingConditionFields(GameBalanceRuleConfigEntity incoming) {
+        GameBalanceRuleConfigEntity current = gameRuleConfigMapper.selectEnabledBalanceRuleConfig();
+        if (current == null) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "Missing enabled balance rule config");
+        }
+        incoming.setLowCarbonMinForPositiveEnding(current.getLowCarbonMinForPositiveEnding());
+        incoming.setEndingEventResolveRateRequired(current.getEndingEventResolveRateRequired());
+        incoming.setEndingInnovationMinScience(current.getEndingInnovationMinScience());
+        incoming.setEndingInnovationMinTech(current.getEndingInnovationMinTech());
+        incoming.setEndingInnovationMinLowCarbon(current.getEndingInnovationMinLowCarbon());
+        incoming.setEndingInnovationMaxCarbon(current.getEndingInnovationMaxCarbon());
+        incoming.setEndingInnovationMinProfit(current.getEndingInnovationMinProfit());
+        incoming.setEndingEcologyMinEcology(current.getEndingEcologyMinEcology());
+        incoming.setEndingEcologyMinGreen(current.getEndingEcologyMinGreen());
+        incoming.setEndingEcologyMinLowCarbon(current.getEndingEcologyMinLowCarbon());
+        incoming.setEndingEcologyMaxCarbon(current.getEndingEcologyMaxCarbon());
+        incoming.setEndingEcologyMinQuota(current.getEndingEcologyMinQuota());
+        incoming.setEndingDoughnutMinSociety(current.getEndingDoughnutMinSociety());
+        incoming.setEndingDoughnutMinSatisfaction(current.getEndingDoughnutMinSatisfaction());
+        incoming.setEndingDoughnutMinPopulation(current.getEndingDoughnutMinPopulation());
+        incoming.setEndingDoughnutMinDomain(current.getEndingDoughnutMinDomain());
+        incoming.setEndingDoughnutMinLowCarbon(current.getEndingDoughnutMinLowCarbon());
+        incoming.setEndingDoughnutMaxCarbon(current.getEndingDoughnutMaxCarbon());
+        incoming.setEndingDoughnutMinPolicyUsage6768(current.getEndingDoughnutMinPolicyUsage6768());
     }
 }
