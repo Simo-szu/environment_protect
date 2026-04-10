@@ -79,39 +79,39 @@ function resolveTransitionCopy(
   switch (kind) {
     case 'carbon_disaster':
       return {
-        title: t('play.settlement.transition.carbon_disaster.title', 'Carbon Disaster'),
-        subtitle: t('play.settlement.transition.carbon_disaster.subtitle', 'Emergency pressure is rising')
+        title: t('play.settlement.transition.carbon_disaster.title', '碳排危机'),
+        subtitle: t('play.settlement.transition.carbon_disaster.subtitle', '城市应急压力正在上升')
       };
     case 'industry_growth':
       return {
-        title: t('play.settlement.transition.industry_growth.title', 'Industry Growth'),
-        subtitle: t('play.settlement.transition.industry_growth.subtitle', 'Infrastructure momentum accelerated')
+        title: t('play.settlement.transition.industry_growth.title', '产业增长'),
+        subtitle: t('play.settlement.transition.industry_growth.subtitle', '基础设施动能明显提升')
       };
     case 'green_growth':
       return {
-        title: t('play.settlement.transition.green_growth.title', 'Green Building Rise'),
-        subtitle: t('play.settlement.transition.green_growth.subtitle', 'Eco assets expanded this turn')
+        title: t('play.settlement.transition.green_growth.title', '绿建提升'),
+        subtitle: t('play.settlement.transition.green_growth.subtitle', '本回合生态资产持续扩张')
       };
     case 'tech_burst':
       return {
-        title: t('play.settlement.transition.tech_burst.title', 'Tech Burst'),
-        subtitle: t('play.settlement.transition.tech_burst.subtitle', 'Innovation output spiked')
+        title: t('play.settlement.transition.tech_burst.title', '科创爆发'),
+        subtitle: t('play.settlement.transition.tech_burst.subtitle', '创新产出出现跃升')
       };
     case 'satisfaction_growth':
       return {
-        title: t('play.settlement.transition.satisfaction_growth.title', 'Citizen Confidence'),
-        subtitle: t('play.settlement.transition.satisfaction_growth.subtitle', 'Public support improved')
+        title: t('play.settlement.transition.satisfaction_growth.title', '民意回升'),
+        subtitle: t('play.settlement.transition.satisfaction_growth.subtitle', '公众支持度继续改善')
       };
     case 'carbon_optimized':
       return {
-        title: t('play.settlement.transition.carbon_optimized.title', 'Carbon Optimization'),
-        subtitle: t('play.settlement.transition.carbon_optimized.subtitle', 'Emission reduction was effective')
+        title: t('play.settlement.transition.carbon_optimized.title', '碳排优化'),
+        subtitle: t('play.settlement.transition.carbon_optimized.subtitle', '减排措施取得明显效果')
       };
     case 'balanced_growth':
     default:
       return {
-        title: t('play.settlement.transition.balanced_growth.title', 'Balanced Development'),
-        subtitle: t('play.settlement.transition.balanced_growth.subtitle', 'All systems moved steadily')
+        title: t('play.settlement.transition.balanced_growth.title', '均衡发展'),
+        subtitle: t('play.settlement.transition.balanced_growth.subtitle', '各项指标保持稳步推进')
       };
   }
 }
@@ -430,7 +430,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
   const baseCards: DeltaCard[] = [
     {
       key: 'industry',
-      label: t('play.resources.industry', 'Industry'),
+      label: t('play.resources.industry', '产业值'),
       after: readAfter(latestSettlement, 'resources', 'industry') ?? Number(resources.industry ?? 0),
       delta: readDelta(latestSettlement, 'resources', 'industry'),
       trend: 'flat',
@@ -441,7 +441,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
     },
     {
       key: 'tech',
-      label: t('play.resources.tech', 'Tech'),
+      label: t('play.resources.tech', '科创点'),
       after: readAfter(latestSettlement, 'resources', 'tech') ?? Number(resources.tech ?? 0),
       delta: readDelta(latestSettlement, 'resources', 'tech'),
       trend: 'flat',
@@ -463,7 +463,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
     },
     {
       key: 'green',
-      label: t('play.metrics.green', 'Green'),
+      label: t('play.metrics.green', '绿建度'),
       after: readAfter(latestSettlement, 'metrics', 'green') ?? Number(metrics.green ?? 0),
       delta: readDelta(latestSettlement, 'metrics', 'green'),
       trend: 'flat',
@@ -474,7 +474,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
     },
     {
       key: 'carbon',
-      label: t('play.metrics.carbon', 'Carbon'),
+      label: t('play.metrics.carbon', '碳排放'),
       after: readAfter(latestSettlement, 'metrics', 'carbon') ?? Number(metrics.carbon ?? 0),
       delta: readDelta(latestSettlement, 'metrics', 'carbon'),
       trend: 'flat',
@@ -485,7 +485,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
     },
     {
       key: 'satisfaction',
-      label: t('play.metrics.satisfaction', 'Satisfaction'),
+      label: t('play.metrics.satisfaction', '满意度'),
       after: readAfter(latestSettlement, 'metrics', 'satisfaction') ?? Number(metrics.satisfaction ?? 0),
       delta: readDelta(latestSettlement, 'metrics', 'satisfaction'),
       trend: 'flat',
@@ -538,10 +538,10 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-500">
-              {t('play.settlement.badge', 'Turn Settlement')}
+              {t('play.settlement.badge', '回合结算')}
             </div>
             <h2 className="mt-1 text-2xl font-black text-slate-900 sm:text-3xl">
-              {t('play.settlement.heading', 'Turn {turn} Settlement Report', { turn: settlementTurn })}
+              {t('play.settlement.heading', '第 {turn} 回合结算报告', { turn: settlementTurn })}
             </h2>
             <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700">
               {summaryText}

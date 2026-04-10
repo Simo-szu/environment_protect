@@ -46,13 +46,9 @@ export default function GamePlayPage() {
           const remainder = controller.turn % interval;
           return remainder === 0 ? interval : interval - remainder;
         })();
-      const lockedLabel = controller.locale === 'zh'
-        ? roundsUntilTradeOpen > 0
-          ? `碳交易 ${roundsUntilTradeOpen} 回合后开放`
-          : '本回合不可交易'
-        : roundsUntilTradeOpen > 0
-          ? `Trade opens in ${roundsUntilTradeOpen} turns`
-          : 'Trade unavailable this turn';
+      const lockedLabel = roundsUntilTradeOpen > 0
+        ? controller.t('play.coreHand.lockedTradeLater', '碳交易窗口尚未开启，预计 {turns} 回合后开放。', { turns: roundsUntilTradeOpen })
+        : controller.t('play.trade.windowClosed', '本回合碳交易不可用');
       items.push({
         key: 'trade',
         label: lockedLabel,

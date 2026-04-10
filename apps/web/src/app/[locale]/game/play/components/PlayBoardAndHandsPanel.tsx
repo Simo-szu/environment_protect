@@ -224,10 +224,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     const leftCols = Array.from({ length: halfCols }, (_, index) => index);
     const rightCols = Array.from({ length: boardCols - halfCols }, (_, index) => index + halfCols);
     return [
-      { id: 'industry', title: t('play.domains.industry', 'Industrial'), rows: topRows, cols: leftCols },
-      { id: 'ecology', title: t('play.domains.ecology', 'Ecological System'), rows: topRows, cols: rightCols },
-      { id: 'science', title: t('play.domains.science', 'Science'), rows: bottomRows, cols: leftCols },
-      { id: 'society', title: locale === 'zh' ? '人与社会' : 'Society', rows: bottomRows, cols: rightCols }
+      { id: 'industry', title: t('play.domains.industry', '工业'), rows: topRows, cols: leftCols },
+      { id: 'ecology', title: t('play.domains.ecology', '生态'), rows: topRows, cols: rightCols },
+      { id: 'science', title: t('play.domains.science', '科学'), rows: bottomRows, cols: leftCols },
+      { id: 'society', title: t('play.domains.society', '社会'), rows: bottomRows, cols: rightCols }
     ];
   }, [boardRows, boardCols, locale, t]);
 
@@ -272,7 +272,42 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   }, [handStackItems]);
 
   function resolveCardDomainLabel(card: GameCardMeta): string {
-    return t(`play.domains.${card.domain}`, card.domain);
+    const normalizeDomain = (domain: string): 'industry' | 'ecology' | 'science' | 'society' | 'policy' | null => {
+      const raw = String(domain ?? '').trim().toLowerCase();
+      if (!raw) {
+        return null;
+      }
+      if (raw === 'industry' || raw === 'industrial' || raw === '工业') {
+        return 'industry';
+      }
+      if (raw === 'ecology' || raw === 'ecological' || raw === '生态') {
+        return 'ecology';
+      }
+      if (raw === 'science' || raw === 'scientific' || raw === '科技' || raw === '科学') {
+        return 'science';
+      }
+      if (raw === 'society' || raw === 'social' || raw === '人文' || raw === '社会' || raw === '人与社会') {
+        return 'society';
+      }
+      if (raw === 'policy') {
+        return 'policy';
+      }
+      return null;
+    };
+
+    const resolvedDomain = normalizeDomain(card.domain);
+    if (!resolvedDomain) {
+      return t('play.domains.policy', '政策');
+    }
+
+    const domainZhFallback: Record<string, string> = {
+      industry: t('play.domains.industry', '工业'),
+      ecology: t('play.domains.ecology', '生态'),
+      science: t('play.domains.science', '科学'),
+      society: t('play.domains.society', '社会'),
+      policy: t('play.domains.policy', '政策')
+    };
+    return t(`play.domains.${resolvedDomain}`, domainZhFallback[resolvedDomain] || resolvedDomain);
   }
 
   function resolveCardIntro(card: GameCardMeta): string {
@@ -324,28 +359,28 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     if (card.cardType === 'policy') {
       return t(
         'play.cardDetails.introPolicy',
-        'This is a policy card. It takes effect immediately when used and may provide ongoing bonuses in later turns.'
+        '这是一张政策卡，使用后会立即生效，并可能在后续回合持续提供加成。'
       );
     }
     return t(
       'play.cardDetails.introCore',
-      'This is a core card in the {domain} domain. Once deployed to the board, it continuously affects city metrics.',
+      '这是一张{domain}领域的核心卡，部署到棋盘后会持续影响城市指标。',
       { domain: resolveCardDomainLabel(card) }
     );
   }
 
   function resolveCardEffects(card: GameCardMeta): string[] {
     const metricLabels = {
-      industry: t('play.preview.industry', 'Industry'),
-      tech: t('play.preview.tech', 'Tech'),
-      population: t('play.preview.population', 'Population'),
-      green: t('play.preview.green', 'Green'),
-      carbon: t('play.preview.carbon', 'Carbon'),
-      satisfaction: t('play.preview.satisfaction', 'Satisfaction'),
-      quota: t('play.cardDetails.quota', 'Quota')
+      industry: t('play.preview.industry', '产业'),
+      tech: t('play.preview.tech', '科创'),
+      population: t('play.preview.population', '人口'),
+      green: t('play.preview.green', '绿建'),
+      carbon: t('play.preview.carbon', '碳排'),
+      satisfaction: t('play.preview.satisfaction', '满意度'),
+      quota: t('play.cardDetails.quota', '配额')
     };
-    const immediateLabel = t('play.cardDetails.immediate', 'Immediate');
-    const continuousLabel = t('play.cardDetails.continuous', 'Continuous');
+    const immediateLabel = t('play.cardDetails.immediate', '即时');
+    const continuousLabel = t('play.cardDetails.continuous', '持续');
     const effects: string[] = [];
 
     function pushEffect(prefix: string, label: string, rawValue: number | undefined) {
@@ -426,14 +461,14 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/88 via-slate-900/30 to-slate-950/10" />
         <div className="relative z-10 flex h-full flex-col justify-between p-2">
           <div className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
-            {locale === 'zh' ? card.domain : card.domain}
+            {resolveCardDomainLabel(card)}
           </div>
           <div className="space-y-1">
             <div className={`line-clamp-2 text-[11px] font-black leading-tight text-white ${emphasized ? 'text-emerald-100' : ''}`}>
               {locale === 'zh' ? card.chineseName : card.englishName}
             </div>
             <div className="line-clamp-2 text-[9px] font-semibold leading-4 text-white/80">
-              {effectSummary || t('play.common.none', 'None')}
+              {effectSummary || t('play.common.none', '无')}
             </div>
           </div>
         </div>
@@ -450,7 +485,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         >
           <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
-              {t('play.board.title', 'Planning Grid')}
+              {t('play.board.title', '棋盘')}
             </h2>
             <div className="rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
               {adjacencyRequired ? 'ADJ' : 'FREE'}
@@ -468,7 +503,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     {zone.title}
                   </div>
                   <div className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
-                    {zone.rows.length * zone.cols.length} slots
+                    {zone.rows.length * zone.cols.length} 格位
                   </div>
                 </div>
 
@@ -561,7 +596,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                                 <div className={`rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${
                                   placeableTile ? 'bg-white/90 text-emerald-700' : 'bg-white/80 text-slate-400'
                                 }`}>
-                                  {placeableTile ? t('play.afford.canPlace', 'Can Place') : t('play.common.none', 'None')}
+                                  {placeableTile ? t('play.afford.canPlace', '可放置') : t('play.common.none', '无')}
                                 </div>
                               )}
                               {(placeableTile || adjacencyScore > 0) && (
@@ -587,7 +622,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
         >
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/30 dark:text-emerald-200/40">
-              {t('play.coreHand.title', 'Cards In Hand')}
+              {t('play.coreHand.title', '核心手牌')}
             </h2>
             <div className="rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
               {handCoreCards.length + handPolicyCards.length}
@@ -597,7 +632,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           {pendingDiscardActive && (
             <div className="mb-3 rounded-2xl border-2 border-rose-300 bg-rose-100 px-4 py-3 shadow-md">
               <div className="text-[12px] font-black uppercase tracking-[0.14em] text-rose-800">
-                {t('play.discard.title', 'Discarding Required')}
+                {t('play.discard.title', '需要弃牌')}
               </div>
               <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
                 {t('play.discard.overLimitGuide', '手牌太多？每回合最多只能保留6张牌哦～用不上的卡牌直接点击弃牌，就能腾出空位啦！')}
@@ -606,7 +641,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 {t('play.discard.clickToDiscardStrong', '点击下方任意卡牌即弃牌')}
               </div>
               <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
-                {t('play.discard.requiredHint', 'Discard {count} card(s) to keep {limit} in hand.', {
+                {t('play.discard.requiredHint', '弃置 {count} 张牌后手牌将保留 {limit} 张。', {
                   count: pendingDiscardRequiredTotal,
                   limit: pendingDiscardTargetHandSize
                 })}
@@ -615,7 +650,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           )}
           {!pendingDiscardActive && (
             <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-600">
-              {t('play.cardDetails.openHint', 'Double-click a card to open details')}
+              {t('play.cardDetails.openHint', '双击任意手牌可查看完整详情')}
             </div>
           )}
 
@@ -724,7 +759,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                               )}
                               <div className="absolute inset-x-0 top-0 p-4 text-white z-20">
                                 <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full w-max">
-                                  {card.domain}
+                                  {resolveCardDomainLabel(card)}
                                 </div>
                               </div>
                               <div className="absolute inset-x-0 bottom-0 z-20 p-4 text-left">
@@ -732,21 +767,21 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                                   {locale === 'zh' ? card.chineseName : card.englishName}
                                 </div>
                                 <div className="mt-2 line-clamp-2 text-[10px] font-semibold leading-4 text-white/80">
-                                  {collectCoreContinuousEffects(card).slice(0, 3).join('  ') || t('play.common.none', 'None')}
+                                  {collectCoreContinuousEffects(card).slice(0, 3).join('  ') || t('play.common.none', '无')}
                                 </div>
                               </div>
                             </>
                           ) : (
                             <div className="relative z-10 flex h-full flex-col justify-between p-4 text-left">
                               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
-                                {card.domain}
+                                {resolveCardDomainLabel(card)}
                               </div>
                               <div className="space-y-1">
                                 <div className="text-[12px] font-black leading-tight text-white line-clamp-3">
                                   {locale === 'zh' ? card.chineseName : card.englishName}
                                 </div>
                                 <div className="text-[11px] font-black text-white/80 pt-2 border-t border-white/20 uppercase tracking-tighter">
-                                  Policy
+                                  {t('play.actions.usePolicy', '政策')}
                                 </div>
                               </div>
                             </div>
@@ -770,15 +805,15 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           <div className="min-w-0">
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               {selectedPolicyId
-                ? t('play.actions.usePolicy', 'Use Policy')
+                ? t('play.actions.usePolicy', '使用政策卡')
                 : selectedCoreId
-                  ? t('play.actions.placeCore', 'Place Core')
-                  : t('play.flow.endTurn', 'End Turn')}
+                  ? t('play.actions.placeCore', '放置核心卡')
+                  : t('play.flow.endTurn', '结束回合')}
             </div>
             <div className="mt-1 text-[12px] font-bold text-slate-800 truncate">
               {selectedCoreCard
                 ? (locale === 'zh' ? selectedCoreCard.chineseName : selectedCoreCard.englishName)
-                : t('play.common.selectedCard', 'Selected Card')}
+                : t('play.common.selectedCard', '已选卡牌')}
             </div>
             {!!selectedCoreId && !!placeActionBlockedReason && (
               <div className="mt-1 max-w-[520px] text-[11px] font-semibold text-amber-700">
@@ -814,10 +849,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   void placeCoreCard(selectedCoreId, row, col);
                 }}
                 disabled={actionLoading || !!placeActionBlockedReason}
-                title={placeActionBlockedReason || t('play.actions.placeCore', 'Place Core')}
+                title={placeActionBlockedReason || t('play.actions.placeCore', '放置核心卡')}
                 className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                DEPLOY
+                {locale === 'zh' ? '放置' : '部署'}
               </button>
             ) : selectedOccupiedTile ? (
               <button
@@ -826,20 +861,20 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   void runRemoveCoreAction();
                 }}
                 disabled={actionLoading || !!removeActionBlockedReason}
-                title={removeActionBlockedReason || t('play.actions.removeCore', 'Remove Core Card')}
+                title={removeActionBlockedReason || t('play.actions.removeCore', '移除核心卡')}
                 className="rounded-2xl bg-rose-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                {t('play.actions.removeCore', 'Remove Core Card')}
+                {t('play.actions.removeCore', '移除核心卡')}
               </button>
             ) : selectedPolicyId ? (
               <button
                 type="button"
                 onClick={() => runAction(3, { cardId: selectedPolicyId })}
                 disabled={actionLoading || !!policyActionBlockedReason}
-                title={policyActionBlockedReason || t('play.actions.usePolicy', 'Use Policy')}
+                title={policyActionBlockedReason || t('play.actions.usePolicy', '使用政策卡')}
                 className="rounded-2xl bg-indigo-900 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                EXECUTE
+                {locale === 'zh' ? '执行' : '执行'}
               </button>
             ) : (
               <button
@@ -849,7 +884,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 disabled={endTurnDisabled}
                 className="rounded-2xl bg-emerald-700 px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white disabled:opacity-40"
               >
-                {t('play.actions.endTurn', 'End Turn')}
+                {t('play.actions.endTurn', '结束回合')}
               </button>
             )}
           </div>
@@ -883,8 +918,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 </div>
                 <div className="mt-1 text-xs font-semibold text-white/80">
                   #{detailCard.cardNo} · {detailCard.cardType === 'core'
-                    ? t('play.actions.placeCore', 'Place Core Card')
-                    : t('play.actions.usePolicy', 'Use Policy Card')}
+                    ? t('play.actions.placeCore', '放置核心卡')
+                    : t('play.actions.usePolicy', '使用政策卡')}
                 </div>
               </div>
             </div>
@@ -892,19 +927,19 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             <div className="space-y-4 p-4 md:p-5">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  {t('play.cardDetails.costTitle', 'Resource Cost')}
+                  {t('play.cardDetails.costTitle', '资源消耗')}
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <TradeCell label={t('play.resources.industry', 'Industry')} value={String(Number(detailCard.unlockCost?.industry ?? 0))} />
-                  <TradeCell label={t('play.resources.tech', 'Tech')} value={String(Number(detailCard.unlockCost?.tech ?? 0))} />
-                  <TradeCell label={t('play.resources.population', 'Population')} value={String(Number(detailCard.unlockCost?.population ?? 0))} />
-                  <TradeCell label={t('play.metrics.green', 'Green')} value={String(Number(detailCard.unlockCost?.green ?? 0))} />
+                  <TradeCell label={t('play.resources.industry', '产业')} value={String(Number(detailCard.unlockCost?.industry ?? 0))} />
+                  <TradeCell label={t('play.resources.tech', '科创')} value={String(Number(detailCard.unlockCost?.tech ?? 0))} />
+                  <TradeCell label={t('play.resources.population', '人口')} value={String(Number(detailCard.unlockCost?.population ?? 0))} />
+                  <TradeCell label={t('play.metrics.green', '绿建')} value={String(Number(detailCard.unlockCost?.green ?? 0))} />
                 </div>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  {t('play.cardDetails.effectTitle', 'Card Effect')}
+                  {t('play.cardDetails.effectTitle', '卡牌效果')}
                 </div>
                 <div className="mt-2 space-y-1.5">
                   {detailCardEffects.length > 0 ? (
@@ -915,7 +950,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     ))
                   ) : (
                     <div className="text-sm text-slate-500">
-                      {t('play.cardDetails.noEffect', 'No recognizable numeric effect for this card.')}
+                      {t('play.cardDetails.noEffect', '该卡牌暂无可识别的数值效果。')}
                     </div>
                   )}
                 </div>
@@ -923,7 +958,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  {t('play.cardDetails.introTitle', 'Card Introduction')}
+                  {t('play.cardDetails.introTitle', '卡牌介绍')}
                 </div>
                 <div className="mt-2 text-sm leading-6 text-slate-700">
                   {resolveCardIntro(detailCard)}
@@ -936,7 +971,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   onClick={() => setDetailCard(null)}
                   className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50"
                 >
-                  {t('play.actions.close', 'Close')}
+                  {t('play.actions.close', '关闭')}
                 </button>
               </div>
             </div>
@@ -998,7 +1033,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
           <div className="w-full max-w-xl rounded-[2rem] border border-slate-200 bg-white/95 p-5 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-black text-[10px] uppercase tracking-[0.24em] text-emerald-900/40 dark:text-emerald-200/40">
-                {t('play.trade.title', 'Carbon Market')}
+                {t('play.trade.title', '碳交易')}
               </h2>
               <div className="flex items-center gap-2">
                 <button
@@ -1011,8 +1046,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     }
                   }}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-                  title={t('play.trade.help.title', 'Carbon Trade Rules')}
-                  aria-label={t('play.trade.help.title', 'Carbon Trade Rules')}
+                  title={t('play.trade.help.title', '碳交易规则说明')}
+                  aria-label={t('play.trade.help.title', '碳交易规则说明')}
                 >
                   ?
                 </button>
@@ -1025,7 +1060,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   }}
                   className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                 >
-                  {t('play.actions.back', 'Back')}
+                  {t('play.actions.back', '返回')}
                 </button>
               </div>
             </div>
@@ -1033,8 +1068,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
             {tradeWindowOpened ? (
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <TradeCell label={t('play.trade.quota', 'Quota')} value={String(tradeQuota)} />
-                  <TradeCell label={t('play.trade.currentPrice', 'Current Price')} value={tradeLastPrice.toFixed(1)} />
+                  <TradeCell label={t('play.trade.quota', '配额')} value={String(tradeQuota)} />
+                  <TradeCell label={t('play.trade.currentPrice', '当前价格')} value={tradeLastPrice.toFixed(1)} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -1045,7 +1080,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                       }`}
                   >
-                    {t('play.trade.buy', 'Buy Quota')}
+                    {t('play.trade.buy', '买入配额')}
                   </button>
                   <button
                     type="button"
@@ -1055,7 +1090,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                       }`}
                   >
-                    {t('play.trade.sell', 'Sell Quota')}
+                    {t('play.trade.sell', '卖出配额')}
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1090,17 +1125,17 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                     disabled={tradeActionDisabled}
                     className="flex-1 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest py-2 disabled:opacity-40"
                   >
-                    {t('play.trade.execute', 'Execute Trade')}
+                    {t('play.trade.execute', '执行交易')}
                   </button>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                   {tradeType === 'buy'
-                    ? t('play.trade.validation.buyCost', 'Buying {amount} quota requires about {cost} industry (current: {current}).', {
+                    ? t('play.trade.validation.buyCost', '买入 {amount} 配额预计消耗 {cost} 产业值（当前：{current}）。', {
                       amount: normalizedTradeAmount,
                       cost: estimatedTradeIndustryCost,
                       current: Number(resources.industry ?? 0)
                     })
-                    : t('play.trade.validation.sellQuota', 'Selling {amount} quota requires at least {amount} quota (current: {current}).', {
+                    : t('play.trade.validation.sellQuota', '卖出 {amount} 配额至少需要 {amount} 配额（当前：{current}）。', {
                       amount: normalizedTradeAmount,
                       current: Number(tradeQuota)
                     })}
@@ -1119,17 +1154,17 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       ? `碳交易 ${roundsUntilTradeOpen} 回合后开放`
                       : '本回合不可交易'
                     : roundsUntilTradeOpen > 0
-                      ? `Carbon market opens in ${roundsUntilTradeOpen} turns`
-                      : 'Carbon market unavailable this turn'}
+                      ? `碳交易 ${roundsUntilTradeOpen} 回合后开放`
+                      : '本回合碳交易不可用'}
                 </div>
                 <div className="mt-2 text-[11px] leading-5 text-slate-500">
-                  {tradeActionBlockedReason || t('play.trade.windowClosed', 'Trade Unavailable This Turn')}
+                  {tradeActionBlockedReason || t('play.trade.windowClosed', '本回合碳交易不可用')}
                 </div>
               </div>
             )}
 
             <div className="mt-4 rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-              {t('play.trade.profit', 'Profit')}: {tradeProfit.toFixed(1)}
+              {t('play.trade.profit', '累计收益')}: {tradeProfit.toFixed(1)}
             </div>
 
             {tradeHelpOpen && (
@@ -1138,10 +1173,10 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-800 dark:text-slate-100">
-                        {t('play.trade.help.title', 'Carbon Trade Rules')}
+                        {t('play.trade.help.title', '碳交易规则说明')}
                       </h3>
                       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                        {t('play.trade.help.desc', 'Trade opens only in open windows. You can trade once per open turn, then the window closes.')}
+                        {t('play.trade.help.desc', '碳交易仅在窗口开启时可执行；若本回合结束前未交易，则本次交易机会作废。')}
                       </p>
                     </div>
                     <button
@@ -1150,16 +1185,16 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       onClick={() => setTradeHelpOpen(false)}
                       className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200"
                     >
-                      {t('play.actions.back', 'Back')}
+                      {t('play.actions.back', '返回')}
                     </button>
                   </div>
                   <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px] leading-6 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                    <p>{t('play.trade.help.quotaRule', 'Quota settlement: when carbon > 90, every extra 10 carbon consumes 1 quota at end of turn.')}</p>
-                    <p>{t('play.trade.help.buyRule', 'Buy: consume industry value = ceil(amount × price).')}</p>
-                    <p>{t('play.trade.help.sellRule', 'Sell: requires enough quota; gained industry value = floor(amount × price).')}</p>
-                    <p>{t('play.trade.help.windowRule', 'Window rule: if not traded before ending turn, this turn\'s trade chance is forfeited.')}</p>
-                    <p>{t('play.trade.help.warningRule', 'Warning: if quota is deducted for 2 consecutive turns and quota is still ≥ 20, a quota warning appears.')}</p>
-                    <p>{t('play.trade.help.lowRule', 'Urgent: quota < 20 means near depletion; quota = 0 means exhausted. Buy quota or lower emissions immediately.')}</p>
+                    <p>{t('play.trade.help.quotaRule', '碳配额结算：当碳排放 > 90 时，每超出 10 点，在回合结算时扣 1 份配额。')}</p>
+                    <p>{t('play.trade.help.buyRule', '买入规则：消耗产业值 = 向上取整(数量 × 价格)。')}</p>
+                    <p>{t('play.trade.help.sellRule', '卖出规则：需有足够配额；获得产业值 = 向下取整(数量 × 价格)。')}</p>
+                    <p>{t('play.trade.help.windowRule', '窗口规则：若本回合结束前未交易，则本次交易机会作废。')}</p>
+                    <p>{t('play.trade.help.warningRule', '预警规则：若连续 2 回合被扣配额且当前配额 >= 20，会触发配额预警。')}</p>
+                    <p>{t('play.trade.help.lowRule', '紧急规则：配额 < 20 触发“即将耗尽”；配额 = 0 触发“已用尽”。请立即买入或降低排放。')}</p>
                   </div>
                 </div>
               </div>

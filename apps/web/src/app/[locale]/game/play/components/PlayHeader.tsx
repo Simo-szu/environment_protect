@@ -206,7 +206,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
         <button
           onClick={handleBack}
           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all active:scale-95"
-          title={t('play.actions.back', 'Back')}
+          title={t('play.actions.saveAndExit', 'Save and Exit')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
         </button>
@@ -355,6 +355,15 @@ export default function PlayHeader(props: PlayHeaderProps) {
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20 text-sky-700 dark:text-sky-300 text-[11px] font-black transition-colors"
             >
               {locale === 'zh' ? '教程引导' : 'Tutorial Guide'}
+            </button>
+            <button
+              onClick={(event) => {
+                closeSettingsDropdown(event.currentTarget);
+                void handleBack();
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-black transition-colors"
+            >
+              {t('play.actions.saveAndExit', 'Save and Exit')}
             </button>
             <button onClick={handleOpenArchive} className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-200 text-[11px] font-bold transition-colors">
               {t('play.actions.archive', 'Archive')}

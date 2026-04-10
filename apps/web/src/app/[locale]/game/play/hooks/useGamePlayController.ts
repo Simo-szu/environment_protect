@@ -32,6 +32,7 @@ import {
   PolicyRecord,
   PondState,
   ResourceState,
+  clearStoredGameSessionId,
   resolveComboName,
   resolveEventLabel,
   resolvePolicyHintByEvent,
@@ -42,6 +43,7 @@ import {
   TransitionNotice,
   TURN_ANIMATION_STORAGE_KEY,
   TurnFlowStep,
+  writeStoredGameSessionId,
   UnknownRecord
 } from './gamePlay.shared';
 import { useGamePlayBoardCardSelectors } from './useGamePlayBoardCardSelectors';
@@ -133,6 +135,7 @@ export function useGamePlayController() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [guidedTutorialActive, setGuidedTutorialActive] = useState(false);
+  const [sessionPersistenceEnabled, setSessionPersistenceEnabled] = useState(true);
   const [storageBaseUrl, setStorageBaseUrl] = useState(
     () => normalizeStorageBaseUrl(process.env.NEXT_PUBLIC_STORAGE_BASE_URL || '')
   );
@@ -148,9 +151,7 @@ export function useGamePlayController() {
   const [connectionState, setConnectionState] = useState<'online' | 'retrying' | 'offline' | 'recovered'>('online');
 
   function clearSavedSessionId() {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('game:lastSessionId');
-    }
+    clearStoredGameSessionId();
   }
 
   const resources = (pondState?.resources || {}) as ResourceState;
@@ -527,17 +528,40 @@ export function useGamePlayController() {
   const timelineItems = useMemo(() => {
     const items: TimelineItem[] = [];
 
+    const resolvePolicyDisplayName = (policyId: string) => {
+      const card = catalog.get(policyId);
+      if (!card) {
+        return policyId;
+      }
+      const zhName = String(card.chineseName || '').trim();
+      const enName = String(card.englishName || '').trim();
+      const preferredName = locale === 'zh' ? (zhName || enName) : (enName || zhName);
+      return preferredName || policyId;
+    };
+
+    const resolveTradeActionLabel = (action: string) => {
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'buy') {
+        return t('play.trade.buy', '买入配额');
+      }
+      if (actionLower === 'sell') {
+        return t('play.trade.sell', '卖出配额');
+      }
+      return action;
+    };
+
     for (const record of eventHistory.slice(-12)) {
       const turnValue = Number(record.turn || 0);
       const eventType = String(record.eventType || '');
       if (eventType === 'policy_unlock') {
         const policyId = String(record.policyId || '');
-        const card = catalog.get(policyId);
         items.push({
           key: `unlock-${turnValue}-${policyId}`,
           turn: turnValue,
           type: 'unlock',
-          message: `Unlocked ${card?.chineseName || policyId}`
+          message: t('play.timeline.unlocked', 'Unlocked {policy}', {
+            policy: resolvePolicyDisplayName(policyId)
+          })
         });
       } else if (eventType === 'event_resolved') {
         const resolvedEvent = String(record.resolvedEvent || '');
@@ -546,41 +570,54 @@ export function useGamePlayController() {
           key: `resolved-${turnValue}-${resolvedEvent}-${policyId}`,
           turn: turnValue,
           type: 'event',
-          message: `Resolved ${resolveEventLabel(resolvedEvent)} via ${policyId}`
+          message: t('play.timeline.resolved', 'Resolved {event} via {policy}', {
+            event: resolveEventLabel(resolvedEvent, locale),
+            policy: resolvePolicyDisplayName(policyId)
+          })
         });
       } else if (eventType) {
         items.push({
           key: `event-${turnValue}-${eventType}`,
           turn: turnValue,
           type: 'event',
-          message: `Triggered ${resolveEventLabel(eventType)}`
+          message: t('play.timeline.triggered', 'Triggered {event}', {
+            event: resolveEventLabel(eventType, locale)
+          })
         });
       }
     }
 
     for (const record of comboHistory.slice(-6)) {
       const turnValue = Number(record.turn || 0);
-      const combos = (record.combos || []) as string[];
-      if (combos.length > 0) {
-        items.push({
-          key: `combo-${turnValue}-${combos.join('-')}`,
-          turn: turnValue,
-          type: 'combo',
-          message: `Combos: ${combos.map((id) => resolveComboName(String(id))).join(', ')}`
-        });
+        const combos = (record.combos || []) as string[];
+        if (combos.length > 0) {
+          items.push({
+            key: `combo-${turnValue}-${combos.join('-')}`,
+            turn: turnValue,
+            type: 'combo',
+            message: t('play.timeline.combos', 'Combos: {combos}', {
+              combos: combos
+                .map((id) => resolveComboName(String(id), locale))
+                .join(', ')
+            })
+          });
+        }
       }
-    }
 
     for (const record of tradeHistory.slice(-6)) {
       const turnValue = Number(record.turn || 0);
       const action = String(record.action || '');
       const amount = Number(record.amount || 0);
       if (action) {
+        const actionAmount = amount > 0 ? ` (${amount})` : '';
         items.push({
           key: `trade-${turnValue}-${action}-${amount}`,
           turn: turnValue,
           type: 'trade',
-          message: `Trade ${action}${amount > 0 ? ` (${amount})` : ''}`
+          message: t('play.timeline.trade', 'Trade {action}{amount}', {
+            action: resolveTradeActionLabel(action),
+            amount: actionAmount
+          })
         });
       }
     }
@@ -588,7 +625,7 @@ export function useGamePlayController() {
     return items
       .sort((a, b) => b.turn - a.turn)
       .slice(0, 8);
-  }, [eventHistory, comboHistory, tradeHistory, catalog]);
+  }, [eventHistory, comboHistory, tradeHistory, catalog, locale, t]);
 
   useGamePlayEffects({
     t,
@@ -605,7 +642,9 @@ export function useGamePlayController() {
     setTransitionAnimationEnabled,
     setTransitionNotice,
     setLastMessage,
+    setSessionPersistenceEnabled,
     turnTransitionAnimationDefault,
+    isLoggedIn,
     ending,
     endingDisplaySeconds,
     endingTimerRef,
@@ -626,7 +665,15 @@ export function useGamePlayController() {
     resolveTransitionNotice: (
       settlement: Record<string, unknown> | undefined,
       activeEvents: Array<Record<string, unknown>>
-    ) => resolveTransitionNotice(settlement, activeEvents as EventRecord[]),
+    ) => {
+      const notice = resolveTransitionNotice(settlement, activeEvents as EventRecord[]);
+      const transitionBase = `play.settlement.transition.${notice.kind}`;
+      return {
+        ...notice,
+        title: t(`${transitionBase}.title`, notice.title),
+        subtitle: t(`${transitionBase}.subtitle`, notice.subtitle)
+      };
+    },
     getErrorMessage,
     onboardingStorageKey: PLAY_ONBOARDING_STORAGE_KEY,
     animationStorageKey: TURN_ANIMATION_STORAGE_KEY
@@ -743,8 +790,8 @@ export function useGamePlayController() {
     }
     const nextState = (response.newPondState || {}) as PondState;
     setPondState(nextState);
-    if (sessionId) {
-      window.sessionStorage.setItem('game:lastSessionId', sessionId);
+    if (sessionId && sessionPersistenceEnabled) {
+      writeStoredGameSessionId(sessionId);
     }
     setLastMessage(typeof response.message === 'string' ? response.message : '');
     setSelectedCoreId('');
@@ -823,7 +870,7 @@ export function useGamePlayController() {
       const response = await performAction({ sessionId, actionType, actionData });
       applyActionResult(response);
     } catch (e: unknown) {
-      setError(handleRequestError(e, 'Action failed'));
+      setError(handleRequestError(e, t('play.errors.actionFailed', '操作执行失败')));
     } finally {
       setActionLoading(false);
     }
@@ -864,7 +911,7 @@ export function useGamePlayController() {
         await refreshSession();
         setError(t('play.trade.errors.windowClosed', '交易窗口已关闭，状态已同步。请在下个交易回合重试。'));
       } else {
-        setError(handleRequestError(e, 'Carbon trade failed'));
+        setError(handleRequestError(e, t('play.errors.tradeFailed', '碳交易失败')));
       }
     } finally {
       tradeRequestInFlightRef.current = false;
@@ -996,14 +1043,10 @@ export function useGamePlayController() {
       router.push(`/${locale}/game`);
       return;
     }
-    try {
-      await endSession(sessionId);
-    } catch {
-      // no-op
-    } finally {
-      clearSavedSessionId();
-      router.push(`/${locale}/game`);
+    if (sessionPersistenceEnabled) {
+      writeStoredGameSessionId(sessionId);
     }
+    router.push(`/${locale}/game`);
   }
 
   async function handleExitSession() {
@@ -1019,7 +1062,9 @@ export function useGamePlayController() {
       if (sessionId) {
         await endSession(sessionId);
       }
-      clearSavedSessionId();
+      if (sessionPersistenceEnabled) {
+        clearSavedSessionId();
+      }
       router.push(`/${locale}/game`);
     } catch (e: unknown) {
       setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));
@@ -1041,7 +1086,9 @@ export function useGamePlayController() {
       if (sessionId) {
         await endSession(sessionId);
       }
-      clearSavedSessionId();
+      if (sessionPersistenceEnabled) {
+        clearSavedSessionId();
+      }
       window.location.reload();
     } catch (e: unknown) {
       setError(handleRequestError(e, t('play.errors.endSessionFailed', '结束对局失败')));

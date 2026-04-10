@@ -128,6 +128,29 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     ? settlementHistory[settlementHistory.length - 1] as SettlementRecord
     : null;
 
+  function normalizeDomainForUpgradeLabel(domain: string | null | undefined): string {
+    const raw = String(domain || '').trim().toLowerCase();
+    if (!raw) {
+      return t('play.domains.policy', '政策');
+    }
+    if (raw === 'industry' || raw === 'industrial' || raw === '产业' || raw === '工业') {
+      return t('play.domains.industry', '工业');
+    }
+    if (raw === 'ecology' || raw === 'ecological' || raw === '生态') {
+      return t('play.domains.ecology', '生态');
+    }
+    if (raw === 'science' || raw === 'scientific' || raw === '科技' || raw === '科学') {
+      return t('play.domains.science', '科学');
+    }
+    if (raw === 'society' || raw === 'social' || raw === '人文' || raw === '社会' || raw === '人与社会') {
+      return t('play.domains.society', '社会');
+    }
+    if (raw === 'policy') {
+      return t('play.domains.policy', '政策');
+    }
+    return raw;
+  }
+
   const upgradeDeltaItems = selectedCoreCard
     ? [
         ['I', Number(selectedCoreCard.upgradeDeltaIndustry ?? 0)],
@@ -145,10 +168,10 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
   const upgradeRequirementSummary = selectedCoreCard?.upgradeRequirement
     ? [
         selectedCoreCard.upgradeRequirement.reqDomain1
-          ? `${selectedCoreCard.upgradeRequirement.reqDomain1}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain1MinPct ?? 0)}%`
+          ? `${normalizeDomainForUpgradeLabel(selectedCoreCard.upgradeRequirement.reqDomain1)}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain1MinPct ?? 0)}%`
           : '',
         selectedCoreCard.upgradeRequirement.reqDomain2
-          ? `${selectedCoreCard.upgradeRequirement.reqDomain2}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain2MinPct ?? 0)}%`
+          ? `${normalizeDomainForUpgradeLabel(selectedCoreCard.upgradeRequirement.reqDomain2)}>=${Number(selectedCoreCard.upgradeRequirement.reqDomain2MinPct ?? 0)}%`
           : ''
       ]
         .filter(Boolean)
@@ -514,7 +537,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
           <div className="relative overflow-hidden rounded-[1.5rem] border border-amber-500/30 bg-slate-900/90 p-3 shadow-[0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-xl sm:rounded-2xl sm:p-5">
             <div className="absolute -top-1 -right-1">
               <div className="rounded-bl-xl bg-amber-500 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-black shadow-lg">
-                Active Mission
+                {t('play.guided.activeMission', 'Active Mission')}
               </div>
             </div>
 
@@ -540,7 +563,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
 
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/5 pt-3 sm:mt-4 sm:pt-4">
               <div className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500 sm:text-[10px] sm:tracking-widest">
-                In Progress
+                {t('play.guided.overlayInProgress', 'In Progress')}
               </div>
               <button
                 onClick={() => setGuidedTutorialActive(false)}
@@ -564,7 +587,9 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
               </svg>
             </div>
             <h3 className="mb-3 text-xl font-black uppercase tracking-[0.2em] text-rose-950">
-              {isConnectionIssue ? t('play.errors.connectionTitle', 'Connection Lost') : 'System Alert'}
+              {isConnectionIssue
+                ? t('play.errors.connectionTitle', 'Connection Lost')
+                : t('play.errors.systemAlert', 'System Alert')}
             </h3>
             <p className="mb-6 text-sm font-medium leading-relaxed text-slate-500">{error}</p>
             {isConnectionIssue ? (
@@ -609,7 +634,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 }}
                 className="w-full rounded-2xl bg-rose-600 py-5 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-rose-900/20 transition-all hover:-translate-y-1 hover:bg-rose-700 active:translate-y-0"
               >
-                Acknowledge
+                {t('play.guided.acknowledge', 'Acknowledge')}
               </button>
             )}
           </div>
@@ -660,7 +685,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
             <div className="text-slate-500">{selectedCoreCard.cardId}</div>
             {selectedCoreCard.upgradeRequirement && (
               <div className="space-y-1 border-t border-slate-100 pt-2">
-                <div className="text-[11px] font-semibold text-slate-700">Upgrade Requirement</div>
+                <div className="text-[11px] font-semibold text-slate-700">{t('play.cardDetails.upgradeRequirement', 'Upgrade Requirement')}</div>
                 <div className="text-[11px] text-slate-600">
                   ★{Number(selectedCoreCard.upgradeRequirement.fromStar ?? 0)} → ★{Number(selectedCoreCard.upgradeRequirement.toStar ?? 0)}
                 </div>
@@ -672,7 +697,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
             )}
             {upgradeDeltaItems.length > 0 && (
               <div className="space-y-1 border-t border-slate-100 pt-2">
-                <div className="text-[11px] font-semibold text-slate-700">Upgrade Effect</div>
+                <div className="text-[11px] font-semibold text-slate-700">{t('play.cardDetails.upgradeEffect', 'Upgrade Effect')}</div>
                 <div className="text-[11px] text-slate-600">
                   {upgradeDeltaItems.map((item) => `${item[0]} ${formatDelta(item[1] as number)}`).join(' / ')}
                 </div>

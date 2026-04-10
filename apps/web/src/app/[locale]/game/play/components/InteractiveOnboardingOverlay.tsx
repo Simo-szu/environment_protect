@@ -136,7 +136,7 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
       {
         id: 'turn.deploy',
         title: txt('第一回合：第 3 步', 'Turn 1: Step 3'),
-        body: txt('点击右下角 DEPLOY 完成放置。', 'Click DEPLOY to confirm card placement.'),
+        body: txt('点击右下角“放置”完成放置。', 'Click the Place button to confirm card placement.'),
         placement: 'top',
         targetSelectors: ['[data-tutorial-id="deploy-button"]', '[data-tutorial-id="action-bar"]'],
         action: 'place_core',

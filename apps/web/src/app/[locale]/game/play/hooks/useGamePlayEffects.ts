@@ -1,7 +1,12 @@
 'use client';
 
 import { Dispatch, MutableRefObject, SetStateAction, useEffect } from 'react';
-import { GameCardMeta, getSessionById, listCards, startSession } from '@/lib/api/game';
+import { GameCardMeta, endSession, getCurrentSession, getSessionById, listCards, startSession } from '@/lib/api/game';
+import {
+  clearStoredGameSessionId,
+  readStoredGameSessionId,
+  writeStoredGameSessionId
+} from './gamePlay.shared';
 
 interface TransitionNoticeBase {
   kind: string;
@@ -35,7 +40,9 @@ interface UseGamePlayEffectsParams {
   setTransitionAnimationEnabled: Dispatch<SetStateAction<boolean>>;
   setTransitionNotice: Dispatch<SetStateAction<any>>;
   setLastMessage: Dispatch<SetStateAction<string>>;
+  setSessionPersistenceEnabled: Dispatch<SetStateAction<boolean>>;
   turnTransitionAnimationDefault: boolean;
+  isLoggedIn: boolean;
   ending: EndingState | null;
   endingDisplaySeconds: number;
   endingTimerRef: MutableRefObject<number | null>;
@@ -73,7 +80,9 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
     setTransitionAnimationEnabled,
     setTransitionNotice,
     setLastMessage,
+    setSessionPersistenceEnabled,
     turnTransitionAnimationDefault,
+    isLoggedIn,
     ending,
     endingDisplaySeconds,
     endingTimerRef,
@@ -101,20 +110,38 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
         const cardsResPromise = listCards(true);
         const query = new URLSearchParams(window.location.search);
         const forceTutorial = query.get('tutorial') === '1';
-        const savedSessionId = forceTutorial ? '' : (window.sessionStorage.getItem('game:lastSessionId') || '');
-        if (forceTutorial) {
-          window.sessionStorage.removeItem('game:lastSessionId');
-        }
+        const forceNewGame = query.get('new') === '1' || query.get('restart') === '1';
+        const savedSessionId = forceTutorial ? '' : readStoredGameSessionId();
+        setSessionPersistenceEnabled(!forceTutorial);
         let sessionRes: SessionStateLike;
-        if (savedSessionId) {
+        if (forceNewGame) {
+          if (savedSessionId) {
+            try {
+              await endSession(savedSessionId);
+            } catch {
+              // Ignore stale or already-finished sessions.
+            }
+          } else if (isLoggedIn) {
+            try {
+              const currentSession = await getCurrentSession();
+              if (currentSession?.id) {
+                await endSession(currentSession.id);
+              }
+            } catch {
+              // Ignore when no active session exists yet.
+            }
+          }
+          clearStoredGameSessionId();
+          sessionRes = await startSession();
+        } else if (savedSessionId) {
           try {
             sessionRes = await getSessionById(savedSessionId);
             if (Number(sessionRes?.status ?? 0) !== 1) {
-              window.sessionStorage.removeItem('game:lastSessionId');
+              clearStoredGameSessionId();
               sessionRes = await startSession();
             }
           } catch {
-            window.sessionStorage.removeItem('game:lastSessionId');
+            clearStoredGameSessionId();
             sessionRes = await startSession();
           }
         } else {
@@ -128,7 +155,9 @@ export function useGamePlayEffects(params: UseGamePlayEffectsParams) {
         cardsRes.items.forEach((card) => nextMap.set(card.cardId, card));
         setCatalog(nextMap);
         setSessionId(sessionRes.id);
-        window.sessionStorage.setItem('game:lastSessionId', sessionRes.id);
+        if (!forceTutorial) {
+          writeStoredGameSessionId(sessionRes.id);
+        }
         setPondState((sessionRes.pondState || {}) as Record<string, unknown>);
         const guideSeen = window.localStorage.getItem(onboardingStorageKey);
         if (forceTutorial || !guideSeen) {

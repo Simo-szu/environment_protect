@@ -165,6 +165,45 @@ export type BoardViewMode = 'smart' | 'adjacency' | 'placeable';
 export const DEFAULT_STORAGE_BASE = '';
 export const TURN_ANIMATION_STORAGE_KEY = 'game:turn-transition-animation-enabled';
 export const PLAY_ONBOARDING_STORAGE_KEY = 'game:play-onboarding:v1';
+export const GAME_SESSION_STORAGE_KEY = 'game:lastSessionId';
+
+export function readStoredGameSessionId(): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const savedId = window.localStorage.getItem(GAME_SESSION_STORAGE_KEY) || '';
+    if (savedId) {
+      return savedId;
+    }
+    return window.sessionStorage.getItem(GAME_SESSION_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function writeStoredGameSessionId(sessionId: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    if (sessionId) {
+      window.localStorage.setItem(GAME_SESSION_STORAGE_KEY, sessionId);
+      window.sessionStorage.setItem(GAME_SESSION_STORAGE_KEY, sessionId);
+    } else {
+      window.localStorage.removeItem(GAME_SESSION_STORAGE_KEY);
+      window.sessionStorage.removeItem(GAME_SESSION_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage failures in private or restricted browsing modes.
+  }
+}
+
+export function clearStoredGameSessionId(): void {
+  writeStoredGameSessionId('');
+}
 
 export function resolvePolicyHintByEvent(eventType: string): string {
   if (eventType === 'flood') {

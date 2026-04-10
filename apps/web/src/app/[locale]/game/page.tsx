@@ -1,6 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -13,12 +14,18 @@ import {
     Trophy
 } from 'lucide-react';
 import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
+import { readStoredGameSessionId } from './play/hooks/gamePlay.shared';
 
 export default function GamePage() {
     const router = useRouter();
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('game');
+    const [hasSavedProgress, setHasSavedProgress] = useState(false);
+
+    useEffect(() => {
+        setHasSavedProgress(Boolean(readStoredGameSessionId()));
+    }, []);
 
     return (
         <Layout>
@@ -74,6 +81,26 @@ export default function GamePage() {
                                 </span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
+                            <button
+                                onClick={() => router.push(`/${locale}/game/play?new=1`)}
+                                className="group flex w-full items-center justify-between rounded-2xl border border-white/80 bg-white/85 px-6 py-4 text-[#0F172A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                            >
+                                <span className="font-bold text-sm tracking-wide">
+                                    {t('cover.newGame', '新开一局')}
+                                </span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            {hasSavedProgress && (
+                                <button
+                                    onClick={() => router.push(`/${locale}/game/play`)}
+                                    className="group flex w-full items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/80 px-6 py-4 text-emerald-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/15"
+                                >
+                                    <span className="font-bold text-sm tracking-wide">
+                                        {t('cover.continueGame', '继续上次进度')}
+                                    </span>
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
                             <button
                                 onClick={() => router.push(`/${locale}/game/play?tutorial=1`)}
                                 className="group flex w-full items-center justify-between rounded-2xl border border-white/80 bg-white/85 px-6 py-4 text-[#0F172A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"

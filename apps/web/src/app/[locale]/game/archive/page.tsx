@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { GameActionLogItem, GameCardMeta, getSessionById, listCards, listSessionActions } from '@/lib/api/game';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
+import { readStoredGameSessionId } from '@/app/[locale]/game/play/hooks/gamePlay.shared';
 import { resolveComboName, resolveEventLabel } from '@/app/[locale]/game/play/hooks/gamePlay.shared';
 import { ArrowLeft, Archive, Clock, AlertTriangle } from 'lucide-react';
 
@@ -107,7 +108,7 @@ export default function GameArchivePage() {
       setLoading(true);
       setError(null);
       try {
-        const sessionId = sessionIdFromUrl || window.sessionStorage.getItem('game:lastSessionId') || '';
+        const sessionId = sessionIdFromUrl || readStoredGameSessionId() || '';
         if (!sessionId) {
           setError(t('archive.replay.loadErrorNoSession', 'No available session for archive replay'));
           return;
