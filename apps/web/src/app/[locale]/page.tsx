@@ -405,6 +405,11 @@ function ContentPreviewSection({
     tagLabel?: string;
 }) {
     const isZh = locale === 'zh';
+    const displayItems = [...items].sort((a, b) => {
+        const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return bTime - aTime;
+    });
     return (
         <section id={id} className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
             <header className="mb-8 text-center">
@@ -420,16 +425,20 @@ function ContentPreviewSection({
                 </p>
             </header>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                {items.map((item) => (
-                    <article key={item.id} className="rounded-2xl border border-white/35 bg-white/45 p-5 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35" style={{ boxShadow: `0 18px 45px -34px ${shadowColor}` }}>
-                        {tagLabel && (
-                            <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: accentColor }}>{tagLabel}</p>
-                        )}
-                        <h3 className={`${tagLabel ? 'mt-2' : ''} line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100`}>{item.title}</h3>
+                {displayItems.map((item) => (
+                    <article key={item.id} className="flex h-full flex-col rounded-2xl border border-white/35 bg-white/45 p-5 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35" style={{ boxShadow: `0 18px 45px -34px ${shadowColor}` }}>
+                        <div className="min-h-[1rem]">
+                            {tagLabel && (
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: accentColor }}>{tagLabel}</p>
+                            )}
+                        </div>
+                        <div className="mt-2 flex flex-1 flex-col">
+                            <h3 className="line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
                         <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
                             {item.summary || (isZh ? '点击查看详情。' : 'Open to read details.')}
                         </p>
-                        <div className="mt-4 flex items-center justify-between">
+                        </div>
+                        <div className="mt-4 flex items-center justify-between pt-2">
                             <span className="text-xs text-slate-500 dark:text-slate-400">
                                 {formatShortDate(item.publishedAt, dateLocale)}
                             </span>
@@ -446,7 +455,7 @@ function ContentPreviewSection({
                     </div>
                 )}
             </div>
-            {items.length > 0 && (
+            {displayItems.length > 0 && (
                 <div className="mt-6 text-center">
                     <Link
                         href={moreHref}

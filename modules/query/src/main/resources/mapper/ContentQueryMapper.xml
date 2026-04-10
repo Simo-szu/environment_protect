@@ -52,8 +52,8 @@
     SELECT
       c.id,
       c.type,
-      c.title,
-      c.summary,
+      COALESCE(ci.title, c.title) AS title,
+      COALESCE(ci.summary, c.summary) AS summary,
       c.cover_url,
       c.source_url,
       c.published_at,
@@ -65,6 +65,9 @@
       COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
+    LEFT JOIN social.content_i18n ci
+      ON ci.content_id = c.id
+      AND ci.locale = #{locale}
     LEFT JOIN social.content_stats s ON c.id = s.content_id
     WHERE 1=1
       <if test="type != null">
@@ -103,9 +106,9 @@
     SELECT
       c.id,
       c.type,
-      c.title,
-      c.summary,
-      c.body,
+      COALESCE(ci.title, c.title) AS title,
+      COALESCE(ci.summary, c.summary) AS summary,
+      COALESCE(ci.body, c.body) AS body,
       c.cover_url,
       c.source_type,
       c.source_url,
@@ -120,6 +123,9 @@
       COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
+    LEFT JOIN social.content_i18n ci
+      ON ci.content_id = c.id
+      AND ci.locale = #{locale}
     LEFT JOIN social.content_stats s ON c.id = s.content_id
     WHERE c.id = #{contentId}::uuid
   </select>
@@ -144,8 +150,8 @@
     SELECT
       c.id,
       c.type,
-      c.title,
-      c.summary,
+      COALESCE(ci.title, c.title) AS title,
+      COALESCE(ci.summary, c.summary) AS summary,
       c.cover_url,
       c.source_url,
       c.published_at,
@@ -157,6 +163,9 @@
       COALESCE(s.view_count, 0) AS view_count,
       COALESCE(s.hot_score, 0) AS hot_score
     FROM social.content c
+    LEFT JOIN social.content_i18n ci
+      ON ci.content_id = c.id
+      AND ci.locale = #{locale}
     LEFT JOIN social.content_stats s ON c.id = s.content_id
     WHERE c.status = 1
     ORDER BY c.created_at DESC, c.published_at DESC NULLS LAST

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.ContentI18nMapper">
+
+  <insert id="upsertLocalizedContent">
+    INSERT INTO social.content_i18n (
+      content_id, locale, title, summary, body, is_machine_translated, translated_at, created_at, updated_at
+    )
+    VALUES (
+      #{contentId}::uuid, #{locale}, #{title}, #{summary}, #{body}, #{isMachineTranslated}, #{translatedAt}, NOW(), NOW()
+    )
+    ON CONFLICT (content_id, locale)
+    DO UPDATE SET
+      title = EXCLUDED.title,
+      summary = EXCLUDED.summary,
+      body = EXCLUDED.body,
+      is_machine_translated = EXCLUDED.is_machine_translated,
+      translated_at = EXCLUDED.translated_at,
+      updated_at = NOW()
+  </insert>
+
+</mapper>

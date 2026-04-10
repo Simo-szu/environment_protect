@@ -5,6 +5,7 @@ import com.youthloop.query.mapper.ContentQueryMapper;
 import com.youthloop.query.mapper.HomeQueryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,7 @@ public class HomeQueryService {
             .collect(Collectors.toList()));
         
         // 查询最新内容（前 10 条）
-        List<Map<String, Object>> contentRows = contentQueryMapper.selectLatestContents(10);
+        List<Map<String, Object>> contentRows = contentQueryMapper.selectLatestContents(resolveLocale(), 10);
         dto.setLatestContents(contentRows.stream()
             .map(this::mapToContentListItem)
             .collect(Collectors.toList()));
@@ -137,5 +138,19 @@ public class HomeQueryService {
         dto.setCommentCount(row.get("comment_count") != null ? ((Number) row.get("comment_count")).intValue() : 0);
         
         return dto;
+    }
+
+    private String resolveLocale() {
+        String language = LocaleContextHolder.getLocale() != null
+            ? LocaleContextHolder.getLocale().getLanguage()
+            : null;
+        if (language == null) {
+            return "zh";
+        }
+        String normalized = language.trim().toLowerCase();
+        if (normalized.startsWith("en")) {
+            return "en";
+        }
+        return "zh";
     }
 }

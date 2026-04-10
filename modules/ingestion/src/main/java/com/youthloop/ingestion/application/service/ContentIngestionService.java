@@ -9,6 +9,7 @@ import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
 import com.youthloop.ingestion.api.dto.IngestionReport;
 import com.youthloop.ingestion.api.facade.IngestionSettingsFacade;
 import com.youthloop.ingestion.application.dto.ExternalArticle;
+import com.youthloop.ingestion.persistence.mapper.ContentI18nMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +38,7 @@ public class ContentIngestionService {
     private final ContentCommandFacade contentCommandFacade;
     private final List<ContentSourceClient> contentSourceClients;
     private final AiContentCleanerService aiContentCleanerService;
+    private final ContentI18nMapper contentI18nMapper;
 
     public DailyIngestionSummary ingestDaily() {
         IngestionSettingsDTO settings = ingestionSettingsFacade.getSettings();
@@ -116,8 +119,9 @@ public class ContentIngestionService {
 
         for (ExternalArticle article : articles) {
             ExternalArticle cleanedArticle = aiContentCleanerService.clean(article);
+            ExternalArticle localizedArticle = aiContentCleanerService.enrichLocalization(cleanedArticle);
 
-            if (!isValidArticle(cleanedArticle)) {
+            if (!isValidArticle(localizedArticle)) {
                 skipped++;
                 continue;
             }
@@ -126,28 +130,36 @@ public class ContentIngestionService {
                 CreateContentRequest request = new CreateContentRequest();
                 request.setType(sourceProperties.getContentType() != null
                     ? sourceProperties.getContentType()
-                    : cleanedArticle.getType());
-                request.setTitle(cleanedArticle.getTitle());
-                request.setSummary(cleanedArticle.getSummary());
-                request.setCoverUrl(cleanedArticle.getCoverUrl());
-                request.setBody(cleanedArticle.getBody());
+                    : localizedArticle.getType());
+                request.setTitle(localizedArticle.getTitle());
+                request.setSummary(localizedArticle.getSummary());
+                request.setCoverUrl(localizedArticle.getCoverUrl());
+                request.setBody(localizedArticle.getBody());
                 request.setSourceType(SOURCE_TYPE_CRAWLED);
-                request.setSourceUrl(cleanedArticle.getSourceUrl());
-                request.setPublishedAt(cleanedArticle.getPublishedAt());
+                request.setSourceUrl(localizedArticle.getSourceUrl());
+                request.setPublishedAt(localizedArticle.getPublishedAt());
                 request.setStatus(settings.getPublishStatus());
-                contentCommandFacade.createContent(request);
+                UUID contentId = contentCommandFacade.createContent(request);
+                persistLocalizedContent(contentId, localizedArticle);
                 created++;
             } catch (BizException e) {
                 if (Objects.equals(e.getCode(), ErrorCode.RESOURCE_ALREADY_EXISTS.getCode())) {
                     skipped++;
+                    UUID existingContentId = contentCommandFacade.findContentIdBySourceUrl(localizedArticle.getSourceUrl());
+                    if (existingContentId != null) {
+                        persistLocalizedContent(existingContentId, localizedArticle);
+                    } else {
+                        log.warn("Skip localization backfill because existing content is not found by sourceUrl={}",
+                            localizedArticle.getSourceUrl());
+                    }
                 } else {
                     failed++;
                     log.warn("Create content failed for sourceUrl={}, code={}, message={}",
-                        cleanedArticle.getSourceUrl(), e.getCode(), e.getMessage());
+                        localizedArticle.getSourceUrl(), e.getCode(), e.getMessage());
                 }
             } catch (Exception e) {
                 failed++;
-                log.error("Create content failed for sourceUrl={}", cleanedArticle.getSourceUrl(), e);
+                log.error("Create content failed for sourceUrl={}", localizedArticle.getSourceUrl(), e);
             }
         }
 
@@ -183,5 +195,54 @@ public class ContentIngestionService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private void persistLocalizedContent(UUID contentId, ExternalArticle article) {
+        if (contentId == null || article == null) {
+            return;
+        }
+
+        String originalLocale = normalizeLocale(article.getOriginalLocale());
+        if ("zh".equals(originalLocale)) {
+            upsertLocale(contentId, "zh", article.getZhTitle(), article.getZhSummary(), article.getZhBody(), false);
+            upsertLocale(contentId, "en", article.getEnTitle(), article.getEnSummary(), article.getEnBody(), true);
+            return;
+        }
+
+        upsertLocale(contentId, "en", article.getEnTitle(), article.getEnSummary(), article.getEnBody(), false);
+        upsertLocale(contentId, "zh", article.getZhTitle(), article.getZhSummary(), article.getZhBody(), true);
+    }
+
+    private void upsertLocale(
+        UUID contentId,
+        String locale,
+        String title,
+        String summary,
+        String body,
+        boolean isMachineTranslated
+    ) {
+        if (!hasText(title) || !hasText(body)) {
+            return;
+        }
+        contentI18nMapper.upsertLocalizedContent(
+            contentId,
+            locale,
+            title.trim(),
+            hasText(summary) ? summary.trim() : null,
+            body,
+            isMachineTranslated,
+            isMachineTranslated ? LocalDateTime.now() : null
+        );
+    }
+
+    private String normalizeLocale(String locale) {
+        if (!hasText(locale)) {
+            return "en";
+        }
+        String normalized = locale.trim().toLowerCase();
+        if (normalized.startsWith("zh")) {
+            return "zh";
+        }
+        return "en";
     }
 }

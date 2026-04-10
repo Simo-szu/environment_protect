@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
-import { EventRecord, MetricState, readDelta, ResourceState, SettlementRecord, TransitionKind, TransitionNotice } from '../hooks/gamePlay.shared';
+import { EventRecord, MetricState, readDelta, resolveEventLabel, ResourceState, SettlementRecord, TransitionKind, TransitionNotice } from '../hooks/gamePlay.shared';
 
 interface RoundSettlementOverlayProps {
   locale: string;
@@ -118,18 +118,11 @@ function resolveTransitionCopy(
 
 function resolveEventTypeLabel(
   eventType: string,
+  locale: string,
   t: (key: string, defaultValue?: string, values?: Record<string, unknown>) => string
 ): string {
-  if (eventType === 'flood') {
-    return t('play.events.type.flood', 'Flood');
-  }
-  if (eventType === 'sea_level_rise') {
-    return t('play.events.type.seaLevelRise', 'Sea Level Rise');
-  }
-  if (eventType === 'citizen_protest') {
-    return t('play.events.type.citizenProtest', 'Citizen Protest');
-  }
-  return eventType || t('play.events.title', 'Event');
+  const label = resolveEventLabel(eventType, locale);
+  return label || t('play.events.title', 'Event');
 }
 
 function resolveSettlementAnimation(latestSettlement: SettlementRecord): SettlementAnimation {
@@ -635,7 +628,7 @@ export default function RoundSettlementOverlay(props: RoundSettlementOverlayProp
                             key={`${String(event.eventType || 'event')}-${index}`}
                             className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700"
                           >
-                            {resolveEventTypeLabel(String(event.eventType || ''), t)} · {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
+                            {resolveEventTypeLabel(String(event.eventType || ''), locale, t)} · {t('play.events.remaining', 'remaining')} {Number(event.remainingTurns || 0)}
                           </span>
                         ))
                       ) : (

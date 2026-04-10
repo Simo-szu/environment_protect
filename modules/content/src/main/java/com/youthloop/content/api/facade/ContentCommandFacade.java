@@ -21,6 +21,10 @@ public class ContentCommandFacade {
         return contentCommandService.createContent(request);
     }
 
+    public UUID findContentIdBySourceUrl(String sourceUrl) {
+        return contentCommandService.findContentIdBySourceUrl(sourceUrl);
+    }
+
     public void updateContent(UUID contentId, UpdateContentRequest request) {
         com.youthloop.content.application.dto.UpdateContentRequest command =
             new com.youthloop.content.application.dto.UpdateContentRequest();

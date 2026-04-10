@@ -28,6 +28,7 @@ public interface ContentQueryMapper {
         @Param("sourceKeys") List<String> sourceKeys,
         @Param("status") Integer status,
         @Param("sort") String sort,
+        @Param("locale") String locale,
         @Param("offset") Integer offset,
         @Param("limit") Integer limit
     );
@@ -49,7 +50,8 @@ public interface ContentQueryMapper {
      * @return 内容详情（Map 格式，包含主数据和统计）
      */
     Map<String, Object> selectContentDetailWithStats(
-        @Param("contentId") UUID contentId
+        @Param("contentId") UUID contentId,
+        @Param("locale") String locale
     );
     
     /**
@@ -71,6 +73,7 @@ public interface ContentQueryMapper {
      * @return 内容列表
      */
     List<Map<String, Object>> selectLatestContents(
+        @Param("locale") String locale,
         @Param("limit") Integer limit
     );
 }

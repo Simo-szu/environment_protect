@@ -18,6 +18,12 @@ public class ExternalArticle {
     private String summary;
     private String coverUrl;
     private String body;
+    private String originalLocale;
+    private String zhTitle;
+    private String zhSummary;
+    private String zhBody;
+    private String enTitle;
+    private String enSummary;
+    private String enBody;
     private LocalDateTime publishedAt;
 }
-

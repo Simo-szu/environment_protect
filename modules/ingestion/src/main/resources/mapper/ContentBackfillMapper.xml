@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.ContentBackfillMapper">
+
+  <sql id="candidateWhere">
+    <where>
+      <if test="status != null">
+        AND c.status = #{status}
+      </if>
+      <if test="sourceType != null">
+        AND c.source_type = #{sourceType}
+      </if>
+      <if test="onlyWithoutLocalization != null and onlyWithoutLocalization">
+        AND (
+          NOT EXISTS (
+            SELECT 1
+            FROM social.content_i18n i
+            WHERE i.content_id = c.id
+              AND i.locale = 'zh'
+          )
+          OR NOT EXISTS (
+            SELECT 1
+            FROM social.content_i18n i
+            WHERE i.content_id = c.id
+              AND i.locale = 'en'
+          )
+        )
+      </if>
+    </where>
+  </sql>
+
+  <select id="countCandidates" resultType="long">
+    SELECT COUNT(*)
+    FROM social.content c
+    <include refid="candidateWhere"/>
+  </select>
+
+  <select id="selectCandidates" resultType="com.youthloop.content.persistence.entity.ContentEntity">
+    SELECT
+      c.id,
+      c.type,
+      c.title,
+      c.summary,
+      c.cover_url AS coverUrl,
+      c.body,
+      c.source_type AS sourceType,
+      c.source_url AS sourceUrl,
+      c.published_at AS publishedAt,
+      c.status,
+      c.created_at AS createdAt,
+      c.updated_at AS updatedAt
+    FROM social.content c
+    <include refid="candidateWhere"/>
+    ORDER BY c.created_at DESC, c.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+</mapper>

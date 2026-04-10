@@ -342,7 +342,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                       <div>
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="text-sm font-black text-rose-800">
-                            {resolveEventLabel(eventType)}
+                            {resolveEventLabel(eventType) || t('play.events.title', 'Event')}
                           </div>
                           <div className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700">
                             {t('play.events.remainingTurns', '剩余 {count} 回合', { count: Number(event.remainingTurns || 0) })}
@@ -374,7 +374,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                         {eventImageUrl ? (
                           <img
                             src={eventImageUrl}
-                            alt={resolveEventLabel(eventType)}
+                            alt={resolveEventLabel(eventType) || t('play.events.title', 'Event')}
                             className="h-full min-h-[132px] w-full object-cover"
                           />
                         ) : (

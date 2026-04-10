@@ -130,7 +130,7 @@ export default function PlayStatsPanel(props: PlayStatsPanelProps) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-[11px] font-black text-rose-800">
-                      {resolveEventLabel(eventType)}
+                      {resolveEventLabel(eventType) || t('play.events.title', 'Event')}
                     </div>
                     <div className="text-[10px] font-semibold text-rose-700">
                       {t('play.events.remainingTurns', '剩余 {count} 回合', { count: Number(event.remainingTurns || 0) })}

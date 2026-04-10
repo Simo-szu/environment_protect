@@ -17,6 +17,8 @@ import com.youthloop.content.api.facade.ContentQueryFacade;
 import com.youthloop.ingestion.api.dto.DailyIngestionSummary;
 import com.youthloop.ingestion.api.dto.IngestionSettingsDTO;
 import com.youthloop.ingestion.api.dto.UpdateIngestionSettingsRequest;
+import com.youthloop.ingestion.api.dto.BackfillContentRequest;
+import com.youthloop.ingestion.api.dto.BackfillContentSummary;
 import com.youthloop.ingestion.api.facade.ContentIngestionFacade;
 import com.youthloop.ingestion.api.facade.IngestionSettingsFacade;
 import io.swagger.v3.oas.annotations.Operation;
@@ -135,6 +137,16 @@ public class AdminContentController {
     @ApiResponseContract(ApiEndpointKind.COMMAND)
     public ApiSpecResponse<DailyIngestionSummary> triggerIngestion() {
         DailyIngestionSummary summary = contentIngestionFacade.ingestDaily();
+        return ApiSpecResponse.ok(summary);
+    }
+
+    @Operation(summary = "Backfill existing content", description = "Admin trigger one backfill batch for historical content AI clean and localization")
+    @PostMapping("/ingestion/backfill")
+    @ApiResponseContract(ApiEndpointKind.COMMAND)
+    public ApiSpecResponse<BackfillContentSummary> backfillExistingContent(
+        @Valid @RequestBody UnifiedRequest<BackfillContentRequest> request
+    ) {
+        BackfillContentSummary summary = contentIngestionFacade.backfillExistingContent(request.getData());
         return ApiSpecResponse.ok(summary);
     }
 

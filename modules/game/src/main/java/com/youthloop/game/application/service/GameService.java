@@ -2449,6 +2449,7 @@ public class GameService {
         event.resolvablePolicyIds().forEach(resolvableBy::add);
         activeEvent.set("resolvablePolicyIds", resolvableBy);
         state.withArray("activeNegativeEvents").add(activeEvent);
+        ensureEventResolverPolicyAvailable(state, event.resolvablePolicyIds());
     }
 
     private void applyPositiveEventImmediateEffect(ObjectNode state, SpecialPositiveEvent event) {
@@ -2546,9 +2547,57 @@ public class GameService {
         config.resolvablePolicyIds().forEach(activeResolvableBy::add);
         activeEvent.set("resolvablePolicyIds", activeResolvableBy);
         state.withArray("activeNegativeEvents").add(activeEvent);
+        ensureEventResolverPolicyAvailable(state, config.resolvablePolicyIds());
 
         ObjectNode stats = state.with("eventStats");
         stats.put("negativeTriggered", stats.path("negativeTriggered").asInt(0) + 1);
+    }
+
+    private void ensureEventResolverPolicyAvailable(ObjectNode state, List<String> resolvablePolicyIds) {
+        if (resolvablePolicyIds == null || resolvablePolicyIds.isEmpty()) {
+            return;
+        }
+
+        ArrayNode unlocked = state.withArray("policyUnlocked");
+        Set<String> validResolverSet = new HashSet<>();
+        for (String policyId : resolvablePolicyIds) {
+            if (policyId == null || policyId.isBlank()) {
+                continue;
+            }
+            try {
+                GameCardMetaDTO card = cardCatalogService.getRequiredCard(policyId);
+                if (card == null || !"policy".equals(card.getCardType())) {
+                    continue;
+                }
+            } catch (BizException ex) {
+                continue;
+            }
+            validResolverSet.add(policyId);
+            if (indexOf(unlocked, policyId) < 0) {
+                tryUnlockPolicy(state, unlocked, policyId, true);
+            }
+        }
+
+        List<String> validResolvers = new ArrayList<>(validResolverSet);
+        if (validResolvers.isEmpty()) {
+            return;
+        }
+
+        ArrayNode handPolicy = state.withArray("handPolicy");
+        for (JsonNode node : handPolicy) {
+            if (validResolvers.contains(node.asText(""))) {
+                return;
+            }
+        }
+
+        String selected = pickLeastUsedAndLeastDrawnPolicy(state, validResolvers);
+        if (selected == null || selected.isBlank()) {
+            return;
+        }
+
+        handPolicy.add(selected);
+        recordPolicyDraw(state, selected);
+        enforcePolicyHandLimit(state);
     }
 
     private String weightedPick(ArrayNode candidates) {

@@ -8,6 +8,7 @@ import com.youthloop.query.dto.UserState;
 import com.youthloop.query.mapper.ContentQueryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class ContentQueryService {
         page = Math.max(1, page != null ? page : 1);
         size = Math.min(100, Math.max(1, size != null ? size : 20));
         List<String> sourceKeys = parseSourceKeys(sourceKey);
+        String locale = resolveLocale();
         int offset = (page - 1) * size;
 
         Long total = contentQueryMapper.countContentList(type, sourceKeys, status);
@@ -55,6 +57,7 @@ public class ContentQueryService {
             sourceKeys,
             status,
             sort,
+            locale,
             offset,
             size
         );
@@ -76,7 +79,7 @@ public class ContentQueryService {
 
     @Transactional(readOnly = true)
     public ContentDetailDTO getContentDetail(UUID contentId) {
-        Map<String, Object> row = contentQueryMapper.selectContentDetailWithStats(contentId);
+        Map<String, Object> row = contentQueryMapper.selectContentDetailWithStats(contentId, resolveLocale());
         if (row == null) {
             return null;
         }
@@ -184,5 +187,19 @@ public class ContentQueryService {
         dto.setViewCount(row.get("view_count") != null ? ((Number) row.get("view_count")).longValue() : 0L);
         dto.setHotScore(row.get("hot_score") != null ? ((Number) row.get("hot_score")).longValue() : 0L);
         return dto;
+    }
+
+    private String resolveLocale() {
+        String language = LocaleContextHolder.getLocale() != null
+            ? LocaleContextHolder.getLocale().getLanguage()
+            : null;
+        if (language == null) {
+            return "zh";
+        }
+        String normalized = language.trim().toLowerCase();
+        if (normalized.startsWith("en")) {
+            return "en";
+        }
+        return "zh";
     }
 }

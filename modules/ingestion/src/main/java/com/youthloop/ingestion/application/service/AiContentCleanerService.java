@@ -40,6 +40,27 @@ public class AiContentCleanerService {
         5) Do not output markdown fences or explanations.
         """;
 
+    private static final String LOCALIZATION_SYSTEM_PROMPT = """
+        You are a bilingual editor for Chinese and English environmental science content.
+        Keep facts unchanged, never invent claims, links, numbers, names, or dates.
+        Return strict JSON only with keys:
+        {
+          "detectedLocale":"zh|en",
+          "zhTitle":"...",
+          "zhSummary":"...",
+          "zhBodyHtml":"...",
+          "enTitle":"...",
+          "enSummary":"...",
+          "enBodyHtml":"..."
+        }
+        Rules:
+        1) Preserve factual meaning and numeric values.
+        2) Keep body HTML readable and valid (<p>, <h2>, <h3>, <ul>, <ol>, <li>, <blockquote>, <a>, <img>, <strong>, <em>).
+        3) Keep summary concise (1-2 sentences), ideally <= 220 chars.
+        4) If source is Chinese, provide natural English translation; if source is English, provide natural Chinese translation.
+        5) Do not output markdown fences or explanations.
+        """;
+
     private final ObjectMapper objectMapper;
     private final HtmlSanitizerService htmlSanitizerService;
 
@@ -73,7 +94,7 @@ public class AiContentCleanerService {
         }
 
         try {
-            String responseBody = callAi(article);
+            String responseBody = callAiForCleaning(article);
             CleanedContent cleaned = parseCleanedContent(responseBody);
             if (cleaned == null) {
                 return article;
@@ -101,13 +122,43 @@ public class AiContentCleanerService {
         }
     }
 
-    private String callAi(ExternalArticle article) throws IOException, InterruptedException {
+    public ExternalArticle enrichLocalization(ExternalArticle article) {
+        if (article == null) {
+            return null;
+        }
+
+        ExternalArticle localized = seedLocalizedFields(article);
+        if (!enabled || !hasText(apiKey) || !hasText(localized.getBody()) || !hasText(localized.getTitle())) {
+            return localized;
+        }
+
+        try {
+            String responseBody = callAi(
+                LOCALIZATION_SYSTEM_PROMPT,
+                buildLocalizationPrompt(localized),
+                5200
+            );
+            LocalizedContent content = parseLocalizedContent(responseBody);
+            if (content == null) {
+                return localized;
+            }
+            return mergeLocalizedContent(localized, content);
+        } catch (Exception e) {
+            log.warn("AI localization fallback to original content. sourceUrl={}, reason={}",
+                article.getSourceUrl(), e.getMessage());
+            return localized;
+        }
+    }
+
+    private String callAiForCleaning(ExternalArticle article) throws IOException, InterruptedException {
+        return callAi(SYSTEM_PROMPT, buildUserPrompt(article), 3200);
+    }
+
+    private String callAi(String systemPrompt, String userPrompt, int maxTokens) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(connectTimeoutMs))
             .build();
-
-        String userPrompt = buildUserPrompt(article);
-        String payload = buildRequestPayload(userPrompt);
+        String payload = buildRequestPayload(systemPrompt, userPrompt, maxTokens);
 
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(apiUrl))
@@ -124,18 +175,18 @@ public class AiContentCleanerService {
         return response.body();
     }
 
-    private String buildRequestPayload(String userPrompt) throws IOException {
+    private String buildRequestPayload(String systemPrompt, String userPrompt, int maxTokens) throws IOException {
         ObjectNode payload = objectMapper.createObjectNode();
         payload.put("model", model);
         payload.set("messages", objectMapper.createArrayNode()
             .add(objectMapper.createObjectNode()
                 .put("role", "system")
-                .put("content", SYSTEM_PROMPT))
+                .put("content", systemPrompt))
             .add(objectMapper.createObjectNode()
                 .put("role", "user")
                 .put("content", userPrompt)));
         payload.put("temperature", 0.1);
-        payload.put("max_tokens", 3200);
+        payload.put("max_tokens", maxTokens);
         payload.set("response_format", objectMapper.createObjectNode().put("type", "json_object"));
         return objectMapper.writeValueAsString(payload);
     }
@@ -162,6 +213,29 @@ public class AiContentCleanerService {
         );
     }
 
+    private String buildLocalizationPrompt(ExternalArticle article) {
+        String body = article.getBody();
+        if (body.length() > maxInputBodyChars) {
+            body = body.substring(0, maxInputBodyChars);
+        }
+        return """
+            sourceKey: %s
+            sourceUrl: %s
+            originalLocale: %s
+            title: %s
+            summary: %s
+            bodyHtml:
+            %s
+            """.formatted(
+            sanitizePromptValue(article.getSourceKey()),
+            sanitizePromptValue(article.getSourceUrl()),
+            sanitizePromptValue(article.getOriginalLocale()),
+            sanitizePromptValue(article.getTitle()),
+            sanitizePromptValue(article.getSummary()),
+            body
+        );
+    }
+
     private CleanedContent parseCleanedContent(String rawResponse) throws IOException {
         JsonNode root = objectMapper.readTree(rawResponse);
         JsonNode messageNode = root.path("choices").path(0).path("message").path("content");
@@ -176,6 +250,116 @@ public class AiContentCleanerService {
             normalizeText(cleaned.path("summary").asText(null)),
             cleaned.path("bodyHtml").asText(null)
         );
+    }
+
+    private LocalizedContent parseLocalizedContent(String rawResponse) throws IOException {
+        JsonNode root = objectMapper.readTree(rawResponse);
+        JsonNode messageNode = root.path("choices").path(0).path("message").path("content");
+        if (!messageNode.isTextual() || messageNode.asText().isBlank()) {
+            return null;
+        }
+
+        String message = stripJsonFence(messageNode.asText());
+        JsonNode localized = objectMapper.readTree(message);
+        return new LocalizedContent(
+            normalizeLocale(localized.path("detectedLocale").asText(null)),
+            normalizeText(localized.path("zhTitle").asText(null)),
+            normalizeText(localized.path("zhSummary").asText(null)),
+            localized.path("zhBodyHtml").asText(null),
+            normalizeText(localized.path("enTitle").asText(null)),
+            normalizeText(localized.path("enSummary").asText(null)),
+            localized.path("enBodyHtml").asText(null)
+        );
+    }
+
+    private ExternalArticle mergeLocalizedContent(ExternalArticle article, LocalizedContent localizedContent) {
+        String detectedLocale = hasText(localizedContent.detectedLocale())
+            ? localizedContent.detectedLocale()
+            : article.getOriginalLocale();
+
+        String zhBody = htmlSanitizerService.sanitize(orElse(localizedContent.zhBodyHtml(), article.getZhBody()));
+        String enBody = htmlSanitizerService.sanitize(orElse(localizedContent.enBodyHtml(), article.getEnBody()));
+
+        return ExternalArticle.builder()
+            .sourceKey(article.getSourceKey())
+            .sourceUrl(article.getSourceUrl())
+            .type(article.getType())
+            .title(article.getTitle())
+            .summary(article.getSummary())
+            .coverUrl(article.getCoverUrl())
+            .body(article.getBody())
+            .originalLocale(detectedLocale)
+            .zhTitle(normalizeText(orElse(localizedContent.zhTitle(), article.getZhTitle())))
+            .zhSummary(truncate(normalizeText(orElse(localizedContent.zhSummary(), article.getZhSummary())), maxSummaryChars))
+            .zhBody(hasText(zhBody) ? zhBody : article.getZhBody())
+            .enTitle(normalizeText(orElse(localizedContent.enTitle(), article.getEnTitle())))
+            .enSummary(truncate(normalizeText(orElse(localizedContent.enSummary(), article.getEnSummary())), maxSummaryChars))
+            .enBody(hasText(enBody) ? enBody : article.getEnBody())
+            .publishedAt(article.getPublishedAt())
+            .build();
+    }
+
+    private ExternalArticle seedLocalizedFields(ExternalArticle article) {
+        String originalLocale = inferLocale(article.getTitle(), article.getSummary(), article.getBody());
+        String title = normalizeText(article.getTitle());
+        String summary = truncate(normalizeText(article.getSummary()), maxSummaryChars);
+        String body = article.getBody();
+
+        ExternalArticle.ExternalArticleBuilder builder = ExternalArticle.builder()
+            .sourceKey(article.getSourceKey())
+            .sourceUrl(article.getSourceUrl())
+            .type(article.getType())
+            .title(title)
+            .summary(summary)
+            .coverUrl(article.getCoverUrl())
+            .body(body)
+            .originalLocale(originalLocale)
+            .publishedAt(article.getPublishedAt());
+
+        if ("zh".equals(originalLocale)) {
+            builder
+                .zhTitle(title)
+                .zhSummary(summary)
+                .zhBody(body);
+        } else {
+            builder
+                .enTitle(title)
+                .enSummary(summary)
+                .enBody(body);
+        }
+        return builder.build();
+    }
+
+    private String inferLocale(String title, String summary, String body) {
+        String sample = (orElse(title, "") + " " + orElse(summary, "") + " " + orElse(body, ""));
+        return containsChinese(sample) ? "zh" : "en";
+    }
+
+    private boolean containsChinese(String value) {
+        if (!hasText(value)) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            Character.UnicodeScript script = Character.UnicodeScript.of(value.charAt(i));
+            if (script == Character.UnicodeScript.HAN) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String normalizeLocale(String locale) {
+        if (!hasText(locale)) {
+            return null;
+        }
+        String normalized = locale.trim().toLowerCase();
+        if (normalized.startsWith("zh")) {
+            return "zh";
+        }
+        if (normalized.startsWith("en")) {
+            return "en";
+        }
+        return null;
     }
 
     private String stripJsonFence(String content) {
@@ -216,5 +400,16 @@ public class AiContentCleanerService {
     }
 
     private record CleanedContent(String title, String summary, String bodyHtml) {
+    }
+
+    private record LocalizedContent(
+        String detectedLocale,
+        String zhTitle,
+        String zhSummary,
+        String zhBodyHtml,
+        String enTitle,
+        String enSummary,
+        String enBodyHtml
+    ) {
     }
 }

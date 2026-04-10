@@ -1507,6 +1507,33 @@ class GameServicePhase3Test {
     }
 
     @Test
+    void maybeTriggerNegativeEventShouldGuaranteeResolverPolicyInHandAfterTrigger() throws Exception {
+        Method maybeTrigger = GameService.class.getDeclaredMethod("maybeTriggerNegativeEvent", ObjectNode.class);
+        maybeTrigger.setAccessible(true);
+
+        when(gameRuleConfigService.eventTriggerProbabilityPct()).thenReturn(100);
+        when(cardCatalogService.getRequiredCard("card063")).thenReturn(policyCard("card063"));
+        when(cardCatalogService.getRequiredCard("card064")).thenReturn(policyCard("card064"));
+
+        ObjectNode state = baseState();
+        state.put("turn", 2);
+        state.with("metrics").put("green", 60);
+        state.with("metrics").put("carbon", 40);
+        state.with("metrics").put("satisfaction", 95);
+        state.with("resources").put("population", 20);
+
+        maybeTrigger.invoke(gameService, state);
+
+        assertTrue(state.withArray("eventHistory").size() > 0);
+        assertEquals("flood", state.withArray("eventHistory").get(0).path("eventType").asText());
+        assertTrue(indexOf(state.withArray("policyUnlocked"), "card063") >= 0);
+        assertTrue(indexOf(state.withArray("policyUnlocked"), "card064") >= 0);
+        assertEquals(1, state.withArray("handPolicy").size());
+        String guaranteedPolicy = state.withArray("handPolicy").get(0).asText();
+        assertTrue(Set.of("card063", "card064").contains(guaranteedPolicy));
+    }
+
+    @Test
     void endTurnShouldApplyCitizenProtestPopulationPenaltyOnFollowingTurn() {
         ObjectNode state = baseState();
         state.put("eventCooldown", 2);

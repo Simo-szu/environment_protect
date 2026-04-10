@@ -55,6 +55,11 @@ export default function SciencePage() {
     const dateLocale = locale === 'zh' ? 'zh-CN' : 'en-US';
 
     const activeTabConfig = TABS.find(t => t.key === activeTab) || TABS[0];
+    const sortedContents = [...contents].sort((a, b) => {
+        const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return bTime - aTime;
+    });
 
     const loadContents = useCallback(async (tab: TabKey, page: number) => {
         const tabConfig = TABS.find(t => t.key === tab) || TABS[0];
@@ -173,8 +178,8 @@ export default function SciencePage() {
                                     </div>
                                 </div>
                             ))
-                        ) : contents.length > 0 ? (
-                            contents.map((content) => (
+                        ) : sortedContents.length > 0 ? (
+                            sortedContents.map((content) => (
                                 <div
                                     key={content.id}
                                     className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:scale-[1.005] hover:shadow-xl hover:shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-800 dark:hover:shadow-black/20"

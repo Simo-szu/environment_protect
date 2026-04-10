@@ -110,6 +110,17 @@ public class ContentCommandService {
     /**
      * 更新内容
      */
+    public UUID findContentIdBySourceUrl(String sourceUrl) {
+        if (sourceUrl == null || sourceUrl.isBlank()) {
+            return null;
+        }
+        String existingIdText = contentMapper.selectIdBySourceUrl(sourceUrl);
+        if (existingIdText == null || existingIdText.isBlank()) {
+            return null;
+        }
+        return UUID.fromString(existingIdText);
+    }
+
     @Transactional
     public void updateContent(UUID contentId, UpdateContentRequest request) {
         log.info("更新内容: id={}", contentId);
