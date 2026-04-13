@@ -205,6 +205,9 @@ const game = {
             buy: 'Buy Quota',
             sell: 'Sell Quota',
             execute: 'Execute Trade',
+            successBadge: 'Trade Complete',
+            successTitle: 'Trade Successful',
+            successMessage: 'Successfully completed {action} for {amount} quota. Current quota: {quota}.',
             validation: {
                 buyCost: 'Buying {amount} quota requires about {cost} industry (current: {current}).',
                 sellQuota: 'Selling {amount} quota requires at least {amount} quota (current: {current}).',

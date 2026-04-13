@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { GamePlayController, GuidedTask, TurnFlowStep } from '../hooks/useGamePlayController';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -61,11 +61,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
     locale
   } = props;
   const [manualOpen, setManualOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+  const canUsePortal = typeof document !== 'undefined';
   const manualSections = useMemo(() => {
     if (locale === 'zh') {
       return [
@@ -396,7 +392,7 @@ export default function PlayHeader(props: PlayHeaderProps) {
         </button>
       </div>
 
-      {manualOpen && mounted && createPortal(
+      {manualOpen && canUsePortal && createPortal(
         <div
           className="fixed inset-0 z-[560] overflow-y-auto bg-slate-950/55 p-3 backdrop-blur-sm sm:p-5"
           onClick={() => setManualOpen(false)}

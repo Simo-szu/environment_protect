@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 type StepPlacement = 'center' | 'top' | 'bottom' | 'left' | 'right';
 type StepAction = 'select_core' | 'select_tile' | 'place_core' | 'end_turn';
@@ -71,11 +71,6 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const autoAdvanceTimerRef = useRef<number | null>(null);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number; transform?: string }>({
-    top: 0,
-    left: 0,
-    transform: 'translate(-50%, -50%)'
-  });
 
   const steps = useMemo<TutorialStep[]>(
     () => {
@@ -247,7 +242,7 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
     };
   }, [step.id, step.targetSelectors]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const tooltip = tooltipRef.current;
     if (!tooltip) {
       return;
@@ -258,11 +253,9 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
     const tooltipHeight = tooltip.offsetHeight;
 
     if (!targetRect || step.placement === 'center') {
-      setTooltipPosition({
-        top: viewHeight / 2,
-        left: viewWidth / 2,
-        transform: 'translate(-50%, -50%)'
-      });
+      tooltip.style.top = `${viewHeight / 2}px`;
+      tooltip.style.left = `${viewWidth / 2}px`;
+      tooltip.style.transform = 'translate(-50%, -50%)';
       return;
     }
 
@@ -284,10 +277,9 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
       left = targetRect.right + 14;
     }
 
-    setTooltipPosition({
-      top: clamp(top, margin, viewHeight - tooltipHeight - margin),
-      left: clamp(left, margin, viewWidth - tooltipWidth - margin)
-    });
+    tooltip.style.top = `${clamp(top, margin, viewHeight - tooltipHeight - margin)}px`;
+    tooltip.style.left = `${clamp(left, margin, viewWidth - tooltipWidth - margin)}px`;
+    tooltip.style.transform = '';
   }, [step.id, step.placement, targetRect]);
 
   useEffect(() => {
@@ -361,11 +353,6 @@ export default function InteractiveOnboardingOverlay(props: InteractiveOnboardin
       <div
         ref={tooltipRef}
         className="pointer-events-auto fixed z-[170] w-[min(90vw,420px)] animate-in fade-in duration-200"
-        style={{
-          top: tooltipPosition.top,
-          left: tooltipPosition.left,
-          transform: tooltipPosition.transform
-        }}
       >
         <div className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-5">
           {renderArrow()}

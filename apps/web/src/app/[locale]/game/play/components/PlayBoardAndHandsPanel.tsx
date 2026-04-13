@@ -57,6 +57,8 @@ type PlayBoardAndHandsPanelProps = Pick<
   | 'setTradeType'
   | 'tradeAmount'
   | 'setTradeAmount'
+  | 'tradeSuccessFeedback'
+  | 'setTradeSuccessFeedback'
   | 'runTradeAction'
   | 'tradeActionDisabled'
   | 'tradeActionBlockedReason'
@@ -88,6 +90,11 @@ type ZoneDefinition = {
 type HandStackItem =
   | { key: string; type: 'core'; card: GameCardMeta; index: number }
   | { key: string; type: 'policy'; card: GameCardMeta; index: number };
+
+type PendingDiscardSelection = {
+  handType: 'core' | 'policy';
+  cardId: string;
+};
 
 function formatSignedValue(value: number): string {
   return `${value > 0 ? '+' : ''}${value}`;
@@ -176,6 +183,8 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
     setTradeType,
     tradeAmount,
     setTradeAmount,
+    tradeSuccessFeedback,
+    setTradeSuccessFeedback,
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,
@@ -203,6 +212,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   const [coreLockedHintOpen, setCoreLockedHintOpen] = useState(false);
   const [hoveredHandCardKey, setHoveredHandCardKey] = useState('');
   const [detailCard, setDetailCard] = useState<GameCardMeta | null>(null);
+  const [pendingDiscardSelection, setPendingDiscardSelection] = useState<PendingDiscardSelection | null>(null);
 
   function openTradeModal() {
     setTradeModalOpen(true);
@@ -229,7 +239,7 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
       { id: 'science', title: t('play.domains.science', '科学'), rows: bottomRows, cols: leftCols },
       { id: 'society', title: t('play.domains.society', '社会'), rows: bottomRows, cols: rightCols }
     ];
-  }, [boardRows, boardCols, locale, t]);
+  }, [boardRows, boardCols, t]);
 
   const roundsUntilTradeOpen = useMemo(() => {
     if (tradeWindowOpened) {
@@ -247,8 +257,20 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
   }, [tradeWindowOpened, strictGuideMode, turn, tradeWindowInterval]);
   const currentCarbon = Math.max(0, Math.round(Number(metrics.carbon ?? 0)));
   const quotaDeductPreview = currentCarbon > 90 ? Math.floor((currentCarbon - 90) / 10) : 0;
+  const tradeSuccessActionLabel = tradeSuccessFeedback?.action === 'sell'
+    ? t('play.trade.sell', '卖出配额')
+    : t('play.trade.buy', '买入配额');
   const detailCardEffects = detailCard ? resolveCardEffects(detailCard) : [];
   const detailCardImageUrl = detailCard ? resolveImageUrl(detailCard.imageKey) : '';
+
+  const activePendingDiscardSelection = useMemo(() => {
+    if (!pendingDiscardActive || !pendingDiscardSelection) {
+      return null;
+    }
+    const source = pendingDiscardSelection.handType === 'core' ? handCoreCards : handPolicyCards;
+    const stillExists = source.some((card) => card.cardId === pendingDiscardSelection.cardId);
+    return stillExists ? pendingDiscardSelection : null;
+  }, [pendingDiscardActive, pendingDiscardSelection, handCoreCards, handPolicyCards]);
 
   const handStackItems = useMemo<HandStackItem[]>(() => {
     const coreItems = handCoreCards.map((card, index) => ({
@@ -635,16 +657,44 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 {t('play.discard.title', '需要弃牌')}
               </div>
               <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
-                {t('play.discard.overLimitGuide', '手牌太多？每回合最多只能保留6张牌哦～用不上的卡牌直接点击弃牌，就能腾出空位啦！')}
+                {t('play.discard.overLimitGuide', '手牌太多了，先点击一张想弃掉的卡牌，再点击确认弃置，就能更稳妥地腾出空位。')}
               </div>
               <div className="mt-1 text-sm font-black leading-6 text-rose-800">
-                {t('play.discard.clickToDiscardStrong', '点击下方任意卡牌即弃牌')}
+                {t('play.discard.clickToDiscardStrong', '先选卡牌，再确认弃置')}
               </div>
               <div className="mt-1 text-[12px] font-semibold leading-5 text-rose-700">
                 {t('play.discard.requiredHint', '弃置 {count} 张牌后手牌将保留 {limit} 张。', {
                   count: pendingDiscardRequiredTotal,
                   limit: pendingDiscardTargetHandSize
                 })}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!activePendingDiscardSelection || actionLoading}
+                  onClick={() => {
+                    if (!activePendingDiscardSelection) {
+                      return;
+                    }
+                    void discardCard(activePendingDiscardSelection.handType, activePendingDiscardSelection.cardId);
+                  }}
+                  className="rounded-xl bg-rose-600 px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {t('play.discard.confirmAction', '确认弃置')}
+                </button>
+                <button
+                  type="button"
+                  disabled={!activePendingDiscardSelection || actionLoading}
+                  onClick={() => setPendingDiscardSelection(null)}
+                  className="rounded-xl border border-rose-300 bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-rose-700 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {t('play.discard.cancelSelection', '取消选择')}
+                </button>
+                <div className="text-[12px] font-semibold leading-5 text-rose-700">
+                  {activePendingDiscardSelection
+                    ? t('play.discard.selectedCardHint', '已选择待弃牌：{cardId}', { cardId: activePendingDiscardSelection.cardId })
+                    : t('play.discard.selectCardHint', '请先从下方手牌中选择 1 张要弃置的卡牌。')}
+                </div>
               </div>
             </div>
           )}
@@ -680,18 +730,24 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                       const coreBlockedReason = isCore ? (affordability?.blockedReason || 'none') : 'none';
                       const coreLockedThisTurn = Boolean(isCore && corePlacedThisTurn && !pendingDiscardActive);
                       const isSelected = isCore ? selectedCoreId === card.cardId : selectedPolicyId === card.cardId;
+                      const isPendingDiscardSelected = activePendingDiscardSelection?.handType === type
+                        && activePendingDiscardSelection?.cardId === card.cardId;
 
                       const baseCardFrameStyles = isCore
-                        ? (!pendingDiscardActive
-                          ? (isSelected
-                            ? 'border-emerald-500 ring-4 ring-emerald-500/10'
+                        ? (pendingDiscardActive
+                          ? (isPendingDiscardSelected
+                            ? 'border-rose-500 ring-4 ring-rose-500/15'
                             : 'border-white')
-                          : 'border-white')
-                        : (!pendingDiscardActive
-                          ? (isSelected
-                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                          : (isSelected
+                            ? 'border-emerald-500 ring-4 ring-emerald-500/10'
+                            : 'border-white'))
+                        : (pendingDiscardActive
+                          ? (isPendingDiscardSelected
+                            ? 'border-rose-400 bg-rose-50'
                             : 'border-slate-100 bg-white')
-                          : 'border-slate-100 bg-white');
+                          : (isSelected
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                            : 'border-slate-100 bg-white'));
 
                       return (
                         <button
@@ -712,7 +768,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                           onDoubleClick={() => setDetailCard(card)}
                           onClick={() => {
                             if (pendingDiscardActive) {
-                              discardCard(type, card.cardId);
+                              setPendingDiscardSelection((current) => (
+                                current?.handType === type && current?.cardId === card.cardId
+                                  ? null
+                                  : { handType: type, cardId: card.cardId }
+                              ));
                               return;
                             }
                             if (isCore) {
@@ -745,6 +805,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
 
                           {isCore ? (
                             <>
+                              {isPendingDiscardSelected && (
+                                <div className="absolute left-2 top-2 z-30 rounded-full border border-rose-300 bg-rose-100/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-rose-700 shadow-sm">
+                                  {t('play.discard.pendingBadge', '待确认弃置')}
+                                </div>
+                              )}
                               {canPlace === false && (
                                 <div className="absolute right-2 top-2 z-30 rounded-full border border-amber-300 bg-amber-100/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-amber-700 shadow-sm">
                                   {coreBlockedReason === 'no_placeable_tile'
@@ -773,6 +838,11 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                             </>
                           ) : (
                             <div className="relative z-10 flex h-full flex-col justify-between p-4 text-left">
+                              {isPendingDiscardSelected && (
+                                <div className="absolute left-2 top-2 z-30 rounded-full border border-rose-300 bg-rose-100/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-rose-700 shadow-sm">
+                                  {t('play.discard.pendingBadge', '待确认弃置')}
+                                </div>
+                              )}
                               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">
                                 {resolveCardDomainLabel(card)}
                               </div>
@@ -1199,6 +1269,43 @@ export default function PlayBoardAndHandsPanel(props: PlayBoardAndHandsPanelProp
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {tradeSuccessFeedback && (
+        <div className="fixed inset-0 z-[240] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[1.75rem] border border-emerald-300 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.35)]">
+            <div className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
+              {t('play.trade.successBadge', 'Trade Complete')}
+            </div>
+            <h3 className="mt-1 text-xl font-black text-slate-900">
+              {t('play.trade.successTitle', 'Trade Successful')}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              {t('play.trade.successMessage', 'Successfully completed {action} for {amount} quota. Current quota: {quota}.', {
+                action: tradeSuccessActionLabel,
+                amount: String(tradeSuccessFeedback.amount),
+                quota: String(tradeSuccessFeedback.quota)
+              })}
+            </p>
+            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                {t('play.trade.quota', '配额')}
+              </div>
+              <div className="mt-1 text-3xl font-black text-emerald-900">
+                {tradeSuccessFeedback.quota}
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setTradeSuccessFeedback(null)}
+                className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-emerald-800"
+              >
+                {t('play.actions.close', '关闭')}
+              </button>
+            </div>
           </div>
         </div>
       )}

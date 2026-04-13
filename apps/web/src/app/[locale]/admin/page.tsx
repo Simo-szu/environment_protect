@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
@@ -13,24 +13,32 @@ import { AdminGameRulesTab } from './components/AdminGameRulesTab';
 type AdminTab = 'verifications' | 'banners' | 'gameCards' | 'gameRules' | 'contents';
 
 const VALID_TABS: AdminTab[] = ['verifications', 'banners', 'gameCards', 'contents', 'gameRules'];
+const DEFAULT_TAB: AdminTab = 'verifications';
+
+function getHashTabSnapshot(): AdminTab {
+    if (typeof window === 'undefined') {
+        return DEFAULT_TAB;
+    }
+
+    const hash = window.location.hash.replace('#', '') as AdminTab;
+    return VALID_TABS.includes(hash) ? hash : DEFAULT_TAB;
+}
+
+function subscribeToHashTabChange(onStoreChange: () => void) {
+    if (typeof window === 'undefined') {
+        return () => undefined;
+    }
+
+    window.addEventListener('hashchange', onStoreChange);
+    return () => window.removeEventListener('hashchange', onStoreChange);
+}
 
 export default function AdminPage({ params }: { params: { locale: string } }) {
     const router = useRouter();
     const { t } = useSafeTranslation('admin');
-
-    // SSR 初始值固定为 'verifications'，避免水合不匹配
-    const [activeTab, setActiveTab] = useState<AdminTab>('verifications');
-
-    // 纯客户端：挂载后从 URL hash 恢复 tab
-    useEffect(() => {
-        const hash = window.location.hash.replace('#', '') as AdminTab;
-        if (VALID_TABS.includes(hash)) {
-            setActiveTab(hash);
-        }
-    }, []);
+    const activeTab = useSyncExternalStore(subscribeToHashTabChange, getHashTabSnapshot, () => DEFAULT_TAB);
 
     const switchTab = (tab: AdminTab) => {
-        setActiveTab(tab);
         window.location.hash = tab;
     };
 

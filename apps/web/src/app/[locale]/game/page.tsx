@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -16,16 +16,37 @@ import {
 import { staggerContainer, staggerItem, pageEnter } from '@/lib/animations';
 import { readStoredGameSessionId } from './play/hooks/gamePlay.shared';
 
+function subscribeToStoredSessionChange(onStoreChange: () => void) {
+    if (typeof window === 'undefined') {
+        return () => undefined;
+    }
+
+    window.addEventListener('storage', onStoreChange);
+    window.addEventListener('focus', onStoreChange);
+    return () => {
+        window.removeEventListener('storage', onStoreChange);
+        window.removeEventListener('focus', onStoreChange);
+    };
+}
+
+function getStoredSessionSnapshot(): boolean {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    return Boolean(readStoredGameSessionId());
+}
+
 export default function GamePage() {
     const router = useRouter();
     const params = useParams();
     const locale = params.locale as string;
     const { t } = useSafeTranslation('game');
-    const [hasSavedProgress, setHasSavedProgress] = useState(false);
-
-    useEffect(() => {
-        setHasSavedProgress(Boolean(readStoredGameSessionId()));
-    }, []);
+    const hasSavedProgress = useSyncExternalStore(
+        subscribeToStoredSessionChange,
+        getStoredSessionSnapshot,
+        () => false
+    );
 
     return (
         <Layout>

@@ -204,6 +204,9 @@ const game = {
             buy: '买入配额',
             sell: '卖出配额',
             execute: '执行交易',
+            successBadge: '交易完成',
+            successTitle: '交易成功',
+            successMessage: '已成功{action}{amount}份配额。当前配额量：{quota}。',
             validation: {
                 buyCost: '买入 {amount} 配额预计消耗 {cost} 产业值（当前：{current}）。',
                 sellQuota: '卖出 {amount} 配额至少需要 {amount} 配额（当前：{current}）。',

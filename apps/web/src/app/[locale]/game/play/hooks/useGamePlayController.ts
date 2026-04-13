@@ -40,6 +40,7 @@ import {
   resolveTransitionNotice,
   SettlementRecord,
   TimelineItem,
+  TradeRecord,
   TransitionNotice,
   TURN_ANIMATION_STORAGE_KEY,
   TurnFlowStep,
@@ -129,6 +130,11 @@ export function useGamePlayController() {
   const [ending, setEnding] = useState<EndingView | null>(null);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [tradeAmount, setTradeAmount] = useState<number | ''>(1);
+  const [tradeSuccessFeedback, setTradeSuccessFeedback] = useState<{
+    action: 'buy' | 'sell';
+    amount: number;
+    quota: number;
+  } | null>(null);
   const [endingCountdown, setEndingCountdown] = useState(0);
   const [transitionAnimationEnabled, setTransitionAnimationEnabled] = useState(true);
   const [transitionNotice, setTransitionNotice] = useState<TransitionNotice | null>(null);
@@ -143,6 +149,7 @@ export function useGamePlayController() {
   const [dragOverTile, setDragOverTile] = useState('');
   const [boardViewMode, setBoardViewMode] = useState<BoardViewMode>('smart');
   const [corePeekOpen, setCorePeekOpen] = useState(false);
+  const [skipPlacementConfirmOpen, setSkipPlacementConfirmOpen] = useState(false);
   const previousSettlementLengthRef = useRef(0);
   const transitionTimerRef = useRef<number | null>(null);
   const endingTimerRef = useRef<number | null>(null);
@@ -798,6 +805,7 @@ export function useGamePlayController() {
     setSelectedPolicyId('');
     setSelectedTile('');
     setSelectedOccupiedTile('');
+    setSkipPlacementConfirmOpen(false);
 
     const endingState = (nextState.ending || null) as EndingView | null;
     if (endingState?.endingId) {
@@ -899,6 +907,18 @@ export function useGamePlayController() {
         sessionId,
         tradeType,
         amount
+      });
+      const nextState = (response.newPondState || {}) as PondState;
+      const nextCarbonTrade = (nextState.carbonTrade || {}) as CarbonTradeState;
+      const nextTradeHistory = Array.isArray(nextCarbonTrade.history) ? nextCarbonTrade.history : [];
+      const latestRecord = nextTradeHistory[nextTradeHistory.length - 1] as TradeRecord | undefined;
+      const nextAction = latestRecord?.action === 'sell' ? 'sell' : 'buy';
+      const nextAmountRaw = Number(latestRecord?.amount ?? amount);
+      const nextQuotaRaw = Number(nextCarbonTrade.quota ?? tradeQuota);
+      setTradeSuccessFeedback({
+        action: nextAction,
+        amount: Number.isFinite(nextAmountRaw) ? Math.max(1, Math.floor(nextAmountRaw)) : amount,
+        quota: Number.isFinite(nextQuotaRaw) ? Math.max(0, Math.floor(nextQuotaRaw)) : Math.max(0, Math.floor(tradeQuota))
       });
       applyActionResult(response);
     } catch (e: unknown) {
@@ -1137,7 +1157,20 @@ export function useGamePlayController() {
   }
 
   function endTurn() {
+    if (!corePlacedThisTurn) {
+      setSkipPlacementConfirmOpen(true);
+      return;
+    }
     void runAction(2);
+  }
+
+  function confirmEndTurnWithoutPlacement() {
+    setSkipPlacementConfirmOpen(false);
+    void runAction(2);
+  }
+
+  function cancelEndTurnWithoutPlacement() {
+    setSkipPlacementConfirmOpen(false);
   }
 
   const endTurnBlockedReason = useMemo(() => {
@@ -1188,6 +1221,9 @@ export function useGamePlayController() {
     transitionAnimationEnabled,
     toggleTransitionAnimation,
     endTurn,
+    skipPlacementConfirmOpen,
+    confirmEndTurnWithoutPlacement,
+    cancelEndTurnWithoutPlacement,
     endTurnDisabled,
     endTurnBlockedReason,
     guidedTutorialActive,
@@ -1196,6 +1232,8 @@ export function useGamePlayController() {
     setTradeType,
     tradeAmount,
     setTradeAmount,
+    tradeSuccessFeedback,
+    setTradeSuccessFeedback,
     runTradeAction,
     tradeActionDisabled,
     tradeActionBlockedReason,

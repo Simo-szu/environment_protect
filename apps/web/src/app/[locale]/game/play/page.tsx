@@ -298,6 +298,8 @@ export default function GamePlayPage() {
             setTradeType={controller.setTradeType}
             tradeAmount={controller.tradeAmount}
             setTradeAmount={controller.setTradeAmount}
+            tradeSuccessFeedback={controller.tradeSuccessFeedback}
+            setTradeSuccessFeedback={controller.setTradeSuccessFeedback}
             runTradeAction={controller.runTradeAction}
             tradeActionDisabled={controller.tradeActionDisabled}
             tradeActionBlockedReason={controller.tradeActionBlockedReason}
@@ -329,6 +331,7 @@ export default function GamePlayPage() {
         error={controller.error}
         connectionState={controller.connectionState}
         lastMessage={controller.lastMessage}
+        skipPlacementConfirmOpen={controller.skipPlacementConfirmOpen}
         transitionNotice={controller.transitionNotice}
         activeNegativeEvents={controller.activeNegativeEvents}
         handPolicySet={controller.handPolicySet}
@@ -376,6 +379,8 @@ export default function GamePlayPage() {
         handleRestartSession={controller.handleRestartSession}
         handleExitSession={controller.handleExitSession}
         setGuidedTutorialActive={controller.setGuidedTutorialActive}
+        confirmEndTurnWithoutPlacement={controller.confirmEndTurnWithoutPlacement}
+        cancelEndTurnWithoutPlacement={controller.cancelEndTurnWithoutPlacement}
       />
     </div>
   );

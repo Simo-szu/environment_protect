@@ -15,6 +15,7 @@ type PlayOverlaysProps = Pick<
   | 'error'
   | 'connectionState'
   | 'lastMessage'
+  | 'skipPlacementConfirmOpen'
   | 'transitionNotice'
   | 'activeNegativeEvents'
   | 'handPolicySet'
@@ -58,6 +59,8 @@ type PlayOverlaysProps = Pick<
   | 'handleRestartSession'
   | 'handleExitSession'
   | 'setGuidedTutorialActive'
+  | 'confirmEndTurnWithoutPlacement'
+  | 'cancelEndTurnWithoutPlacement'
   | 'setError'
   | 'setLastMessage'
   | 'setTransitionNotice'
@@ -73,6 +76,7 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     error,
     connectionState,
     lastMessage,
+    skipPlacementConfirmOpen,
     transitionNotice,
     activeNegativeEvents,
     handPolicySet,
@@ -116,6 +120,8 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
     handleRestartSession,
     handleExitSession,
     setGuidedTutorialActive,
+    confirmEndTurnWithoutPlacement,
+    cancelEndTurnWithoutPlacement,
     setError,
     setLastMessage,
     setTransitionNotice,
@@ -570,6 +576,41 @@ export default function PlayOverlays(props: PlayOverlaysProps) {
                 className="rounded border border-white/10 bg-white/5 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 transition-all hover:bg-white/10 hover:text-white sm:px-3 sm:tracking-widest"
               >
                 {t('play.guided.pause', 'Pause Guide')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {skipPlacementConfirmOpen && !showOnboarding && !ending && (
+        <div className="fixed inset-0 z-[460] flex items-center justify-center bg-slate-900/45 p-5 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[2rem] border border-amber-200 bg-white p-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.32)] animate-in zoom-in-95 duration-200 sm:p-7">
+            <div className="mb-4 inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-700">
+              {t('play.endTurnConfirm.badge', 'Turn Reminder')}
+            </div>
+            <h3 className="text-lg font-black text-slate-900">
+              {t('play.endTurnConfirm.title', '本回合还没有放置核心卡')}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {t(
+                'play.endTurnConfirm.description',
+                '你将直接结束当前回合，并失去这回合的放置机会。建议先检查右侧手牌与棋盘高亮格，确认没有想放的卡后再继续。'
+              )}
+            </p>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={cancelEndTurnWithoutPlacement}
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                {t('play.endTurnConfirm.cancel', '返回继续操作')}
+              </button>
+              <button
+                type="button"
+                onClick={confirmEndTurnWithoutPlacement}
+                className="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/25 transition-colors hover:bg-amber-400"
+              >
+                {t('play.endTurnConfirm.confirm', '仍然结束回合')}
               </button>
             </div>
           </div>
