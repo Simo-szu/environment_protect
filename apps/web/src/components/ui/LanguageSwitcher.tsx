@@ -1,45 +1,80 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { Globe } from 'lucide-react';
+import { Check, ChevronDown, Globe } from 'lucide-react';
 
 export function LanguageSwitcher() {
     const params = useParams();
     const pathname = usePathname();
     const router = useRouter();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     const currentLocale = params?.locale as string || 'zh';
 
     const switchLanguage = (newLocale: string) => {
-        // 替换当前路径中的语言代码
-        const newPath = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
+        const pathWithoutLocale = pathname.replace(/^\/(zh|en)(?=\/|$)/, '');
+        const newPath = `/${newLocale}${pathWithoutLocale || ''}`;
+        setIsOpen(false);
         router.push(newPath);
     };
 
+    useEffect(() => {
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!containerRef.current?.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDown);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDown);
+        };
+    }, []);
+
+    useEffect(() => {
+        setIsOpen(false);
+    }, [pathname]);
+
     return (
-        <div className="relative group">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 hover:bg-white dark:hover:bg-slate-800 transition-all">
+        <div ref={containerRef} className="relative">
+            <button
+                type="button"
+                onClick={() => setIsOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-lg border border-slate-200/60 bg-white/60 px-3 py-2 transition-all hover:bg-white dark:border-slate-700/60 dark:bg-slate-800/60 dark:hover:bg-slate-800"
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
+            >
                 <Globe className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
                     {currentLocale === 'zh' ? '中文' : 'English'}
                 </span>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* 下拉菜单 */}
-            <div className="absolute top-full right-0 mt-2 w-32 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-2 opacity-0 invisible transform scale-95 group-hover:opacity-100 group-hover:visible group-hover:scale-100 transition-all duration-200 z-50">
+            <div
+                className={`absolute top-full right-0 z-50 mt-2 w-36 rounded-lg border border-slate-200 bg-white py-2 shadow-lg transition-all duration-200 dark:border-slate-700 dark:bg-slate-800 ${isOpen ? 'visible scale-100 opacity-100' : 'invisible pointer-events-none scale-95 opacity-0'}`}
+                role="menu"
+            >
                 <button
+                    type="button"
                     onClick={() => switchLanguage('zh')}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${currentLocale === 'zh' ? 'text-[#30499B] dark:text-[#56B949] font-medium' : 'text-slate-600 dark:text-slate-400'
-                        }`}
+                    className={`flex w-full items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${currentLocale === 'zh' ? 'font-medium text-[#30499B] dark:text-[#56B949]' : 'text-slate-600 dark:text-slate-400'}`}
+                    role="menuitem"
                 >
-                    中文
+                    <span>中文</span>
+                    {currentLocale === 'zh' ? <Check className="w-4 h-4" /> : null}
                 </button>
                 <button
+                    type="button"
                     onClick={() => switchLanguage('en')}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${currentLocale === 'en' ? 'text-[#30499B] dark:text-[#56B949] font-medium' : 'text-slate-600 dark:text-slate-400'
-                        }`}
+                    className={`flex w-full items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${currentLocale === 'en' ? 'font-medium text-[#30499B] dark:text-[#56B949]' : 'text-slate-600 dark:text-slate-400'}`}
+                    role="menuitem"
                 >
-                    English
+                    <span>English</span>
+                    {currentLocale === 'en' ? <Check className="w-4 h-4" /> : null}
                 </button>
             </div>
         </div>
