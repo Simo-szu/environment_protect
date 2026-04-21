@@ -920,6 +920,9 @@ export function useGamePlayController() {
         amount: Number.isFinite(nextAmountRaw) ? Math.max(1, Math.floor(nextAmountRaw)) : amount,
         quota: Number.isFinite(nextQuotaRaw) ? Math.max(0, Math.floor(nextQuotaRaw)) : Math.max(0, Math.floor(tradeQuota))
       });
+      const displayQuota = Number.isFinite(nextQuotaRaw) ? Math.max(0, Math.floor(nextQuotaRaw)) : 0;
+      window.alert(`交易成功！目前配额量：${displayQuota}`);
+
       applyActionResult(response);
     } catch (e: unknown) {
       const rawMessage = (getErrorMessage(e) || '').toLowerCase();
@@ -964,6 +967,13 @@ export function useGamePlayController() {
     if (!sessionId) {
       return;
     }
+    const confirmed = window.confirm(
+      t('play.discard.confirmAction', '请确认是否弃置该张手牌？')
+    );
+    if (!confirmed) {
+      return; // 取消则直接退出，不执行后续逻辑
+    }
+
     setActionLoading(true);
     setError(null);
     try {
