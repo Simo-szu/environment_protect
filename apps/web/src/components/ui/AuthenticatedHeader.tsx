@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useParams, useRouter } from 'next/navigation';
-import { Menu, Search, Bell, X } from 'lucide-react';
+import { Bell, Menu, Search, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -23,44 +23,38 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
     const { unreadCount } = useNotifications();
     const { t } = useSafeTranslation('navigation');
 
-    // 获取当前语言
     const locale = params?.locale as string || 'zh';
 
-    // 导航项目
     const navigationItems = [
-        { href: `/${locale}`, label: t('home', '首页'), color: '#30499B' },
-        { href: `/${locale}/game`, label: t('game', '游戏'), color: '#56B949' },
-        { href: `/${locale}/science`, label: t('science', '科普'), color: '#F0A32F' },
-        { href: `/${locale}/activities`, label: t('activities', '活动'), color: '#30499B' },
-        { href: `/${locale}/points`, label: t('points', '积分'), color: '#EE4035' }
+        { href: `/${locale}`, label: t('home', 'Home'), color: '#30499B' },
+        { href: `/${locale}/game`, label: t('game', 'Game'), color: '#56B949' },
+        { href: `/${locale}/science`, label: t('science', 'Science'), color: '#F0A32F' },
+        { href: `/${locale}/activities`, label: t('activities', 'Activities'), color: '#30499B' },
+        { href: `/${locale}/points`, label: t('points', 'Points'), color: '#EE4035' }
     ];
 
     const isActivePage = (href: string) => {
         if (href === `/${locale}`) {
             return pathname === `/${locale}` || pathname === '/';
         }
-        return pathname.startsWith(href);
-    };
 
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
+        return pathname.startsWith(href);
     };
 
     const handleLogout = () => {
         logout();
+        setIsMobileMenuOpen(false);
         router.push(`/${locale}`);
     };
 
-    // 检查用户角色
-    const userRole = user?.role || 1; // 默认为普通用户
-    const isHost = userRole >= 2; // HOST(2) 或 ADMIN(3)
-    const isAdmin = userRole === 3; // ADMIN(3)
+    const userRole = user?.role || 1;
+    const isHost = userRole >= 2;
+    const isAdmin = userRole === 3;
 
     return (
         <nav className="mt-4 rounded-[1.75rem] border border-white/70 bg-white/78 px-5 py-4 shadow-[0_24px_70px_-40px_rgba(22,101,52,0.28)] backdrop-blur-2xl ring-1 ring-[#30499B]/5 transition-all duration-500 dark:border-white/10 dark:bg-slate-900/78 dark:shadow-none dark:ring-white/10 sm:px-7">
             <div className="flex flex-wrap items-center justify-between gap-4">
-                {/* Logo */}
-                <Link href={`/${locale}`} className="flex items-center gap-2 group">
+                <Link href={`/${locale}`} className="group flex items-center gap-2">
                     <Image
                         src="/assets/branding/youthloop-logo.jpg"
                         alt="YouthLoop logo"
@@ -74,202 +68,231 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                     </span>
                 </Link>
 
-                {/* 移动端汉堡菜单按钮 */}
                 <button
-                    onClick={toggleMobileMenu}
-                    className="md:hidden p-2 text-[#30499B] focus:outline-none ml-auto"
-                    aria-label={t('toggleMenu', '切换菜单')}
+                    type="button"
+                    onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                    className="ml-auto p-2 text-[#30499B] focus:outline-none md:hidden"
+                    aria-label={t('toggleMenu', 'Toggle Menu')}
                 >
                     <Menu className="w-6 h-6" />
                 </button>
 
-                {/* 移动端菜单遮罩 & 容器 */}
                 {isMobileMenuOpen && (
                     <div
-                        className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity duration-300"
+                        className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 md:hidden"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
                 )}
 
-                <div className={`
-                    fixed md:static top-[84px] left-1/2 md:left-auto -translate-x-1/2 md:translate-x-0
-                    w-[92%] md:w-auto max-w-sm md:max-w-none
+                <div
+                    className={`
+                    fixed left-1/2 top-[84px] z-50 w-[92%] max-w-sm -translate-x-1/2 transition-all duration-300 md:static md:left-auto md:w-auto md:max-w-none md:translate-x-0
                     ${isMobileMenuOpen
-                        ? 'flex flex-col bg-white/98 dark:bg-slate-900/98 p-6 shadow-2xl rounded-[2.5rem] border border-white/20 dark:border-slate-700/50 scale-100 opacity-100'
-                        : 'hidden md:flex flex-row bg-transparent p-0 shadow-none border-none scale-95 opacity-0 md:opacity-100 md:scale-100'}
-                    transition-all duration-300 z-50
-                `}>
-                    {/* 移动端关闭按钮 */}
+                        ? 'flex flex-col rounded-[2.5rem] border border-white/20 bg-white/98 p-6 opacity-100 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/98'
+                        : 'hidden scale-95 opacity-0 md:flex md:scale-100 md:flex-row md:border-none md:bg-transparent md:p-0 md:opacity-100 md:shadow-none'}
+                `}
+                >
                     <button
+                        type="button"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="md:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-4 top-4 p-2 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-200 md:hidden"
                     >
                         <X className="w-5 h-5" />
                     </button>
-                    {/* 移动端用户信息头部 */}
+
                     {user && isLoggedIn && (
-                        <div className="md:hidden w-full flex items-center gap-4 p-5 mb-6 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100/50 dark:border-slate-700/30">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#56B949] to-[#30499B] flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0 transform -rotate-3">
+                        <div className="mb-6 flex w-full items-center gap-4 rounded-3xl border border-slate-100/50 bg-slate-50 p-5 dark:border-slate-700/30 dark:bg-slate-800/40 md:hidden">
+                            <div className="flex h-14 w-14 flex-shrink-0 rotate-[-3deg] items-center justify-center rounded-2xl bg-gradient-to-br from-[#56B949] to-[#30499B] text-xl font-bold text-white shadow-lg">
                                 {user.nickname?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div className="overflow-hidden">
-                                <div className="font-bold text-lg text-slate-800 dark:text-white truncate tracking-tight">{user.nickname || '用户'}</div>
-                                <div className="text-sm text-[#F0A32F] font-semibold flex items-center gap-1.5 opacity-90">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#F0A32F]"></span>
-                                    积分: 0
+                                <div className="truncate text-lg font-bold tracking-tight text-slate-800 dark:text-white">
+                                    {user.nickname || 'User'}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-sm font-semibold text-[#F0A32F] opacity-90">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-[#F0A32F]"></span>
+                                    <span>Points: 0</span>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* 导航网格 (移动端 1列, 桌面端 1行) */}
-                    <div className="flex flex-col md:flex-row gap-2 md:gap-12 w-full md:w-auto">
+                    <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:gap-12">
                         {navigationItems.map((item) => {
                             const isActive = isActivePage(item.href);
+
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     className={`
-                                        relative flex items-center justify-center md:justify-start px-6 py-4 md:px-0 md:py-2 rounded-2xl md:rounded-none text-base md:text-sm font-semibold transition-all duration-300 group
+                                        group relative flex items-center justify-center rounded-2xl px-6 py-4 text-base font-semibold transition-all duration-300 md:justify-start md:rounded-none md:px-0 md:py-2 md:text-sm
                                         ${isActive
-                                            ? 'bg-[#56B949]/10 md:bg-transparent text-[#30499B] md:text-[#30499B] dark:text-white shadow-sm md:shadow-none'
-                                            : 'text-slate-500 dark:text-slate-400 hover:text-[#30499B] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 md:hover:bg-transparent'}
+                                            ? 'bg-[#56B949]/10 text-[#30499B] shadow-sm dark:text-white md:bg-transparent md:text-[#30499B] md:shadow-none'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white md:hover:bg-transparent'}
                                     `}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     <span>{item.label}</span>
-                                    <span className={`
-                                        hidden md:block absolute bottom-0 left-0 h-[2.5px] bg-gradient-to-r from-[#56B949] to-[#30499B] rounded-full transition-all duration-300
-                                        ${isActive ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'}
-                                    `}></span>
+                                    <span
+                                        className={`
+                                            absolute bottom-0 left-0 hidden h-[2.5px] rounded-full bg-gradient-to-r from-[#56B949] to-[#30499B] transition-all duration-300 md:block
+                                            ${isActive ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'}
+                                        `}
+                                    ></span>
                                 </Link>
                             );
                         })}
                     </div>
 
-                    {/* 移动端操作区 (主办方/开发者入口) */}
-                    <div className="md:hidden flex flex-col gap-3 mt-6 pt-6 border-t border-slate-200/60 dark:border-slate-800">
+                    <div className="mt-6 flex flex-col gap-3 border-t border-slate-200/60 pt-6 dark:border-slate-800 md:hidden">
                         {(isHost || isAdmin) && (
                             <div className="flex flex-col gap-2">
-                                <Link href={`/${locale}/host/activities`} className="flex items-center justify-center px-4 py-3 bg-blue-50/50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 rounded-2xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                                    {t('hostManagement', '活动管理')}
+                                <Link
+                                    href={`/${locale}/host/activities`}
+                                    className="flex items-center justify-center rounded-2xl bg-blue-50/50 px-4 py-3 text-sm font-bold text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {t('hostManagement', 'Activity Management')}
                                 </Link>
                                 {isAdmin && (
-                                    <Link href={`/${locale}/admin`} className="flex items-center justify-center px-4 py-3 bg-purple-50/50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400 rounded-2xl text-sm font-bold hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                                        {t('adminPanel', '开发者后台')}
+                                    <Link
+                                        href={`/${locale}/admin`}
+                                        className="flex items-center justify-center rounded-2xl bg-purple-50/50 px-4 py-3 text-sm font-bold text-purple-600 transition-colors hover:bg-purple-100 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        {t('adminPanel', 'Admin Panel')}
                                     </Link>
                                 )}
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between gap-3 px-1 mt-2">
+                        <div className="mt-2 flex items-center justify-between gap-3 px-1">
                             <LanguageSwitcher />
-                            <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-sm font-bold text-red-500/80 hover:text-red-600 px-4 py-2 transition-colors">
-                                退出登录
-                            </button>
+                            {isLoggedIn ? (
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 text-sm font-bold text-red-500/80 transition-colors hover:text-red-600"
+                                >
+                                    {t('logout', 'Logout')}
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={`/${locale}/login`}
+                                        className="text-sm font-semibold text-[#30499B] transition-colors hover:text-[#56B949]"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        {t('login', 'Login')}
+                                    </Link>
+                                    <Link
+                                        href={`/${locale}/register`}
+                                        className="rounded-full bg-[#30499B] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[#30499B]/20 transition-all hover:-translate-y-0.5 hover:bg-[#253a7a]"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        {t('register', 'Register')}
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* 桌面端右侧操作 */}
-                <div className="hidden md:flex items-center gap-4">
+                <div className="hidden items-center gap-4 md:flex">
                     {showSearch && (
-                        <div className="hidden lg:flex items-center rounded-full border border-white/80 bg-white/70 px-4 py-2 focus-within:border-[#56B949]/40 focus-within:ring-2 focus-within:ring-[#56B949]/10 transition-all w-48 xl:w-64 dark:border-white/10 dark:bg-white/5">
+                        <div className="hidden w-48 items-center rounded-full border border-white/80 bg-white/70 px-4 py-2 transition-all focus-within:border-[#56B949]/40 focus-within:ring-2 focus-within:ring-[#56B949]/10 dark:border-white/10 dark:bg-white/5 lg:flex xl:w-64">
                             <input
                                 type="text"
-                                placeholder={t('searchPlaceholder', '搜索...')}
-                                className="bg-transparent border-none outline-none text-xs w-full text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
+                                placeholder={t('searchPlaceholder', 'Search...')}
+                                className="w-full border-none bg-transparent text-xs text-slate-800 outline-none placeholder-slate-400 dark:text-slate-200 dark:placeholder-slate-500"
                             />
                             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                         </div>
                     )}
 
-                    {/* 语言切换器 */}
                     <LanguageSwitcher />
 
-                    {/* 用户区域 */}
                     {user && isLoggedIn ? (
-                        <div className="relative group">
-                            <button className="w-10 h-10 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                        <div className="group relative">
+                            <button
+                                type="button"
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                            >
                                 <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}</span>
                             </button>
 
-                            {/* 悬停下拉菜单 */}
-                            <div className="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 dark:border-slate-700 py-4 opacity-0 invisible transform scale-95 group-hover:opacity-100 group-hover:visible group-hover:scale-100 transition-all duration-300 z-50">
-                                {/* 用户信息头部 */}
-                                <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-700">
+                            <div className="absolute right-0 top-full z-50 mt-2 invisible w-64 scale-95 rounded-2xl border border-white/40 bg-white/95 py-4 opacity-0 shadow-2xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:scale-100 group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-800/95">
+                                <div className="border-b border-slate-100 px-6 py-3 dark:border-slate-700">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] flex items-center justify-center text-white font-bold text-lg">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#56B949] to-[#4aa840] text-lg font-bold text-white">
                                             <span>{user.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}</span>
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-slate-800 dark:text-slate-200">{user.nickname || '用户'}</div>
-                                            <div className="text-sm text-[#F0A32F] font-medium">
-                                                <span>积分: </span><span>0</span>
+                                            <div className="font-semibold text-slate-800 dark:text-slate-200">{user.nickname || 'User'}</div>
+                                            <div className="text-sm font-medium text-[#F0A32F]">
+                                                <span>Points: </span>
+                                                <span>0</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* 菜单项 */}
                                 <div className="py-2">
-                                    <Link href={`/${locale}/profile`} className="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#30499B] dark:hover:text-white transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">👤</div>
-                                        <span className="font-medium">{t('profile', '个人资料')}</span>
+                                    <Link href={`/${locale}/profile`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
+                                        <div className="w-5 h-5 flex items-center justify-center">馃懁</div>
+                                        <span className="font-medium">{t('profile', 'Profile')}</span>
                                     </Link>
-                                    <Link href={`/${locale}/my-activities`} className="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#30499B] dark:hover:text-white transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">📅</div>
-                                        <span className="font-medium">{t('myActivities', '我的活动')}</span>
+                                    <Link href={`/${locale}/my-activities`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
+                                        <div className="w-5 h-5 flex items-center justify-center">馃搮</div>
+                                        <span className="font-medium">{t('myActivities', 'My Activities')}</span>
                                     </Link>
 
-                                    {/* 主办方/管理员入口 - 根据用户角色显示 */}
                                     {(isHost || isAdmin) && (
                                         <>
-                                            <div className="border-t border-slate-100 dark:border-slate-700 my-2"></div>
+                                            <div className="my-2 border-t border-slate-100 dark:border-slate-700"></div>
 
-                                            <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-                                                <div className="w-5 h-5 flex items-center justify-center">📋</div>
-                                                <span className="font-medium">{t('hostManagement', '活动管理')}</span>
+                                            <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30">
+                                                <div className="w-5 h-5 flex items-center justify-center">馃搵</div>
+                                                <span className="font-medium">{t('hostManagement', 'Activity Management')}</span>
                                             </Link>
-                                            <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
-                                                <div className="w-5 h-5 flex items-center justify-center">🧾</div>
-                                                <span className="font-medium">{t('hostVerification', '主办方认证')}</span>
+                                            <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 transition-colors hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                                                <div className="w-5 h-5 flex items-center justify-center">馃Ь</div>
+                                                <span className="font-medium">{t('hostVerification', 'Host Verification')}</span>
                                             </Link>
                                         </>
                                     )}
 
-                                    {/* 管理员后台 - 仅管理员可见 */}
                                     {isAdmin && (
-                                        <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors">
-                                            <div className="w-5 h-5 flex items-center justify-center">🛡️</div>
-                                            <span className="font-medium">{t('adminPanel', '开发者后台')}</span>
+                                        <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 transition-colors hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30">
+                                            <div className="w-5 h-5 flex items-center justify-center">馃洝锔? </div>
+                                            <span className="font-medium">{t('adminPanel', 'Admin Panel')}</span>
                                         </Link>
                                     )}
 
-                                    <div className="border-t border-slate-100 dark:border-slate-700 my-2"></div>
+                                    <div className="my-2 border-t border-slate-100 dark:border-slate-700"></div>
 
-                                    <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#30499B] dark:hover:text-white transition-colors">
-                                        <div className="w-5 h-5 flex items-center justify-center">🪙</div>
-                                        <span className="font-medium">{t('points', '积分')}</span>
+                                    <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
+                                        <div className="w-5 h-5 flex items-center justify-center">馃獧</div>
+                                        <span className="font-medium">{t('points', 'Points')}</span>
                                     </Link>
-                                    <Link href={`/${locale}/notifications`} className="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#30499B] dark:hover:text-white transition-colors">
+                                    <Link href={`/${locale}/notifications`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
                                         <Bell className="w-5 h-5" />
-                                        <span className="font-medium">{t('notifications', '消息通知')}</span>
+                                        <span className="font-medium">{t('notifications', 'Notifications')}</span>
                                         {unreadCount > 0 && (
-                                            <span className="ml-auto bg-[#EE4035] text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                                            <span className="ml-auto rounded-full bg-[#EE4035] px-2 py-0.5 text-xs text-white">{unreadCount}</span>
                                         )}
                                     </Link>
                                 </div>
 
-                                {/* 退出登录 */}
-                                <div className="border-t border-slate-100 dark:border-slate-700 pt-2">
+                                <div className="border-t border-slate-100 pt-2 dark:border-slate-700">
                                     <button
+                                        type="button"
                                         onClick={handleLogout}
-                                        className="flex items-center gap-3 w-full px-6 py-3 text-[#EE4035] dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                        className="flex w-full items-center gap-3 px-6 py-3 text-[#EE4035] transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
                                     >
-                                        <div className="w-5 h-5 flex items-center justify-center">🚪</div>
-                                        <span className="font-medium">{t('logout', '退出登录')}</span>
+                                        <div className="w-5 h-5 flex items-center justify-center">馃毆</div>
+                                        <span className="font-medium">{t('logout', 'Logout')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -280,18 +303,18 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                 href={`/${locale}/login`}
                                 className="text-sm font-semibold text-[#30499B] transition-colors hover:text-[#56B949]"
                             >
-                                {t('login', '登录')}
+                                {t('login', 'Login')}
                             </Link>
                             <Link
                                 href={`/${locale}/register`}
                                 className="rounded-full bg-[#30499B] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[#30499B]/20 transition-all hover:-translate-y-0.5 hover:bg-[#253a7a]"
                             >
-                                {t('register', '注册')}
+                                {t('register', 'Register')}
                             </Link>
                         </div>
                     )}
                 </div>
             </div>
-        </nav >
+        </nav>
     );
 }
