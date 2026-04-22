@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
-import type { AdminContentItem, AdminContentDetail, AdminDailyIngestionSummary, AdminIngestionSettings } from '@/lib/api/admin';
+import type {
+    AdminCarbonMarketManualSyncResult,
+    AdminContentItem,
+    AdminContentDetail,
+    AdminDailyIngestionSummary,
+    AdminIngestionSettings
+} from '@/lib/api/admin';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -55,9 +61,11 @@ export function AdminContentsTab() {
     const [editContent, setEditContent] = useState<ContentFormState>(defaultContentForm);
 
     const [ingestionSummary, setIngestionSummary] = useState<AdminDailyIngestionSummary | null>(null);
+    const [carbonMarketSyncResult, setCarbonMarketSyncResult] = useState<AdminCarbonMarketManualSyncResult | null>(null);
     const [ingestionSettings, setIngestionSettings] = useState<IngestionSettingsFormState>(defaultIngestionSettingsForm);
     const [loadingContents, setLoadingContents] = useState(false);
     const [triggeringIngestion, setTriggeringIngestion] = useState(false);
+    const [triggeringCarbonMarketSync, setTriggeringCarbonMarketSync] = useState(false);
     const [loadingIngestionSettings, setLoadingIngestionSettings] = useState(false);
     const [savingIngestionSettings, setSavingIngestionSettings] = useState(false);
 
@@ -213,6 +221,18 @@ export function AdminContentsTab() {
         }
     };
 
+    const triggerCarbonMarketSync = async () => {
+        try {
+            setTriggeringCarbonMarketSync(true);
+            const result = await adminApi.triggerAdminCarbonMarketSync();
+            setCarbonMarketSyncResult(result);
+        } catch {
+            alert(t('contents.carbonMarketSyncFailed'));
+        } finally {
+            setTriggeringCarbonMarketSync(false);
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
 
@@ -236,6 +256,72 @@ export function AdminContentsTab() {
                             {t('contents.saveIngestionSettings')}
                         </button>
                     </div>
+                </div>
+
+                <div className="mb-8 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-emerald-950/20 p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                                {t('contents.carbonMarketSyncControl')}
+                            </h4>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {t('contents.carbonMarketSyncControlHelp')}
+                            </p>
+                        </div>
+                        <button
+                            onClick={triggerCarbonMarketSync}
+                            disabled={triggeringCarbonMarketSync}
+                            className="justify-center px-4 md:px-6 py-3 bg-emerald-600 text-white hover:bg-emerald-700 rounded-2xl font-bold transition-all text-sm shadow-lg shadow-emerald-900/10 disabled:opacity-60"
+                        >
+                            {triggeringCarbonMarketSync
+                                ? t('contents.triggeringCarbonMarketSync')
+                                : t('contents.triggerCarbonMarketSync')}
+                        </button>
+                    </div>
+
+                    {carbonMarketSyncResult ? (
+                        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="rounded-2xl bg-white/80 dark:bg-slate-900/50 border border-white/70 dark:border-slate-800 p-4">
+                                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                                    {t('contents.carbonMarketSyncStatus')}
+                                </div>
+                                <div className={`mt-2 text-base font-bold ${carbonMarketSyncResult.success ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {carbonMarketSyncResult.success
+                                        ? t('contents.carbonMarketSyncSuccess')
+                                        : t('contents.carbonMarketSyncFailure')}
+                                </div>
+                                <div className="mt-2 text-slate-500 dark:text-slate-400 break-all">
+                                    {carbonMarketSyncResult.message || '-'}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl bg-white/80 dark:bg-slate-900/50 border border-white/70 dark:border-slate-800 p-4 space-y-2">
+                                <div><span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketSourceType')}:</span> {carbonMarketSyncResult.sourceType || '-'}</div>
+                                <div><span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketTradeDate')}:</span> {carbonMarketSyncResult.tradeDate || '-'}</div>
+                                <div><span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketQuoteTime')}:</span> {carbonMarketSyncResult.quoteTime || '-'}</div>
+                                <div><span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketSyncedAt')}:</span> {carbonMarketSyncResult.syncedAt || '-'}</div>
+                                <div><span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketRequestedAt')}:</span> {carbonMarketSyncResult.requestedAt || '-'}</div>
+                                {carbonMarketSyncResult.sourceUrl ? (
+                                    <div className="break-all">
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{t('contents.carbonMarketSourceUrl')}:</span>{' '}
+                                        <a
+                                            href={carbonMarketSyncResult.sourceUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-emerald-700 dark:text-emerald-400 underline underline-offset-2"
+                                        >
+                                            {carbonMarketSyncResult.sourceUrl}
+                                        </a>
+                                    </div>
+                                ) : null}
+                                {carbonMarketSyncResult.lastError ? (
+                                    <div className="break-all text-red-600 dark:text-red-400">
+                                        <span className="font-semibold">{t('contents.carbonMarketLastError')}:</span> {carbonMarketSyncResult.lastError}
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="space-y-12">

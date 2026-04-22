@@ -34,7 +34,7 @@ public class CarbonMarketSnapshotService {
     public CarbonMarketSnapshotDTO getSnapshot() {
         Map<String, Object> latestRow = carbonMarketQueryMapper.selectLatestRealtimeSnapshot();
         if (latestRow == null || latestRow.isEmpty()) {
-            return null;
+            return buildEmptySnapshot();
         }
 
         List<Map<String, Object>> trendRows = carbonMarketQueryMapper.selectLatestDailyKlines(20);
@@ -65,6 +65,15 @@ public class CarbonMarketSnapshotService {
             .map(this::toTrendPoint)
             .sorted(Comparator.comparing(CarbonMarketTrendPointDTO::getTradeDate))
             .collect(Collectors.toList()));
+        return dto;
+    }
+
+    private CarbonMarketSnapshotDTO buildEmptySnapshot() {
+        CarbonMarketSnapshotDTO dto = new CarbonMarketSnapshotDTO();
+        dto.setSourceUrl(SOURCE_URL);
+        dto.setSourceName(SOURCE_NAME);
+        dto.setMarketStatus("UNAVAILABLE");
+        dto.setTrendPoints(List.of());
         return dto;
     }
 

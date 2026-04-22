@@ -22,6 +22,11 @@ public class CarbonMarketSyncStateService {
 
     private final CarbonMarketSyncStateMapper syncStateMapper;
 
+    @Transactional(readOnly = true)
+    public CarbonMarketSyncStateEntity getState() {
+        return syncStateMapper.selectById(SYNC_STATE_ID);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markSuccess(OffsetDateTime syncedAt, LocalDate tradeDate, LocalTime quoteTime) {
         CarbonMarketSyncStateEntity syncState = new CarbonMarketSyncStateEntity();

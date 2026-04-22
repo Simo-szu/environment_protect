@@ -16,12 +16,15 @@ public class CarbonMarketSyncJob {
 
     private final CarbonMarketSyncService carbonMarketSyncService;
 
-    @Scheduled(cron = "0 * * * * ?", zone = "Asia/Shanghai")
+    @Scheduled(cron = "0 */10 * * * ?", zone = "Asia/Shanghai")
     public void syncCarbonMarket() {
+        if (!carbonMarketSyncService.shouldSyncNow()) {
+            return;
+        }
         try {
             carbonMarketSyncService.syncOfficialData();
         } catch (Exception e) {
-            log.warn("Carbon market sync job failed", e);
+            log.warn("Carbon market sync job failed: {}", e.getMessage());
         }
     }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useParams, useRouter } from 'next/navigation';
-import { Bell, Menu, X } from 'lucide-react';
+import { BadgeCheck, Bell, BriefcaseBusiness, Coins, LogOut, Menu, Shield, User, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -269,11 +269,15 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
                                 <div className="py-2">
                                     <Link href={`/${locale}/profile`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
-                                        <div className="w-5 h-5 flex items-center justify-center">馃懁</div>
+                                        <div className="w-5 h-5 flex items-center justify-center">
+                                            <User className="w-5 h-5" />
+                                        </div>
                                         <span className="font-medium">{t('profile', 'Profile')}</span>
                                     </Link>
                                     <Link href={`/${locale}/my-activities`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
-                                        <div className="w-5 h-5 flex items-center justify-center">馃搮</div>
+                                        <div className="w-5 h-5 flex items-center justify-center">
+                                            <BriefcaseBusiness className="w-5 h-5" />
+                                        </div>
                                         <span className="font-medium">{t('myActivities', 'My Activities')}</span>
                                     </Link>
 
@@ -282,11 +286,15 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                             <div className="my-2 border-t border-slate-100 dark:border-slate-700"></div>
 
                                             <Link href={`/${locale}/host/activities`} className="flex items-center gap-3 px-6 py-3 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30">
-                                                <div className="w-5 h-5 flex items-center justify-center">馃搵</div>
+                                                <div className="w-5 h-5 flex items-center justify-center">
+                                                    <BriefcaseBusiness className="w-5 h-5" />
+                                                </div>
                                                 <span className="font-medium">{t('hostManagement', 'Activity Management')}</span>
                                             </Link>
                                             <Link href={`/${locale}/host/verification`} className="flex items-center gap-3 px-6 py-3 text-indigo-600 transition-colors hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
-                                                <div className="w-5 h-5 flex items-center justify-center">馃Ь</div>
+                                                <div className="w-5 h-5 flex items-center justify-center">
+                                                    <BadgeCheck className="w-5 h-5" />
+                                                </div>
                                                 <span className="font-medium">{t('hostVerification', 'Host Verification')}</span>
                                             </Link>
                                         </>
@@ -294,7 +302,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
 
                                     {isAdmin && (
                                         <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-6 py-3 text-purple-600 transition-colors hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30">
-                                            <div className="w-5 h-5 flex items-center justify-center">馃洝锔? </div>
+                                            <div className="w-5 h-5 flex items-center justify-center">
+                                                <Shield className="w-5 h-5" />
+                                            </div>
                                             <span className="font-medium">{t('adminPanel', 'Admin Panel')}</span>
                                         </Link>
                                     )}
@@ -302,7 +312,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                     <div className="my-2 border-t border-slate-100 dark:border-slate-700"></div>
 
                                     <Link href={`/${locale}/points`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
-                                        <div className="w-5 h-5 flex items-center justify-center">馃獧</div>
+                                        <div className="w-5 h-5 flex items-center justify-center">
+                                            <Coins className="w-5 h-5" />
+                                        </div>
                                         <span className="font-medium">{t('points', 'Points')}</span>
                                     </Link>
                                     <Link href={`/${locale}/notifications`} className="flex items-center gap-3 px-6 py-3 text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#30499B] dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
@@ -320,7 +332,9 @@ export default function AuthenticatedHeader({ showSearch = true }: Authenticated
                                         onClick={handleLogout}
                                         className="flex w-full items-center gap-3 px-6 py-3 text-[#EE4035] transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
                                     >
-                                        <div className="w-5 h-5 flex items-center justify-center">馃毆</div>
+                                        <div className="w-5 h-5 flex items-center justify-center">
+                                            <LogOut className="w-5 h-5" />
+                                        </div>
                                         <span className="font-medium">{t('logout', 'Logout')}</span>
                                     </button>
                                 </div>

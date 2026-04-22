@@ -9,6 +9,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface CarbonMarketSyncStateMapper {
 
+    CarbonMarketSyncStateEntity selectById(int id);
+
     int markSuccess(CarbonMarketSyncStateEntity entity);
 
     int markFailure(CarbonMarketSyncStateEntity entity);

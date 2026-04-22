@@ -885,6 +885,23 @@ export async function triggerAdminIngestion(): Promise<AdminDailyIngestionSummar
   return apiPost<AdminDailyIngestionSummary>('/api/v1/admin/contents/ingestion/trigger', {});
 }
 
+export interface AdminCarbonMarketManualSyncResult {
+  requestedAt: string;
+  finishedAt: string;
+  success: boolean;
+  sourceType?: string;
+  sourceUrl?: string;
+  tradeDate?: string;
+  quoteTime?: string;
+  syncedAt?: string;
+  message?: string;
+  lastError?: string;
+}
+
+export async function triggerAdminCarbonMarketSync(): Promise<AdminCarbonMarketManualSyncResult> {
+  return apiPost<AdminCarbonMarketManualSyncResult>('/api/v1/admin/market/carbon/sync', {});
+}
+
 export interface AdminIngestionSourceSettings {
   enabled: boolean;
   maxPages: number;
