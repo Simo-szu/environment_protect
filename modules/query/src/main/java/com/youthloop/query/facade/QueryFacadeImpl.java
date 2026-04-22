@@ -37,6 +37,11 @@ public class QueryFacadeImpl implements QueryFacade {
     public HomeDTO getHomeData() {
         return homeQueryService.getHomeData();
     }
+
+    @Override
+    public CarbonMarketSnapshotDTO getCarbonMarketSnapshot() {
+        return homeQueryService.getCarbonMarketSnapshot();
+    }
     
     @Override
     public PageResponse<ContentListItemDTO> getContentList(

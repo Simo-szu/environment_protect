@@ -31,7 +31,7 @@ export function FloatingThemeToggle() {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-40">
             <div className="relative">
                 {/* 展开的选项 */}
                 <AnimatePresence>

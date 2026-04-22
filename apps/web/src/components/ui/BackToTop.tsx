@@ -44,7 +44,7 @@ export default function BackToTop() {
         <button
             onClick={scrollToTop}
             className={`
-        fixed bottom-6 right-24 z-50 w-12 h-12 
+        fixed bottom-6 right-24 z-40 w-12 h-12 
         bg-white/90 dark:bg-slate-800/90 backdrop-blur-md 
         border border-slate-200/60 dark:border-slate-700/60
         rounded-full shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50

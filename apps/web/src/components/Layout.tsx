@@ -53,7 +53,7 @@ export default function Layout({ children, showHeader = true, showFooter = true 
       {/* Glass Container */}
       <div className="relative z-10 min-h-screen w-full bg-white/38 backdrop-blur-[2px] scroll-smooth transition-colors duration-300 dark:bg-slate-900/42">
         {showHeader && (
-          <div className="fixed top-0 left-0 right-0 z-50">
+          <div className="fixed top-0 left-0 right-0 z-[80]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <AuthenticatedHeader showSearch={!isSubPage} />
             </div>

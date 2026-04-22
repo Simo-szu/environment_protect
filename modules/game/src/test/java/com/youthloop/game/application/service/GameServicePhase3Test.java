@@ -154,6 +154,7 @@ class GameServicePhase3Test {
         activeEvent.put("greenDelta", -10);
         activeEvent.put("carbonDelta", 0);
         activeEvent.put("satisfactionDelta", 0);
+        activeEvent.withArray("resolvablePolicyIds").add("card064");
         state.withArray("activeNegativeEvents").add(activeEvent);
         state.with("metrics").put("green", 40);
         state.with("eventStats").put("negativeTriggered", 1);
@@ -393,7 +394,7 @@ class GameServicePhase3Test {
 
         assertEquals(34, next.with("resources").path("tech").asInt());
         assertEquals(22L, response.getTotalScore());
-        assertTrue(!next.with("metrics").has("lowCarbonScore"));
+        assertTrue(next.with("metrics").has("lowCarbonScore"));
         assertTrue(indexOf(next.withArray("comboTriggeredThisTurn"), "intra_science_boost") >= 0);
     }
 
@@ -415,7 +416,7 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(next.path("metrics").isObject());
-        assertTrue(!next.with("metrics").has("lowCarbonScore"));
+        assertTrue(next.with("metrics").has("lowCarbonScore"));
         assertTrue(response.getTotalScore() >= 0);
     }
 
@@ -1044,10 +1045,10 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("failure", response.getEndingId());
+        assertEquals("ending_16_emission_out_of_control", response.getEndingId());
         assertEquals("失败结局", response.getEndingName());
         assertTrue(next.path("sessionEnded").asBoolean());
-        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals("ending_16_emission_out_of_control", next.path("ending").path("endingId").asText());
     }
 
     @Test
@@ -1126,8 +1127,8 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
         ObjectNode trade = next.with("carbonTrade");
 
-        assertEquals(45, trade.path("quota").asInt());
-        assertEquals(5, trade.path("lastQuotaConsumed").asInt());
+        assertEquals(46, trade.path("quota").asInt());
+        assertEquals(4, trade.path("lastQuotaConsumed").asInt());
         assertTrue(trade.path("windowOpened").asBoolean());
         assertEquals(2, trade.path("lastWindowTurn").asInt());
         assertEquals(0, trade.withArray("history").size());
@@ -1338,7 +1339,8 @@ class GameServicePhase3Test {
         assertEquals(55, trade.path("quota").asInt());
         assertEquals(10.0D, trade.path("buyAmountTotal").asDouble(), 0.001D);
         assertEquals(20, next.with("resources").path("industry").asInt());
-        assertTrue(!trade.path("windowOpened").asBoolean());
+        assertTrue(trade.path("windowOpened").asBoolean());
+        assertEquals(0L, trade.path("windowExpiresAt").asLong());
         assertEquals(1, trade.withArray("history").size());
         assertEquals("buy", trade.withArray("history").get(0).path("action").asText());
     }
@@ -1362,10 +1364,11 @@ class GameServicePhase3Test {
     @Test
     void tradeCarbonShouldIgnoreExpiredTimestampWhenWindowIsOpen() {
         ObjectNode state = baseState();
+        long expiredTimestamp = System.currentTimeMillis() - 1000L;
         state.with("carbonTrade").put("windowOpened", true);
         state.with("carbonTrade").put("lastWindowTurn", 2);
         state.with("carbonTrade").put("lastPrice", 2.0D);
-        state.with("carbonTrade").put("windowExpiresAt", System.currentTimeMillis() - 1000L);
+        state.with("carbonTrade").put("windowExpiresAt", expiredTimestamp);
 
         GameSessionEntity session = activeSession(state);
         when(gameSessionMapper.selectById(eq(sessionId))).thenReturn(session);
@@ -1377,8 +1380,8 @@ class GameServicePhase3Test {
 
         GameActionResponse response = gameService.performAction(request);
         ObjectNode trade = ((ObjectNode) response.getNewPondState()).with("carbonTrade");
-        assertTrue(!trade.path("windowOpened").asBoolean());
-        assertEquals(0L, trade.path("windowExpiresAt").asLong());
+        assertTrue(trade.path("windowOpened").asBoolean());
+        assertEquals(expiredTimestamp, trade.path("windowExpiresAt").asLong());
         assertTrue(trade.withArray("history").size() >= 1);
         assertEquals("buy", trade.withArray("history").get(0).path("action").asText());
     }
@@ -1746,7 +1749,12 @@ class GameServicePhase3Test {
         state.with("metrics").put("carbon", 90);
         state.with("carbonTrade").put("profit", 130.0D);
         state.with("eventStats").put("negativeTriggered", 10);
-        state.with("eventStats").put("negativeResolved", 8);
+        state.with("eventStats").put("negativeResolved", 10);
+        state.withArray("policyUnlocked").add("card065").add("card066");
+        state.withArray("eventHistory").add(objectMapper.createObjectNode().put("eventType", "positive_science_breakthrough"));
+        state.withArray("comboHistory").add(objectMapper.createObjectNode()
+            .put("turn", 29)
+            .set("combos", objectMapper.createArrayNode().add("combo_a").add("combo_b")));
 
         ArrayNode placed = state.withArray("placedCore");
         for (int i = 1; i <= 60; i++) {
@@ -1765,7 +1773,7 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("innovation_technology", next.path("ending").path("endingId").asText());
+        assertEquals("ending_06_sci_tech_lowcarbon", next.path("ending").path("endingId").asText());
     }
 
     @Test
@@ -1796,7 +1804,7 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals("ending_14_pass", next.path("ending").path("endingId").asText());
     }
 
     @Test
@@ -1806,12 +1814,17 @@ class GameServicePhase3Test {
         state.put("eventCooldown", 2);
         state.with("metrics").put("green", 150);
         state.with("metrics").put("carbon", 65);
+        state.with("metrics").put("satisfaction", 90);
         state.with("carbonTrade").put("quota", 50);
         state.with("carbonTrade").put("profit", 150.0D);
         state.with("eventStats").put("negativeTriggered", 10);
-        state.with("eventStats").put("negativeResolved", 8);
+        state.with("eventStats").put("negativeResolved", 10);
+        state.with("eventStats").put("positiveEcologySinkTriggered", 1);
+        state.withArray("policyUnlocked").add("card063").add("card064");
 
         ArrayNode placed = state.withArray("placedCore");
+        placed.add("card025");
+        placed.add("card026");
         for (int i = 1; i <= 20; i++) {
             placed.add(String.format("eco%03d", i));
         }
@@ -1849,28 +1862,24 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("ecology_priority", next.path("ending").path("endingId").asText());
+        assertEquals("ending_07_ecology_livable", next.path("ending").path("endingId").asText());
     }
 
     @Test
-    void endTurnShouldReachDoughnutEndingWhenAllDocumentConditionsMet() {
+    void endTurnShouldReachPassEndingForLegacyDoughnutFixtureUnderCurrentRules() {
         ObjectNode state = baseState();
         state.put("turn", 30);
         state.put("eventCooldown", 2);
         state.with("resources").put("population", 125);
         state.with("metrics").put("satisfaction", 95);
         state.with("metrics").put("carbon", 75);
-        state.with("carbonTrade").put("profit", 150.0D);
-        state.with("eventStats").put("negativeTriggered", 0);
-        state.with("eventStats").put("negativeResolved", 0);
+        state.with("carbonTrade").put("profit", 350.0D);
+        state.with("eventStats").put("negativeTriggered", 4);
+        state.with("eventStats").put("negativeResolved", 4);
+        state.with("eventStats").put("positiveTriggered", 1);
         ArrayNode unlocked = state.withArray("policyUnlocked");
         unlocked.add("card061").add("card062").add("card063").add("card064");
         unlocked.add("card065").add("card066").add("card067").add("card068");
-
-        ArrayNode policyHistory = state.withArray("policyHistory");
-        policyHistory.add(objectMapper.createObjectNode().put("policyId", "card067"));
-        policyHistory.add(objectMapper.createObjectNode().put("policyId", "card068"));
-        policyHistory.add(objectMapper.createObjectNode().put("policyId", "card067"));
 
         ArrayNode placed = state.withArray("placedCore");
         for (int i = 1; i <= 12; i++) {
@@ -1885,18 +1894,18 @@ class GameServicePhase3Test {
         when(cardCatalogService.getRequiredCard(anyString())).thenAnswer(invocation -> {
             String cardId = invocation.getArgument(0);
             if (cardId.startsWith("eco")) {
-                return coreLateCard(cardId, "ecology");
+                return coreCard(cardId, "ecology");
             }
             if (cardId.startsWith("ind")) {
-                return coreLateCard(cardId, "industry");
+                return coreCard(cardId, "industry");
             }
             if (cardId.startsWith("sci")) {
-                return coreLateCard(cardId, "science");
+                return coreCard(cardId, "science");
             }
             if (cardId.startsWith("soc")) {
-                return coreLateCard(cardId, "society");
+                return coreCard(cardId, "society");
             }
-            return coreLateCard(cardId, "society");
+            return coreCard(cardId, "society");
         });
 
         GameSessionEntity session = activeSession(state);
@@ -1910,7 +1919,7 @@ class GameServicePhase3Test {
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
-        assertEquals("doughnut_city", next.path("ending").path("endingId").asText());
+        assertEquals("ending_14_pass", next.path("ending").path("endingId").asText());
     }
 
     @Test
@@ -1932,7 +1941,7 @@ class GameServicePhase3Test {
         GameActionResponse response = gameService.performAction(request);
         ObjectNode next = (ObjectNode) response.getNewPondState();
 
-        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals("ending_16_emission_out_of_control", next.path("ending").path("endingId").asText());
         assertEquals(0, next.withArray("handCore").size());
         assertEquals(0, next.withArray("handPolicy").size());
         assertEquals(30, next.path("turn").asInt());
@@ -1963,7 +1972,7 @@ class GameServicePhase3Test {
 
         assertTrue(Boolean.TRUE.equals(response.getSessionEnded()));
         assertTrue(next.path("sessionEnded").asBoolean());
-        assertEquals("failure", next.path("ending").path("endingId").asText());
+        assertEquals("ending_16_emission_out_of_control", next.path("ending").path("endingId").asText());
         assertEquals(12, next.path("turn").asInt());
         assertEquals(0, next.withArray("handCore").size());
     }
@@ -2296,6 +2305,56 @@ class GameServicePhase3Test {
             "配额耗尽记录达到4次且碳交易盈利为负。",
             "终局时低碳总分低于120。",
             "已达到终局边界但未满足任一正向结局条件。"
+        ));
+        map.put("ending_06_sci_tech_lowcarbon", new GameRuleConfigService.EndingContentConfig(
+            "ending_06_sci_tech_lowcarbon",
+            "Innovation Technology",
+            "endings/innovation-technology.jpg",
+            "Technology becomes the core driver of low-carbon urban transformation.",
+            "",
+            "",
+            "",
+            ""
+        ));
+        map.put("ending_07_ecology_livable", new GameRuleConfigService.EndingContentConfig(
+            "ending_07_ecology_livable",
+            "Ecology Priority",
+            "endings/ecology-priority.jpg",
+            "Ecology and carbon sink capacity reach a strong balanced state.",
+            "",
+            "",
+            "",
+            ""
+        ));
+        map.put("ending_10_balanced_steady", new GameRuleConfigService.EndingContentConfig(
+            "ending_10_balanced_steady",
+            "Doughnut City",
+            "endings/doughnut-city.jpg",
+            "Society, ecology, and low-carbon goals reach a balanced doughnut state.",
+            "",
+            "",
+            "",
+            ""
+        ));
+        map.put("ending_14_pass", new GameRuleConfigService.EndingContentConfig(
+            "ending_14_pass",
+            "Pass",
+            "endings/pass.jpg",
+            "The planning run meets the baseline completion requirements.",
+            "",
+            "",
+            "",
+            ""
+        ));
+        map.put("ending_16_emission_out_of_control", new GameRuleConfigService.EndingContentConfig(
+            "ending_16_emission_out_of_control",
+            "失败结局",
+            "endings/emission-out-of-control.jpg",
+            "Emissions stay out of control and the planning outcome fails.",
+            "Carbon remains above the safety line for too long.",
+            "",
+            "",
+            ""
         ));
         return map;
     }

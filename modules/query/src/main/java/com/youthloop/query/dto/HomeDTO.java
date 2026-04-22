@@ -7,20 +7,22 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 首页聚合 DTO
- * 包含：轮播配置 + 最新内容 + 最新活动
+ * Homepage aggregate DTO.
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "首页聚合数据")
+@Schema(description = "Homepage aggregate data")
 public class HomeDTO {
-    
-    @Schema(description = "轮播/运营位列表")
+
+    @Schema(description = "Homepage banners")
     private List<HomeBannerDTO> banners;
-    
-    @Schema(description = "最新内容列表（前 10 条）")
+
+    @Schema(description = "Latest content list")
     private List<ContentListItemDTO> latestContents;
-    
-    @Schema(description = "最新活动列表（前 5 条）")
+
+    @Schema(description = "Latest activity list")
     private List<ActivityListItemDTO> latestActivities;
+
+    @Schema(description = "Official national carbon market snapshot")
+    private CarbonMarketSnapshotDTO marketSnapshot;
 }

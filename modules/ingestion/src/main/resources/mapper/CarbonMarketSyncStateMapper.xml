@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.CarbonMarketSyncStateMapper">
+
+  <update id="markSuccess" parameterType="com.youthloop.ingestion.persistence.entity.CarbonMarketSyncStateEntity">
+    UPDATE social.carbon_market_sync_state
+    SET
+      last_success_at = #{lastSuccessAt, jdbcType=TIMESTAMP_WITH_TIMEZONE},
+      last_trade_date = #{lastTradeDate, jdbcType=DATE},
+      last_quote_time = #{lastQuoteTime, jdbcType=TIME},
+      last_error = NULL,
+      updated_at = #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+    WHERE id = #{id}
+  </update>
+
+  <update id="markFailure" parameterType="com.youthloop.ingestion.persistence.entity.CarbonMarketSyncStateEntity">
+    UPDATE social.carbon_market_sync_state
+    SET
+      last_error = #{lastError, jdbcType=VARCHAR},
+      updated_at = #{updatedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+    WHERE id = #{id}
+  </update>
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.CarbonMarketDailyKlineMapper">
+
+  <insert id="upsertBatch">
+    INSERT INTO social.carbon_market_daily_kline (
+      trade_date,
+      open_price,
+      close_price,
+      low_price,
+      high_price,
+      volume_tons,
+      synced_at
+    ) VALUES
+    <foreach collection="items" item="item" separator=",">
+      (
+        #{item.tradeDate, jdbcType=DATE},
+        #{item.openPrice, jdbcType=NUMERIC},
+        #{item.closePrice, jdbcType=NUMERIC},
+        #{item.lowPrice, jdbcType=NUMERIC},
+        #{item.highPrice, jdbcType=NUMERIC},
+        #{item.volumeTons, jdbcType=BIGINT},
+        #{item.syncedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+      )
+    </foreach>
+    ON CONFLICT (trade_date) DO UPDATE
+    SET
+      open_price = EXCLUDED.open_price,
+      close_price = EXCLUDED.close_price,
+      low_price = EXCLUDED.low_price,
+      high_price = EXCLUDED.high_price,
+      volume_tons = EXCLUDED.volume_tons,
+      synced_at = EXCLUDED.synced_at
+  </insert>
+</mapper>

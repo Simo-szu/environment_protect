@@ -16,6 +16,8 @@ public interface QueryFacade {
      * 查询首页聚合数据
      */
     HomeDTO getHomeData();
+
+    CarbonMarketSnapshotDTO getCarbonMarketSnapshot();
     
     /**
      * 查询内容列表（含统计和用户状态）

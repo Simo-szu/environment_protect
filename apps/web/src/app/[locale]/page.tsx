@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { ArrowRight, BarChart3, BookOpen, Factory, Newspaper, Scale } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
-import { contentApi } from '@/lib/api';
+import { contentApi, homeApi } from '@/lib/api';
 import type { ContentItem } from '@/lib/api/content';
+import type { CarbonMarketSnapshot, CarbonMarketTrendPoint } from '@/lib/api/home';
 import { ApiError } from '@/lib/api-types';
 import { formatShortDate } from '@/lib/date-utils';
 
@@ -23,17 +24,12 @@ export default function HomePage() {
     const [policyItems, setPolicyItems] = useState<ContentItem[]>([]);
     const [wikiItems, setWikiItems] = useState<ContentItem[]>([]);
     const [contentLoading, setContentLoading] = useState(false);
+    const [marketSnapshot, setMarketSnapshot] = useState<CarbonMarketSnapshot | null>(null);
 
     const [companyAEmission, setCompanyAEmission] = useState(140);
     const [companyAQuota, setCompanyAQuota] = useState(100);
     const [companyBEmission, setCompanyBEmission] = useState(70);
     const [companyBQuota, setCompanyBQuota] = useState(100);
-    const [marketData, setMarketData] = useState([
-        { key: 'price', labelZh: '全国碳价', labelEn: 'Carbon Price', value: 71.2, unit: isZh ? '元/吨' : 'CNY/t', precision: 2, min: 58, max: 95, delta: 0.32 },
-        { key: 'volume', labelZh: '今日成交量', labelEn: 'Daily Volume', value: 48.6, unit: isZh ? '万吨' : '10k tons', precision: 1, min: 12, max: 95, delta: -0.4 },
-        { key: 'turnover', labelZh: '累计成交额', labelEn: 'Total Turnover', value: 391.4, unit: isZh ? '亿元' : '100M CNY', precision: 1, min: 200, max: 520, delta: 0.8 }
-    ]);
-    const [lastMarketUpdate, setLastMarketUpdate] = useState<Date | null>(null);
 
     const tradeDemand = Math.max(0, companyAEmission - companyAQuota);
     const tradeSupply = Math.max(0, companyBQuota - companyBEmission);
@@ -53,7 +49,9 @@ export default function HomePage() {
     }
 
     useEffect(() => {
-        const loadHomeContents = async () => {
+        let cancelled = false;
+
+        const loadContentData = async () => {
             try {
                 setContentLoading(true);
                 const [dataNewsPage, newsPage, casesPage, policiesPage, wikiPage] = await Promise.all([
@@ -64,47 +62,111 @@ export default function HomePage() {
                     contentApi.getContents({ type: 'WIKI', size: 3, sort: 'latest' })
                 ]);
 
-                setDataNews(dataNewsPage.items);
-                setNewsItems(newsPage.items);
-                setCaseItems(casesPage.items);
-                setPolicyItems(policiesPage.items);
-                setWikiItems(wikiPage.items);
+                if (!cancelled) {
+                    setDataNews(dataNewsPage.items);
+                    setNewsItems(newsPage.items);
+                    setCaseItems(casesPage.items);
+                    setPolicyItems(policiesPage.items);
+                    setWikiItems(wikiPage.items);
+                }
             } catch (error) {
                 if (!isBackendUnavailableError(error)) {
                     console.error('Failed to load homepage content:', error);
                 } else {
-                    console.warn(isZh ? '首页内容服务暂不可用，已使用空内容兜底。' : 'Homepage content service is temporarily unavailable. Using empty fallback.');
+                    console.warn(
+                        isZh
+                            ? '首页内容服务暂不可用，已使用空内容兜底。'
+                            : 'Homepage content service is temporarily unavailable. Using empty fallback.'
+                    );
                 }
             } finally {
-                setContentLoading(false);
+                if (!cancelled) {
+                    setContentLoading(false);
+                }
             }
         };
 
-        loadHomeContents();
-    }, []);
+        const loadMarketSnapshot = async () => {
+            try {
+                const snapshot = await homeApi.getCarbonMarketSnapshot();
+                if (!cancelled) {
+                    setMarketSnapshot(snapshot);
+                }
+            } catch (error) {
+                if (!isBackendUnavailableError(error)) {
+                    console.error('Failed to load carbon market snapshot:', error);
+                }
+            }
+        };
 
-    useEffect(() => {
-        setLastMarketUpdate(new Date());
+        loadContentData();
+        loadMarketSnapshot();
+
         const timer = window.setInterval(() => {
-            setMarketData((prev) =>
-                prev.map((item) => {
-                    const drift = (Math.random() - 0.5) * (item.key === 'price' ? 1.2 : item.key === 'volume' ? 4.5 : 6);
-                    const nextValue = Math.min(item.max, Math.max(item.min, item.value + drift));
-                    return {
-                        ...item,
-                        value: Number(nextValue.toFixed(item.precision)),
-                        delta: Number(drift.toFixed(2))
-                    };
-                })
-            );
-            setLastMarketUpdate(new Date());
-        }, 4500);
+            loadMarketSnapshot();
+        }, 60000);
 
-        return () => window.clearInterval(timer);
-    }, []);
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+        };
+    }, [isZh]);
 
     const dateLocale = locale === 'zh' ? 'zh-CN' : 'en-US';
-
+    const tradeDateText = marketSnapshot?.tradeDate
+        ? new Date(`${marketSnapshot.tradeDate}T00:00:00`).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-CA')
+        : null;
+    const quoteTimeText = marketSnapshot?.quoteTime ? String(marketSnapshot.quoteTime).slice(0, 5) : null;
+    const syncedAtText = marketSnapshot?.syncedAt
+        ? new Date(marketSnapshot.syncedAt).toLocaleString(locale === 'zh' ? 'zh-CN' : 'en-US', { hour12: false })
+        : null;
+    const isTrading = marketSnapshot?.marketStatus === 'TRADING';
+    const syncedAtDate = marketSnapshot?.syncedAt ? new Date(marketSnapshot.syncedAt) : null;
+    const isFreshSnapshot = syncedAtDate && Number.isFinite(syncedAtDate.getTime())
+        ? Math.abs(Date.now() - syncedAtDate.getTime()) <= 3 * 60 * 1000
+        : false;
+    const isLiveSnapshot = isTrading;
+    const marketCardTitle = isZh
+        ? (isLiveSnapshot ? '全国碳市场实时行情' : '全国碳市场最新快照')
+        : (isLiveSnapshot ? 'National Carbon Market Live Snapshot' : 'National Carbon Market Latest Snapshot');
+    const marketCardMetaText = tradeDateText
+        ? `${isZh ? '最新报价 ' : 'Latest Quote '}${tradeDateText}${quoteTimeText ? ` ${quoteTimeText}` : ''}`
+        : (isZh ? '官方行情数据' : 'Official market data');
+    const marketSyncText = syncedAtText
+        ? `${isZh ? (isLiveSnapshot ? '实时同步至 ' : '最近同步 ') : (isLiveSnapshot ? 'Live synced ' : 'Last synced ')}${syncedAtText}`
+        : (isZh ? '等待同步' : 'Pending sync');
+    const liveMarketRows = marketSnapshot
+        ? [
+            {
+                key: 'lastPrice',
+                labelZh: '最新价',
+                labelEn: 'Latest Price',
+                value: formatPrice(marketSnapshot.closingPrice),
+                delta: marketSnapshot.closingChangePercent,
+            },
+            {
+                key: 'openPrice',
+                labelZh: '开盘价',
+                labelEn: 'Open Price',
+                value: formatPrice(marketSnapshot.openPrice),
+                delta: undefined,
+            },
+            {
+                key: 'highPrice',
+                labelZh: '最高价',
+                labelEn: 'High Price',
+                value: formatPrice(marketSnapshot.highPrice),
+                delta: undefined,
+            },
+            {
+                key: 'lowPrice',
+                labelZh: '最低价',
+                labelEn: 'Low Price',
+                value: formatPrice(marketSnapshot.lowPrice),
+                delta: undefined,
+            },
+        ]
+        : [];
     return (
         <Layout>
             <AnimatedSection
@@ -134,7 +196,7 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 items-center gap-5 min-[980px]:grid-cols-[minmax(0,520px)_1fr_minmax(0,520px)] min-[1280px]:grid-cols-[minmax(0,560px)_1fr_minmax(0,560px)]">
                             <div className="min-[980px]:max-w-[520px] min-[980px]:justify-self-start min-[1280px]:max-w-[560px]">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d7efe5]/95">
-                                    {isZh ? 'AWARD-WINNING DESIGN' : 'AWARD-WINNING DESIGN'}
+                                    AWARD-WINNING DESIGN
                                 </p>
                                 <h1 className="mt-3 text-4xl font-semibold uppercase tracking-[0.08em] text-[#f4fbff] [text-shadow:0_2px_14px_rgba(2,6,23,0.72)] min-[980px]:text-6xl min-[1280px]:text-7xl">
                                     YOUTHLOOP
@@ -143,7 +205,9 @@ export default function HomePage() {
                                     {isZh ? '碳交易与碳中和资讯平台' : 'Carbon Trading & Neutrality Information Hub'}
                                 </h2>
                                 <p className="mt-5 max-w-[48ch] text-sm leading-relaxed text-[#d3e8df] min-[980px]:text-[1.08rem]">
-                                    {isZh ? '连接碳市场数据、政策解读与低碳行动，帮助青年用户理解并参与碳交易生态。' : 'Connecting market data, policy interpretation, and low-carbon actions for young users.'}
+                                    {isZh
+                                        ? '连接碳市场数据、政策解读与低碳行动，帮助青年用户理解并参与碳交易生态。'
+                                        : 'Connecting market data, policy interpretation, and low-carbon actions for young users.'}
                                 </p>
                                 <div className="mt-5 flex flex-wrap gap-3">
                                     <Link
@@ -170,55 +234,59 @@ export default function HomePage() {
                             <div className="space-y-4 min-[980px]:max-w-[520px] min-[980px]:justify-self-end min-[1280px]:max-w-[560px]">
                                 <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-[linear-gradient(180deg,rgba(10,28,36,0.56),rgba(10,28,36,0.42))] p-5 shadow-[0_24px_65px_-35px_rgba(2,6,23,0.75)] backdrop-blur-[8px]">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#cfe4f3]">
-                                            {isZh ? '碳交易市场数据' : 'Carbon Market Snapshot'}
-                                        </p>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#cfe4f3]">{marketCardTitle}</p>
                                         <span className="text-[11px] text-[#b9d3e7]">
-                                            {lastMarketUpdate
-                                                ? `${isZh ? '更新于 ' : 'Updated '}${lastMarketUpdate.toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US', { hour12: false })}`
-                                                : '\u00A0'}
+                                            {marketCardMetaText}
                                         </span>
                                     </div>
                                     <div className="overflow-hidden rounded-2xl border border-white/12">
                                         <table className="w-full text-left text-sm text-[#e8f1f8]">
                                             <tbody>
-                                                {marketData.map((row) => (
+                                                {liveMarketRows.map((row) => (
                                                     <tr key={row.key} className="border-b border-white/10 last:border-b-0">
                                                         <td className="px-3 py-3 text-[#d6e7f4]">{isZh ? row.labelZh : row.labelEn}</td>
-                                                        <td className="px-3 py-3 text-right font-semibold">
-                                                            {row.value.toFixed(row.precision)} {row.unit}
-                                                        </td>
+                                                        <td className="px-3 py-3 text-right font-semibold">{row.value}</td>
                                                         <td
-                                                            className={`px-3 py-3 text-right text-xs font-semibold ${row.delta >= 0 ? 'text-[#7de2a0]' : 'text-[#ffb3b3]'
-                                                                }`}
+                                                            className={`px-3 py-3 text-right text-xs font-semibold ${
+                                                                typeof row.delta === 'number'
+                                                                    ? row.delta >= 0 ? 'text-[#7de2a0]' : 'text-[#ffb3b3]'
+                                                                    : 'text-[#8db9a7]'
+                                                            }`}
                                                         >
-                                                            {row.delta >= 0 ? '+' : ''}
-                                                            {row.delta}
+                                                            {typeof row.delta === 'number'
+                                                                ? `${row.delta >= 0 ? '+' : ''}${row.delta.toFixed(2)}%`
+                                                                : '\u00A0'}
                                                         </td>
                                                     </tr>
                                                 ))}
+                                                {liveMarketRows.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={3} className="px-3 py-4 text-center text-[#d6e7f4]">
+                                                            {isZh ? '官方行情数据暂不可用' : 'Official market data is temporarily unavailable'}
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-
-                                <div className="relative overflow-hidden rounded-3xl border border-white/16 bg-[linear-gradient(180deg,rgba(10,28,36,0.48),rgba(10,28,36,0.34))] p-5 backdrop-blur-[8px]">
-                                    <p className="text-sm text-[#d3e9de]">{isZh ? '市场状态' : 'Market Status'}</p>
-                                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                                        <div>
-                                            <p className="text-2xl font-semibold text-[#f3fbf7]">5+</p>
-                                            <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '交易板块' : 'Sectors'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-2xl font-semibold text-[#f3fbf7]">24/7</p>
-                                            <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '监测' : 'Monitoring'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-2xl font-semibold text-[#f3fbf7]">100%</p>
-                                            <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '实时' : 'Realtime'}</p>
-                                        </div>
+                                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#b9d3e7]">
+                                        <span>
+                                            {marketSyncText}
+                                        </span>
+                                        {marketSnapshot?.sourceUrl && (
+                                            <a
+                                                href={marketSnapshot.sourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="underline decoration-white/30 underline-offset-4 hover:text-white"
+                                            >
+                                                {isZh ? '查看官方来源' : 'View source'}
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
+
+                                <TrendPanel snapshot={marketSnapshot} isZh={isZh} />
                             </div>
                         </div>
                     </div>
@@ -306,7 +374,7 @@ export default function HomePage() {
                             </div>
                             <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
                                 {isZh
-                                    ? `当前可成交配额：${tradedQuota}。当供给小于需求时，价格会上升。`
+                                    ? `当前可成交配额：${tradedQuota}。当供给小于需求时，价格会升高。`
                                     : `Tradable volume: ${tradedQuota}. Price rises when supply is below demand.`}
                             </p>
                         </section>
@@ -371,6 +439,220 @@ export default function HomePage() {
     );
 }
 
+function TrendPanel({
+    snapshot,
+    isZh,
+}: {
+    snapshot: CarbonMarketSnapshot | null;
+    isZh: boolean;
+}) {
+    const trendPoints = snapshot?.trendPoints || [];
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const chartData = buildTrendSeries(trendPoints);
+    const latestPrice = trendPoints.length > 0 ? trendPoints[trendPoints.length - 1]?.closingPrice : snapshot?.closingPrice;
+    const minPrice = trendPoints.length > 0 ? Math.min(...trendPoints.map((point) => point.closingPrice)) : null;
+    const maxPrice = trendPoints.length > 0 ? Math.max(...trendPoints.map((point) => point.closingPrice)) : null;
+    const hoveredPoint = hoveredIndex !== null ? chartData?.points[hoveredIndex] : null;
+    const tooltipStyle = hoveredPoint
+        ? {
+            left: hoveredPoint.x > 220 ? `${((hoveredPoint.x - 12) / 320) * 100}%` : `${((hoveredPoint.x + 12) / 320) * 100}%`,
+            top: hoveredPoint.y < 42 ? `${((hoveredPoint.y + 18) / 120) * 100}%` : `${((hoveredPoint.y - 10) / 120) * 100}%`,
+            transform: hoveredPoint.x > 220
+                ? (hoveredPoint.y < 42 ? 'translate(-100%, 0%)' : 'translate(-100%, -100%)')
+                : (hoveredPoint.y < 42 ? 'translate(0%, 0%)' : 'translate(0%, -100%)'),
+        }
+        : null;
+
+    return (
+        <div className="relative overflow-hidden rounded-3xl border border-white/16 bg-[linear-gradient(180deg,rgba(10,28,36,0.48),rgba(10,28,36,0.34))] p-5 backdrop-blur-[8px]">
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-[#d3e9de]">{isZh ? '量价走势' : 'Price Trend'}</p>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">
+                    {trendPoints.length > 0 ? (isZh ? `近 ${trendPoints.length} 个交易日` : `Last ${trendPoints.length} Sessions`) : '--'}
+                </span>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                {chartData ? (
+                    <div className="relative">
+                        <svg
+                            viewBox="0 0 320 120"
+                            className="h-32 w-full"
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        >
+                            <defs>
+                                <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="rgba(125,226,160,0.55)" />
+                                    <stop offset="100%" stopColor="rgba(125,226,160,0.02)" />
+                                </linearGradient>
+                            </defs>
+                            <path d={chartData.areaPath} fill="url(#trendFill)" />
+                            <path d={chartData.path} fill="none" stroke="#7de2a0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            {chartData.points.map((point, index) => (
+                                <g key={point.tradeDate}>
+                                    <circle
+                                        cx={point.x}
+                                        cy={point.y}
+                                        r="10"
+                                        fill="transparent"
+                                        className="cursor-pointer"
+                                        onMouseEnter={() => setHoveredIndex(index)}
+                                    />
+                                    <circle
+                                        cx={point.x}
+                                        cy={point.y}
+                                        r={hoveredIndex === index ? 4.5 : 2.8}
+                                        fill="#d7ffe4"
+                                        opacity={hoveredIndex === index ? '1' : '0.82'}
+                                        className="pointer-events-none"
+                                    />
+                                </g>
+                            ))}
+                        </svg>
+                        {hoveredPoint && (
+                            <div
+                                className="pointer-events-none absolute z-10 min-w-[160px] rounded-xl border border-white/15 bg-[#0e2530]/92 px-3 py-2 text-xs text-[#e8f1f8] shadow-[0_16px_40px_-24px_rgba(0,0,0,0.75)]"
+                                style={tooltipStyle || undefined}
+                            >
+                                <p className="font-semibold text-white">
+                                    {formatTrendTradeDate(hoveredPoint.tradeDate, isZh)}
+                                </p>
+                                <p className="mt-1">
+                                    {isZh ? '收盘价' : 'Close'}: {hoveredPoint.closingPrice.toFixed(2)} CNY/t
+                                </p>
+                                <p>
+                                    {isZh ? '区间低点' : 'Low'}: {typeof hoveredPoint.lowPrice === 'number' ? hoveredPoint.lowPrice.toFixed(2) : '--'}
+                                </p>
+                                <p>
+                                    {isZh ? '区间高点' : 'High'}: {typeof hoveredPoint.highPrice === 'number' ? hoveredPoint.highPrice.toFixed(2) : '--'}
+                                </p>
+                                <p>
+                                    {isZh ? '成交量' : 'Volume'}: {formatTrendVolume(hoveredPoint.volume, isZh)}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex h-32 items-center justify-center text-sm text-[#d6e7f4]">
+                        {isZh ? '走势数据暂不可用' : 'Trend data is temporarily unavailable'}
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div>
+                    <p className="text-2xl font-semibold text-[#f3fbf7]">
+                        {typeof latestPrice === 'number' ? latestPrice.toFixed(2) : '--'}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '最新收盘价' : 'Latest Close'}</p>
+                </div>
+                <div>
+                    <p className="text-2xl font-semibold text-[#f3fbf7]">
+                        {typeof minPrice === 'number' ? minPrice.toFixed(2) : '--'}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '区间最低' : 'Range Low'}</p>
+                </div>
+                <div>
+                    <p className="text-2xl font-semibold text-[#f3fbf7]">
+                        {typeof maxPrice === 'number' ? maxPrice.toFixed(2) : '--'}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-[#b8d9ca]">{isZh ? '区间最高' : 'Range High'}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function buildTrendSeries(points: CarbonMarketTrendPoint[]): {
+    path: string;
+    areaPath: string;
+    points: Array<CarbonMarketTrendPoint & { x: number; y: number }>;
+} | null {
+    if (points.length < 2) {
+        return null;
+    }
+
+    const width = 280;
+    const height = 80;
+    const left = 20;
+    const top = 20;
+    const prices = points.map((point) => point.closingPrice);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const range = maxPrice - minPrice || 1;
+
+    const coordinates = points.map((point, index) => {
+        const x = left + (width * index) / Math.max(points.length - 1, 1);
+        const y = top + height - ((point.closingPrice - minPrice) / range) * height;
+        return {
+            ...point,
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
+        };
+    });
+
+    const path = coordinates.map((point, index) => {
+        return `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+    }).join(' ');
+
+    return {
+        path,
+        areaPath: `${path} L ${(left + width).toFixed(2)} ${(top + height).toFixed(2)} L ${left.toFixed(2)} ${(top + height).toFixed(2)} Z`,
+        points: coordinates,
+    };
+}
+
+function formatTrendTradeDate(value: string, isZh: boolean): string {
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+    return parsed.toLocaleDateString(isZh ? 'zh-CN' : 'en-CA');
+}
+
+function formatTrendVolume(value?: number, isZh?: boolean): string {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+        return '--';
+    }
+
+    if (isZh) {
+        if (value >= 100000000) {
+            return `${(value / 100000000).toFixed(2)}亿吨`;
+        }
+        if (value >= 10000) {
+            return `${(value / 10000).toFixed(2)}万吨`;
+        }
+        return `${value.toLocaleString('zh-CN')}吨`;
+    }
+
+    return `${value.toLocaleString('en-US')} tons`;
+}
+
+function formatPrice(value?: number): string {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+        return '-- CNY/t';
+    }
+    return `${value.toFixed(2)} CNY/t`;
+}
+
+function formatCurrency(value?: number, isZh?: boolean): string {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+        return isZh ? '-- 元' : '-- CNY';
+    }
+    return new Intl.NumberFormat(isZh ? 'zh-CN' : 'en-US', {
+        maximumFractionDigits: 2,
+    }).format(value) + (isZh ? ' 元' : ' CNY');
+}
+
+function formatTonnage(value?: number, isZh?: boolean): string {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+        return isZh ? '-- 吨' : '-- tons';
+    }
+    return new Intl.NumberFormat(isZh ? 'zh-CN' : 'en-US', {
+        maximumFractionDigits: 0,
+    }).format(value) + (isZh ? ' 吨' : ' tons');
+}
+
 function ContentPreviewSection({
     id,
     icon,
@@ -389,7 +671,7 @@ function ContentPreviewSection({
     tagLabel,
 }: {
     id?: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     badge: string;
     title: string;
     subtitle: string;
@@ -410,6 +692,7 @@ function ContentPreviewSection({
         const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
         return bTime - aTime;
     });
+
     return (
         <section id={id} className="rounded-[2rem] border border-white/20 bg-transparent p-6 shadow-none md:p-8">
             <header className="mb-8 text-center">
@@ -434,9 +717,9 @@ function ContentPreviewSection({
                         </div>
                         <div className="mt-2 flex flex-1 flex-col">
                             <h3 className="line-clamp-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
-                        <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-                            {item.summary || (isZh ? '点击查看详情。' : 'Open to read details.')}
-                        </p>
+                            <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
+                                {item.summary || (isZh ? '点击查看详情。' : 'Open to read details.')}
+                            </p>
                         </div>
                         <div className="mt-4 flex items-center justify-between pt-2">
                             <span className="text-xs text-slate-500 dark:text-slate-400">

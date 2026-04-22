@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.youthloop.query.mapper.CarbonMarketQueryMapper">
+
+  <select id="selectLatestRealtimeSnapshot" resultType="map">
+    SELECT
+      trade_date,
+      quote_time,
+      last_price,
+      change_percent,
+      open_price,
+      high_price,
+      low_price,
+      previous_close_price,
+      daily_volume_tons,
+      daily_turnover_cny,
+      cumulative_volume_tons,
+      cumulative_turnover_cny,
+      daily_volume_text,
+      daily_turnover_text,
+      cumulative_volume_text,
+      cumulative_turnover_text,
+      synced_at
+    FROM social.carbon_market_realtime_snapshot
+    ORDER BY trade_date DESC, quote_time DESC
+    LIMIT 1
+  </select>
+
+  <select id="selectLatestDailyKlines" resultType="map">
+    SELECT
+      trade_date,
+      open_price,
+      close_price,
+      low_price,
+      high_price,
+      volume_tons
+    FROM social.carbon_market_daily_kline
+    ORDER BY trade_date DESC
+    LIMIT #{limit}
+  </select>
+
+</mapper>

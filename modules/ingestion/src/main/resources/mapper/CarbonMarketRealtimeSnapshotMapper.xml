@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youthloop.ingestion.persistence.mapper.CarbonMarketRealtimeSnapshotMapper">
+
+  <insert id="upsert" parameterType="com.youthloop.ingestion.persistence.entity.CarbonMarketRealtimeSnapshotEntity">
+    INSERT INTO social.carbon_market_realtime_snapshot (
+      id,
+      trade_date,
+      quote_time,
+      last_price,
+      change_percent,
+      open_price,
+      high_price,
+      low_price,
+      previous_close_price,
+      daily_volume_tons,
+      daily_turnover_cny,
+      cumulative_volume_tons,
+      cumulative_turnover_cny,
+      daily_volume_text,
+      daily_turnover_text,
+      cumulative_volume_text,
+      cumulative_turnover_text,
+      source_curr_date,
+      source_curr_time,
+      synced_at
+    ) VALUES (
+      #{id, jdbcType=OTHER, typeHandler=com.youthloop.common.persistence.UuidTypeHandler},
+      #{tradeDate, jdbcType=DATE},
+      #{quoteTime, jdbcType=TIME},
+      #{lastPrice, jdbcType=NUMERIC},
+      #{changePercent, jdbcType=NUMERIC},
+      #{openPrice, jdbcType=NUMERIC},
+      #{highPrice, jdbcType=NUMERIC},
+      #{lowPrice, jdbcType=NUMERIC},
+      #{previousClosePrice, jdbcType=NUMERIC},
+      #{dailyVolumeTons, jdbcType=BIGINT},
+      #{dailyTurnoverCny, jdbcType=NUMERIC},
+      #{cumulativeVolumeTons, jdbcType=BIGINT},
+      #{cumulativeTurnoverCny, jdbcType=NUMERIC},
+      #{dailyVolumeText, jdbcType=VARCHAR},
+      #{dailyTurnoverText, jdbcType=VARCHAR},
+      #{cumulativeVolumeText, jdbcType=VARCHAR},
+      #{cumulativeTurnoverText, jdbcType=VARCHAR},
+      #{sourceCurrDate, jdbcType=VARCHAR},
+      #{sourceCurrTime, jdbcType=VARCHAR},
+      #{syncedAt, jdbcType=TIMESTAMP_WITH_TIMEZONE}
+    )
+    ON CONFLICT (trade_date, quote_time) DO UPDATE
+    SET
+      last_price = EXCLUDED.last_price,
+      change_percent = EXCLUDED.change_percent,
+      open_price = EXCLUDED.open_price,
+      high_price = EXCLUDED.high_price,
+      low_price = EXCLUDED.low_price,
+      previous_close_price = EXCLUDED.previous_close_price,
+      daily_volume_tons = EXCLUDED.daily_volume_tons,
+      daily_turnover_cny = EXCLUDED.daily_turnover_cny,
+      cumulative_volume_tons = EXCLUDED.cumulative_volume_tons,
+      cumulative_turnover_cny = EXCLUDED.cumulative_turnover_cny,
+      daily_volume_text = EXCLUDED.daily_volume_text,
+      daily_turnover_text = EXCLUDED.daily_turnover_text,
+      cumulative_volume_text = EXCLUDED.cumulative_volume_text,
+      cumulative_turnover_text = EXCLUDED.cumulative_turnover_text,
+      source_curr_date = EXCLUDED.source_curr_date,
+      source_curr_time = EXCLUDED.source_curr_time,
+      synced_at = EXCLUDED.synced_at
+  </insert>
+</mapper>

@@ -59,6 +59,7 @@ public class SecurityConfig {
                 
                 // 放行：所有 GET 读接口（Optional 场景）
                 .requestMatchers(HttpMethod.GET, "/api/v1/home/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/market/carbon/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/contents/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/activities/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search/**").permitAll()
