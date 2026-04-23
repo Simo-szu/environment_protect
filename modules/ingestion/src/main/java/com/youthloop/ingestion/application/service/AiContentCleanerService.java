@@ -61,6 +61,21 @@ public class AiContentCleanerService {
         5) Do not output markdown fences or explanations.
         """;
 
+    private static final String TARGETED_LOCALIZATION_SYSTEM_PROMPT = """
+        You are a bilingual editor for Chinese and English environmental science content.
+        Keep facts unchanged, never invent claims, links, numbers, names, or dates.
+        Return strict JSON only. If targetLocale is zh, return keys:
+        {"detectedLocale":"en","zhTitle":"...","zhSummary":"...","zhBodyHtml":"..."}
+        If targetLocale is en, return keys:
+        {"detectedLocale":"zh","enTitle":"...","enSummary":"...","enBodyHtml":"..."}
+        Rules:
+        1) Translate only into the requested targetLocale.
+        2) Preserve factual meaning and numeric values.
+        3) Keep body HTML readable and valid (<p>, <h2>, <h3>, <ul>, <ol>, <li>, <blockquote>, <a>, <img>, <strong>, <em>).
+        4) Keep summary concise (1-2 sentences), ideally <= 220 chars.
+        5) Do not output markdown fences or explanations.
+        """;
+
     private final ObjectMapper objectMapper;
     private final HtmlSanitizerService htmlSanitizerService;
 
@@ -81,6 +96,9 @@ public class AiContentCleanerService {
 
     @Value("${ingestion.ai-cleaner.read-timeout-ms:20000}")
     private int readTimeoutMs;
+
+    @Value("${ingestion.ai-cleaner.localization-read-timeout-ms:60000}")
+    private int localizationReadTimeoutMs;
 
     @Value("${ingestion.ai-cleaner.max-input-body-chars:14000}")
     private int maxInputBodyChars;
@@ -134,9 +152,10 @@ public class AiContentCleanerService {
 
         try {
             String responseBody = callAi(
-                LOCALIZATION_SYSTEM_PROMPT,
-                buildLocalizationPrompt(localized),
-                5200
+                TARGETED_LOCALIZATION_SYSTEM_PROMPT,
+                buildTargetedLocalizationPrompt(localized),
+                8000,
+                localizationReadTimeoutMs
             );
             LocalizedContent content = parseLocalizedContent(responseBody);
             if (content == null) {
@@ -155,6 +174,15 @@ public class AiContentCleanerService {
     }
 
     private String callAi(String systemPrompt, String userPrompt, int maxTokens) throws IOException, InterruptedException {
+        return callAi(systemPrompt, userPrompt, maxTokens, readTimeoutMs);
+    }
+
+    private String callAi(
+        String systemPrompt,
+        String userPrompt,
+        int maxTokens,
+        int requestReadTimeoutMs
+    ) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(connectTimeoutMs))
             .build();
@@ -162,7 +190,7 @@ public class AiContentCleanerService {
 
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(apiUrl))
-            .timeout(Duration.ofMillis(readTimeoutMs))
+            .timeout(Duration.ofMillis(requestReadTimeoutMs))
             .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
@@ -230,6 +258,32 @@ public class AiContentCleanerService {
             sanitizePromptValue(article.getSourceKey()),
             sanitizePromptValue(article.getSourceUrl()),
             sanitizePromptValue(article.getOriginalLocale()),
+            sanitizePromptValue(article.getTitle()),
+            sanitizePromptValue(article.getSummary()),
+            body
+        );
+    }
+
+    private String buildTargetedLocalizationPrompt(ExternalArticle article) {
+        String body = article.getBody();
+        if (body.length() > maxInputBodyChars) {
+            body = body.substring(0, maxInputBodyChars);
+        }
+        String targetLocale = "zh".equals(article.getOriginalLocale()) ? "en" : "zh";
+        return """
+            sourceKey: %s
+            sourceUrl: %s
+            originalLocale: %s
+            targetLocale: %s
+            title: %s
+            summary: %s
+            bodyHtml:
+            %s
+            """.formatted(
+            sanitizePromptValue(article.getSourceKey()),
+            sanitizePromptValue(article.getSourceUrl()),
+            sanitizePromptValue(article.getOriginalLocale()),
+            targetLocale,
             sanitizePromptValue(article.getTitle()),
             sanitizePromptValue(article.getSummary()),
             body

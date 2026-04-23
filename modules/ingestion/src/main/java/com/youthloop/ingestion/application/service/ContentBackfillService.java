@@ -110,7 +110,7 @@ public class ContentBackfillService {
             .localized(localized)
             .skipped(skipped)
             .failed(failed)
-            .nextOffset(offset + scanned)
+            .nextOffset(onlyWithoutLocalization ? offset : offset + scanned)
             .build();
     }
 

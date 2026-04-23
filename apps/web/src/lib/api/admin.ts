@@ -885,6 +885,32 @@ export async function triggerAdminIngestion(): Promise<AdminDailyIngestionSummar
   return apiPost<AdminDailyIngestionSummary>('/api/v1/admin/contents/ingestion/trigger', {});
 }
 
+export interface AdminBackfillContentRequest {
+  offset?: number;
+  limit?: number;
+  status?: number;
+  sourceType?: number;
+  onlyWithoutLocalization?: boolean;
+}
+
+export interface AdminBackfillContentSummary {
+  startedAt: string;
+  finishedAt: string;
+  totalCandidates: number;
+  scanned: number;
+  updated: number;
+  localized: number;
+  skipped: number;
+  failed: number;
+  nextOffset: number;
+}
+
+export async function backfillAdminContents(
+  data: AdminBackfillContentRequest
+): Promise<AdminBackfillContentSummary> {
+  return apiPost<AdminBackfillContentSummary>('/api/v1/admin/contents/ingestion/backfill', data);
+}
+
 export interface AdminCarbonMarketManualSyncResult {
   requestedAt: string;
   finishedAt: string;

@@ -93,7 +93,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx384m} -Dhttps.proxyHost=host-gateway -Dhttps.proxyPort=10808 -Dhttp.proxyHost=host-gateway -Dhttp.proxyPort=10808 -Dhttp.nonProxyHosts=localhost|127.0.0.1|postgres|redis|rabbitmq
+      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx384m} -Dhttps.proxyHost=host-gateway -Dhttps.proxyPort=10808 -Dhttp.proxyHost=host-gateway -Dhttp.proxyPort=10808 -Dhttp.nonProxyHosts=localhost|127.0.0.1|postgres|redis|rabbitmq|www.cneeex.com|shyx.cneeex.com
     ports:
       - "127.0.0.1:8080:8080"
     networks:
@@ -149,7 +149,7 @@ services:
       STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
       STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL}
       STORAGE_S3_PATH_STYLE_ACCESS_ENABLED: ${STORAGE_S3_PATH_STYLE_ACCESS_ENABLED}
-      JAVA_OPTS: ${JAVA_OPTS:--Xms64m -Xmx192m} -Dhttps.proxyHost=host-gateway -Dhttps.proxyPort=10808 -Dhttp.proxyHost=host-gateway -Dhttp.proxyPort=10808 -Dhttp.nonProxyHosts=localhost|127.0.0.1|postgres|redis|rabbitmq
+      JAVA_OPTS: ${JAVA_OPTS:--Xms64m -Xmx192m} -Dhttps.proxyHost=host-gateway -Dhttps.proxyPort=10808 -Dhttp.proxyHost=host-gateway -Dhttp.proxyPort=10808 -Dhttp.nonProxyHosts=localhost|127.0.0.1|postgres|redis|rabbitmq|www.cneeex.com|shyx.cneeex.com
     networks:
       - youthloop
 

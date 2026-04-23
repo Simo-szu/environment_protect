@@ -101,5 +101,6 @@ ingestion:
     model: ${INGESTION_AI_CLEANER_MODEL:deepseek-chat}
     connect-timeout-ms: ${INGESTION_AI_CLEANER_CONNECT_TIMEOUT_MS:5000}
     read-timeout-ms: ${INGESTION_AI_CLEANER_READ_TIMEOUT_MS:20000}
+    localization-read-timeout-ms: ${INGESTION_AI_CLEANER_LOCALIZATION_READ_TIMEOUT_MS:60000}
     max-input-body-chars: ${INGESTION_AI_CLEANER_MAX_INPUT_BODY_CHARS:14000}
     max-summary-chars: ${INGESTION_AI_CLEANER_MAX_SUMMARY_CHARS:220}

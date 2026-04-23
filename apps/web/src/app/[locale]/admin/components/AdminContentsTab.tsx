@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { useSafeTranslation } from '@/hooks/useSafeTranslation';
 import type {
+    AdminBackfillContentSummary,
     AdminCarbonMarketManualSyncResult,
     AdminContentItem,
     AdminContentDetail,
@@ -61,10 +62,12 @@ export function AdminContentsTab() {
     const [editContent, setEditContent] = useState<ContentFormState>(defaultContentForm);
 
     const [ingestionSummary, setIngestionSummary] = useState<AdminDailyIngestionSummary | null>(null);
+    const [translationBackfillSummary, setTranslationBackfillSummary] = useState<AdminBackfillContentSummary | null>(null);
     const [carbonMarketSyncResult, setCarbonMarketSyncResult] = useState<AdminCarbonMarketManualSyncResult | null>(null);
     const [ingestionSettings, setIngestionSettings] = useState<IngestionSettingsFormState>(defaultIngestionSettingsForm);
     const [loadingContents, setLoadingContents] = useState(false);
     const [triggeringIngestion, setTriggeringIngestion] = useState(false);
+    const [triggeringTranslationBackfill, setTriggeringTranslationBackfill] = useState(false);
     const [triggeringCarbonMarketSync, setTriggeringCarbonMarketSync] = useState(false);
     const [loadingIngestionSettings, setLoadingIngestionSettings] = useState(false);
     const [savingIngestionSettings, setSavingIngestionSettings] = useState(false);
@@ -221,6 +224,28 @@ export function AdminContentsTab() {
         }
     };
 
+    const triggerTranslationBackfill = async () => {
+        const confirmed = window.confirm(t('contents.translationBackfillConfirm'));
+        if (!confirmed) return;
+
+        try {
+            setTriggeringTranslationBackfill(true);
+            const summary = await adminApi.backfillAdminContents({
+                offset: 0,
+                limit: 10,
+                status: 1,
+                sourceType: 2,
+                onlyWithoutLocalization: true,
+            });
+            setTranslationBackfillSummary(summary);
+            await loadContents();
+        } catch {
+            alert(t('contents.translationBackfillFailed'));
+        } finally {
+            setTriggeringTranslationBackfill(false);
+        }
+    };
+
     const triggerCarbonMarketSync = async () => {
         try {
             setTriggeringCarbonMarketSync(true);
@@ -256,6 +281,51 @@ export function AdminContentsTab() {
                             {t('contents.saveIngestionSettings')}
                         </button>
                     </div>
+                </div>
+
+                <div className="mb-8 rounded-[2rem] border border-blue-100 dark:border-blue-900/50 bg-blue-50/70 dark:bg-blue-950/20 p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                                {t('contents.translationBackfillControl')}
+                            </h4>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {t('contents.translationBackfillControlHelp')}
+                            </p>
+                        </div>
+                        <button
+                            onClick={triggerTranslationBackfill}
+                            disabled={triggeringTranslationBackfill}
+                            className="justify-center px-4 md:px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-2xl font-bold transition-all text-sm shadow-lg shadow-blue-900/10 disabled:opacity-60"
+                        >
+                            {triggeringTranslationBackfill
+                                ? t('contents.triggeringTranslationBackfill')
+                                : t('contents.triggerTranslationBackfill')}
+                        </button>
+                    </div>
+
+                    {translationBackfillSummary ? (
+                        <div className="mt-5 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+                            {[
+                                { label: t('contents.backfillTotalCandidates'), value: translationBackfillSummary.totalCandidates },
+                                { label: t('contents.backfillScanned'), value: translationBackfillSummary.scanned },
+                                { label: t('contents.backfillLocalized'), value: translationBackfillSummary.localized },
+                                { label: t('contents.backfillFailed'), value: translationBackfillSummary.failed },
+                            ].map((item) => (
+                                <div key={item.label} className="rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                                    <div className="text-xs font-bold uppercase tracking-wide text-slate-400">{item.label}</div>
+                                    <div className="mt-2 text-xl font-black text-slate-900 dark:text-slate-100">{item.value}</div>
+                                </div>
+                            ))}
+                            <div className="col-span-2 rounded-2xl border border-white/70 bg-white/80 p-4 text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400 md:col-span-4">
+                                {t('contents.translationBackfillResultHint', undefined, {
+                                    updated: translationBackfillSummary.updated,
+                                    skipped: translationBackfillSummary.skipped,
+                                    nextOffset: translationBackfillSummary.nextOffset,
+                                })}
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="mb-8 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-emerald-950/20 p-6">
